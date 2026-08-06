@@ -142,3 +142,7 @@ docs/nginx-vhost-reference.conf
 # El worker del edge se mantiene solo en local: se despliega con wrangler,
 # no forma parte del sitio, y su configuración lleva ids de cuenta y zona.
 edge-nonce-worker/
+
+# Informes de auditoría GEO: se regeneran ejecutando /geo-audit, nunca se
+# versionan (quedarían obsoletos y contradiciendo al sitio en vivo).
+GEO-AUDIT-REPORT.md
