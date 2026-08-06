@@ -109,7 +109,7 @@ ${server.description.en}
 - Endpoint: \`${server.endpoint}\` (POST only; GET answers 405)
 - Transport: streamable HTTP, stateless JSON-RPC 2.0
 - Repository: ${server.repo}
-- Documentation: ${server.docs}${auth}${headerBlock(server.requiredHeaders, "Required")}${headerBlock(server.optionalHeaders, "Optional")}
+- Documentation: ${server.docsSite ?? server.docs}${auth}${headerBlock(server.requiredHeaders, "Required")}${headerBlock(server.optionalHeaders, "Optional")}
 
 List its tools with:
 

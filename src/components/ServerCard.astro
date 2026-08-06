@@ -85,7 +85,7 @@ const needsAuth = server.requiredHeaders.length > 0;
 
   <p class="links">
     <a href={server.repo}>{t.repository}</a>
-    <a href={server.docs}>{t.documentation}</a>
+    <a href={server.docsSite ?? server.docs}>{t.documentation}</a>
   </p>
 </article>
 
