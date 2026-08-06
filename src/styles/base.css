@@ -1,0 +1,371 @@
+/* =============================================================================
+   base.css — jmrp.io · reset + estilos base de elementos
+   Consume exclusivamente los tokens de tokens.css. No hay valores mágicos:
+   cualquier color/tamaño sale de una variable. Requiere tokens.css cargado antes.
+============================================================================= */
+
+/* ===== Reset ================================================================ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* El atributo hidden solo aplica display:none desde la hoja del NAVEGADOR
+   (origen UA), así que cualquier `display: flex/grid` de autor lo anula: los
+   filtros de tags/búsqueda del blog y el de publicaciones ponían
+   `el.hidden = true` sin efecto visual (.post-card es flex, .featured-post es
+   grid). Regla estándar de endurecimiento del reset; until-found se excluye
+   para no romper la búsqueda-en-página nativa si algún día se usa. */
+[hidden]:not([hidden="until-found"]) {
+  display: none !important;
+}
+
+html {
+  /* Reserva el hueco de la barra de scroll en escritorio con barras
+     clásicas: al navegar entre una página corta (sin scroll) y una larga el
+     ancho útil no cambia, y las View Transitions no "saltan" lateralmente. */
+  scrollbar-gutter: stable;
+  font-family: var(--font-body);
+  font-size: 100%; /* 16px base — respeta el zoom del usuario */
+  line-height: 1.6;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+
+  /* Evita el "font boosting" de móvil sin bloquear el zoom accesible */
+  /* stylelint-disable-next-line property-no-vendor-prefix */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  position: relative; /* contexto para la rejilla ambiental a página completa */
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100vh;
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden; /* sin scroll horizontal global */
+  overflow-wrap: break-word; /* palabras largas no rompen el layout */
+  isolation: isolate; /* stacking context propio: la rejilla (z-index:-1) queda
+                         tras el contenido pero sobre el fondo del body */
+}
+
+img,
+video,
+iframe,
+svg:not(.inline-icon) {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Iconos SVG en texto/botones: mantienen el flujo inline */
+svg.inline-icon {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* ===== Enlaces ============================================================== */
+a {
+  font-weight: var(--fw-semibold);
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--color-accent);
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* ===== Foco visible (no se quita el outline sin sustituto) ================
+   El outline se mantiene siempre (visible en Windows High Contrast, donde
+   box-shadow no se pinta); el ring (--focus-ring, token global promovido
+   desde Header.astro) añade el refuerzo visual en navegadores normales. */
+:is(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring);
+}
+
+/* ===== Selección de texto ================================================== */
+::selection {
+  color: var(--color-on-primary);
+  background: var(--color-primary);
+}
+
+/* ===== Encabezados ========================================================== */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  line-height: 1.15;
+  color: var(--color-text-heading);
+  letter-spacing: -0.02em;
+
+  /* Reparte las palabras entre líneas en títulos multilínea (evita una
+     última línea con una sola palabra). Mejora progresiva; los navegadores
+     sin soporte lo ignoran. */
+  text-wrap: balance;
+  scroll-margin-top: calc(var(--header-height) + 1rem);
+}
+
+h1 {
+  font-size: 1.75em;
+}
+
+h2 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-size: 1.5em;
+}
+
+h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.25em;
+}
+
+h4 {
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.1em;
+}
+
+/* ===== Contenido largo (.prose) ============================================
+   Escala tipográfica del contenido según el mockup ("Post completo"):
+   cuerpo 17px / interlineado 1.78 (IBM Plex Sans); h2 26px y h3 19px en
+   Space Grotesk con peso MEDIO (500), no negrita — los títulos de sección del
+   diseño son medium; sólo los títulos hero/post (h1) van en 700. */
+.prose {
+  font-size: 1.0625rem; /* 17px */
+  line-height: 1.78;
+}
+
+/* Optimización: saltar el layout del contenido fuera de pantalla.
+   Debe aplicarse a los HIJOS, no al contenedor: el artículo empieza dentro
+   del viewport, así que un `content-visibility: auto` en .prose entero
+   interseca siempre y no se salta nada (medido: 3,8 s de Style & Layout en
+   el post 003 con la regla en el contenedor). Por hijo, cada bloque bajo el
+   pliegue se salta individualmente. `contain-intrinsic-size: auto <est>`
+   deja que el navegador recuerde el tamaño real tras el primer render.
+   Nota: esto desactiva el colapso de márgenes entre hermanos del prose —
+   verificado que el delta de altura total del documento es insignificante. */
+.prose > * {
+  contain-intrinsic-size: auto 170px; /* ≈ altura media real de un hijo del prose (43.7k px / 256) — cuanto más fiel, menor error de scroll-a-ancla sobre contenido aún no renderizado */
+  content-visibility: auto;
+}
+
+@media print {
+  .prose > * {
+    content-visibility: visible;
+  }
+}
+
+.prose h1 {
+  font-size: 1.75em;
+}
+
+.prose h2 {
+  margin-top: 2.375rem; /* 38px */
+  margin-bottom: 1rem;
+  font-size: 1.625rem; /* 26px */
+  font-weight: var(--fw-medium);
+  letter-spacing: -0.01em;
+}
+
+.prose h3 {
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.1875rem; /* 19px */
+  font-weight: var(--fw-medium);
+}
+
+.prose h4 {
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.0625rem; /* 17px */
+  font-weight: var(--fw-semibold);
+}
+
+.prose p {
+  margin-bottom: 1.375rem; /* 22px */
+
+  /* Evita palabras huérfanas al final de los párrafos (mejora progresiva). */
+  text-wrap: pretty;
+}
+
+/* Inline code (una sola comilla invertida) — chip mono neutro sobre surface2.
+   Texto en color-heading (sin tono) para que resalte por brillo/peso, no por
+   color: el ámbar queda reservado a enlaces y foco, evitando el ruido cromático.
+   Excluye el código dentro de <pre> (bloques Shiki), que tiene su propio estilo. */
+.prose :not(pre) > code {
+  padding: 1px 6px;
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  color: var(--color-text-heading);
+  overflow-wrap: break-word;
+  background-color: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.prose ul {
+  list-style-type: disc;
+}
+
+.prose ol {
+  list-style-type: decimal;
+}
+
+.prose li {
+  position: relative;
+  padding-left: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.prose ul > li::marker {
+  font-size: 1.1em;
+  color: var(--color-accent);
+}
+
+.prose ol > li::marker {
+  font-weight: var(--fw-semibold);
+  color: var(--color-accent);
+}
+
+.prose ul ul,
+.prose ol ul {
+  margin-top: 0.5rem;
+  list-style-type: circle;
+}
+
+.prose ul ul ul,
+.prose ol ul ul {
+  list-style-type: square;
+}
+
+.prose ol ol,
+.prose ul ol {
+  margin-top: 0.5rem;
+  list-style-type: lower-alpha;
+}
+
+/* Enlaces en texto: subrayado obligatorio (indicador no cromático) */
+.prose a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--color-accent);
+  text-underline-offset: 3px;
+}
+
+.prose a:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* Área táctil mínima para enlaces de contenido en móvil (≥24px) */
+@media (width <= 900px) {
+  .prose a {
+    position: relative;
+    display: inline-block;
+    min-width: 24px;
+    min-height: 24px;
+    padding: 2px 0;
+  }
+
+  .prose ul li,
+  .prose ol li {
+    margin-bottom: 0.75rem;
+  }
+
+  .prose ul li a,
+  .prose ol li a {
+    padding: 4px 0;
+  }
+}
+
+/* ===== Bloques de código Shiki (tema dual claro/oscuro) ====================
+   Shiki emite color: (claro) + --shiki-dark (oscuro). En oscuro sobreescribimos
+   con var(--shiki-dark); en claro dejamos que gane el color: de la clase. */
+.astro-code,
+.astro-code span {
+  margin: 0 !important;
+  background-color: transparent !important;
+}
+
+/* Bare ``` fences (direct children of .prose — NOT the <Code>/<FileContent>/
+   <Tabs> components, which own their own card) get the Lab code-card chrome so
+   they don't render as unstyled, container-less text. */
+.prose > pre.astro-code {
+  padding: 1rem 1.125rem;
+  margin: var(--space-md) 0;
+  overflow-x: auto;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  background-color: var(--color-bg-secondary) !important;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+:root[data-theme="dark"] .astro-code span {
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  color: var(--shiki-dark) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+/* Estado por defecto (sin data-theme) = oscuro; el @media lo neutraliza en claro */
+@media not (prefers-color-scheme: light) {
+  :root:not([data-theme]) .astro-code span {
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+    color: var(--shiki-dark) !important;
+    text-decoration: var(--shiki-dark-text-decoration) !important;
+  }
+}
+
+/* ===== Movimiento reducido — respeto global de la preferencia ============= */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* ===== Ajustes móviles globales ============================================ */
+@media (width <= 900px) {
+  :root {
+    --space-md: 0.75rem !important;
+    --space-lg: 1.25rem !important;
+    --space-xl: 2.5rem !important;
+  }
+
+  html {
+    font-size: 90% !important;
+  }
+
+  h1 {
+    font-size: 1.5em !important;
+  }
+}

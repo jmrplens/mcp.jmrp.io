@@ -1,0 +1,52 @@
+{
+  "name": "mcp.jmrp.io",
+  "type": "module",
+  "private": true,
+  "packageManager": "pnpm@11.18.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "lint": "astro sync && eslint .",
+    "typecheck": "astro check",
+    "test:unit": "node --test \"tests/unit/**/*.test.mjs\"",
+    "test:e2e": "playwright test",
+    "deploy": "pnpm build && node scripts/deploy-live-mcp.mjs",
+    "identity:sync": "node scripts/sync-identity.mjs",
+    "identity:check": "node scripts/sync-identity.mjs --check"
+  },
+  "dependencies": {
+    "@astrojs/preact": "6.0.2",
+    "@astrojs/sitemap": "3.7.3",
+    "@unocss/astro": "^66.7.5",
+    "astro": "7.1.5",
+    "preact": "^10.29.7",
+    "sharp": "0.35.3",
+    "unocss": "^66.7.5",
+    "vite": "^8.1.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "@gorazdo/eslint-plugin-preact": "^1.0.7",
+    "@playwright/test": "^1.62.1",
+    "@types/html-minifier-terser": "^7.0.2",
+    "@unocss/eslint-plugin": "^66.7.5",
+    "cheerio": "^1.2.0",
+    "domhandler": "^6.0.1",
+    "eslint": "^10.8.0",
+    "eslint-plugin-astro": "^3.1.0",
+    "eslint-plugin-jsdoc": "^63.3.3",
+    "eslint-plugin-no-secrets": "^2.3.3",
+    "eslint-plugin-playwright": "^2.11.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-simple-import-sort": "^14.0.0",
+    "eslint-plugin-sonarjs": "^4.2.0",
+    "eslint-plugin-unicorn": "^72.0.0",
+    "glob": "^13.0.6",
+    "html-minifier-terser": "^7.2.0",
+    "lighthouse": "^13.4.1",
+    "svgo": "^4.0.2",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.66.0"
+  }
+}

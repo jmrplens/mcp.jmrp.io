@@ -1,0 +1,518 @@
+/* =============================================================================
+   tokens.css — jmrp.io · sistema "Lab / Engineering"
+   FUENTE DE VERDAD de todos los custom properties globales.
+   Dark-first: los valores por defecto viven en :root (modo oscuro).
+   El modo claro se aplica de dos formas complementarias:
+     1) @media (prefers-color-scheme: light) → automático por SO
+        (salvo que el usuario haya forzado oscuro con [data-theme="dark"]).
+     2) :root[data-theme="light"] → override manual (toggle de la web).
+     3) :root[data-theme="dark"]  → override manual que reafirma el oscuro.
+   Este triple bloque replica el mecanismo YA existente en el repo; no lo
+   simplifiques a uno solo o romperás el "auto + override manual".
+
+   SINCRONIZACIÓN: CSS plano no permite fusionar @media + selector sin
+   duplicar declaraciones, así que los pares que deben coincidir se marcan
+   con un comentario-centinela ("KEEP-IN-SYNC: <label>") justo antes de
+   cada bloque del par:
+     - "light-tokens": bloque @media (light) vs :root[data-theme="light"] —
+       deben declarar el MISMO set clave→valor (igualdad completa).
+     - "dark-tokens": :root (base) vs :root[data-theme="dark"] — el override
+       debe ser SUBCONJUNTO del base (toda clave del override existe en
+       :root con el mismo valor; :root puede tener claves extra que no
+       cambian con el tema).
+   `node scripts/ci/check-token-sync.mjs` verifica ambos pares (wired en
+   `pnpm verify` como "Lint: Token sync" y en el job sa-stylelint de CI). Si
+   tocas un color de tema, edítalo en los dos bloques del par o el check
+   fallará.
+
+   Convención de nombres = la del repo (--color-*, --space-*, --radius-*,
+   --font-*, --fw-*). El mapeo con los nombres del mockup de marca
+   (--bg, --sp-N, --text-*, --r-*) está en README.md.
+
+   ACCESIBILIDAD (WCAG 2.1 AA): junto a cada color de texto se anota el ratio
+   de contraste real (calculado) contra los fondos del sistema. Mínimos:
+   texto normal ≥ 4.5:1 · texto grande (≥24px, o ≥19px bold) / iconos ≥ 3:1.
+   Los tokens marcados "SOLO texto grande" NO llegan a 4.5:1 en cuerpo pequeño.
+============================================================================= */
+
+/* KEEP-IN-SYNC: dark-tokens */
+:root {
+  /* ===== NEUTRALES / SUPERFICIES (dark) ===================================
+     Escala de elevación: bg < surface < surface-2. hair = separador tenue,
+     border = separador visible, subtle = relleno translúcido. */
+  --color-bg: #0a0a0b; /* fondo base de página */
+  --color-bg-secondary: #101013; /* tarjetas / superficies */
+  --color-surface-2: #16161a; /* superficie elevada / inputs */
+  --color-bg-subtle: rgb(255 255 255 / 5%); /* relleno suave sobre bg */
+  --color-hair: #1d1d22; /* línea de pelo (hairline) */
+  --color-border: #26262c; /* borde visible */
+  --color-border-hover: var(--accent-line); /* borde en hover/focus (ámbar) */
+  --color-bg-header: rgb(10 10 11 / 72%); /* header con backdrop-blur */
+
+  /* ===== TEXTO (dark) — ratios contra bg / surface / surface-2 =========== */
+  --color-text-heading: #f4f2ec; /* 17.7 / 17.0 / 16.1 : AAA */
+  --color-text: #b6b5ae; /*  9.6 /  9.2 /  8.8 : AAA (cuerpo) */
+  --color-text-muted: #8c8a82; /*  5.7 /  5.5 /  5.2 : AA  (secundario) */
+  --color-text-faint-alt: #88867d; /*  5.4 /  5.2 /  4.9 : AA para texto pequeño (misma gama, más claro) */
+
+  /* ===== ALIAS DE INTENCIÓN (P1) — el componente elige sin equivocarse ====
+     --color-meta: meta pequeña <19px (fechas, "· 29 min", captions) — SIEMPRE
+       AA (dark 5.4:1 · light 5.0:1). --color-faint-lg: SOLO texto GRANDE tenue
+       (kickers hero, números display). */
+  --color-meta: var(--color-text-faint-alt);
+  --color-on-primary: #0a0a0b; /* texto sobre relleno --color-primary */
+
+  /* ===== MARCA (dark) ===================================================== */
+  --color-primary: #f5a623; /* ámbar · 9.8 sobre bg : AAA como texto */
+  --color-primary-hover: #ffbb4d; /* 11.8 sobre bg */
+  --color-accent: #f5a623; /* = primary; enlaces, foco, énfasis */
+  --accent-hi: #ffbb4d; /* hover de acento (= primary-hover) */
+  --accent-dim: rgb(245 166 35 / 13%); /* relleno de acento */
+  --accent-line: rgb(245 166 35 / 32%); /* borde de acento */
+  --teal: #46b8a6; /* soporte / prompt del logo · 8.2 sobre bg */
+  --teal-text: #46b8a6; /* teal como texto — AA en ambos temas */
+  --violet: #b389f5; /* acento terciario (highlight) */
+
+  /* ===== SEMÁNTICOS FORMALES (dark) — avisos / callouts ==================
+     Paleta de estado del mockup (Lab): tip=verde · warn=oro · caut=rojo ·
+     note=azul pizarra. `success` se separa del `--teal` de identidad (prompt)
+     como pedía el diseñador. Los -dim se derivan con color-mix (AA-safe). */
+  --color-success: #57c98a; /* c-tip · verde */
+  --color-warning: #e3b23c; /* c-warn · oro (distinto del ámbar de acento) */
+  --color-danger: #e5655b; /* c-caut · rojo-naranja */
+  --color-info: #6e8fd6; /* c-note · azul pizarra */
+  --success-dim: color-mix(in srgb, var(--color-success) 13%, transparent);
+  --warning-dim: color-mix(in srgb, var(--color-warning) 13%, transparent);
+  --danger-dim: color-mix(in srgb, var(--color-danger) 13%, transparent);
+  --info-dim: color-mix(in srgb, var(--color-info) 13%, transparent);
+
+  /* ===== RAMPA GRÁFICO/DIAGRAMA (--dg-*) — CSS-02 ========================
+     Para nodos de diagrama (fill + text encima) y series de chart/tools.
+     -line reutiliza los semánticos (ya AA, temáticos). fill/text verificados
+     AA en claro y oscuro (texto/fill ≥4.5:1, line/fondo ≥3:1).
+     NOTA: -fill/-text son API DISPONIBLE de la rampa, no tokens muertos —
+     -success/-warning/-danger-fill ya se consumen en varias apps (p. ej.
+     HTTPHeadersAnalyzer, CSPBuilder, Base64Encoder); el resto (-text,
+     -accent/-neutral-fill/-text) queda de reserva, con AA ya verificado,
+     para futuros componentes (chips/badges). Consérvalos aunque un grep no
+     encuentre consumidor hoy. */
+  --dg-success-line: var(--color-success);
+  --dg-warning-line: var(--color-warning);
+  --dg-danger-line: var(--color-danger);
+  --dg-info-line: var(--color-info);
+  --dg-accent-line: var(--violet);
+  --dg-neutral-line: var(--color-text-muted);
+  --dg-success-fill: #103a2a;
+  --dg-success-text: #6ee7b7;
+  --dg-warning-fill: #3a2c0d;
+  --dg-warning-text: #f0cf6a;
+  --dg-danger-fill: #45191b;
+  --dg-danger-text: #f4a5a0;
+  --dg-info-fill: #1a2a4a;
+  --dg-info-text: #a9c0f5;
+  --dg-accent-fill: #2e2350;
+  --dg-accent-text: #cbb2f9;
+  --dg-neutral-fill: #1c1c22;
+  --dg-neutral-text: #b6b5ae;
+
+  /* Paleta categórica de diagramas (--dg-cat-*, dark) — centraliza los
+     --pk/mm/rm/sp/bf-* que cada componente redefinía. */
+  --dg-cat-1: #f5a623; /* amber */
+  --dg-cat-2: #6e8fd6; /* blue */
+  --dg-cat-3: #46b8a6; /* teal */
+  --dg-cat-4: #b389f5; /* violet */
+  --dg-cat-5: #e0739f; /* pink */
+  --dg-cat-6: #57c98a; /* green */
+  --dg-cat-7: #ec8c46; /* orange */
+  --dg-cat-8: #49b9cc; /* cyan */
+
+  /* ===== ESTADO DE INFRAESTRUCTURA (dark) — homelab / servicios =========
+     Semántica convencional verde/ámbar/rojo para paneles de estado (online
+     usa el teal del sistema). Centralizado aquí: los CSS de componentes NO
+     deben volver a declararlos. */
+  --color-status-online: #46b8a6;
+  --color-status-offline: #6b7280;
+  --color-status-warning: #f59e0b;
+  --color-status-warning-bg: rgb(245 158 11 / 10%);
+  --color-status-error: #ef4444;
+  --color-status-info: #3b82f6;
+
+  /* ===== SOMBRAS (dark) =================================================== */
+  --sh-card: 0 30px 70px -30px rgb(0 0 0 / 80%);
+  --sh-pop: 0 20px 50px -18px rgb(0 0 0 / 85%);
+
+  /* ===== SCRIM (dark) — velo de modales/drawers ========================== */
+  --scrim: rgb(10 10 11 / 60%);
+
+  /* =========================================================================
+     A PARTIR DE AQUÍ: tokens que NO cambian con el tema (una sola vez).
+     ========================================================================= */
+
+  /* ===== TIPOGRAFÍA — familias (gestionadas por Astro Fonts) ============== */
+  --font-display:
+    var(--font-space-grotesk), "Space Grotesk", system-ui, sans-serif;
+  --font-body:
+    var(--font-ibm-plex-sans), "IBM Plex Sans", -apple-system,
+    blinkmacsystemfont, "Segoe UI", roboto, helvetica, arial, sans-serif;
+  --font-mono:
+    var(--font-ibm-plex-mono), "IBM Plex Mono", ui-monospace, sfmono-regular,
+    "SF Mono", menlo, monaco, consolas, monospace;
+
+  /* ===== TIPOGRAFÍA — pesos =============================================== */
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-extrabold: 800;
+
+  /* ===== TIPOGRAFÍA — escala de tamaños (CSS-04) =========================
+     Escala única para los componentes (los literales sueltos se ajustan al
+     paso más cercano). Los estilos base de h1..h6 viven en base.css. El rango
+     10–12px se limita a --text-2xs + --text-micro. */
+  --text-2xs: 10.5px; /* micro-meta / country codes */
+  --text-micro: 11.5px;
+  --text-label: 12.5px; /* kickers mono en mayúsculas */
+  --text-xs: 13px;
+  --text-sm: 14px;
+  --text-base: 15px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 28px;
+  --text-4xl: 32px;
+  --text-5xl: 36px;
+
+  /* ===== ESPACIADO — escala rem canónica (la que usan los componentes) === */
+  --space-xs: 0.25rem; /*  4px */
+  --space-sm: 0.5rem; /*  8px */
+  --space-md: 1rem; /* 16px */
+  --space-md-lg: 1.5rem; /* 24px */
+  --space-lg: 2rem; /* 32px */
+  --space-lg-xl: 3rem; /* 48px */
+  --space-xl: 4rem; /* 64px */
+
+  /* ===== RADIOS ===========================================================
+     Escala alineada con el mockup del diseñador (r-sm 6 · r-md 9/11 · r-lg 12
+     · r-xl 14). Las tarjetas dominantes del mockup usan 11-12px; los chips y
+     badges 5-6px. Antes la escala (4/8/16) dejaba las tarjetas con esquinas
+     demasiado cerradas y las grandes demasiado redondas. */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-pill: 100px; /* badges / pills / chips */
+  --radius-full: 9999px; /* círculos (dots, avatares) */
+
+  /* ===== BORDES =========================================================== */
+  --border-1: 1px solid var(--color-border);
+  --border-2: 2px solid var(--color-border);
+  --border-hair: 1px solid var(--color-hair); /* separador tenue reutilizado */
+
+  /* ===== MOVIMIENTO / EASING ============================================== */
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+  --dur-3: 320ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* ===== TRANSPARENCIAS — porcentajes para color-mix ======================
+     Uso: color-mix(in srgb, var(--color-accent) var(--a-12), transparent) */
+  --a-12: 12%;
+
+  /* ===== FOCUS =============================================================
+     --focus-ring en sí vive fuera de los pares KEEP-IN-SYNC (una sola
+     declaración en :root; no requiere restatement en :root[data-theme=
+     "dark"] — ver scripts/ci/check-token-sync.mjs, modo "subset"). Promovido
+     desde Header.astro (3 bloques duplicados) — usar junto al `outline`
+     global de base.css, no en su lugar.
+     --focus-ring-mix SÍ es temático (declarado en los 4 bloques, par
+     dark-tokens aquí/:root[data-theme="dark"] y par light-tokens en los
+     otros dos): el ring es un refuerzo AAA sobre el `outline` opaco, que ya
+     cumple 1.4.11/2.4.13 por sí solo, pero el ring compuesto (color-mix con
+     transparent) también debe llegar a ≥3:1 de contraste no-textual. Con
+     55% sobre el bg oscuro (#0a0a0b) y el accent oscuro (#f5a623) da ~3.6:1
+     — OK, no se toca. Con el MISMO 55% sobre el bg claro (#fafaf7) y el
+     accent claro, ya oscurecido a AA como texto (#8f5300), el ring compuesto
+     caía a ~2.4:1 (<3:1) porque el accent claro es mucho más oscuro y el mix
+     con transparente lo aclara de vuelta hacia el bg. Subir a 75% en claro
+     compensa: efectivo ≈ mix(0.75·#8f5300 + 0.25·#fafaf7) → L≈0.235 vs
+     L(bg)≈0.955 → ratio ≈ 3.53:1 (fórmula de luminancia relativa WCAG,
+     mismo método que los comentarios de contraste de texto de este
+     fichero). El oscuro se deja en 55% (ya cumple, no hace falta oscurecer
+     más el ring). */
+  --focus-ring-mix: 55%;
+  --focus-ring: 0 0 0 3px
+    color-mix(in srgb, var(--color-accent) var(--focus-ring-mix), transparent);
+
+  /* ===== LAYOUT =========================================================== */
+  --header-height: 64px;
+  --header-height-mobile: 58px; /* barra colapsada (móvil) */
+  --drawer-w: min(340px, 88vw); /* ancho del menú móvil (drawer) */
+  --max-width-container: 1200px; /* ancho de página */
+  --max-width-content: 1100px; /* ancho de contenido/hero (mockups) */
+  --max-width-prose: 70ch; /* ancho de lectura */
+
+  /* ===== Z-INDEX ========================================================== */
+  --z-fab: 900;
+  --z-header: 1000;
+  --z-backdrop: 1010;
+  --z-drawer: 1020;
+
+  /* ===== CÓDIGO & TERMINAL ===============================================
+     Solo CHROME (marco, cabecera, botón copiar, terminal). El resaltado de
+     sintaxis lo hace Shiki (@utils/shiki) y NO se toca aquí. Geometría propia
+     del bloque; el resto de borde/radio/espaciado usa los tokens del sistema. */
+  --code-header-py: 10px; /* padding vertical de la cabecera */
+  --code-pad: var(--space-md) 18px; /* padding del <pre> (16 / 18) */
+  --code-font-size: var(--text-xs); /* 13px */
+  --code-line-height: 1.7;
+  --code-filename-size: 12px;
+  --copy-size: 28px; /* alto del botón de copiar */
+  --copy-icon: 14px;
+
+  /* Terminal — OSCURO EN AMBOS TEMAS (decisión de diseño). Color propio; la
+     geometría (radio/borde) usa tokens del sistema. Contraste interno AA
+     verificado contra --term-bg. */
+  --term-bg: #0c0c0e;
+  --term-border: #232329;
+  --term-fg: #e9e8e1; /* 15.2:1 sobre --term-bg */
+  --term-dim: #9a988f; /*  6.1:1 · salida / labels */
+  --term-prompt: #5fd196; /*  9.4:1 · prompt ❯ */
+  --term-path: #82aaff; /*  7.2:1 · rutas */
+  --term-ok: #5fd196; /*  éxito */
+  --term-err: #f08a80; /*  6.6:1 · error */
+  --term-dot-r: #e5655b;
+  --term-dot-y: #e3b23c;
+  --term-dot-g: #57c98a;
+}
+
+/* =============================================================================
+   MODO CLARO — automático por preferencia de SO.
+   Se aplica salvo que el usuario haya forzado oscuro ([data-theme="dark"]).
+   Solo se redefinen los tokens que cambian con el tema.
+============================================================================= */
+
+/* KEEP-IN-SYNC: light-tokens */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    /* Neutrales / superficies (light) */
+    --color-bg: #fafaf7;
+    --color-bg-secondary: #fff;
+    --color-surface-2: #f1f1ec;
+    --color-bg-subtle: rgb(0 0 0 / 5%);
+    --color-hair: #eae9e2;
+    --color-border: #dcdbd3;
+    --color-bg-header: #eae9e2;
+
+    /* Texto (light) — ratios contra bg / surface / surface-2 */
+    --color-text-heading: #1a1a18; /* 16.7 / 17.4 / 15.4 : AAA */
+    --color-text: #46453f; /*  9.2 /  9.6 /  8.5 : AAA (cuerpo) */
+    --color-text-muted: #666560; /*  5.6 /  5.8 /  5.2 : AA  (secundario) */
+    --color-text-faint-alt: #6e6d65; /* 5.0 / 5.2 / 4.6 : AA para texto pequeño (misma gama, más oscuro) */
+    --color-on-primary: #fff;
+
+    /* Marca (light) — ámbar oscurecido para llegar a AA como texto */
+    --color-primary: #8f5300; /* 5.9 sobre bg : AA texto */
+    --color-primary-hover: #c07a10; /* 3.3 sobre bg : SOLO hover / texto grande */
+    --color-accent: #8f5300;
+    --accent-hi: #c07a10;
+    --accent-dim: rgb(156 93 0 / 10%);
+    --accent-line: rgb(156 93 0 / 28%);
+    --teal: #1f7e6e;
+    --teal-text: #12695a; /* 6.3 sobre bg : AA texto */
+    --violet: #6d45c4;
+
+    /* Semánticos formales (light) — paleta de estado del mockup, tonos
+       oscurecidos a AA. Deben cumplir 4.5:1 incluso sobre su propio tinte al
+       14% (pills de Table/Callout), no solo sobre el blanco. */
+    --color-success: #0f5132; /* verde */
+    --color-warning: #6b5600; /* oro */
+    --color-danger: #a5342a; /* rojo-naranja */
+    --color-info: #2f57a6; /* azul pizarra */
+
+    /* Rampa gráfico/diagrama (light) — fill/text; -line hereda de :root. */
+    --dg-success-fill: #d7f2e3;
+    --dg-success-text: #0f6e3d;
+    --dg-warning-fill: #fbeecb;
+    --dg-warning-text: #7a5200;
+    --dg-danger-fill: #fbdedd;
+    --dg-danger-text: #9c1f1a;
+    --dg-info-fill: #dde7fb;
+    --dg-info-text: #274a91;
+    --dg-accent-fill: #ece3fb;
+    --dg-accent-text: #5b3aa6;
+    --dg-neutral-fill: #ececea;
+    --dg-neutral-text: #46453f;
+
+    /* Paleta categórica de diagramas (--dg-cat-*, light) — centraliza los
+       --pk/mm/rm/sp/bf-* que cada componente redefinía. */
+    --dg-cat-1: #8f5300; /* amber */
+    --dg-cat-2: #3f6fc4; /* blue */
+    --dg-cat-3: #1f7e6e; /* teal */
+    --dg-cat-4: #6d45c4; /* violet */
+    --dg-cat-5: #b33a6e; /* pink */
+    --dg-cat-6: #197a43; /* green */
+    --dg-cat-7: #8a4a15; /* orange */
+    --dg-cat-8: #177387; /* cyan */
+
+    /* Estado de infraestructura (light) */
+    --color-status-online: #12695a;
+    --color-status-offline: #374151;
+    --color-status-warning: #92400e;
+    --color-status-warning-bg: #fef3c7;
+    --color-status-error: #991b1b;
+    --color-status-info: #1e40af;
+
+    /* Sombras (light) — más suaves y cálidas */
+    --sh-card: 0 24px 60px -28px rgb(40 38 30 / 28%);
+    --sh-pop: 0 18px 44px -16px rgb(40 38 30 / 32%);
+
+    /* Scrim (light) */
+    --scrim: rgb(40 38 30 / 38%);
+
+    /* Focus (light) — ver comentario junto a --focus-ring en :root. */
+    --focus-ring-mix: 75%;
+  }
+}
+
+/* =============================================================================
+   MODO CLARO — override manual (toggle). Mismos valores que el bloque @media.
+============================================================================= */
+
+/* KEEP-IN-SYNC: light-tokens */
+:root[data-theme="light"] {
+  --color-bg: #fafaf7;
+  --color-bg-secondary: #fff;
+  --color-surface-2: #f1f1ec;
+  --color-bg-subtle: rgb(0 0 0 / 5%);
+  --color-hair: #eae9e2;
+  --color-border: #dcdbd3;
+  --color-bg-header: #eae9e2;
+  --color-text-heading: #1a1a18;
+  --color-text: #46453f;
+  --color-text-muted: #666560;
+  --color-text-faint-alt: #6e6d65;
+  --color-on-primary: #fff;
+  --color-primary: #8f5300;
+  --color-primary-hover: #c07a10;
+  --color-accent: #8f5300;
+  --accent-hi: #c07a10;
+  --accent-dim: rgb(156 93 0 / 10%);
+  --accent-line: rgb(156 93 0 / 28%);
+  --teal: #1f7e6e;
+  --teal-text: #12695a;
+  --violet: #6d45c4;
+  --color-success: #0f5132;
+  --color-warning: #6b5600;
+  --color-danger: #a5342a;
+  --color-info: #2f57a6;
+
+  /* Rampa gráfico/diagrama (light, override manual) — fill/text. */
+  --dg-success-fill: #d7f2e3;
+  --dg-success-text: #0f6e3d;
+  --dg-warning-fill: #fbeecb;
+  --dg-warning-text: #7a5200;
+  --dg-danger-fill: #fbdedd;
+  --dg-danger-text: #9c1f1a;
+  --dg-info-fill: #dde7fb;
+  --dg-info-text: #274a91;
+  --dg-accent-fill: #ece3fb;
+  --dg-accent-text: #5b3aa6;
+  --dg-neutral-fill: #ececea;
+  --dg-neutral-text: #46453f;
+
+  /* Paleta categórica de diagramas (--dg-cat-*, light) — centraliza los
+     --pk/mm/rm/sp/bf-* que cada componente redefinía. */
+  --dg-cat-1: #8f5300; /* amber */
+  --dg-cat-2: #3f6fc4; /* blue */
+  --dg-cat-3: #1f7e6e; /* teal */
+  --dg-cat-4: #6d45c4; /* violet */
+  --dg-cat-5: #b33a6e; /* pink */
+  --dg-cat-6: #197a43; /* green */
+  --dg-cat-7: #8a4a15; /* orange */
+  --dg-cat-8: #177387; /* cyan */
+  --color-status-online: #12695a;
+  --color-status-offline: #374151;
+  --color-status-warning: #92400e;
+  --color-status-warning-bg: #fef3c7;
+  --color-status-error: #991b1b;
+  --color-status-info: #1e40af;
+  --sh-card: 0 24px 60px -28px rgb(40 38 30 / 28%);
+  --sh-pop: 0 18px 44px -16px rgb(40 38 30 / 32%);
+  --scrim: rgb(40 38 30 / 38%);
+
+  /* Focus (light, override manual) — ver comentario junto a --focus-ring en :root. */
+  --focus-ring-mix: 75%;
+}
+
+/* =============================================================================
+   MODO OSCURO — override manual. Reafirma los valores por defecto de :root
+   para ganar al bloque @media (prefers-color-scheme: light) cuando el SO
+   está en claro pero el usuario fuerza oscuro.
+============================================================================= */
+
+/* KEEP-IN-SYNC: dark-tokens */
+:root[data-theme="dark"] {
+  --color-bg: #0a0a0b;
+  --color-bg-secondary: #101013;
+  --color-surface-2: #16161a;
+  --color-bg-subtle: rgb(255 255 255 / 5%);
+  --color-hair: #1d1d22;
+  --color-border: #26262c;
+  --color-bg-header: rgb(10 10 11 / 72%);
+  --color-text-heading: #f4f2ec;
+  --color-text: #b6b5ae;
+  --color-text-muted: #8c8a82;
+  --color-text-faint-alt: #88867d;
+  --color-on-primary: #0a0a0b;
+  --color-primary: #f5a623;
+  --color-primary-hover: #ffbb4d;
+  --color-accent: #f5a623;
+  --accent-hi: #ffbb4d;
+  --accent-dim: rgb(245 166 35 / 13%);
+  --accent-line: rgb(245 166 35 / 32%);
+  --teal: #46b8a6;
+  --teal-text: #46b8a6;
+  --violet: #b389f5;
+  --color-success: #57c98a;
+  --color-warning: #e3b23c;
+  --color-danger: #e5655b;
+  --color-info: #6e8fd6;
+
+  /* Rampa gráfico/diagrama (dark, override manual) — fill/text. */
+  --dg-success-fill: #103a2a;
+  --dg-success-text: #6ee7b7;
+  --dg-warning-fill: #3a2c0d;
+  --dg-warning-text: #f0cf6a;
+  --dg-danger-fill: #45191b;
+  --dg-danger-text: #f4a5a0;
+  --dg-info-fill: #1a2a4a;
+  --dg-info-text: #a9c0f5;
+  --dg-accent-fill: #2e2350;
+  --dg-accent-text: #cbb2f9;
+  --dg-neutral-fill: #1c1c22;
+  --dg-neutral-text: #b6b5ae;
+
+  /* Paleta categórica de diagramas (--dg-cat-*, dark) — centraliza los
+     --pk/mm/rm/sp/bf-* que cada componente redefinía. */
+  --dg-cat-1: #f5a623; /* amber */
+  --dg-cat-2: #6e8fd6; /* blue */
+  --dg-cat-3: #46b8a6; /* teal */
+  --dg-cat-4: #b389f5; /* violet */
+  --dg-cat-5: #e0739f; /* pink */
+  --dg-cat-6: #57c98a; /* green */
+  --dg-cat-7: #ec8c46; /* orange */
+  --dg-cat-8: #49b9cc; /* cyan */
+  --color-status-online: #46b8a6;
+  --color-status-offline: #6b7280;
+  --color-status-warning: #f59e0b;
+  --color-status-warning-bg: rgb(245 158 11 / 10%);
+  --color-status-error: #ef4444;
+  --color-status-info: #3b82f6;
+  --sh-card: 0 30px 70px -30px rgb(0 0 0 / 80%);
+  --sh-pop: 0 20px 50px -18px rgb(0 0 0 / 85%);
+  --scrim: rgb(10 10 11 / 60%);
+
+  /* Focus (dark, override manual) — ver comentario junto a --focus-ring en :root. */
+  --focus-ring-mix: 55%;
+}

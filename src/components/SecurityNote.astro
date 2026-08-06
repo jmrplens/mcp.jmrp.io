@@ -1,0 +1,147 @@
+---
+/**
+ * Nota de seguridad que acompaña al inspector.
+ *
+ * Es contenido, no adorno: el inspector le pide al visitante un Personal Access
+ * Token de GitLab, y decirle qué se hace con él —y que desconfíe igualmente— es
+ * parte del trato. El enlace al repositorio es lo que hace verificable la
+ * promesa; si el repo dejara de ser público, hay que reescribir esta nota.
+ *
+ * El texto vive aquí y no en `src/i18n/ui.ts` porque lleva marcado dentro
+ * (`<strong>`, `<code>`, enlaces) que en un fichero de cadenas sueltas habría
+ * que reconstruir a mano.
+ */
+interface Props {
+  lang: "en" | "es";
+}
+
+const { lang } = Astro.props;
+const repo = "https://github.com/jmrplens/mcp.jmrp.io";
+---
+
+{/* `aria-labelledby` apuntando al H3: sin él este landmark salía en la lista
+    de regiones de un lector de pantalla como «complementary» a secas, aunque
+    su encabezado lo describa perfectamente. Mismo patrón que las `<section>`
+    de PageBody. */}
+<aside data-testid="security-note" aria-labelledby="security-note-title">
+  {
+    lang === "es" ? (
+      <Fragment>
+        <h3 id="security-note-title">Sobre el token que vas a pegar</h3>
+        <p>
+          Tu token se queda <strong>solo en la memoria de tu navegador</strong>.
+          No se guarda en localStorage ni en cookies, no viaja en la URL y
+          desaparece al recargar. Se envía únicamente como cabecera{" "}
+          <code>PRIVATE-TOKEN</code> a <code>mcp.jmrp.io/gitlab</code>, que no
+          lo almacena ni lo registra: el servidor lo usa para esa petición y lo
+          olvida.
+        </p>
+        <p>
+          Aun así,{" "}
+          <strong>
+            desconfía por norma de cualquier web que te pida un token
+          </strong>
+          , incluida esta. Lo razonable es:
+        </p>
+        <ul>
+          <li>
+            Comprobarlo tú mismo: el código de esta página está en{" "}
+            <a href={repo}>su repositorio</a>.
+          </li>
+          <li>
+            Usar un token con el <strong>mínimo alcance</strong> posible (
+            <code>read_api</code> basta para probar) y caducidad corta.
+          </li>
+          <li>
+            <strong>Revocarlo</strong> cuando termines de probar.
+          </li>
+          <li>No reutilizar nunca un token que uses en producción.</li>
+        </ul>
+      </Fragment>
+    ) : (
+      <Fragment>
+        <h3 id="security-note-title">About the token you are about to paste</h3>
+        <p>
+          Your token stays <strong>in your browser's memory only</strong>. It is
+          not written to localStorage or cookies, never travels in the URL, and
+          is gone on reload. It is sent solely as a <code>PRIVATE-TOKEN</code>{" "}
+          header to <code>mcp.jmrp.io/gitlab</code>, which neither stores nor
+          logs it.
+        </p>
+        <p>
+          Even so,{" "}
+          <strong>be suspicious of any site asking for a token</strong> — this
+          one included. The sensible habits are:
+        </p>
+        <ul>
+          <li>
+            Verify it yourself: this page's source is in{" "}
+            <a href={repo}>its repository</a>.
+          </li>
+          <li>
+            Use the <strong>narrowest scope</strong> possible (
+            <code>read_api</code> is enough here) and a short expiry.
+          </li>
+          <li>
+            <strong>Revoke it</strong> when you are done testing.
+          </li>
+          <li>Never reuse a token you rely on in production.</li>
+        </ul>
+      </Fragment>
+    )
+  }
+</aside>
+
+<style>
+  /* Aviso, no adorno: borde de acento a la izquierda para que se lea como una
+     advertencia y no como un párrafo más. Va junto al campo del token porque
+     ahí es donde la decisión se toma. */
+  aside {
+    margin-top: 1.5rem;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid var(--color-border);
+    border-left: 3px solid var(--color-accent);
+    border-radius: 8px;
+    background: var(--color-bg-secondary);
+  }
+
+  aside :global(h3) {
+    margin: 0 0 0.75rem;
+    color: var(--color-text-heading);
+    font-family: var(--font-display);
+    font-size: 1.0625rem;
+    font-weight: 700;
+  }
+
+  aside :global(p) {
+    margin: 0 0 0.75rem;
+    max-width: 68ch;
+    color: var(--color-text);
+    font-size: 0.9375rem;
+    text-wrap: pretty;
+  }
+
+  aside :global(ul) {
+    margin: 0;
+    padding-left: 1.1rem;
+    color: var(--color-text);
+    font-size: 0.9375rem;
+  }
+
+  aside :global(li) {
+    margin-bottom: 0.35rem;
+    text-wrap: pretty;
+  }
+
+  aside :global(code) {
+    padding: 0.1rem 0.3rem;
+    border-radius: 4px;
+    background: var(--color-bg-subtle);
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+  }
+
+  aside :global(a) {
+    color: var(--color-accent);
+  }
+</style>

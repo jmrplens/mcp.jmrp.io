@@ -1,0 +1,210 @@
+import fs from "node:fs";
+import path from "node:path";
+
+import { type AstroIntegrationLogger } from "astro";
+
+import { NGINX_CSP_NONCE_VARIABLE } from "./constants.js";
+import type { CspData } from "./types.js";
+
+/**
+ * Generates the final Nginx security headers configuration file.
+ *
+ * This function uses a nonce-first CSP strategy. All inline scripts and styles
+ * are authorized via per-request nonces injected by Nginx (sub_filter replacing
+ * NGINX_CSP_NONCE with $cspNonce). External same-origin resources are covered
+ * by 'self'. This approach dramatically reduces the CSP header size compared
+ * to hash-based policies.
+ *
+ * Hashes are NOT included in the CSP header because every script and style
+ * element already receives a nonce attribute during the HTML post-build pass.
+ *
+ * @param {string} distDir - The absolute path to the production build output.
+ * @param {CspData} cspData - The data object containing domains collected during HTML processing.
+ * @param {AstroIntegrationLogger} logger - The Astro logger instance.
+ */
+export async function finalizeCspConfig(
+  distDir: string,
+  cspData: CspData,
+  logger: AstroIntegrationLogger,
+) {
+  logger.info("Finalizing CSP and Security Headers (nonce-only strategy)...");
+
+  // Sorted for a deterministic .conf across builds — `cspData.imageDomains`
+  // is a Set populated in HTML-processing order (which varies with the
+  // glob/batch scheduling in `processHtmlFiles`), so without sorting the
+  // img-src directive's domain order — and thus the generated file's bytes —
+  // could differ between two builds of identical content.
+  const imgSrc = [...cspData.imageDomains]
+    .sort((a, b) => a.localeCompare(b))
+    .map((d) => `https://${d}`)
+    .join(" ");
+
+  // Common CSP directives used across HTML and assets
+  const commonCspDirectives = [
+    imgSrc
+      ? `img-src 'self' data: ${imgSrc} https://*.jmrp.io`
+      : "img-src 'self' data: https://*.jmrp.io",
+    "font-src 'self'",
+    // Solo 'self': el inspector únicamente habla con `/libgen` y `/gitlab`,
+    // que son mismo origen. Las APIs de terceros que lista jmrp.io (GitHub,
+    // Cloudflare Insights, certspotter, crt.sh) no las usa ninguna página de
+    // este sitio, así que dejarlas aquí solo ampliaría la superficie.
+    "connect-src 'self'",
+    "media-src 'self'",
+    "manifest-src 'self'",
+    "frame-src 'none'",
+    "object-src 'none'",
+    // 'none', not 'self': no page on this site uses <base>, and post 003
+    // calls base-uri 'none' mandatory for a strict CSP. Production was the
+    // laxer of the two until the PR #380 review surfaced the mismatch.
+    "base-uri 'none'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "upgrade-insecure-requests",
+    // SIN `report-uri`: jmrp.io tiene un colector en `/csp-report`; este
+    // dominio no. Apuntar ahí generaría un chorro de POST contra el
+    // catch-all `location / { return 404; }` del vhost, que es justo el
+    // patrón de 404 masivos que hace que CrowdSec banee al visitante.
+  ];
+
+  // Nonce-only CSP: all scripts/styles use nonces, external same-origin covered by 'self'
+  // default-src 'none' denies everything not explicitly allowed — recommended by Mozilla Observatory.
+  // Every resource type has its own explicit directive (script-src, style-src, img-src, etc.).
+  // Prefetch/prerender: `prefetch-src` was removed from the CSP spec and is unrecognized by
+  // current browsers (Chrome logs "Unrecognized Content-Security-Policy directive 'prefetch-src'";
+  // Firefox never supported it), so it is intentionally omitted. Chrome's Speculation Rules
+  // prefetch is governed by `script-src` (the nonce'd speculationrules script); other prefetch
+  // falls back to `default-src` — no functional loss versus the old directive, minus the warning.
+  // worker-src 'self' is added explicitly since no dedicated worker-src would otherwise
+  // fall back to the blocked default-src.
+  const cspHeader = [
+    "default-src 'none'",
+    `script-src 'self' 'nonce-${NGINX_CSP_NONCE_VARIABLE}' 'strict-dynamic'`,
+    `style-src 'self' 'nonce-${NGINX_CSP_NONCE_VARIABLE}'`,
+    "worker-src 'self'",
+    ...commonCspDirectives,
+  ]
+    .map((s) => s.trim())
+    .join("; ");
+
+  const permissionsPolicy = [
+    "accelerometer=()",
+    "autoplay=()",
+    "browsing-topics=()",
+    "camera=()",
+    "encrypted-media=()",
+    "fullscreen=()",
+    "geolocation=()",
+    "gyroscope=()",
+    "magnetometer=()",
+    "microphone=()",
+    "midi=()",
+    "payment=()",
+    "picture-in-picture=()",
+    "publickey-credentials-get=(self)",
+    "sync-xhr=()",
+    "usb=()",
+    "xr-spatial-tracking=()",
+  ].join(", ");
+
+  const demoSecurityCookieHeader =
+    process.env.DEMO_SECURITY_COOKIE === "1"
+      ? 'add_header Set-Cookie "__Demo-Security-Flags=1; path=/; Secure; HttpOnly; SameSite=Strict" always;'
+      : "# Demo security cookie disabled (set DEMO_SECURITY_COOKIE=1 to enable)";
+
+  const content = `# Security Headers Configuration Generated by Astro Post-Build Integration
+
+# HSTS (Strict Transport Security)
+add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+
+# Anti-Sniffing
+add_header X-Content-Type-Options "nosniff" always;
+
+# Frame Options (Prevent Clickjacking)
+add_header X-Frame-Options "DENY" always;
+
+# XSS Protection
+# Deprecated: modern browsers use Content Security Policy
+# add_header X-XSS-Protection "1; mode=block" always;
+
+# Referrer Policy
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+# Cross-Origin Policies (COOP, COEP, CORP)
+add_header Cross-Origin-Embedder-Policy "require-corp" always;
+add_header Cross-Origin-Opener-Policy "same-origin" always;
+add_header Cross-Origin-Resource-Policy "same-origin" always;
+
+# Security Cookie (Optional demo cookie)
+${demoSecurityCookieHeader}
+
+# Content Security Policy (Nonce-only: all scripts/styles use nonces)
+add_header Content-Security-Policy "${cspHeader}" always;
+
+# Permissions Policy
+add_header Permissions-Policy "${permissionsPolicy}" always;
+`;
+
+  // --- Optimized Assets CSP ---
+  // A version of the security headers for non-HTML assets (images, fonts, etc.).
+  // It removes script-src and style-src nonces while maintaining strict default-src 'none'.
+  // Note: style-src 'unsafe-inline' is used here because some CSS files may contain
+  // inline styles (e.g., SVG with embedded styles). This is acceptable for non-HTML
+  // assets where CSP enforcement is less critical.
+  const assetsCspHeader = [
+    "default-src 'none'",
+    "script-src 'none'",
+    "style-src 'unsafe-inline'",
+    ...commonCspDirectives,
+  ]
+    .map((s) => s.trim())
+    .join("; ");
+
+  const assetsContent = `# Security Headers for Static Assets Generated by Astro Post-Build Integration
+# Optimized to remove heavy script/style hashes for non-HTML resources.
+
+# HSTS
+add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+
+# Anti-Sniffing
+add_header X-Content-Type-Options "nosniff" always;
+
+# Frame Options
+add_header X-Frame-Options "DENY" always;
+
+# Referrer Policy
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+# Cross-Origin Policies
+add_header Cross-Origin-Embedder-Policy "require-corp" always;
+add_header Cross-Origin-Opener-Policy "same-origin" always;
+# CORP: 'cross-origin' allows other sites to embed these assets (e.g., social media previews,
+# CDN sharing). This is intentional for static assets like images and fonts.
+# For HTML pages, the main security_headers_mcp.conf uses stricter policies.
+add_header Cross-Origin-Resource-Policy "cross-origin" always;
+
+# Content Security Policy (Optimized for Assets)
+add_header Content-Security-Policy "${assetsCspHeader}" always;
+
+# Permissions Policy
+add_header Permissions-Policy "${permissionsPolicy}" always;
+`;
+
+  // SUFIJO `_mcp` OBLIGATORIO: jmrp.io genera y despliega su propio
+  // `security_headers.conf` al mismo directorio de snippets de nginx
+  // (`/etc/nginx/snippets/`). Sin renombrar, el despliegue de este sitio le
+  // pisaría la CSP al otro sitio y ninguno de los dos se enteraría.
+  await Promise.all([
+    fs.promises.writeFile(
+      path.join(distDir, "security_headers_mcp.conf"),
+      content,
+    ),
+    fs.promises.writeFile(
+      path.join(distDir, "security_headers_assets_mcp.conf"),
+      assetsContent,
+    ),
+  ]);
+  logger.info(
+    "  ✓ Generated security_headers_mcp.conf and security_headers_assets_mcp.conf",
+  );
+}

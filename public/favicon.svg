@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="mcp.jmrp.io">
+  <title>mcp.jmrp.io</title>
+  <!-- Marca del sitio: el sigilo `~ ›` de la cabecera, reducido al chevron.
+       A 16 px cualquier texto sería ilegible, así que solo queda el gesto.
+       Fondo opaco propio (no transparente) para que se lea igual en una barra
+       de pestañas clara y en una oscura. -->
+  <rect width="32" height="32" rx="7" fill="#0a0a0b" />
+  <path
+    d="M9 10.5 15.5 16 9 21.5"
+    fill="none"
+    stroke="#f5a623"
+    stroke-width="2.75"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path d="M18 22h6" fill="none" stroke="#b6b5ae" stroke-width="2.75" stroke-linecap="round" />
+</svg>

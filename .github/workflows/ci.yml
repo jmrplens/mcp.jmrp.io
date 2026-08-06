@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Un push que cancela su propia ejecución anterior: en un repo de dos páginas
+# no tiene sentido pagar dos runs por el mismo branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Sonar necesita el historial completo para atribuir la deuda a su
+          # commit; con el clon superficial lo achaca todo al último.
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      # Antes del build: si el snapshot de la identidad está obsoleto, el build
+      # lo usaría en silencio ante cualquier fallo de red y publicaría datos
+      # viejos. Aquí se ve.
+      - name: Identidad al día
+        run: pnpm identity:check
+
+      - name: Build
+        run: pnpm build
+
+      - name: Tests unitarios
+        run: pnpm test:unit
+
+      - name: Validar HTML
+        run: npx html-validate dist
+
+      # Los e2e llaman a los endpoints REALES en producción. En CI no se
+      # ejecutan los que dependen de la red: un fallo del runner o un mirror
+      # caído pondría el CI en rojo sin que nada de este repo esté mal.
+      - name: Tests e2e
+        run: pnpm exec playwright install --with-deps chromium && pnpm test:e2e --workers=1
+        env:
+          E2E_NO_NETWORK: "1"
+
+  sonar:
+    runs-on: ubuntu-latest
+    # Sin el secreto (por ejemplo en un fork) el análisis se salta en vez de
+    # dejar el CI en rojo por algo que el autor del PR no puede arreglar.
+    if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: SonarCloud
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

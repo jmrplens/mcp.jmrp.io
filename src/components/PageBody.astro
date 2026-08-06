@@ -1,0 +1,153 @@
+---
+/**
+ * Cuerpo de la página, compartido por las dos versiones de idioma.
+ *
+ * Vive aquí y no duplicado en cada `index.astro` porque la única diferencia
+ * entre EN y ES son las cadenas: duplicar el markup garantizaba que las dos
+ * versiones se desincronizaran a la primera (ya pasó una vez con la línea de
+ * cabeceras obligatorias, que faltaba en español).
+ */
+import { servers } from "../data/servers";
+import { ui } from "../i18n/ui";
+import Inspector from "./Inspector";
+import SecurityNote from "./SecurityNote.astro";
+import ServerCard from "./ServerCard.astro";
+
+interface Props {
+  lang: "en" | "es";
+}
+
+const { lang } = Astro.props;
+const t = ui[lang];
+---
+
+<section class="hero">
+  <p class="pill"><span class="dot" aria-hidden="true"></span>{servers.length} {t.pill}</p>
+  <h1>{t.title}</h1>
+  <p class="lede">{t.lede}</p>
+</section>
+
+<section aria-labelledby="servers-h">
+  <p class="eyebrow" id="servers-h">
+    <span aria-hidden="true">//</span>
+    {t.serversEyebrow}
+  </p>
+  <div class="grid">
+    {servers.map((s) => <ServerCard server={s} lang={lang} />)}
+  </div>
+  <p class="machine">
+    <a href="/servers.json"><code>/servers.json</code></a>
+    <span>— {t.machineIndex}</span>
+  </p>
+</section>
+
+<section aria-labelledby="inspector-h">
+  <p class="eyebrow" id="inspector-h">
+    <span aria-hidden="true">//</span>
+    {t.inspectorEyebrow}
+  </p>
+  <p class="section-intro">{t.inspectorIntro}</p>
+  <Inspector client:load servers={servers} lang={lang} />
+  <SecurityNote lang={lang} />
+</section>
+
+<style>
+  .hero {
+    padding-block: clamp(3rem, 9vw, 5.5rem) 3rem;
+  }
+
+  /* Píldora de estado con punto, igual que la de jmrp.io. Aquí dice algo
+     verificable —cuántos servidores hay y qué transporte hablan— en vez de
+     ser un adorno. */
+  .pill {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0 0 1.5rem;
+    padding: 0.35rem 0.8rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--color-success);
+  }
+
+  h1 {
+    max-width: 18ch;
+    margin: 0 0 1.25rem;
+    color: var(--color-text-heading);
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 7vw, 3.75rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
+
+  .lede {
+    max-width: 58ch;
+    margin: 0;
+    color: var(--color-text);
+    font-size: 1.0625rem;
+    text-wrap: pretty;
+  }
+
+  /* Eyebrow con `//`: es el marcador de sección de jmrp.io. El `//` va en un
+     span aria-hidden para que un lector de pantalla no lea "barra barra". */
+  .eyebrow {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin: 0 0 1.25rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .eyebrow span {
+    color: var(--color-accent);
+  }
+
+  section {
+    padding-block-end: 3.5rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+    gap: 1.25rem;
+  }
+
+  .machine {
+    margin: 1.25rem 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+  }
+
+  .machine a {
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    text-decoration: none;
+  }
+
+  .machine a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .section-intro {
+    max-width: 62ch;
+    margin: 0 0 1.5rem;
+    color: var(--color-text);
+    text-wrap: pretty;
+  }
+</style>

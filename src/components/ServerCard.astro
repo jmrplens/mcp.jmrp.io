@@ -1,0 +1,206 @@
+---
+/**
+ * Ficha de un servidor MCP. Se alimenta de `src/data/servers.ts`, que es la
+ * única fuente de verdad: dar de alta un MCP nuevo no debe tocar markup.
+ */
+import type { McpServer } from "../data/servers";
+import { ui } from "../i18n/ui";
+
+interface Props {
+  server: McpServer;
+  lang: "en" | "es";
+}
+
+const { server, lang } = Astro.props;
+const t = ui[lang];
+const needsAuth = server.requiredHeaders.length > 0;
+---
+
+{/* El `id` es el ÚNICO destino enlazable por servidor que tiene el sitio: sin
+    él no se puede apuntar a «el MCP de gitlab» desde fuera, y el `#gitlab` que
+    la gente escribiría a mano no llevaba a ninguna parte. Sale de
+    `server.id`, el mismo identificador estable que usan `/servers.json` y el
+    inspector. */}
+<article class="card" id={server.id}>
+  <header class="card-head">
+    <h2>{server.name}</h2>
+    <span class={needsAuth ? "badge badge-auth" : "badge"}>
+      {needsAuth ? t.credentialsRequired : t.noCredentials}
+    </span>
+  </header>
+
+  <p class="card-desc">{server.description[lang]}</p>
+
+  <p class="endpoint">
+    <span class="verb">POST</span>
+    <code>{server.endpoint}</code>
+  </p>
+
+  {
+    needsAuth && (
+      <dl class="headers">
+        {server.requiredHeaders.map((h) => (
+          <>
+            <dt>{h.name}</dt>
+            <dd>{h.description[lang]}</dd>
+          </>
+        ))}
+        {server.optionalHeaders.map((h) => (
+          <>
+            <dt class="optional">
+              {h.name} <span>· {t.optionalHeaders}</span>
+            </dt>
+            <dd>{h.description[lang]}</dd>
+          </>
+        ))}
+      </dl>
+    )
+  }
+
+  <p class="links">
+    <a href={server.repo}>{t.repository}</a>
+    <a href={server.docs}>{t.documentation}</a>
+  </p>
+</article>
+
+<style>
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding: 1.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-bg-secondary);
+  }
+
+  .card-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  h2 {
+    margin: 0;
+    color: var(--color-text-heading);
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  /* Lo primero que alguien necesita saber de un endpoint público es si le va
+     a pedir credenciales. Por eso va arriba y no enterrado en el cuerpo. */
+  .badge {
+    padding: 0.2rem 0.55rem;
+    border: 1px solid var(--color-hair);
+    border-radius: 999px;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+  }
+
+  .badge-auth {
+    border-color: var(--accent-line);
+    background: var(--accent-dim);
+    color: var(--color-accent);
+  }
+
+  .card-desc {
+    margin: 0;
+    color: var(--color-text);
+    text-wrap: pretty;
+  }
+
+  .endpoint {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0;
+  }
+
+  /* El método va delante del endpoint porque GET devuelve 405 en estos
+     servidores: enseñar la URL sin el verbo invita a probarla en el navegador. */
+  .verb {
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    background: var(--color-bg-subtle);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+
+  .endpoint code {
+    color: var(--color-text-heading);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    overflow-wrap: anywhere;
+  }
+
+  .headers {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.35rem 0.85rem;
+    margin: 0;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--color-hair);
+    font-size: 0.85rem;
+  }
+
+  dt {
+    color: var(--color-text-heading);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+
+  dt.optional {
+    color: var(--color-text-muted);
+  }
+
+  dt.optional span {
+    font-size: 0.7rem;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--color-text-muted);
+    text-wrap: pretty;
+  }
+
+  .links {
+    display: flex;
+    gap: 1.25rem;
+    /* margin-top:auto pega los enlaces al fondo: las tarjetas de la rejilla
+       tienen la misma altura y sin esto la más corta dejaba un hueco muerto. */
+    margin: auto 0 0;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--color-hair);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .links a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .links a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  @media (width <= 40rem) {
+    .headers {
+      grid-template-columns: 1fr;
+      gap: 0.15rem;
+    }
+
+    dd {
+      margin-bottom: 0.5rem;
+    }
+  }
+</style>

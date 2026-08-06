@@ -1,0 +1,8 @@
+# pnpm 11 ya no lee `package.json#pnpm`: la configuración del gestor vive aquí.
+#
+# allowBuilds: pnpm bloquea por defecto los scripts de instalación de las
+# dependencias. esbuild los necesita para descargar su binario nativo; sin
+# esta entrada `pnpm install` avisa con ERR_PNPM_IGNORED_BUILDS y el binario
+# puede quedar sin instalar.
+allowBuilds:
+  esbuild: true

@@ -1,0 +1,17 @@
+name = "edge-nonce-mcp"
+main = "worker.js"
+compatibility_date = "2026-08-01"
+account_id = "d3604ab61425cd17ccc0c6b2f14ec1dd"
+
+# Los bypass NO van aquí: son rutas de zona SIN worker asignado, creadas por
+# API. Cloudflare aplica la ruta MÁS ESPECÍFICA, así que un bypass estrecho
+# gana a mcp.jmrp.io/*. Lista y motivo en el README.
+routes = [
+  { pattern = "mcp.jmrp.io/*", zone_id = "44d43a33307a232a60a5af4fc1504613" },
+]
+
+# Logs de invocaciones y errores en el panel (plan gratuito).
+# head_sampling_rate 1 = todas; si el volumen creciera, bajar a 0.1.
+[observability]
+enabled = true
+head_sampling_rate = 1

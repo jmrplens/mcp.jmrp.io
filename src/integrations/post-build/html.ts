@@ -1,0 +1,709 @@
+import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+
+import type { AstroIntegrationLogger } from "astro";
+import * as cheerio from "cheerio";
+import type { Element } from "domhandler";
+import { glob } from "glob";
+import { minify } from "html-minifier-terser";
+
+import {
+  ASSET_FILENAME_HASH_LENGTH,
+  ASSETS_DIR,
+  NGINX_CSP_NONCE_PLACEHOLDER,
+  STYLE_CLASS_HASH_LENGTH,
+} from "./constants.js";
+import type { CspData } from "./types.js";
+import {
+  getExtensionFromMime,
+  getFileHash,
+  resolveFile,
+  writeHtml,
+} from "./utils.js";
+
+/**
+ * Decodes Data URI data part based on encoding.
+ */
+
+function decodeData(
+  data: string,
+  isBase64: boolean,
+  logger: AstroIntegrationLogger,
+  suffix: string,
+): Buffer | null {
+  if (isBase64) {
+    return Buffer.from(data, "base64");
+  }
+  try {
+    return Buffer.from(decodeURIComponent(data.trim()));
+  } catch {
+    try {
+      // Fallback for malformed URI components. decodeURI is less strict.
+      return Buffer.from(decodeURI(data.trim()));
+    } catch (finalError) {
+      const errStr =
+        finalError instanceof Error ? finalError.message : String(finalError);
+      logger.warn("Skipping malformed data URI" + suffix + ": " + errStr);
+      return null;
+    }
+  }
+}
+
+/**
+ * Writes an extracted asset to disk atomically: writes to a uniquely-named
+ * temp file in the same directory, then `rename`s it into place, so a
+ * concurrent reader (or another file in the same batch extracting the same
+ * duplicate asset) can never observe a partially-written blob. Kept fully
+ * synchronous — like the rest of `extractDataUri`'s check-then-write — to
+ * preserve the ordering guarantee documented on {@link processHtmlFiles}.
+ *
+ * @param destPath - Final absolute path for the asset.
+ * @param data - Bytes to write.
+ */
+function writeAssetAtomicSync(destPath: string, data: Buffer): void {
+  const tmpPath = `${destPath}.${crypto.randomUUID()}.tmp`;
+  fs.writeFileSync(tmpPath, data);
+  fs.renameSync(tmpPath, destPath);
+}
+
+/**
+ * Generates a stable filename for an asset based on its content hash.
+ * Validates hash length to ensure unique filenames.
+ */
+function getAssetFilename(buffer: Buffer, mime: string): string {
+  // Normalize extension: strip leading dots and fallback to "bin" for invalid/empty
+  const rawExt = getExtensionFromMime(mime);
+  const ext = rawExt.replace(/^\.+/, "") || "bin";
+  // Ensure at least 1 character for hash to prevent filename collisions
+  const validatedLength = Math.max(1, ASSET_FILENAME_HASH_LENGTH);
+  const hash = crypto
+    .createHash("sha256")
+    .update(buffer)
+    .digest("hex")
+    .slice(0, validatedLength);
+  return hash + "." + ext;
+}
+
+/**
+ * Extracts a data URI to a physical file and returns the new relative URL.
+ */
+
+function extractDataUri(
+  rawDataUri: string,
+  targetDir: string,
+  logger: AstroIntegrationLogger,
+  context?: string,
+): { url: string; extracted: boolean } | null {
+  if (!rawDataUri?.startsWith("data:")) return null;
+
+  const suffix = context ? " in " + context : "";
+
+  try {
+    const commaIndex = rawDataUri.indexOf(",");
+    if (commaIndex === -1) return null;
+
+    const metadata = rawDataUri.substring(5, commaIndex);
+    const data = rawDataUri.slice(Math.max(0, commaIndex + 1));
+    const isBase64 = metadata.includes(";base64");
+    const mime = metadata.split(";", 1)[0] || "application/octet-stream";
+
+    const buffer = decodeData(data, isBase64, logger, suffix);
+    if (!buffer) return null;
+
+    const filename = getAssetFilename(buffer, mime);
+    const filePath = path.join(targetDir, filename);
+
+    if (!fs.existsSync(filePath)) {
+      writeAssetAtomicSync(filePath, buffer);
+      return { url: "/" + ASSETS_DIR + "/" + filename, extracted: true };
+    }
+
+    return { url: "/" + ASSETS_DIR + "/" + filename, extracted: false };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error("Error extracting data URI" + suffix + ": " + message);
+    return null;
+  }
+}
+
+/**
+ * Number of HTML files processed concurrently per batch in
+ * {@link processHtmlFiles}. Each file's transformation is CPU/IO bound
+ * (cheerio parse, hashing, minify) and fully independent of every other
+ * file's — the only shared state is the `hashCache` Map and the
+ * `cspData.imageDomains` Set, both of which are safe to mutate from
+ * concurrently-awaiting single-threaded JS (see the function doc for the
+ * ordering analysis). Mirrors the batching pattern used in
+ * `compression.ts`.
+ */
+const HTML_PROCESSING_CONCURRENCY = 8;
+
+/**
+ * Performs a consolidated pass over all HTML files in the distribution directory.
+ *
+ * Files are processed in concurrent batches (see
+ * {@link HTML_PROCESSING_CONCURRENCY}). This is safe because:
+ * - Each file only reads its own content and writes back to its own path.
+ * - `hashCache` (file path -> integrity hash) and `cspData.imageDomains`
+ *   (a Set of hostnames) are accumulative and idempotent: a concurrent
+ *   cache miss for the same key just recomputes the same deterministic
+ *   value twice, and Set/Map mutation never interleaves at the byte level
+ *   in single-threaded JS.
+ * - Data-URI extraction (`findAndExtractDataUris`) is synchronous (uses
+ *   `fs.existsSync`/`writeFileSync`, not the promise APIs), so for every
+ *   file in a batch, `Promise.all(batch.map(...))` runs each file's fully
+ *   synchronous prefix (parsing, image/style/SRI processing, data-URI
+ *   writes) back-to-back with no interleaving *before* any of them
+ *   suspends at the first `await` (the `minify()` call) — so even the
+ *   `fs.existsSync` + `writeFileSync` check-then-write for a duplicate
+ *   embedded asset across two files in the same batch cannot race.
+ */
+export async function processHtmlFiles(
+  distDir: string,
+  cspData: CspData,
+  enableCsp: boolean,
+  logger: AstroIntegrationLogger,
+) {
+  logger.info("Processing HTML files (consolidated pass)...");
+  const htmlFiles = await glob("**/*.html", { cwd: distDir, absolute: true });
+  const hashCache = new Map<string, string>();
+  const targetDir = path.join(distDir, ASSETS_DIR);
+  if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
+
+  // El endurecido del beacon de Cloudflare (`scripts/cf-beacon.js`) que hace
+  // aquí jmrp.io no se copia: este sitio no carga analítica de ningún tipo.
+
+  let modifiedFilesCount = 0;
+  let updatedSriTags = 0;
+  let extractedImages = 0;
+
+  for (let i = 0; i < htmlFiles.length; i += HTML_PROCESSING_CONCURRENCY) {
+    const batch = htmlFiles.slice(i, i + HTML_PROCESSING_CONCURRENCY);
+    const results = await Promise.all(
+      batch.map((file) =>
+        processSingleHtmlFile(
+          file,
+          distDir,
+          targetDir,
+          cspData,
+          hashCache,
+          enableCsp,
+          logger,
+        ),
+      ),
+    );
+    for (const result of results) {
+      if (result.modified) modifiedFilesCount++;
+      updatedSriTags += result.updatedSriTags;
+      extractedImages += result.extractedImages;
+    }
+  }
+
+  logger.info(`  ✓ Updated ${updatedSriTags} tags with SRI.`);
+  logger.info(`  ✓ Extracted ${extractedImages} images from HTML.`);
+  logger.info(`  ✓ Modified ${modifiedFilesCount} HTML files.`);
+}
+
+/** Extensions of files that should not be prefetched */
+const BINARY_EXTENSIONS = [
+  ".pdf",
+  ".zip",
+  ".rar",
+  ".7z",
+  ".pptx",
+  ".docx",
+  ".xlsx",
+  ".mp4",
+  ".mp3",
+  ".iso",
+  ".tar.gz",
+];
+
+/**
+ * Orchestrates all transformations for a single HTML file.
+ */
+async function processSingleHtmlFile(
+  file: string,
+  distDir: string,
+  targetDir: string,
+  cspData: CspData,
+  hashCache: Map<string, string>,
+  enableCsp: boolean,
+  logger: AstroIntegrationLogger,
+): Promise<{
+  modified: boolean;
+  updatedSriTags: number;
+  extractedImages: number;
+}> {
+  const content = fs.readFileSync(file, "utf-8");
+  const $ = cheerio.load(content);
+  let isModified = false;
+  let updatedSriTags = 0;
+  let extractedImages = 0;
+
+  // Image processing
+  const imgResult = processImages($, targetDir, logger, file);
+  if (imgResult.modified) {
+    isModified = true;
+    extractedImages += imgResult.extractedCount;
+  }
+
+  // Fix style locations
+  const bodyStyles = $("body style");
+  if (bodyStyles.length > 0) {
+    let movedCount = 0;
+    bodyStyles.each((_, el) => {
+      const $style = $(el);
+      if ($style.parents("svg, template, noscript").length > 0) return;
+      $("head").append($style.clone());
+      $style.remove();
+      movedCount++;
+    });
+    if (movedCount > 0) isModified = true;
+  }
+
+  // Handle styles
+  if (processStyles($, enableCsp)) isModified = true;
+
+  // Process SRI and Nonces
+  const sriResult = processScriptsAndLinks(
+    $,
+    file,
+    distDir,
+    hashCache,
+    enableCsp,
+  );
+  if (sriResult.modified) {
+    isModified = true;
+    updatedSriTags += sriResult.updatedTags;
+  }
+
+  // Collect domains for CSP
+  if (enableCsp) collectImageDomains($, cspData);
+
+  // UnoCSS Icon Purge: Remove CSS rules for icons that are not present as classes in the HTML
+  if (purgeUnusedIcons($)) isModified = true;
+
+  // Accessibility: Code blocks (locale-aware labels)
+  if (processCodeBlocks($, file, distDir)) isModified = true;
+
+  // Performance: Block prefetch for binary files
+  if (processLinks($)) isModified = true;
+
+  // Minify HTML
+  const rawHtml = $.html();
+  // LOAD-BEARING: no await may run before this point — the synchronous prefix serializes data-URI check-then-write across the batch (see JSDoc above).
+  const minifiedHtml = await minify(rawHtml, {
+    removeComments: true,
+    collapseWhitespace: true,
+    // minifyCSS is off on purpose: every <style> block here was already
+    // minified by Vite/lightningcss during the Astro build, so clean-css only
+    // re-parses what it cannot improve. Verified over the whole corpus (126
+    // pages): output is byte-identical with it on or off, and it costs ~30%
+    // of the minify time. That cost grew when the site moved to
+    // inlineStylesheets:"always" and every page started carrying ~69 KiB of
+    // inline CSS. Turn it back on if raw, unminified CSS ever reaches dist.
+    minifyCSS: false,
+    minifyJS: true,
+    ignoreCustomComments: [/^!/],
+    sortAttributes: true,
+    sortClassName: true,
+  });
+
+  const $minified = cheerio.load(minifiedHtml);
+  if (collectInlineHashes($minified, enableCsp)) isModified = true;
+
+  writeHtml(file, $minified.html());
+  return { modified: isModified, updatedSriTags, extractedImages };
+}
+
+function processImages(
+  $: cheerio.CheerioAPI,
+  targetDir: string,
+  logger: AstroIntegrationLogger,
+  file?: string,
+): { modified: boolean; extractedCount: number } {
+  const extractedCount = findAndExtractDataUris($, targetDir, logger, file);
+  return { modified: extractedCount > 0, extractedCount };
+}
+
+function findAndExtractDataUris(
+  $: cheerio.CheerioAPI,
+  targetDir: string,
+  logger: AstroIntegrationLogger,
+  file?: string,
+): number {
+  let extractedCount = 0;
+  const fileName = file ? path.basename(file) : undefined;
+
+  $(
+    "img[src^='data:'], img[srcset*='data:'], source[src^='data:'], source[srcset*='data:']",
+  ).each((_, el) => {
+    const $el = $(el);
+    const src = $el.attr("src");
+    if (src?.startsWith("data:")) {
+      const extracted = extractDataUri(src, targetDir, logger, fileName);
+      if (extracted) {
+        $el.attr("src", extracted.url);
+        if (extracted.extracted) extractedCount++;
+      }
+    }
+
+    const srcset = $el.attr("srcset");
+    if (srcset?.includes("data:")) {
+      let modifiedSrcset = false;
+      const parts = srcset.split(",");
+      const newParts = parts.map((part) => {
+        const trimmed = part.trim();
+        const [url, descriptor] = trimmed.split(/\s+/, 2);
+        if (url?.startsWith("data:")) {
+          const extracted = extractDataUri(url, targetDir, logger, fileName);
+          if (extracted) {
+            modifiedSrcset = true;
+            if (extracted.extracted) extractedCount++;
+            return descriptor
+              ? `${extracted.url} ${descriptor}`
+              : extracted.url;
+          }
+        }
+        return trimmed;
+      });
+      if (modifiedSrcset) $el.attr("srcset", newParts.join(", "));
+    }
+  });
+  return extractedCount;
+}
+
+function processStyles($: cheerio.CheerioAPI, enableCsp: boolean): boolean {
+  let modified = false;
+  const styleToClassMap = new Map<string, string>();
+
+  $("[style]").each((_, el) => {
+    const $el = $(el);
+    const styleContent = $el.attr("style");
+    if (!styleContent || styleContent.trim() === "") {
+      $el.removeAttr("style");
+      modified = true;
+      return;
+    }
+
+    const hash = crypto
+      .createHash("shake256", { outputLength: STYLE_CLASS_HASH_LENGTH })
+      .update(styleContent)
+      .digest("hex");
+    const className = `sh-${hash}`;
+    styleToClassMap.set(styleContent, className);
+    $el.removeAttr("style");
+    $el.addClass(className);
+    modified = true;
+  });
+
+  if (styleToClassMap.size > 0) {
+    let cssRules = "";
+    const bs = "\\";
+    for (const [styleDef, className] of styleToClassMap) {
+      const sanitizedStyle = styleDef
+        .replaceAll(bs, String.raw`\5c `)
+        .replaceAll("<", String.raw`\3c `)
+        .replaceAll(">", String.raw`\3e `)
+        .replaceAll("{", String.raw`\7b `)
+        .replaceAll("}", String.raw`\7d `)
+        .replaceAll("'", String.raw`\27 `)
+        .replaceAll('"', String.raw`\22 `)
+        .replaceAll("/*", String.raw`\2f \2a `)
+        .replaceAll("*/", String.raw`\2a \2f `);
+      cssRules += `.${className}{${sanitizedStyle}}`;
+    }
+    const styleNonce = enableCsp
+      ? ` nonce="${NGINX_CSP_NONCE_PLACEHOLDER}"`
+      : "";
+    $("head").append(
+      `<style${styleNonce} data-generated-style="true">${cssRules}</style>`,
+    );
+    modified = true;
+  }
+  return modified;
+}
+
+function processScriptsAndLinks(
+  $: cheerio.CheerioAPI,
+  file: string,
+  distDir: string,
+  hashCache: Map<string, string>,
+  enableCsp: boolean,
+): { modified: boolean; updatedTags: number } {
+  let modified = false;
+  let updatedTags = 0;
+
+  $("script[src]").each((_, el) => {
+    const res = processTagSri(
+      $(el),
+      "src",
+      "script",
+      file,
+      distDir,
+      hashCache,
+      enableCsp,
+    );
+    if (res.modified) modified = true;
+    if (res.updated) updatedTags++;
+  });
+
+  $("link[href][rel='stylesheet']").each((_, el) => {
+    const res = processTagSri(
+      $(el),
+      "href",
+      "link",
+      file,
+      distDir,
+      hashCache,
+      false,
+    );
+    if (res.modified) modified = true;
+    if (res.updated) updatedTags++;
+  });
+
+  return { modified, updatedTags };
+}
+
+function processTagSri(
+  $el: cheerio.Cheerio<Element>,
+  attr: string,
+  type: "script" | "link",
+  file: string,
+  distDir: string,
+  hashCache: Map<string, string>,
+  enableCsp: boolean,
+): { modified: boolean; updated: boolean } {
+  let modified = false;
+  let updated = false;
+  const url = $el.attr(attr);
+  if (!url) return { modified, updated };
+
+  if (addIntegrity($el, url, type, file, distDir, hashCache)) {
+    if (!$el.attr("crossorigin")) $el.attr("crossorigin", "anonymous");
+    modified = true;
+    updated = true;
+  }
+  if (enableCsp && addNonce($el, type)) modified = true;
+  return { modified, updated };
+}
+
+function isSriEligible(
+  $el: cheerio.Cheerio<Element>,
+  type: "script" | "link",
+): boolean {
+  if (type === "script") return true;
+  if (type === "link") return $el.attr("rel") === "stylesheet";
+  return false;
+}
+
+function addIntegrity(
+  $el: cheerio.Cheerio<Element>,
+  url: string,
+  type: "script" | "link",
+  file: string,
+  distDir: string,
+  hashCache: Map<string, string>,
+): boolean {
+  if (isSriEligible($el, type) && !$el.attr("integrity")) {
+    const filePath = resolveFile(url, path.dirname(file), distDir);
+    if (filePath) {
+      const hash = getFileHash(filePath, hashCache);
+      $el.attr("integrity", hash);
+      return true;
+    }
+  }
+  return false;
+}
+
+function addNonce(
+  $el: cheerio.Cheerio<Element>,
+  type: "script" | "link",
+): boolean {
+  if (type === "script" && !$el.attr("nonce")) {
+    $el.attr("nonce", NGINX_CSP_NONCE_PLACEHOLDER);
+    return true;
+  }
+  return false;
+}
+
+function collectInlineHashes(
+  $: cheerio.CheerioAPI,
+  enableCsp: boolean,
+): boolean {
+  if (!enableCsp) return false;
+  let modified = false;
+
+  // With nonce-only CSP, we no longer collect hashes for the CSP header.
+  // We only ensure all inline elements have the nonce placeholder.
+  $("style").each((_, el) => {
+    const $el = $(el);
+    if (!$el.attr("nonce")) {
+      $el.attr("nonce", NGINX_CSP_NONCE_PLACEHOLDER);
+      modified = true;
+    }
+  });
+
+  $("script:not([src])").each((_, el) => {
+    const $el = $(el);
+    if (!$el.attr("nonce")) {
+      $el.attr("nonce", NGINX_CSP_NONCE_PLACEHOLDER);
+      modified = true;
+    }
+  });
+  return modified;
+}
+
+function collectImageDomains($: cheerio.CheerioAPI, cspData: CspData) {
+  $("img[src], source[srcset], img[srcset]").each((_, el) => {
+    const $el = $(el);
+    const sources = ($el.attr("src") || "") + " " + ($el.attr("srcset") || "");
+    for (const srcCandidate of sources.split(/,?\s+/)) {
+      const src = srcCandidate.trim().split(" ", 1)[0];
+      if (src && (src.startsWith("http") || src.startsWith("//"))) {
+        try {
+          const url = src.startsWith("//")
+            ? new URL(`https:${src}`)
+            : new URL(src);
+          if (url.hostname) cspData.imageDomains.add(url.hostname);
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+  });
+}
+
+function sanitizeLanguage(lang: string): string {
+  return lang.replaceAll(/[^a-zA-Z0-9_-]/g, "").toLowerCase() || "code";
+}
+
+/**
+ * Detects the locale from the output file path relative to dist.
+ * Files under `dist/es/` are Spanish; everything else is English (default).
+ */
+function detectLocaleFromPath(file: string, distDir: string): "en" | "es" {
+  const rel = path.relative(distDir, file).split(path.sep);
+  return rel[0] === "es" ? "es" : "en";
+}
+
+/** Locale-aware label for orphan code blocks wrapped during post-build. */
+function codeSnippetLabel(
+  displayLang: string,
+  index: number,
+  locale: "en" | "es",
+): string {
+  return locale === "es"
+    ? `Fragmento de código ${displayLang} ${index}`
+    : `${displayLang} snippet ${index}`;
+}
+
+function processCodeBlocks(
+  $: cheerio.CheerioAPI,
+  file: string,
+  distDir: string,
+): boolean {
+  let modified = false;
+  let regionCount = 0;
+  const locale = detectLocaleFromPath(file, distDir);
+  $("pre[tabindex='0'], pre[role='region']").each((_, el) => {
+    const $el = $(el);
+    if ($el.closest("section[aria-label]").length > 0) {
+      if ($el.attr("role") === "region") {
+        $el.removeAttr("role");
+        modified = true;
+      }
+      return;
+    }
+    // If the <pre> already has its own aria-label (e.g. tool output blocks),
+    // keep role="region" so the label is valid per ARIA spec and skip wrapping.
+    if ($el.attr("aria-label")) {
+      if (!$el.attr("role")) {
+        $el.attr("role", "region");
+        modified = true;
+      }
+      return;
+    }
+    regionCount++;
+    const safeLang = sanitizeLanguage($el.attr("data-language") || "code");
+    const displayLang = safeLang.charAt(0).toUpperCase() + safeLang.slice(1);
+    const label = codeSnippetLabel(displayLang, regionCount, locale);
+    const wrapperHtml = `<section aria-label="${label}" class="code-section-wrapper"></section>`;
+    $el.wrap(wrapperHtml);
+    $el.removeAttr("role");
+    modified = true;
+  });
+  return modified;
+}
+
+function processLinks($: cheerio.CheerioAPI): boolean {
+  let modified = false;
+  $("a[href]").each((_, el) => {
+    const $el = $(el);
+    const rawHref = $el.attr("href") || "";
+    // Strip query string and fragment before checking extension
+    const href = rawHref.split(/[?#]/, 1)[0].toLowerCase();
+    if (
+      BINARY_EXTENSIONS.some((ext) => href.endsWith(ext)) &&
+      $el.attr("data-astro-prefetch") !== "false"
+    ) {
+      $el.attr("data-astro-prefetch", "false");
+      modified = true;
+    }
+  });
+  return modified;
+}
+
+/**
+ * Purges unused UnoCSS icon rules from inline styles in the HTML.
+ * Robustly detects icon classes regardless of order or surrounding content.
+ */
+function purgeUnusedIcons($: cheerio.CheerioAPI): boolean {
+  let modified = false;
+  const htmlContent = $.html();
+
+  // Find all used icon classes (e.g., i-mdi:school)
+  const iconPattern = /i-([a-z0-9-]+):([a-z0-9-]+)/gi;
+  const usedIconClasses = new Set<string>();
+  let match: RegExpExecArray | null;
+  while ((match = iconPattern.exec(htmlContent)) !== null) {
+    usedIconClasses.add(
+      `i-${match[1].toLowerCase()}:${match[2].toLowerCase()}`,
+    );
+  }
+
+  if (usedIconClasses.size === 0) return false;
+
+  // Process style blocks
+  $("style").each((_, el) => {
+    const $style = $(el);
+    let css = $style.html() || "";
+    if (!css.includes(".i-")) return;
+
+    const originalCss = css;
+
+    // Match rules like .i-mdi\:school{...} or .i-logos\:mikrotik{...}
+    // and handle complex escapes.
+    const iconRuleRegex = /\.i-([a-z0-9-]+)\\:([a-z0-9-]+)\s*\{[^}]*\}/gi;
+
+    css = css.replaceAll(
+      iconRuleRegex,
+      (rule: string, collection: string, name: string) => {
+        const fullIconClass = `i-${collection.toLowerCase()}:${name.toLowerCase()}`;
+        if (usedIconClasses.has(fullIconClass)) {
+          return rule;
+        }
+        return "";
+      },
+    );
+
+    if (css !== originalCss) {
+      $style.html(css);
+      modified = true;
+    }
+  });
+
+  return modified;
+}

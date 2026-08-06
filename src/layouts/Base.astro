@@ -1,0 +1,271 @@
+---
+/**
+ * Layout del sitio.
+ *
+ * NO reutiliza la navegación de jmrp.io: aquella enlaza a rutas raíz
+ * (`/about`, `/blog`) que en este dominio serían 404. Los enlaces cross-site
+ * van en absoluto (`https://jmrp.io/...`).
+ *
+ * El lenguaje visual sí es el de jmrp.io, heredado de src/styles/tokens.css:
+ * Space Grotesk para display, IBM Plex Sans de cuerpo, IBM Plex Mono para
+ * etiquetas y datos, y la paleta con tema claro/oscuro automático.
+ */
+import "../styles/global.css";
+
+import { Font } from "astro:assets";
+
+import { buildSiteGraph, safeJsonLd } from "../lib/jsonld";
+import {
+  alternates,
+  OG_IMAGE_SIZE,
+  OG_LOCALES,
+  ogImageAlt,
+  ogImageUrl,
+  pageUrl,
+  SITE_NAME,
+} from "../lib/seo";
+
+interface Props {
+  title: string;
+  description: string;
+  lang: "en" | "es";
+}
+
+const { title, description, lang } = Astro.props;
+const alternate = lang === "en" ? "/es/" : "/";
+// Canonical, og:url y twitter:url son el MISMO valor a propósito: tres
+// declaraciones distintas de dónde vive esta página son tres oportunidades de
+// contradecirse. Todas salen de `pageUrl()`.
+const canonical = pageUrl(lang);
+const ogImage = ogImageUrl(lang);
+const imageAlt = ogImageAlt(lang);
+const otherLocales = Object.entries(OG_LOCALES)
+  .filter(([code]) => code !== lang)
+  .map(([, locale]) => locale);
+// El grafo se serializa aquí, en el frontmatter, para que `set:html` reciba
+// una cadena ya escapada. `buildSiteGraph` descarga el documento de identidad de
+// jmrp.io de GitHub, con el snapshot commiteado como respaldo (ver identity.ts).
+const jsonLd = safeJsonLd(await buildSiteGraph({ lang, title, description }));
+const t = {
+  en: { skip: "Skip to content", source: "Source", other: "Español" },
+  es: { skip: "Saltar al contenido", source: "Código", other: "English" },
+}[lang];
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    {/* Las anotaciones hreflang se emiten ENTERAS en las dos páginas, cada una
+        incluyéndose a sí misma. Google exige que toda versión liste todas las
+        versiones —ella incluida— y descarta el clúster completo si falta la
+        autorreferencia: EN y ES pasarían a competir entre sí en vez de
+        agruparse. Salen de `alternates()` y no de un ternario para que dar de
+        alta un idioma nuevo no pueda volver a dejar la lista coja. */}
+    {
+      alternates().map((alt) => (
+        <link rel="alternate" hreflang={alt.hreflang} href={alt.href} />
+      ))
+    }
+
+    {/* El índice de endpoints en JSON, declarado como representación
+        alternativa del documento. Estaba solo enlazado desde el cuerpo, así
+        que un agente que lea el `<head>` —que es lo que hacen— no lo veía. */}
+    <link
+      rel="alternate"
+      type="application/json"
+      href="/servers.json"
+      title="MCP server index"
+    />
+
+    <meta name="color-scheme" content="light dark" />
+
+    {/* Icono en SVG, no .ico: el vhost contesta 204 a /favicon.ico (viene del
+        include `empty_apple_icons.conf` y hermanos) y ese 204 no se puede
+        cambiar desde aquí. Un SVG declarado explícitamente sí se sirve. */}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+
+    {/* Tarjeta social. Sin este bloque, un enlace compartido en Bluesky,
+        Mastodon, Slack o WhatsApp sale como URL pelada: ni título, ni
+        descripción, ni imagen. `og:image` va en ABSOLUTO porque ninguno de
+        esos clientes resuelve rutas relativas. */}
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:locale" content={OG_LOCALES[lang]} />
+    {
+      otherLocales.map((locale) => (
+        <meta property="og:locale:alternate" content={locale} />
+      ))
+    }
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content={String(OG_IMAGE_SIZE.width)} />
+    <meta property="og:image:height" content={String(OG_IMAGE_SIZE.height)} />
+    <meta property="og:image:alt" content={imageAlt} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@jmrplens" />
+    <meta name="twitter:creator" content="@jmrplens" />
+    <meta name="twitter:url" content={canonical} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={imageAlt} />
+
+    {/* Datos estructurados. `is:inline` es obligatorio: sin él Astro trata el
+        bloque como un script propio y lo saca a un módulo del bundle, con lo
+        que el JSON-LD desaparecería del HTML.
+
+        No hay nada que tocar en la CSP: `script-src` no aplica a un bloque de
+        datos `ld+json`, y aun así el post-build le pone el placeholder
+        `nonce="NGINX_CSP_NONCE"` como a cualquier `script:not([src])`. */}
+    <script is:inline type="application/ld+json" set:html={jsonLd} />
+
+    {/* Sin estos <Font> Astro NO emite las variables --font-*, y como
+        tokens.css define --font-body como `var(--font-ibm-plex-sans), ...`,
+        un var() inexistente invalida la declaración entera: el navegador
+        ignora toda la cadena de fallback y cae a Times New Roman.
+        Configurar `fonts:` en astro.config no basta por sí solo. */}
+    <Font
+      cssVariable="--font-ibm-plex-sans"
+      preload={[{ weight: "400", style: "normal" }]}
+    />
+    <Font
+      cssVariable="--font-space-grotesk"
+      preload={[{ weight: "700", style: "normal" }]}
+    />
+    <Font
+      cssVariable="--font-ibm-plex-mono"
+      preload={[{ weight: "500", style: "normal" }]}
+    />
+  </head>
+  <body>
+    <a class="skip" href="#main">{t.skip}</a>
+
+    <header class="site-header">
+      <a class="brand" href="https://jmrp.io" rel="home">
+        <span class="brand-sigil">~ &rsaquo;</span><span class="brand-name"
+          >mcp</span
+        >
+      </a>
+      <nav class="site-nav" aria-label={lang === "es" ? "Idioma" : "Language"}>
+        <a href={alternate} lang={lang === "en" ? "es" : "en"}>{t.other}</a>
+        <a href="https://github.com/jmrplens/mcp.jmrp.io">{t.source}</a>
+      </nav>
+    </header>
+
+    <main id="main"><slot /></main>
+
+    <footer class="site-footer">
+      <span>mcp.jmrp.io</span>
+      <a href="https://jmrp.io">jmrp.io</a>
+    </footer>
+  </body>
+</html>
+
+<style>
+  /* Franja superior e inferior en mono, como la navegación de jmrp.io. */
+  .site-header,
+  .site-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4, 1rem);
+    /* width: 100% es obligatorio: body es un flex en columna y `margin-inline:
+       auto` sobre un hijo flex ANULA el stretch del eje cruzado, encogiendo la
+       franja al ancho de su contenido en vez de llegar a los 72rem. */
+    width: 100%;
+    max-width: 72rem;
+    margin-inline: auto;
+    padding: 1rem var(--pad, 1.5rem);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .site-header {
+    border-bottom: 1px solid var(--color-hair);
+  }
+
+  .brand {
+    display: inline-flex;
+    gap: 0.4rem;
+    align-items: baseline;
+    color: var(--color-text-heading);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .brand-sigil {
+    color: var(--color-accent);
+  }
+
+  .brand:hover .brand-name {
+    color: var(--color-accent);
+  }
+
+  .site-nav {
+    display: flex;
+    gap: 1.25rem;
+  }
+
+  .site-nav a,
+  .site-footer a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  .site-nav a:hover,
+  .site-footer a:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .site-footer {
+    margin-top: 4rem;
+    padding-block: 2rem;
+    border-top: 1px solid var(--color-hair);
+    color: var(--color-text-muted);
+  }
+
+  main {
+    width: 100%;
+    max-width: 72rem;
+    margin-inline: auto;
+    padding: 0 var(--pad, 1.5rem);
+  }
+
+  /* Enlace de salto: invisible hasta recibir foco por teclado. */
+  .skip {
+    position: absolute;
+    left: -9999px;
+  }
+
+  .skip:focus {
+    position: static;
+    display: inline-block;
+    margin: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    background: var(--color-accent);
+    color: var(--color-bg);
+    font-family: var(--font-mono);
+  }
+
+  @media (width <= 40rem) {
+    .site-header,
+    .site-footer,
+    main {
+      --pad: 1rem;
+    }
+  }
+</style>

@@ -1,0 +1,11 @@
+---
+import PageBody from "../../components/PageBody.astro";
+import { ui } from "../../i18n/ui";
+import Base from "../../layouts/Base.astro";
+
+const t = ui.es;
+---
+
+<Base title={t.metaTitle} description={t.lede} lang="es">
+  <PageBody lang="es" />
+</Base>
