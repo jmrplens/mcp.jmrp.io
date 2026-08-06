@@ -4,8 +4,9 @@ import { useState } from "preact/hooks";
 
 import type { McpServer } from "../data/servers";
 import { type Lang, ui } from "../i18n/ui";
-import { type McpTool, schemaFields, skeletonFor, toolsFrom } from "../lib/tool-schema";
-import { type Status, useMcpCall } from "./use-mcp-call";
+import { type McpTool, skeletonFor, toolsFrom } from "../lib/tool-schema";
+import { StatusLine, ToolSchema } from "./inspector-parts";
+import { useMcpCall } from "./use-mcp-call";
 
 /**
  * Isla Preact que introspecciona y ejercita los servidores MCP desde el
@@ -42,18 +43,6 @@ const INIT_PARAMS = {
   clientInfo: { name: "mcp.jmrp.io inspector", version: "1" },
 };
 
-
-/** Lo que se sabe del último envío, para la línea de estado sobre el panel. */
-
-/** Duración legible: milisegundos por debajo del segundo, segundos por encima. */
-function formatMs(ms: number): string {
-  return ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(1)} s`;
-}
-
-/** Tamaño legible del cuerpo de la respuesta. */
-function formatBytes(bytes: number): string {
-  return bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} kB`;
-}
 
 /**
  * Isla interactiva que habla con los servidores MCP desde el navegador del
@@ -114,7 +103,6 @@ export default function Inspector({
   const blocked = missing.length > 0;
 
   const selectedTool = tools.find((tool) => tool.name === toolName);
-  const schemaRows = schemaFields(selectedTool?.inputSchema);
 
 
   /** Solo las cabeceras del servidor activo, y solo las que tienen valor. */
@@ -191,15 +179,6 @@ export default function Inspector({
     }
   }
 
-  /** Palabra del chip de estado, por clase de resultado. */
-  const outcomeLabel: Record<Status["outcome"], string> = {
-    running: t.running,
-    ok: t.ok,
-    transport: t.errTransport,
-    rpc: t.errRpc,
-    tool: t.errTool,
-    client: t.errClient,
-  };
 
   const failed = !!status && status.outcome !== "ok" && status.outcome !== "running";
 
@@ -376,72 +355,10 @@ export default function Inspector({
             Sin esto había que leer las ~1000 líneas del volcado de tools/list
             para saber qué acepta la tool, y los servidores validan estricto:
             adivinar falla siempre. */}
-        {selectedTool ? (
-          <div className="schema" data-testid="inspector-schema">
-            <p className="schema-head">
-              <code>{selectedTool.name}</code>
-              {selectedTool.description ? <span> — {selectedTool.description}</span> : null}
-            </p>
-            {schemaRows.length > 0 ? (
-              <table>
-                <caption>{t.schemaTitle}</caption>
-                <thead>
-                  <tr>
-                    <th scope="col">{t.colName}</th>
-                    <th scope="col">{t.colType}</th>
-                    <th scope="col">{t.colWhat}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {schemaRows.map((row) => (
-                    <tr key={row.name} className={row.required ? "is-required" : undefined}>
-                      <th scope="row">
-                        <code>{row.name}</code>
-                      </th>
-                      <td>
-                        <code>{row.type}</code>
-                        <span className="req">
-                          {row.required ? t.required : t.optional}
-                        </span>
-                      </td>
-                      <td>{row.description}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p>{t.schemaEmpty}</p>
-            )}
-          </div>
-        ) : null}
+        <ToolSchema tool={selectedTool ?? null} lang={lang} />
       </div>
 
-      {/* Resumen corto y ANUNCIABLE. El aria-live vivía en el <pre>, así que un
-          lector de pantalla leía los 43.000 caracteres del volcado de una
-          tacada, y dos veces por acción. Aquí caben cuatro datos. */}
-      <output
-        className={`term-status is-${status?.outcome ?? "idle"}`}
-        data-testid="inspector-status"
-      >
-        {status ? (
-          <>
-            <span className="chip">{outcomeLabel[status.outcome]}</span>
-            <code>{status.method}</code>
-            {status.code === undefined ? null : <span>· {status.code}</span>}
-            {status.ms === undefined ? null : <span>· {formatMs(status.ms)}</span>}
-            {status.bytes === undefined ? null : <span>· {formatBytes(status.bytes)}</span>}
-            {status.items ? (
-              <span>
-                · {status.items.count} {status.items.kind}
-              </span>
-            ) : null}
-            {status.message ? <span className="msg">· {status.message}</span> : null}
-          </>
-        ) : (
-          <span>{t.statusIdle}</span>
-        )}
-        {copyNote ? <span className="msg">· {copyNote}</span> : null}
-      </output>
+      <StatusLine status={status} copyNote={copyNote} lang={lang} />
 
       {/* aria-live="off" a propósito: quien anuncia es la línea de estado de
           arriba. tabindex + role + nombre para que el panel, que tiene scroll
