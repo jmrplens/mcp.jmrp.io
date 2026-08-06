@@ -349,7 +349,10 @@ export default function Inspector({
               role="tab"
               id={`tab-${name}`}
               aria-selected={tab === name}
-              aria-controls={`panel-${name}`}
+              // Solo el activo referencia el panel: se renderiza UN tabpanel,
+              // el de la pestaña elegida, así que los demás apuntarían a un id
+              // inexistente. html-validate lo caza con no-missing-references.
+              aria-controls={tab === name ? `panel-${name}` : undefined}
               className={tab === name ? "tab is-active" : "tab"}
               onClick={() => setTab(name)}
             >

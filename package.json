@@ -13,7 +13,9 @@
     "test:e2e": "playwright test",
     "deploy": "pnpm build && node scripts/deploy-live-mcp.mjs",
     "identity:sync": "node scripts/sync-identity.mjs",
-    "identity:check": "node scripts/sync-identity.mjs --check"
+    "identity:check": "node scripts/sync-identity.mjs --check",
+    "validate:html": "html-validate dist",
+    "check": "pnpm lint && pnpm typecheck && pnpm build && pnpm test:unit && pnpm validate:html"
   },
   "dependencies": {
     "@astrojs/preact": "6.0.2",
@@ -44,6 +46,7 @@
     "eslint-plugin-unicorn": "^72.0.0",
     "glob": "^13.0.6",
     "html-minifier-terser": "^7.2.0",
+    "html-validate": "^11.6.2",
     "lighthouse": "^13.4.1",
     "svgo": "^4.0.2",
     "typescript": "^6.0.3",

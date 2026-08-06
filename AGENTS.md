@@ -150,8 +150,12 @@ pnpm deploy               # build + snippets a nginx + purga de Cloudflare
 pnpm lint                 # eslint
 pnpm typecheck            # astro check
 pnpm test:unit            # node:test
+pnpm validate:html        # html-validate sobre dist/
 pnpm test:e2e --workers=1 # playwright (llama a los endpoints reales)
+pnpm check                # lint + typecheck + build + unit + html
 pnpm identity:sync        # refresca el snapshot del #person
 ```
 
-Las cuatro puertas deben quedar en verde antes de dar nada por terminado.
+`pnpm check` agrupa todo menos los e2e. Ejecútalo antes de dar nada por
+terminado: `html-validate` vivía solo en CI y por eso dos veces se subió HTML
+que fallaba allí y pasaba aquí.
