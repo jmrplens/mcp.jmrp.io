@@ -138,3 +138,7 @@ design-audit/
 # Documentos de trabajo (spec, planes): se quedan en disco, fuera del repo público.
 docs/superpowers/
 docs/nginx-vhost-reference.conf
+
+# El worker del edge se mantiene solo en local: se despliega con wrangler,
+# no forma parte del sitio, y su configuración lleva ids de cuenta y zona.
+edge-nonce-worker/

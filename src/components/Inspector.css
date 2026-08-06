@@ -131,9 +131,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  padding-block: 0.25rem;
-  border-block: 1px solid var(--color-hair);
   padding-block: 0.9rem;
+  border-block: 1px solid var(--color-hair);
 }
 
 .term button {

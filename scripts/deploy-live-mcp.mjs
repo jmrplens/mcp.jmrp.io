@@ -16,6 +16,16 @@ import path from "node:path";
 
 const DIST = path.resolve("dist");
 const SNIPPETS = "/etc/nginx/snippets";
+
+/**
+ * Binarios por ruta ABSOLUTA, no por PATH.
+ *
+ * Este script escribe en /etc/nginx y recarga el servicio: si PATH incluyera
+ * un directorio escribible por otro usuario, `execFileSync("nginx", …)`
+ * ejecutaría lo que hubiera allí con esos privilegios.
+ */
+const NGINX_BIN = "/usr/sbin/nginx";
+const SYSTEMCTL_BIN = "/usr/bin/systemctl";
 const FILES = ["security_headers_mcp.conf", "security_headers_assets_mcp.conf"];
 const VHOST = "/etc/nginx/sites-enabled/mcp.jmrp.io.conf";
 
@@ -52,7 +62,7 @@ function warnUnservedFiles() {
   // `location = /x` (exacta) y `location ^~ /x` o `location /x` (prefijo).
   const exact = new Set();
   const prefixes = [];
-  for (const m of vhost.matchAll(/^\s*location\s+(=\s*|\^~\s*)?(\S+)\s*\{/gm)) {
+  for (const m of vhost.matchAll(/^[ \t]*location[ \t]+(?:(=|\^~)[ \t]*)?(\S+)[ \t]*\{/gm)) {
     const [, modifier, uri] = m;
     if (!uri.startsWith("/")) continue; // regex (~) y nombradas (@): no aplican
     if (modifier?.startsWith("=")) exact.add(uri);
@@ -100,7 +110,7 @@ for (const f of FILES) {
 }
 
 try {
-  execFileSync("nginx", ["-t"], { stdio: "pipe" });
+  execFileSync(NGINX_BIN, ["-t"], { stdio: "pipe" });
 } catch (error) {
   for (const [dst, buf] of backups) fs.writeFileSync(dst, buf);
   for (const f of FILES) {
@@ -112,8 +122,36 @@ try {
   process.exit(1);
 }
 
-execFileSync("systemctl", ["reload", "nginx"]);
+execFileSync(SYSTEMCTL_BIN, ["reload", "nginx"]);
 console.log(`✓ ${FILES.join(", ")} desplegados y nginx recargado`);
+
+/**
+ * Aplana un texto ajeno a una sola línea legible.
+ *
+ * Lo que se registra aquí viene de una respuesta HTTP: un salto de línea en su
+ * contenido inyectaría líneas falsas en el log, que es lo que se lee cuando un
+ * despliegue sale mal.
+ *
+ * @param value Texto de origen externo.
+ * @returns El mismo texto en una línea y acotado.
+ */
+function oneLine(value) {
+   
+  return String(value ?? "").replaceAll(/[\u{0}-\u{1F}\u{7F}]+/gu, " ").slice(0, 300);
+}
+
+/**
+ * Resume los errores que devuelve la API de Cloudflare.
+ *
+ * @param errors Array `[{ code, message }]` de la respuesta.
+ * @returns Una línea con el código y el mensaje de cada uno.
+ */
+function describeErrors(errors) {
+  if (!Array.isArray(errors) || errors.length === 0) return "sin detalle";
+  return errors
+    .map((e) => `${String(e?.code ?? "?")}: ${oneLine(e?.message)}`)
+    .join(" · ");
+}
 
 // ── Purga de la caché de Cloudflare ────────────────────────────────────────
 //
@@ -150,10 +188,12 @@ if (cfToken) {
     console.log(
       body.success
         ? "✓ caché de Cloudflare purgada"
-        : `⚠ la purga de Cloudflare falló: ${JSON.stringify(body.errors)}`,
+        : `⚠ la purga de Cloudflare falló: ${describeErrors(body.errors)}`,
     );
   } catch (error) {
-    console.warn(`⚠ no se pudo purgar la caché de Cloudflare: ${error.message}`);
+    console.warn(
+      `⚠ no se pudo purgar la caché de Cloudflare: ${oneLine(error.message)}`,
+    );
   }
 } else {
   console.warn(

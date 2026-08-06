@@ -305,8 +305,13 @@ test("el <title> deja sitio a la expresión por la que se busca esto", () => {
       title.includes("Model Context Protocol"),
       `${name}: el título no contiene la keyword — solo estaba en la description`,
     );
+    // Separadas: un `&&` en el assert no dice cuál de los dos límites se pasó.
     assert.ok(
-      title.length >= 40 && title.length <= 65,
+      title.length >= 40,
+      `${name}: ${title.length} caracteres, se queda corto (mínimo 40)`,
+    );
+    assert.ok(
+      title.length <= 65,
       `${name}: ${title.length} caracteres; Google recorta pasados ~60`,
     );
   }

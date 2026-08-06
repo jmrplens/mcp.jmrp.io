@@ -1,16 +1,11 @@
 import "./Inspector.css";
 
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 
 import type { McpServer } from "../data/servers";
 import { type Lang, ui } from "../i18n/ui";
-import {
-  callMcp,
-  classifyMcp,
-  listedItems,
-  type McpOutcome,
-} from "../lib/mcp-client";
 import { type McpTool, schemaFields, skeletonFor, toolsFrom } from "../lib/tool-schema";
+import { type Status, useMcpCall } from "./use-mcp-call";
 
 /**
  * Isla Preact que introspecciona y ejercita los servidores MCP desde el
@@ -47,28 +42,8 @@ const INIT_PARAMS = {
   clientInfo: { name: "mcp.jmrp.io inspector", version: "1" },
 };
 
-/**
- * Techo propio, por debajo del corte de Cloudflare (100 s, ver
- * /root/mcp_server_info.md).
- *
- * Que corte Cloudflare y que corte el inspector se ven igual de mal, pero solo
- * uno de los dos puede explicarse: si esperamos a los 100 s, el visitante
- * recibe una página de error del edge y concluye que el servidor devuelve
- * basura. Abandonando a los 90 s el mensaje lo escribimos nosotros.
- */
-const TIMEOUT_MS = 90_000;
 
 /** Lo que se sabe del último envío, para la línea de estado sobre el panel. */
-type Status = {
-  method: string;
-  /** `running` mientras vuela; `client` si ni siquiera llegó a salir. */
-  outcome: McpOutcome | "running" | "client";
-  code?: number;
-  ms?: number;
-  bytes?: number;
-  items?: { kind: string; count: number };
-  message: string;
-};
 
 /** Duración legible: milisegundos por debajo del segundo, segundos por encima. */
 function formatMs(ms: number): string {
@@ -98,11 +73,13 @@ export default function Inspector({
   lang,
 }: Readonly<{ servers: McpServer[]; lang: Lang }>) {
   const t = ui[lang].insp;
+  const call = useMcpCall({
+    networkError: t.networkError,
+    timedOut: t.timedOut,
+    cancelled: t.cancelled,
+  });
+  const { output, status, busy, elapsed, lastCmd } = call;
   const [serverId, setServerId] = useState(servers[0]?.id ?? "");
-  const [output, setOutput] = useState("");
-  const [busy, setBusy] = useState(false);
-  /** Segundos que lleva la petición en vuelo. Sin esto, 6 s parecen colgarse. */
-  const [elapsed, setElapsed] = useState(0);
   /**
    * Valores de las cabeceras, en memoria y nada más. La clave lleva el id del
    * servidor por delante: si dos MCP declarasen una cabecera con el mismo
@@ -113,13 +90,8 @@ export default function Inspector({
   const [tools, setTools] = useState<McpTool[]>([]);
   const [toolName, setToolName] = useState("");
   const [toolArgs, setToolArgs] = useState("{}");
-  /** Último método lanzado, para pintar la línea de prompt del panel. */
-  const [lastCmd, setLastCmd] = useState("");
-  const [status, setStatus] = useState<Status | null>(null);
   /** Aviso efímero del botón de copiar. */
   const [copyNote, setCopyNote] = useState("");
-  /** Petición en vuelo, para poder cancelarla desde el botón. */
-  const abortRef = useRef<AbortController | null>(null);
 
   const server = servers.find((s) => s.id === serverId) ?? servers[0];
   const fields = server
@@ -144,12 +116,6 @@ export default function Inspector({
   const selectedTool = tools.find((tool) => tool.name === toolName);
   const schemaRows = schemaFields(selectedTool?.inputSchema);
 
-  // El contador de segundos solo existe mientras hay algo en vuelo.
-  useEffect(() => {
-    if (!busy) return;
-    const id = setInterval(() => setElapsed((n) => n + 1), 1000);
-    return () => clearInterval(id);
-  }, [busy]);
 
   /** Solo las cabeceras del servidor activo, y solo las que tienen valor. */
   function authHeaders(): Record<string, string> {
@@ -183,57 +149,15 @@ export default function Inspector({
 
   async function send(method: string, params: unknown) {
     if (!server) return;
-
-    const controller = new AbortController();
-    abortRef.current = controller;
-    let timedOut = false;
-    const timer = setTimeout(() => {
-      timedOut = true;
-      controller.abort();
-    }, TIMEOUT_MS);
-
-    setBusy(true);
-    setElapsed(0);
-    setCopyNote("");
-    setLastCmd(method);
-    // La salida anterior NO se borra: se atenúa. Borrarla dejaba al visitante
-    // mirando un panel vacío durante los segundos que tarda la respuesta,
-    // habiendo perdido lo que estaba leyendo.
-    setStatus({ method, outcome: "running", message: "" });
-
-    try {
-      const res = await callMcp({
-        endpoint: server.endpoint,
-        method,
-        params,
-        headers: authHeaders(),
-        signal: controller.signal,
-      });
-      const verdict = classifyMcp(res);
-      setOutput(res.body ? JSON.stringify(res.body, null, 2) : res.text);
-      setStatus({
-        method,
-        outcome: verdict.outcome,
-        code: verdict.code,
-        ms: res.durationMs,
-        bytes: res.bytes,
-        items: listedItems(res.body),
-        message: verdict.message,
-      });
-      // El catálogo se guarda aunque la llamada haya ido a otro sitio: solo
-      // `tools/list` lo trae.
-      if (method === "tools/list") setTools(toolsFrom(res.body));
-    } catch (error) {
-      const aborted = controller.signal.aborted;
-      let message = `${t.networkError}: ${String(error)}`;
-      if (aborted) message = timedOut ? t.timedOut : t.cancelled;
-      setStatus({ method, outcome: "client", message });
-      setOutput(message);
-    } finally {
-      clearTimeout(timer);
-      abortRef.current = null;
-      setBusy(false);
-    }
+    const body = await call.send(
+      server.endpoint,
+      method,
+      params,
+      authHeaders(),
+    );
+    // El catálogo se guarda aunque la llamada haya ido a otro sitio: solo
+    // `tools/list` lo trae.
+    if (method === "tools/list") setTools(toolsFrom(body));
   }
 
   async function run(method: string) {
@@ -248,8 +172,8 @@ export default function Inspector({
       // El JSON mal formado se avisa aquí: mandarlo al servidor solo devuelve
       // un -32700 mucho menos claro.
       const message = `${t.badJson}: ${String(error)}`;
-      setStatus({ method: "tools/call", outcome: "client", message });
-      setOutput(message);
+      call.setStatus({ method: "tools/call", outcome: "client", message });
+      call.setOutput(message);
       return;
     }
     await send("tools/call", { name: toolName, arguments: args });
@@ -375,7 +299,7 @@ export default function Inspector({
               type="button"
               className="danger"
               data-testid="inspector-cancel"
-              onClick={() => abortRef.current?.abort()}
+              onClick={() => call.cancel()}
             >
               {t.cancel} · {elapsed} s
             </button>
@@ -495,9 +419,8 @@ export default function Inspector({
       {/* Resumen corto y ANUNCIABLE. El aria-live vivía en el <pre>, así que un
           lector de pantalla leía los 43.000 caracteres del volcado de una
           tacada, y dos veces por acción. Aquí caben cuatro datos. */}
-      <p
+      <output
         className={`term-status is-${status?.outcome ?? "idle"}`}
-        role="status"
         data-testid="inspector-status"
       >
         {status ? (
@@ -518,7 +441,7 @@ export default function Inspector({
           <span>{t.statusIdle}</span>
         )}
         {copyNote ? <span className="msg">· {copyNote}</span> : null}
-      </p>
+      </output>
 
       {/* aria-live="off" a propósito: quien anuncia es la línea de estado de
           arriba. tabindex + role + nombre para que el panel, que tiene scroll
@@ -528,8 +451,11 @@ export default function Inspector({
         className={`term-out${busy ? " is-stale" : ""}${failed ? " is-error" : ""}`}
         data-testid="inspector-output"
         aria-live="off"
+        // Contenedor con scroll propio: sin tabIndex, quien navega con teclado
+        // no puede desplazarlo. Es la excepción reconocida a "tabIndex solo en
+        // elementos interactivos" (WCAG SCR34); Chrome lo hace enfocable solo
+        // cuando el contenido desborda, y Firefox y Safari no lo hacen nunca.
         tabIndex={0}
-        role="region"
         aria-label={t.responseLabel}
       >
         {lastCmd ? `jmrp@mcp:~$ ${lastCmd}\n` : ""}
