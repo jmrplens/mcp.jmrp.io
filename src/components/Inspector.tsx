@@ -305,7 +305,7 @@ export default function Inspector({
 
       <div className="term-body">
         <div className="row">
-          <label className="field" for="mcp-server">
+          <label className="field">
             <span>{t.server}</span>
             <select
               id="mcp-server"
@@ -323,7 +323,7 @@ export default function Inspector({
           {fields.map((field) => {
             const isRequired = (server?.requiredHeaders ?? []).includes(field);
             return (
-              <label className="field" key={keyOf(field.name)} for={`mcp-h-${field.name}`}>
+              <label className="field" key={keyOf(field.name)}>
                 <span>
                   {field.name}
                   {isRequired ? <b aria-hidden="true"> *</b> : null}
@@ -391,7 +391,7 @@ export default function Inspector({
             void runTool();
           }}
         >
-          <label className="field" for="mcp-tool">
+          <label className="field">
             <span>{t.tool}</span>
             {tools.length > 0 ? (
               <select
@@ -418,7 +418,7 @@ export default function Inspector({
               />
             )}
           </label>
-          <label className="field field-args" for="mcp-args">
+          <label className="field field-args">
             <span>{t.args}</span>
             <textarea
               id="mcp-args"
