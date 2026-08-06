@@ -67,6 +67,30 @@ Las cinco rompen algo **en silencio**: nada falla, y te enteras tarde.
   después en la misma `location`. Por eso el `include` del snippet de proxy va
   **antes** del `rewrite` en el vhost.
 
+## El inspector
+
+Tres pestañas, una por cosa que un servidor MCP puede ofrecer: **tools**,
+**prompts** y **resources**. Cada una carga su catálogo, deja elegir una
+entrada y la invoca (`tools/call`, `prompts/get`, `resources/read`).
+
+Los argumentos se piden con un **formulario generado del esquema**, no como
+JSON crudo. El JSON crudo es la interfaz que necesita un LLM: obliga a saberse
+de memoria los nombres de las propiedades, su tipo y cuáles son obligatorias.
+`formFields()` resuelve cada propiedad a un control —`enum` gana al tipo, así
+que un valor enumerado se pide con desplegable— y `valuesToArgs()` convierte lo
+tecleado a los tipos JSON correctos.
+
+Dos decisiones que parecen detalles y no lo son:
+
+- **Los campos vacíos se omiten**, no se mandan vacíos. Los servidores validan
+  estricto y un opcional vacío se rechaza igual que uno mal escrito.
+- **El modo JSON sigue existiendo** como escape: hay esquemas con `oneOf`,
+  `$ref` o composición que ningún formulario representa con honestidad.
+
+Los prompts declaran sus argumentos como un array, no como JSON Schema;
+`promptSchema()` los traduce para que el formulario se genere con el mismo
+código y no haya dos generadores que se desincronicen.
+
 ## Estilo
 
 Los estilos son una **copia** de jmrp.io: `src/styles/{tokens,base,global,
@@ -83,7 +107,10 @@ resincronizarlos a mano — es el precio de tener los repos separados.
 |---|---|
 | `src/data/servers.ts` | **Única** fuente de verdad de la lista de MCP |
 | `src/i18n/ui.ts` | Cadenas EN/ES. Las dos ramas deben tener las mismas claves |
-| `src/components/Inspector.tsx` | La isla. No importes aquí nada con `node:fs` |
+| `src/components/Inspector.tsx` | La isla: pestañas y estado. No importes aquí nada con `node:fs` |
+| `src/components/ArgsForm.tsx` | Formulario generado del esquema |
+| `src/components/inspector-parts.tsx` | Piezas que solo pintan |
+| `src/lib/mcp-catalog.ts` | Lectura de `prompts/list` y `resources/list` |
 | `src/lib/mcp-client.ts` | POST + parseo de SSE. Sin DOM, testeable aparte |
 | `src/lib/identity.ts` | Nodo `#person` canónico (ver abajo) |
 | `src/lib/seo.ts` | URLs, hreflang y metadatos |

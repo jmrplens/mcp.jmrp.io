@@ -61,6 +61,14 @@ pnpm dev
 Los e2e llaman a los **endpoints reales** en producción: es intencionado,
 validan el camino completo. Sin salida a Internet, `E2E_NO_NETWORK=1` los salta.
 
+## El inspector
+
+Tres pestañas —**tools**, **prompts** y **resources**— con la misma mecánica:
+cargar el catálogo, elegir una entrada y ejecutarla. Los argumentos se piden
+con un formulario generado del esquema del servidor, con el tipo de cada campo,
+cuáles son obligatorios y desplegables para los valores enumerados. Para
+esquemas que ningún formulario representa bien, hay un modo JSON.
+
 ## Cómo está montado
 
 Sitio estático de Astro con una isla Preact (el inspector). Se sirve desde

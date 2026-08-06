@@ -156,3 +156,83 @@ export const TOOLS_LIST = {
     ],
   },
 };
+
+/**
+ * El botón que carga un catálogo (`tools/list`, `prompts/list`…).
+ *
+ * Por `data-testid` y no por rótulo: el rediseño cambió "tools/list" por
+ * "Load tools" y con él se cayeron seis tests a la vez.
+ *
+ * @param page Página bajo test.
+ * @param kind Catálogo a cargar.
+ * @returns El botón.
+ */
+export function loadButton(
+  page: Page,
+  kind: "tools" | "prompts" | "resources" = "tools",
+): Locator {
+  return page.getByTestId(`load-${kind}`);
+}
+
+/**
+ * El botón que ejecuta lo elegido.
+ *
+ * @param page Página bajo test.
+ * @param lang Idioma de la página.
+ * @returns El botón de ejecutar.
+ */
+export function runButton(page: Page, lang: Lang = "en"): Locator {
+  return inspector(page).getByRole("button", {
+    name: ui[lang].insp.runTool,
+    exact: true,
+  });
+}
+
+/**
+ * Recorre el flujo del inspector hasta dejar una tool lista para invocar:
+ * cargar el catálogo, elegirla y esperar a su formulario.
+ *
+ * En un helper porque el rediseño cambió ese camino —antes el nombre de la
+ * tool se tecleaba a mano— y el flujo aparece en media docena de tests.
+ *
+ * @param page Página bajo test.
+ * @param name Nombre de la tool.
+ */
+export async function pickTool(page: Page, name: string): Promise<void> {
+  await loadButton(page, "tools").click();
+  const picker = page.getByTestId("catalog-tools").locator("select");
+  await picker.waitFor({ state: "visible", timeout: 40_000 });
+  await picker.selectOption(name);
+  await page.getByTestId("args-form").waitFor({ state: "visible" });
+}
+
+/**
+ * Pasa el formulario a modo JSON y escribe los argumentos en crudo.
+ *
+ * @param page Página bajo test.
+ * @param json Argumentos como texto JSON.
+ * @param lang Idioma de la página.
+ */
+export async function fillRawArgs(
+  page: Page,
+  json: string,
+  lang: Lang = "en",
+): Promise<void> {
+  const mcp = inspector(page);
+  await mcp.getByRole("button", { name: ui[lang].insp.jsonMode }).click();
+  await mcp.getByLabel(ui[lang].insp.argsJson).fill(json);
+}
+
+/**
+ * El desplegable de tools del catálogo.
+ *
+ * Acotado al catálogo y no por etiqueta: la pestaña "Tools" es un `tabpanel`
+ * con nombre accesible, así que un `getByLabel("Tool")` a nivel de isla
+ * resuelve a dos elementos y revienta por modo estricto.
+ *
+ * @param page Página bajo test.
+ * @returns El `<select>` de tools.
+ */
+export function toolSelect(page: Page): Locator {
+  return page.getByTestId("catalog-tools").locator("select");
+}

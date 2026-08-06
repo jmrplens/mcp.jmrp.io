@@ -18,7 +18,8 @@
 
 /** Trozo de JSON Schema que este módulo sabe leer. */
 export type JsonSchema = {
-  type?: string;
+  /** Puede ser un array: `["null","array"]` marca un opcional. */
+  type?: string | string[];
   title?: string;
   description?: string;
   properties?: Record<string, JsonSchema>;
@@ -96,14 +97,29 @@ export function toolsFrom(body: unknown): McpTool[] {
 }
 
 /** Nombre legible del tipo de una propiedad, incluido el de los arrays y enums. */
+/**
+ * El tipo declarado, descartando `"null"`.
+ *
+ * `type` puede venir como array —`["null","array"]` marca un opcional— y
+ * pintarlo tal cual daba "nullarray", que no es el tipo de nada.
+ *
+ * @param type El `type` del esquema.
+ * @returns El tipo real, o `undefined` si no se declara.
+ */
+function baseType(type: string | string[] | undefined): string | undefined {
+  return Array.isArray(type) ? type.find((x) => x !== "null") : type;
+}
+
 function typeLabel(schema: JsonSchema): string {
   if (Array.isArray(schema.enum) && schema.enum.length > 0) {
     return schema.enum.map((v) => JSON.stringify(v)).join(" | ");
   }
-  if (schema.type === "array" && schema.items?.type) {
-    return `${schema.items.type}[]`;
+  const base = baseType(schema.type);
+  if (base === "array") {
+    const item = baseType(schema.items?.type);
+    return item ? `${item}[]` : "array";
   }
-  return schema.type ?? "";
+  return base ?? "";
 }
 
 /**
@@ -177,4 +193,177 @@ export function skeletonFor(schema: JsonSchema | undefined): string {
     skeleton[name] = placeholderFor(properties[name] ?? {});
   }
   return JSON.stringify(skeleton, null, 2);
+}
+
+/* ==========================================================================
+ * Formularios
+ *
+ * Lo de arriba describe un esquema para LEERLO; lo de aquí, para RELLENARLO.
+ * El inspector pedía los argumentos como JSON crudo, que es la interfaz que
+ * necesita un LLM y no una persona: obliga a saber de memoria los nombres de
+ * las propiedades, su tipo y cuáles son obligatorias.
+ * ========================================================================== */
+
+/** Control con el que se pide una propiedad. */
+export type FieldControl =
+  | "text"
+  | "textarea"
+  | "number"
+  | "checkbox"
+  | "select"
+  | "list"
+  | "json";
+
+/** Una propiedad del esquema, ya resuelta a un control concreto. */
+export type FormField = SchemaField & {
+  control: FieldControl;
+  /** Opciones del `select`, si las hay. */
+  options: string[];
+  /** Valor inicial, ya en texto. Sale del `default` del esquema. */
+  initial: string;
+  /** Para `list` y `json`: qué se espera, en una línea. */
+  hint: string;
+};
+
+/**
+ * Elige el control de una propiedad.
+ *
+ * `enum` gana al tipo: si el servidor enumera los valores válidos, un
+ * desplegable evita el error antes de cometerlo. Lo demás sigue al `type`, y
+ * lo que no se reconoce cae a JSON, que siempre funciona.
+ *
+ * @param schema Esquema de la propiedad.
+ * @returns El control con el que pedirla.
+ */
+function controlFor(schema: JsonSchema): FieldControl {
+  if (Array.isArray(schema.enum) && schema.enum.length > 0) return "select";
+  switch (baseType(schema.type)) {
+    case "boolean": {
+      return "checkbox";
+    }
+    case "number":
+    case "integer": {
+      return "number";
+    }
+    case "array": {
+      // Una lista de valores simples se teclea línea a línea; una de objetos
+      // no hay forma honesta de pedirla sin JSON.
+      const item = baseType(schema.items?.type);
+      return item === undefined || ["object", "array"].includes(item)
+        ? "json"
+        : "list";
+    }
+    case "object": {
+      return "json";
+    }
+    case "string": {
+      // Los textos largos (una consulta, un cuerpo) se agradecen en textarea.
+      // La heurística es la descripción, que es lo único que hay.
+      const d = (schema.description ?? "").toLowerCase();
+      return d.includes("markdown") || d.includes("body") || d.includes("text")
+        ? "textarea"
+        : "text";
+    }
+    default: {
+      return "text";
+    }
+  }
+}
+
+/** Qué se espera en los controles cuyo formato no es evidente. */
+const HINTS: Partial<Record<FieldControl, string>> = {
+  list: "un valor por línea",
+  json: "JSON",
+};
+
+/**
+ * Valor inicial de un campo, en texto.
+ *
+ * @param value El `default` declarado por el esquema.
+ * @returns El valor tal cual si ya es texto, su JSON si no, o vacío.
+ */
+function initialValue(value: unknown): string {
+  if (value === undefined) return "";
+  return typeof value === "string" ? value : JSON.stringify(value);
+}
+
+/**
+ * Describe el formulario de una tool o de un prompt.
+ *
+ * @param schema El `inputSchema` de la tool.
+ * @returns Un campo por propiedad, obligatorios primero.
+ */
+export function formFields(schema: JsonSchema | undefined): FormField[] {
+  if (!schema?.properties) return [];
+  return schemaFields(schema).map((field) => {
+    const prop = schema.properties?.[field.name] ?? {};
+    const control = controlFor(prop);
+    const initial = initialValue(prop.default);
+    return {
+      ...field,
+      control,
+      options: Array.isArray(prop.enum) ? prop.enum.map(String) : [],
+      initial,
+      hint: HINTS[control] ?? "",
+    };
+  });
+}
+
+/**
+ * Convierte lo tecleado en el formulario a los argumentos de la llamada.
+ *
+ * Las cadenas vacías se OMITEN en vez de mandarse: los servidores validan
+ * estricto y un opcional vacío se rechaza igual que uno mal escrito. Es la
+ * diferencia entre «no lo relleno» y «lo relleno con nada».
+ *
+ * @param fields Campos del formulario.
+ * @param values Lo tecleado, por nombre de propiedad.
+ * @returns Los argumentos listos para `tools/call`.
+ * @throws Si un campo JSON o de número no se puede convertir.
+ */
+export function valuesToArgs(
+  fields: FormField[],
+  values: Record<string, string>,
+): Record<string, unknown> {
+  const args: Record<string, unknown> = {};
+
+  for (const field of fields) {
+    const raw = (values[field.name] ?? "").trim();
+    if (raw === "") continue;
+
+    switch (field.control) {
+      case "checkbox": {
+        args[field.name] = raw === "true";
+        break;
+      }
+      case "number": {
+        const n = Number(raw);
+        if (Number.isNaN(n)) {
+          throw new TypeError(`${field.name}: "${raw}" no es un número`);
+        }
+        args[field.name] = n;
+        break;
+      }
+      case "list": {
+        args[field.name] = raw
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean);
+        break;
+      }
+      case "json": {
+        try {
+          args[field.name] = JSON.parse(raw);
+        } catch (error) {
+          throw new TypeError(`${field.name}: JSON inválido — ${String(error)}`);
+        }
+        break;
+      }
+      default: {
+        args[field.name] = raw;
+      }
+    }
+  }
+
+  return args;
 }

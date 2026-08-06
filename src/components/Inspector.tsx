@@ -4,8 +4,21 @@ import { useState } from "preact/hooks";
 
 import type { McpServer } from "../data/servers";
 import { type Lang, ui } from "../i18n/ui";
-import { type McpTool, skeletonFor, toolsFrom } from "../lib/tool-schema";
-import { StatusLine, ToolSchema } from "./inspector-parts";
+import {
+  type McpPrompt,
+  type McpResource,
+  promptSchema,
+  promptsFrom,
+  resourcesFrom,
+} from "../lib/mcp-catalog";
+import {
+  formFields,
+  type McpTool,
+  skeletonFor,
+  toolsFrom,
+  valuesToArgs,
+} from "../lib/tool-schema";
+import { Catalog, InvokePanel, StatusLine } from "./inspector-parts";
 import { useMcpCall } from "./use-mcp-call";
 
 /**
@@ -25,12 +38,9 @@ import { useMcpCall } from "./use-mcp-call";
  * recargar tienen que desaparecer.
  */
 
-const METHODS = [
-  "initialize",
-  "tools/list",
-  "prompts/list",
-  "resources/list",
-] as const;
+/** Las tres cosas que un servidor MCP puede ofrecer, más el saludo. */
+type Tab = "tools" | "prompts" | "resources";
+const TABS: Tab[] = ["tools", "prompts", "resources"];
 
 /**
  * `initialize` es el único método que necesita parámetros: sin ellos el
@@ -75,9 +85,18 @@ export default function Inspector({
    * nombre, una clave compartida mandaría el secreto de uno al otro.
    */
   const [headerValues, setHeaderValues] = useState<Record<string, string>>({});
-  /** Catálogo del servidor activo. Se llena con la respuesta de `tools/list`. */
+  const [tab, setTab] = useState<Tab>("tools");
+  /** Catálogos del servidor activo. Se llenan con cada `list`. */
   const [tools, setTools] = useState<McpTool[]>([]);
+  const [prompts, setPrompts] = useState<McpPrompt[]>([]);
+  const [resources, setResources] = useState<McpResource[]>([]);
   const [toolName, setToolName] = useState("");
+  const [promptName, setPromptName] = useState("");
+  const [resourceUri, setResourceUri] = useState("");
+  /** Lo tecleado en el formulario, por nombre de argumento. */
+  const [argValues, setArgValues] = useState<Record<string, string>>({});
+  /** Escape para esquemas que ningún formulario representa con honestidad. */
+  const [rawMode, setRawMode] = useState(false);
   const [toolArgs, setToolArgs] = useState("{}");
   /** Aviso efímero del botón de copiar. */
   const [copyNote, setCopyNote] = useState("");
@@ -103,6 +122,12 @@ export default function Inspector({
   const blocked = missing.length > 0;
 
   const selectedTool = tools.find((tool) => tool.name === toolName);
+  const selectedPrompt = prompts.find((p) => p.name === promptName);
+  /** Campos del formulario activo: los de la tool o los del prompt. */
+  const argFields =
+    tab === "prompts"
+      ? formFields(promptSchema(selectedPrompt?.arguments ?? []))
+      : formFields(selectedTool?.inputSchema);
 
 
   /** Solo las cabeceras del servidor activo, y solo las que tienen valor. */
@@ -124,47 +149,97 @@ export default function Inspector({
   function chooseServer(id: string) {
     setServerId(id);
     setTools([]);
+    setPrompts([]);
+    setResources([]);
     setToolName("");
+    setPromptName("");
+    setResourceUri("");
+    setArgValues({});
     setToolArgs("{}");
   }
 
-  /** Elegir tool prerrellena el textarea con sus argumentos obligatorios. */
+  /** Elegir tool limpia lo tecleado para la anterior y prepara el modo JSON. */
   function chooseTool(name: string) {
     setToolName(name);
+    setArgValues({});
     const tool = tools.find((entry) => entry.name === name);
     setToolArgs(skeletonFor(tool?.inputSchema));
   }
 
-  async function send(method: string, params: unknown) {
-    if (!server) return;
-    const body = await call.send(
-      server.endpoint,
-      method,
-      params,
-      authHeaders(),
-    );
-    // El catálogo se guarda aunque la llamada haya ido a otro sitio: solo
-    // `tools/list` lo trae.
-    if (method === "tools/list") setTools(toolsFrom(body));
+  function choosePrompt(name: string) {
+    setPromptName(name);
+    setArgValues({});
   }
 
-  async function run(method: string) {
-    await send(method, method === "initialize" ? INIT_PARAMS : {});
+  function setArg(name: string, value: string) {
+    setArgValues((prev) => ({ ...prev, [name]: value }));
+  }
+
+  /** Los tres catálogos se piden igual; solo cambia dónde se guardan. */
+  async function loadCatalog(kind: Tab) {
+    const method = `${kind}/list`;
+    const body = await sendRaw(method, {});
+    if (kind === "tools") {
+      setTools(toolsFrom(body));
+    } else if (kind === "prompts") {
+      setPrompts(promptsFrom(body));
+    } else {
+      setResources(resourcesFrom(body));
+    }
+  }
+
+  /**
+   * Lanza un método y devuelve el cuerpo, para quien necesite leerlo.
+   *
+   * @param method Método JSON-RPC.
+   * @param params Parámetros.
+   * @returns El cuerpo de la respuesta.
+   */
+  async function sendRaw(method: string, params: unknown): Promise<unknown> {
+    if (!server) return undefined;
+    return call.send(server.endpoint, method, params, authHeaders());
+  }
+
+  /**
+   * Construye los argumentos, del formulario o del JSON crudo.
+   *
+   * @returns Los argumentos, o `null` si el visitante escribió algo inválido
+   *   (en cuyo caso ya se ha pintado el aviso).
+   */
+  function buildArgs(method: string): Record<string, unknown> | null {
+    try {
+      return rawMode
+        ? (JSON.parse(toolArgs || "{}") as Record<string, unknown>)
+        : valuesToArgs(argFields, argValues);
+    } catch (error) {
+      // Se avisa aquí y no se manda: el servidor devolvería un -32700 o un
+      // "unexpected additional properties" mucho menos claros que decir qué
+      // campo está mal.
+      const message = `${t.badJson}: ${String(error)}`;
+      call.setStatus({ method, outcome: "client", message });
+      call.setOutput(message);
+      return null;
+    }
   }
 
   async function runTool() {
-    let args: unknown;
-    try {
-      args = JSON.parse(toolArgs || "{}");
-    } catch (error) {
-      // El JSON mal formado se avisa aquí: mandarlo al servidor solo devuelve
-      // un -32700 mucho menos claro.
-      const message = `${t.badJson}: ${String(error)}`;
-      call.setStatus({ method: "tools/call", outcome: "client", message });
-      call.setOutput(message);
-      return;
-    }
-    await send("tools/call", { name: toolName, arguments: args });
+    const args = buildArgs("tools/call");
+    if (!args) return;
+    await sendRaw("tools/call", { name: toolName, arguments: args });
+  }
+
+  async function runPrompt() {
+    const args = buildArgs("prompts/get");
+    if (!args) return;
+    // Los argumentos de un prompt son cadenas por definición del protocolo.
+    const stringArgs = Object.fromEntries(
+      Object.entries(args).map(([k, v]) => [k, String(v)]),
+    );
+    await sendRaw("prompts/get", { name: promptName, arguments: stringArgs });
+  }
+
+  async function readResource() {
+    await sendRaw("resources/read", { uri: resourceUri });
   }
 
   async function copyOutput() {
@@ -179,6 +254,9 @@ export default function Inspector({
     }
   }
 
+
+  /** El botón de leer solo aparece con un recurso ya elegido. */
+  const showRead = tab === "resources" && resourceUri !== "";
 
   const failed = !!status && status.outcome !== "ok" && status.outcome !== "running";
 
@@ -213,7 +291,10 @@ export default function Inspector({
             <select
               id="mcp-server"
               value={serverId}
-              onChange={(e) => chooseServer((e.target as HTMLSelectElement).value)}
+              disabled={busy}
+              onChange={(e) =>
+                chooseServer((e.target as HTMLSelectElement).value)
+              }
             >
               {servers.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -223,56 +304,70 @@ export default function Inspector({
             </select>
           </label>
 
-          {fields.map((field) => {
-            const isRequired = (server?.requiredHeaders ?? []).includes(field);
-            return (
-              <label className="field" key={keyOf(field.name)}>
-                <span>
-                  {field.name}
-                  {isRequired ? <b aria-hidden="true"> *</b> : null}
-                </span>
-                <input
-                  id={`mcp-h-${field.name}`}
-                  type={field.secret ? "password" : "text"}
-                  autocomplete="off"
-                  spellcheck={false}
-                  required={isRequired}
-                  aria-required={isRequired ? "true" : undefined}
-                  placeholder={field.placeholder}
-                  value={headerValues[keyOf(field.name)] ?? ""}
-                  onInput={(e) => {
-                    const value = (e.target as HTMLInputElement).value;
-                    setHeaderValues((prev) => ({
-                      ...prev,
-                      [keyOf(field.name)]: value,
-                    }));
-                  }}
-                />
-              </label>
-            );
-          })}
+          {fields.map((field) => (
+            <label className="field" key={keyOf(field.name)}>
+              <span>{field.name}</span>
+              <input
+                type={field.secret ? "password" : "text"}
+                autocomplete="off"
+                spellcheck={false}
+                placeholder={field.placeholder}
+                disabled={busy}
+                aria-required={
+                  server?.requiredHeaders.includes(field) ? "true" : undefined
+                }
+                value={headerValues[keyOf(field.name)] ?? ""}
+                onInput={(e) => {
+                  const value = (e.target as HTMLInputElement).value;
+                  setHeaderValues((prev) => ({
+                    ...prev,
+                    [keyOf(field.name)]: value,
+                  }));
+                }}
+              />
+            </label>
+          ))}
         </div>
 
         {blocked ? (
           <p className="need-header" data-testid="inspector-missing-header">
-            <code>{missing.map((h) => h.name).join(", ")}</code> {t.missingHeader}
+            {t.needHeader}{" "}
+            {missing.map((h) => (
+              <code key={h.name}>{h.name}</code>
+            ))}
           </p>
         ) : null}
 
-        <div className="methods">
-          {METHODS.map((m) => (
+        {/* Pestañas: las tres cosas que un servidor MCP puede ofrecer. Antes
+            había cuatro botones sueltos que solo listaban, y lo listado no se
+            podía usar: se veía que había 37 prompts y ahí se acababa. */}
+        <div className="tabs" role="tablist" aria-label={t.handshake}>
+          {TABS.map((name) => (
             <button
-              key={m}
+              key={name}
               type="button"
-              disabled={busy || blocked}
-              aria-busy={busy && lastCmd === m ? "true" : undefined}
-              onClick={() => {
-                void run(m);
-              }}
+              role="tab"
+              id={`tab-${name}`}
+              aria-selected={tab === name}
+              aria-controls={`panel-${name}`}
+              className={tab === name ? "tab is-active" : "tab"}
+              onClick={() => setTab(name)}
             >
-              {m}
+              {name === "tools" ? t.tabTools : null}
+              {name === "prompts" ? t.tabPrompts : null}
+              {name === "resources" ? t.tabResources : null}
             </button>
           ))}
+          <button
+            type="button"
+            className="tab-init tab"
+            disabled={busy || blocked}
+            onClick={() => {
+              void sendRaw("initialize", INIT_PARAMS);
+            }}
+          >
+            initialize
+          </button>
           {busy ? (
             <button
               type="button"
@@ -285,77 +380,69 @@ export default function Inspector({
           ) : null}
         </div>
 
-        {/* Un <form> de verdad: Enter en el campo de la tool lanza la llamada,
-            que es el gesto que cualquiera intenta primero en una consola. */}
-        <form
-          className="row row-tool"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void runTool();
-          }}
+        <div
+          className="panel"
+          role="tabpanel"
+          id={`panel-${tab}`}
+          aria-labelledby={`tab-${tab}`}
         >
-          <label className="field">
-            <span>{t.tool}</span>
-            {tools.length > 0 ? (
-              <select
-                id="mcp-tool"
-                value={toolName}
-                onChange={(e) => chooseTool((e.target as HTMLSelectElement).value)}
-              >
-                <option value="">{t.chooseTool}</option>
-                {tools.map((tool) => (
-                  <option key={tool.name} value={tool.name}>
-                    {tool.name}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <input
-                id="mcp-tool"
-                type="text"
-                autocomplete="off"
-                spellcheck={false}
-                placeholder="search"
-                value={toolName}
-                onInput={(e) => setToolName((e.target as HTMLInputElement).value)}
-              />
-            )}
-          </label>
-          <label className="field field-args">
-            <span>{t.args}</span>
-            <textarea
-              id="mcp-args"
-              rows={3}
-              spellcheck={false}
-              value={toolArgs}
-              onInput={(e) => setToolArgs((e.target as HTMLTextAreaElement).value)}
-              onKeyDown={(e) => {
-                // Enter tiene que seguir insertando salto de línea en un
-                // textarea; el atajo es el de siempre para "enviar esto".
-                if (e.key !== "Enter" || !(e.ctrlKey || e.metaKey)) return;
-                e.preventDefault();
-                void runTool();
+          <Catalog
+            tab={tab}
+            tools={tools}
+            prompts={prompts}
+            resources={resources}
+            toolName={toolName}
+            promptName={promptName}
+            resourceUri={resourceUri}
+            busy={busy}
+            blocked={blocked}
+            lang={lang}
+            onLoad={() => {
+              void loadCatalog(tab);
+            }}
+            onPickTool={chooseTool}
+            onPickPrompt={choosePrompt}
+            onPickResource={setResourceUri}
+          />
+
+          {showRead ? (
+            <button
+              type="button"
+              className="primary"
+              disabled={busy || blocked}
+              onClick={() => {
+                void readResource();
+              }}
+            >
+              {t.readResource}
+            </button>
+          ) : null}
+
+          {tab === "resources" ? null : (
+            <InvokePanel
+              kind={tab}
+              name={tab === "tools" ? toolName : promptName}
+              description={
+                tab === "tools"
+                  ? selectedTool?.description
+                  : selectedPrompt?.description
+              }
+              fields={argFields}
+              values={argValues}
+              onChange={setArg}
+              rawMode={rawMode}
+              onRawMode={setRawMode}
+              rawValue={toolArgs}
+              onRawValue={setToolArgs}
+              busy={busy}
+              blocked={blocked}
+              lang={lang}
+              onRun={() => {
+                void (tab === "tools" ? runTool() : runPrompt());
               }}
             />
-          </label>
-          <button
-            type="submit"
-            className="primary"
-            disabled={busy || blocked || !toolName.trim()}
-          >
-            tools/call
-          </button>
-        </form>
-
-        {tools.length === 0 ? (
-          <p className="tool-hint">{t.toolListHint}</p>
-        ) : null}
-
-        {/* El inputSchema que el servidor ya devuelve, enseñado donde sirve.
-            Sin esto había que leer las ~1000 líneas del volcado de tools/list
-            para saber qué acepta la tool, y los servidores validan estricto:
-            adivinar falla siempre. */}
-        <ToolSchema tool={selectedTool ?? null} lang={lang} />
+          )}
+        </div>
       </div>
 
       <StatusLine status={status} copyNote={copyNote} lang={lang} />

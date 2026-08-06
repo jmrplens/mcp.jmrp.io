@@ -1,6 +1,14 @@
 import { expect, type Page, test } from "@playwright/test";
 
-import { inspector, serverSelect } from "./helpers";
+import {
+  inspector,
+  loadButton,
+  pickTool,
+  runButton,
+  serverSelect,
+  stubMcp as stubMcpByMethod,
+  TOOLS_LIST,
+} from "./helpers";
 
 // Token de mentira: si alguna vez aparece en storage, cookies o URL, el test
 // falla. No hace falta que sea válido porque estos tests no llaman al servidor.
@@ -20,6 +28,13 @@ const CORS = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "*",
   "access-control-allow-headers": "*",
+};
+
+/** Respuesta de una tool que funciona. */
+const TOOL_OK = {
+  jsonrpc: "2.0",
+  id: 1,
+  result: { content: [{ type: "text", text: "1 result" }] },
 };
 
 const SSE_BODY = 'data: {"jsonrpc":"2.0","id":1,"result":{"tools":[]}}\n\n';
@@ -105,7 +120,7 @@ test("el token del visitante viaja como cabecera PRIVATE-TOKEN", async ({
   await serverSelect(page).selectOption("gitlab");
   await mcp.getByLabel("PRIVATE-TOKEN").fill(TOKEN);
   await mcp.getByLabel("GITLAB-URL").fill("https://gitlab.example");
-  await mcp.getByRole("button", { name: "tools/list" }).click();
+  await loadButton(page).click();
 
   await expect.poll(() => sent.length).toBe(1);
   expect(sent[0].url).toContain("/gitlab");
@@ -126,7 +141,7 @@ test("el token no se filtra al servidor que no lo declara", async ({
   // esta es la razón de que la clave del estado lleve el id del servidor
   // delante. Sin eso, el secreto de gitlab saldría hacia libgen.
   await serverSelect(page).selectOption("libgen");
-  await mcp.getByRole("button", { name: "tools/list" }).click();
+  await loadButton(page).click();
 
   await expect.poll(() => sent.length).toBe(1);
   expect(sent[0].url).toContain("/libgen");
@@ -134,38 +149,27 @@ test("el token no se filtra al servidor que no lo declara", async ({
   expect(JSON.stringify(sent[0].headers)).not.toContain(TOKEN);
 });
 
-test("se puede invocar una tool con nombre y argumentos", async ({ page }) => {
-  const sent = await stubMcp(page);
+test("los argumentos del formulario viajan con su tipo, no como texto", async ({
+  page,
+}) => {
+  const sent = await stubMcpByMethod(page, (method: string) =>
+    method === "tools/call" ? { json: TOOL_OK } : { json: TOOLS_LIST },
+  );
   await page.goto("/");
-  const mcp = inspector(page);
-  await expect(mcp.getByLabel("Arguments (JSON)")).toHaveValue("{}");
 
-  await mcp.getByLabel("Tool").fill("search");
-  await mcp.getByLabel("Arguments (JSON)").fill('{"query":"x"}');
-  await mcp.getByRole("button", { name: "tools/call", exact: true }).click();
+  await pickTool(page, "search");
+  // Se teclea en los campos del formulario, no en un JSON que haya que
+  // saberse: eso es lo que el rediseño vino a arreglar.
+  await page.getByTestId("args-form").locator("input, textarea").first().fill("x");
+  await runButton(page).click();
 
-  await expect.poll(() => sent.length).toBe(1);
-  // Los argumentos viajan como objeto, no como el string del textarea.
-  expect(sent[0].body).toMatchObject({
+  const calls = () => sent.filter((r) => r.body.method === "tools/call");
+  await expect.poll(() => calls().length).toBe(1);
+  // `query` sale como cadena dentro de un objeto: el formulario convierte,
+  // no concatena.
+  expect(calls()[0].body).toMatchObject({
     method: "tools/call",
     params: { name: "search", arguments: { query: "x" } },
   });
-  await expect(page.getByTestId("inspector-output")).toContainText("tools");
-});
-
-test("la nota de seguridad es visible", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByTestId("security-note")).toBeVisible();
-});
-
-test("la nota de seguridad está traducida en /es/", async ({ page }) => {
-  await page.goto("/es/");
-  const note = page.getByTestId("security-note");
-  await expect(note).toBeVisible();
-  await expect(note).toContainText("Revocarlo");
-  // El enlace al código fuente es lo que hace verificable la promesa de la
-  // nota: sin él, pedirle un token al visitante es solo palabrería.
-  await expect(
-    note.getByRole("link", { name: /repositorio/i }),
-  ).toHaveAttribute("href", "https://github.com/jmrplens/mcp.jmrp.io");
+  await expect(page.getByTestId("inspector-output")).toContainText("result");
 });

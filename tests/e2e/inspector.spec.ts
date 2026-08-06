@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { inspector, serverSelect } from "./helpers";
+import { inspector, loadButton, serverSelect } from "./helpers";
 
 // Estos tests llaman al endpoint real de producción: es intencionado, validan
 // el camino completo (navegador -> POST -> parseo SSE -> pintado). Si el
@@ -15,9 +15,8 @@ test.skip(
 
 test("tools/list contra libgen devuelve las herramientas", async ({ page }) => {
   await page.goto("/");
-  const mcp = inspector(page);
   await serverSelect(page).selectOption("libgen");
-  await mcp.getByRole("button", { name: "tools/list" }).click();
+  await loadButton(page).click();
   const out = page.getByTestId("inspector-output");
   await expect(out).toContainText("search", { timeout: 30_000 });
   await expect(out).toContainText("download");
@@ -42,7 +41,7 @@ test("el inspector también funciona en la página en español", async ({
   page,
 }) => {
   await page.goto("/es/");
-  await inspector(page).getByRole("button", { name: "tools/list" }).click();
+  await loadButton(page).click();
   await expect(page.getByTestId("inspector-output")).toContainText("search", {
     timeout: 30_000,
   });

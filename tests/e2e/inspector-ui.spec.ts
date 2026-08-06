@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { inspector, serverSelect, stubMcp,TOOLS_LIST } from "./helpers";
+import { inspector, loadButton, pickTool, runButton, serverSelect, stubMcp, TOOLS_LIST, toolSelect } from "./helpers";
 
 /**
  * Lo que convierte el volcado de JSON en un inspector usable: elegir la tool de
@@ -36,13 +36,14 @@ test("tras tools/list la tool se elige de una lista, no se teclea", async ({
   await page.goto("/");
   const mcp = inspector(page);
 
-  // Antes de listar no hay catálogo: campo libre y una pista de cómo llenarlo.
-  await expect(mcp.getByLabel("Tool")).toHaveRole("textbox");
+  // Antes de cargar no hay catálogo ni forma de elegir: solo la invitación.
+  await expect(toolSelect(page)).toHaveCount(0);
+  await expect(mcp).toContainText("No tools loaded yet");
 
-  await mcp.getByRole("button", { name: "tools/list" }).click();
+  await loadButton(page).click();
   await expect(status(page)).toContainText("2 tools");
 
-  const tool = mcp.getByLabel("Tool");
+  const tool = toolSelect(page);
   await expect(tool).toHaveRole("combobox");
   // Los nombres salen del servidor, no de una lista escrita en el sitio.
   await expect(tool.locator("option")).toHaveText([
@@ -58,23 +59,23 @@ test("elegir una tool enseña su inputSchema y prerrellena lo obligatorio", asyn
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
   await page.goto("/");
   const mcp = inspector(page);
-  await mcp.getByRole("button", { name: "tools/list" }).click();
+  await loadButton(page).click();
   await expect(status(page)).toContainText("2 tools");
 
-  await mcp.getByLabel("Tool").selectOption("search");
+  await toolSelect(page).selectOption("search");
 
-  // El esqueleto lleva SOLO la obligatoria: mandar `{}` daba "query is
+  // El formulario sustituyó al JSON crudo: cada propiedad es un campo, con su
+  // descripción y marcada si es obligatoria. Mandar `{}` daba "query is
   // required" e inventarse una propiedad daba "unexpected additional
-  // properties". Las dos cosas pasaron de verdad en la auditoría.
-  await expect(mcp.getByLabel("Arguments (JSON)")).toHaveValue('{\n  "query": ""\n}');
-
-  const schema = page.getByTestId("inspector-schema");
-  await expect(schema).toContainText("Search Library Genesis");
-  await expect(schema).toContainText("query");
-  await expect(schema).toContainText("What to look for");
-  await expect(schema).toContainText("required");
+  // properties"; las dos cosas pasaron de verdad en la auditoría.
+  const form = page.getByTestId("args-form");
+  await expect(form).toBeVisible();
+  await expect(form).toContainText("query");
+  await expect(form).toContainText("What to look for");
   // También las opcionales, que es lo que evita adivinar de más.
-  await expect(schema).toContainText("results_per_page");
+  await expect(form).toContainText("results_per_page");
+  // La descripción de la tool acompaña al formulario.
+  await expect(mcp).toContainText("Search Library Genesis");
 });
 
 test("cambiar de servidor no deja ofreciendo las tools del anterior", async ({
@@ -82,12 +83,13 @@ test("cambiar de servidor no deja ofreciendo las tools del anterior", async ({
 }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
   await page.goto("/");
-  const mcp = inspector(page);
-  await mcp.getByRole("button", { name: "tools/list" }).click();
-  await expect(mcp.getByLabel("Tool")).toHaveRole("combobox");
+  await loadButton(page).click();
+  await expect(toolSelect(page)).toHaveRole("combobox");
 
   await serverSelect(page).selectOption("gitlab");
-  await expect(mcp.getByLabel("Tool")).toHaveRole("textbox");
+  // Ofrecer las tools del servidor anterior sería peor que no ofrecer nada:
+  // el desplegable daría nombres que este otro no implementa.
+  await expect(toolSelect(page)).toHaveCount(0);
 });
 
 test("un acierto y un isError:true NO se ven igual", async ({ page }) => {
@@ -95,13 +97,12 @@ test("un acierto y un isError:true NO se ven igual", async ({ page }) => {
     json: method === "tools/call" ? TOOL_OK : TOOLS_LIST,
   }));
   await page.goto("/");
-  const mcp = inspector(page);
   const out = page.getByTestId("inspector-output");
 
-  await mcp.getByRole("button", { name: "tools/list" }).click();
+  await loadButton(page).click();
   await expect(status(page)).toContainText("2 tools");
-  await mcp.getByLabel("Tool").selectOption("search");
-  await mcp.getByRole("button", { name: "tools/call", exact: true }).click();
+  await toolSelect(page).selectOption("search");
+  await runButton(page).click();
 
   await expect(status(page)).toContainText("OK");
   await expect(out).not.toHaveClass(/is-error/);
@@ -116,12 +117,11 @@ test("un tools/call con isError:true se pinta como fallo aunque sea HTTP 200", a
     json: method === "tools/call" ? TOOL_ERROR : TOOLS_LIST,
   }));
   await page.goto("/");
-  const mcp = inspector(page);
 
-  await mcp.getByRole("button", { name: "tools/list" }).click();
+  await loadButton(page).click();
   await expect(status(page)).toContainText("2 tools");
-  await mcp.getByLabel("Tool").selectOption("search");
-  await mcp.getByRole("button", { name: "tools/call", exact: true }).click();
+  await toolSelect(page).selectOption("search");
+  await runButton(page).click();
 
   await expect(status(page)).toContainText("tool error");
   await expect(status(page)).toContainText("query is required");
@@ -131,8 +131,7 @@ test("un tools/call con isError:true se pinta como fallo aunque sea HTTP 200", a
 test("un error de transporte dice su código HTTP", async ({ page }) => {
   await stubMcp(page, () => ({ status: 400, body: "no server available" }));
   await page.goto("/");
-  const mcp = inspector(page);
-  await mcp.getByRole("button", { name: "tools/list" }).click();
+  await loadButton(page).click();
 
   await expect(status(page)).toContainText("transport error");
   await expect(status(page)).toContainText("400");
@@ -148,7 +147,7 @@ test("un error JSON-RPC lleva su código, no el HTTP", async ({ page }) => {
     },
   }));
   await page.goto("/");
-  await inspector(page).getByRole("button", { name: "tools/list" }).click();
+  await loadButton(page).click();
 
   await expect(status(page)).toContainText("JSON-RPC error");
   await expect(status(page)).toContainText("-32602");
@@ -158,7 +157,7 @@ test("un error JSON-RPC lleva su código, no el HTTP", async ({ page }) => {
 test("la línea de estado da método, código, tiempo y tamaño", async ({ page }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
   await page.goto("/");
-  await inspector(page).getByRole("button", { name: "tools/list" }).click();
+  await loadButton(page).click();
 
   const line = status(page);
   await expect(line).toContainText("tools/list");
@@ -187,7 +186,7 @@ test("la respuesta se puede copiar", async ({ page, context }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
   await page.goto("/");
   const mcp = inspector(page);
-  await mcp.getByRole("button", { name: "tools/list" }).click();
+  await loadButton(page).click();
   await expect(status(page)).toContainText("2 tools");
 
   await mcp.getByRole("button", { name: "Copy" }).click();
@@ -200,8 +199,7 @@ test("la respuesta se puede copiar", async ({ page, context }) => {
 test("una petición en vuelo se puede cancelar", async ({ page }) => {
   await stubMcp(page, () => ({ hang: true }));
   await page.goto("/");
-  const mcp = inspector(page);
-  await mcp.getByRole("button", { name: "tools/list" }).click();
+  await loadButton(page).click();
 
   const cancel = page.getByTestId("inspector-cancel");
   await expect(cancel).toBeVisible();
@@ -211,7 +209,7 @@ test("una petición en vuelo se puede cancelar", async ({ page }) => {
   await expect(status(page)).toContainText("Cancelled");
   await expect(cancel).toBeHidden();
   // Y se vuelve a poder pedir algo: cancelar no deja la isla inservible.
-  await expect(mcp.getByRole("button", { name: "tools/list" })).toBeEnabled();
+  await expect(loadButton(page)).toBeEnabled();
 });
 
 test("una cabecera obligatoria vacía bloquea el envío y dice por qué", async ({
@@ -227,14 +225,14 @@ test("una cabecera obligatoria vacía bloquea el envío y dice por qué", async 
   await expect(page.getByTestId("inspector-missing-header")).toContainText(
     "PRIVATE-TOKEN",
   );
-  await expect(mcp.getByRole("button", { name: "tools/list" })).toBeDisabled();
+  await expect(loadButton(page)).toBeDisabled();
   await expect(mcp.getByLabel("PRIVATE-TOKEN")).toHaveAttribute(
     "aria-required",
     "true",
   );
 
   await mcp.getByLabel("PRIVATE-TOKEN").fill("glpat-de-mentira");
-  await expect(mcp.getByRole("button", { name: "tools/list" })).toBeEnabled();
+  await expect(loadButton(page)).toBeEnabled();
   await expect(page.getByTestId("inspector-missing-header")).toHaveCount(0);
 });
 
@@ -244,25 +242,29 @@ test("la isla habla español en /es/", async ({ page }) => {
   const mcp = inspector(page);
 
   await expect(mcp.getByLabel("Servidor")).toBeVisible();
-  await expect(mcp.getByLabel("Argumentos (JSON)")).toBeVisible();
+  // Las pestañas también están traducidas.
+  await expect(mcp.getByRole("tab", { name: "Prompts" })).toBeVisible();
   // Los identificadores del protocolo NO se traducen: son lo que hay que
   // teclear en un cliente MCP de verdad.
-  await expect(mcp.getByRole("button", { name: "tools/list" })).toBeVisible();
+  await expect(loadButton(page)).toBeVisible();
 
-  await mcp.getByRole("button", { name: "tools/list" }).click();
+  await loadButton(page).click();
   await expect(status(page)).toContainText("2 tools");
 });
 
-test("Enter en el campo de la tool lanza la llamada", async ({ page }) => {
-  const sent = await stubMcp(page, () => ({ json: TOOL_OK }));
+test("Enter en el formulario lanza la llamada", async ({ page }) => {
+  const sent = await stubMcp(page, (method) =>
+    method === "tools/call" ? { json: TOOL_OK } : { json: TOOLS_LIST },
+  );
   await page.goto("/");
-  const mcp = inspector(page);
 
-  await mcp.getByLabel("Tool").fill("search");
-  await mcp.getByLabel("Tool").press("Enter");
+  await pickTool(page, "search");
+  // Enter en un control de una línea envía: bajar al botón con el formulario
+  // ya relleno es fricción gratuita.
+  await page.locator(".arg input, .arg textarea").first().press("Enter");
 
-  await expect.poll(() => sent.length).toBe(1);
-  expect(sent[0].body).toMatchObject({
+  await expect.poll(() => sent.filter((r) => r.body.method === "tools/call").length).toBe(1);
+  expect(sent.at(-1)?.body).toMatchObject({
     method: "tools/call",
     params: { name: "search" },
   });

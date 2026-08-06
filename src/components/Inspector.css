@@ -421,3 +421,141 @@
 :root[data-theme="light"] .term-out:empty::before {
   color: #8c8a82;
 }
+
+/* ── Pestañas ──────────────────────────────────────────────────────────────
+   Las tres cosas que un servidor MCP puede ofrecer. Antes eran cuatro botones
+   sueltos que solo listaban, y lo listado no se podía usar. */
+.term .tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  padding-block: 0.9rem;
+  border-block: 1px solid var(--color-hair);
+}
+
+.term .tab {
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.term .tab.is-active {
+  border-color: var(--accent-line);
+  background: var(--accent-dim);
+  color: var(--color-accent);
+}
+
+/* `initialize` no es una pestaña: es el saludo del protocolo, y se lanza sin
+   cambiar de vista. Se separa con margen para que no parezca una más. */
+.term .tab-init {
+  margin-inline-start: auto;
+  border-color: var(--color-border);
+  font-size: 0.75rem;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-block-start: 1rem;
+}
+
+.catalog {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.catalog-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.catalog-count {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.args-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.mode {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.term .mode-btn {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+}
+
+.term .mode-btn.is-on {
+  border-color: var(--accent-line);
+  background: var(--accent-dim);
+  color: var(--color-accent);
+}
+
+/* ── Formulario de argumentos ──────────────────────────────────────────────
+   Un control por propiedad del esquema. Sustituye al JSON crudo, que obligaba
+   a saberse de memoria los nombres, los tipos y cuáles eran obligatorios. */
+.args {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 1rem;
+}
+
+.arg {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.arg > label {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.arg-name {
+  color: var(--color-text-heading);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+}
+
+.req-mark {
+  color: var(--color-warning);
+}
+
+.arg-type {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+
+.arg-help {
+  /* Acotada: hay descripciones de 40 líneas (extra_sources de libgen) que
+     descuadraban la rejilla entera y empujaban el botón fuera de la vista. */
+  max-height: 4.5rem;
+  margin: 0;
+  overflow-y: auto;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  text-wrap: pretty;
+}
+
+/* El checkbox no debe estirarse al ancho de la columna como los demás. */
+.arg input[type="checkbox"] {
+  width: auto;
+  justify-self: start;
+}
