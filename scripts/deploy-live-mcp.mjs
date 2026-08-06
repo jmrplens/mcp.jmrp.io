@@ -201,3 +201,40 @@ if (cfToken) {
       "  Si has añadido ficheros nuevos, seguirán dando 404 en el dominio hasta que expire.",
   );
 }
+
+// ── IndexNow ───────────────────────────────────────────────────────────────
+//
+// Avisa a Bing y Yandex de que el contenido ha cambiado. Para un sitio recién
+// publicado es la diferencia entre indexar en horas o en semanas — la
+// auditoría GEO lo señaló, y es de lo poco que un sitio de dos páginas puede
+// hacer para acelerar su descubrimiento.
+//
+// No falla el despliegue si el ping falla: el origen ya está actualizado y la
+// indexación es un extra.
+const INDEXNOW_KEY = /INDEXNOW_KEY = "([a-f0-9]+)"/.exec(
+  fs.readFileSync(path.join("src", "lib", "seo.ts"), "utf8"),
+)?.[1];
+
+if (INDEXNOW_KEY) {
+  try {
+    const response = await fetch("https://api.indexnow.org/IndexNow", {
+      method: "POST",
+      headers: { "Content-Type": "application/json; charset=utf-8" },
+      body: JSON.stringify({
+        host: "mcp.jmrp.io",
+        key: INDEXNOW_KEY,
+        keyLocation: `https://mcp.jmrp.io/${INDEXNOW_KEY}.txt`,
+        urlList: ["https://mcp.jmrp.io/", "https://mcp.jmrp.io/es/"],
+      }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    // 200 y 202 son ambos aceptación; 422 suele ser la clave aún no visible.
+    console.log(
+      response.ok
+        ? `✓ IndexNow avisado (HTTP ${response.status})`
+        : `⚠ IndexNow devolvió HTTP ${response.status}`,
+    );
+  } catch (error) {
+    console.warn(`⚠ no se pudo avisar a IndexNow: ${oneLine(error.message)}`);
+  }
+}

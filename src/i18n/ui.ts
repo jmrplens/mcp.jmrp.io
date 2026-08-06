@@ -22,6 +22,9 @@ export const ui = {
     repository: "Repository",
     documentation: "Documentation",
     credentialsRequired: "Credentials required",
+    toolsHead: "Tools",
+    noticePointer:
+      "Before pasting a credential, read the notice on that server's card above: it says exactly where the value goes and what the browser itself prevents.",
     optionalHeaders: "Optional headers",
     noCredentials: "No credentials required",
     inspector: "Inspector",
@@ -108,6 +111,9 @@ export const ui = {
     repository: "Repositorio",
     documentation: "Documentación",
     credentialsRequired: "Requiere credenciales",
+    toolsHead: "Herramientas",
+    noticePointer:
+      "Antes de pegar una credencial, lee el aviso en la ficha de ese servidor, arriba: dice exactamente a dónde va el valor y qué impide el propio navegador.",
     optionalHeaders: "Cabeceras opcionales",
     noCredentials: "No requiere credenciales",
     inspector: "Inspector",

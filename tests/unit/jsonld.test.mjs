@@ -62,6 +62,31 @@ test("TODAS las páginas llevan un bloque JSON-LD que parsea", () => {
   }
 });
 
+test("cada endpoint se une con el repositorio que lo produce", () => {
+  // El grafo afirmaba que existe un endpoint y que el autor posee un software
+  // en GitHub, y nunca decía que fueran lo mismo. Sin esta arista se pierde la
+  // evidencia que respalda "¿me puedo fiar de esto?".
+  for (const page of htmlPages()) {
+    const graph = graphOf(page);
+    // La cuenta sale de `servers.json`, que nace de la misma fuente que el
+    // grafo: si divergen, uno de los dos está mal.
+    const index = JSON.parse(fs.readFileSync(new URL("servers.json", DIST), "utf8"));
+    const sources = graph.filter((n) => n["@type"] === "SoftwareSourceCode");
+    assert.equal(
+      sources.length,
+      Object.keys(index.endpoints).length,
+      `${page}: falta un SoftwareSourceCode por servidor`,
+    );
+    const ids = new Set(graph.map((n) => n["@id"]));
+    for (const source of sources) {
+      assert.ok(
+        ids.has(source.targetProduct?.["@id"]),
+        `${page}: ${source["@id"]} apunta a un endpoint que no está en el grafo`,
+      );
+    }
+  }
+});
+
 test("el grafo declara el sitio, la página y un WebAPI por servidor", () => {
   // `servers.json` sale de la MISMA fuente (`src/data/servers.ts`), así que
   // añadir un MCP y olvidarse del JSON-LD deja este test en rojo.
@@ -73,7 +98,15 @@ test("el grafo declara el sitio, la página y un WebAPI por servidor", () => {
 
   for (const page of htmlPages()) {
     const graph = graphOf(page);
-    const byType = (type) => graph.filter((n) => n["@type"] === type);
+    // `@type` puede ser un array: los nodos de endpoint son a la vez `WebAPI`
+    // y `SoftwareApplication`, para heredar de CreativeWork propiedades como
+    // `license` o `dateModified` que `WebAPI` no admite.
+    const byType = (type) =>
+      graph.filter((n) =>
+        Array.isArray(n["@type"])
+          ? n["@type"].includes(type)
+          : n["@type"] === type,
+      );
 
     assert.equal(byType("WebSite").length, 1, `${page}: falta el nodo WebSite`);
     assert.equal(byType("WebPage").length, 1, `${page}: falta el nodo WebPage`);

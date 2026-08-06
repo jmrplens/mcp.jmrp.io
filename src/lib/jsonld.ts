@@ -17,10 +17,29 @@
  * por lista blanca de `location =` y añadir una entrada exigiría editar
  * /etc/nginx a mano. Su URL dereferenciable sigue siendo la de jmrp.io.
  */
+import { execFileSync } from "node:child_process";
+
 import { servers } from "../data/servers";
 import type { Lang } from "../i18n/ui";
 import { ui } from "../i18n/ui";
 import { loadPersonNode, PERSON_ID } from "./identity";
+
+/**
+ * Fecha del último commit, no la del build.
+ *
+ * Con `new Date()` cada despliegue anunciaría contenido nuevo aunque no
+ * cambiara nada, y los buscadores acaban ignorando el campo. Si git no está
+ * disponible se cae a la fecha actual, que es lo único que queda.
+ */
+const BUILD_DATE = (() => {
+  try {
+    return execFileSync("/usr/bin/git", ["log", "-1", "--format=%cI"], {
+      encoding: "utf8",
+    }).trim();
+  } catch {
+    return new Date().toISOString();
+  }
+})();
 import { LANGS, pageUrl, SITE_NAME, SITE_ORIGIN } from "./seo";
 
 /** `@id` del nodo `WebSite`, al que cuelgan las páginas por `isPartOf`. */
@@ -72,15 +91,63 @@ export async function buildSiteGraph(
   // del documento de identidad, que ya declara los `#software` de estos dos
   // repos; `sameAs` lleva al repositorio, que es el sujeto de aquellos nodos.
   const apis = servers.map((server) => ({
-    "@type": "WebAPI",
+    // Multi-tipado a propósito: `WebAPI` cuelga de `Intangible`, así que por sí
+    // solo deja fuera `license`, `dateModified` e `isAccessibleForFree` — que
+    // son justo los hechos que deciden si un asistente recomienda un endpoint.
+    // Añadir `SoftwareApplication` (rama `CreativeWork`) los habilita sin
+    // renunciar a la semántica precisa de "esto es una API".
+    "@type": ["WebAPI", "SoftwareApplication"],
     "@id": `${server.endpoint}#api`,
     name: server.name,
     url: server.endpoint,
     description: localized(server.description),
-    documentation: server.docs,
-    sameAs: server.repo,
+    documentation: server.docsSite ?? server.docs,
     serviceType: "Model Context Protocol server",
+    // El mismo ancla de Wikidata que el `knowsAbout` del autor: liga el
+    // servidor y a quien lo escribe al nodo canónico de MCP.
+    additionalType: "https://www.wikidata.org/entity/Q133436854",
+    applicationCategory: "DeveloperApplication",
+    operatingSystem: "Any (HTTP)",
+    license: "https://spdx.org/licenses/MIT.html",
+    isAccessibleForFree: true,
+    dateModified: BUILD_DATE,
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "EUR",
+      availability: "https://schema.org/InStock",
+    },
     provider: ref(PERSON_ID),
+    // Cómo se llama de verdad: POST con JSON-RPC, no un GET a la URL. Un
+    // rastreador que siga `url` recibe un 405, que es correcto por diseño.
+    potentialAction: {
+      "@type": "Action",
+      name: "JSON-RPC 2.0 call over streamable HTTP",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: server.endpoint,
+        httpMethod: "POST",
+        encodingType: "application/json",
+        contentType: "application/json, text/event-stream",
+      },
+    },
+  }));
+
+  // El grafo afirmaba que existe un endpoint y que el autor posee un software
+  // en GitHub, y nunca decía que fueran lo mismo: el `owns` del documento de
+  // identidad apuntaba a `…#software`, un nodo que no definía nadie. Definirlo
+  // aquí cierra esa referencia colgante y une el repositorio con su endpoint,
+  // que es la evidencia que respalda "¿me puedo fiar de esto?".
+  const sources = servers.map((server) => ({
+    "@type": "SoftwareSourceCode",
+    "@id": `${server.repo}#software`,
+    name: server.repo.split("/").pop(),
+    codeRepository: server.repo,
+    programmingLanguage: "Go",
+    runtimePlatform: "Go",
+    license: "https://spdx.org/licenses/MIT.html",
+    author: ref(PERSON_ID),
+    targetProduct: ref(`${server.endpoint}#api`),
   }));
 
   const website = {
@@ -103,6 +170,10 @@ export async function buildSiteGraph(
     isPartOf: ref(WEBSITE_ID),
     author: ref(PERSON_ID),
     publisher: ref(PERSON_ID),
+    dateModified: BUILD_DATE,
+    // `mainEntity` y no solo `about`: estos servidores no son algo de lo que
+    // la página habla, son su asunto.
+    mainEntity: apis.map((api) => ref(api["@id"])),
     about: apis.map((api) => ref(api["@id"])),
   };
 
@@ -111,8 +182,8 @@ export async function buildSiteGraph(
   return {
     "@context": "https://schema.org",
     "@graph": person
-      ? [website, webpage, ...apis, person]
-      : [website, webpage, ...apis],
+      ? [website, webpage, ...apis, ...sources, person]
+      : [website, webpage, ...apis, ...sources],
   };
 }
 

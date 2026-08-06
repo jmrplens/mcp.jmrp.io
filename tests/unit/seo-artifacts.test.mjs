@@ -26,6 +26,9 @@ const ORIGIN = "https://mcp.jmrp.io";
  * `security_headers*_mcp.conf` NO están: se copian a /etc/nginx, no se sirven.
  */
 const SERVED_AT_ROOT = [
+  // Clave de IndexNow. No es un secreto: el protocolo exige publicarla para
+  // demostrar control del dominio.
+  "8b3b0f3c6a883bd7d274f2cf7645921a.txt",
   "apple-touch-icon.png",
   "favicon.svg",
   "index.html",

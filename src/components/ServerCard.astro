@@ -5,6 +5,7 @@
  */
 import type { McpServer } from "../data/servers";
 import { ui } from "../i18n/ui";
+import Notice from "./Notice.astro";
 
 interface Props {
   server: McpServer;
@@ -55,6 +56,31 @@ const needsAuth = server.requiredHeaders.length > 0;
         ))}
       </dl>
     )
+  }
+
+  <div class="tools">
+    <p class="tools-head">{t.toolsHead}</p>
+    <dl>
+      {
+        server.tools.map((tool) => (
+          <>
+            <dt><code>{tool.name}</code></dt>
+            <dd>{tool.what[lang]}</dd>
+          </>
+        ))
+      }
+    </dl>
+  </div>
+
+  {
+    server.notices.map((notice) => (
+      <Notice
+        notice={notice}
+        lang={lang}
+        server={server.name}
+        id={`${server.id}-${notice.kind}`}
+      />
+    ))
   }
 
   <p class="links">
@@ -169,6 +195,34 @@ const needsAuth = server.requiredHeaders.length > 0;
     margin: 0;
     color: var(--color-text-muted);
     text-wrap: pretty;
+  }
+
+  .tools {
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--color-hair);
+  }
+
+  .tools-head {
+    margin: 0 0 0.5rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .tools dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.3rem 0.85rem;
+    margin: 0;
+    font-size: 0.85rem;
+  }
+
+  .tools dt code {
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
   }
 
   .links {

@@ -10,7 +10,6 @@
 import { servers } from "../data/servers";
 import { ui } from "../i18n/ui";
 import Inspector from "./Inspector";
-import SecurityNote from "./SecurityNote.astro";
 import ServerCard from "./ServerCard.astro";
 
 interface Props {
@@ -48,7 +47,9 @@ const t = ui[lang];
   </p>
   <p class="section-intro">{t.inspectorIntro}</p>
   <Inspector client:load servers={servers} lang={lang} />
-  <SecurityNote lang={lang} />
+  <p class="notice-pointer">
+    {t.noticePointer}
+  </p>
 </section>
 
 <style>
@@ -142,6 +143,16 @@ const t = ui[lang];
   .machine a:hover {
     text-decoration: underline;
     text-underline-offset: 3px;
+  }
+
+  /* El inspector es donde se pega el token, pero la política de ese token
+     pertenece a gitlab y vive en su ficha. Este puntero une las dos cosas sin
+     duplicar el texto ni mezclar los avisos de los dos servidores. */
+  .notice-pointer {
+    margin: 1rem 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    text-wrap: pretty;
   }
 
   .section-intro {

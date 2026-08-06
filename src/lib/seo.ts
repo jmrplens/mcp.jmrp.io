@@ -20,6 +20,15 @@ import { ui } from "../i18n/ui";
 export const SITE_ORIGIN = "https://mcp.jmrp.io";
 
 /**
+ * Clave de IndexNow: no es un secreto.
+ *
+ * El protocolo la publica en `https://mcp.jmrp.io/<clave>.txt`; su función no
+ * es autenticar sino demostrar control del dominio, así que va en el repo a
+ * propósito para que clave y fichero no puedan desincronizarse.
+ */
+export const INDEXNOW_KEY = "8b3b0f3c6a883bd7d274f2cf7645921a";
+
+/**
  * Ruta de cada idioma. El inglés vive en la raíz
  * (`i18n.routing.prefixDefaultLocale: false`).
  *
