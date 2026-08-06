@@ -18,7 +18,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # Sonar necesita el historial completo para atribuir la deuda a su
           # commit; con el clon superficial lo achaca todo al último.
@@ -70,7 +70,7 @@ jobs:
     # dejar el CI en rojo por algo que el autor del PR no puede arreglar.
     if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
