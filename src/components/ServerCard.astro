@@ -58,8 +58,13 @@ const needsAuth = server.requiredHeaders.length > 0;
     )
   }
 
-  <div class="tools">
-    <p class="tools-head">{t.toolsHead}</p>
+  <details class="fold fold-tools">
+    <summary>
+      <span class="fold-label">{t.toolsHead}</span>
+      <span class="fold-peek">
+        {server.tools.map((tool) => <code>{tool.name}</code>)}
+      </span>
+    </summary>
     <dl>
       {
         server.tools.map((tool) => (
@@ -70,16 +75,22 @@ const needsAuth = server.requiredHeaders.length > 0;
         ))
       }
     </dl>
-  </div>
+  </details>
 
   {
     server.notices.map((notice) => (
-      <Notice
-        notice={notice}
-        lang={lang}
-        server={server.name}
-        id={`${server.id}-${notice.kind}`}
-      />
+      <details class={`fold fold-${notice.kind}`}>
+        <summary>
+          <span class="fold-label">{notice.title[lang]}</span>
+        </summary>
+        <Notice
+          notice={notice}
+          lang={lang}
+          server={server.name}
+          id={`${server.id}-${notice.kind}`}
+          bare
+        />
+      </details>
     ))
   }
 
@@ -197,13 +208,58 @@ const needsAuth = server.requiredHeaders.length > 0;
     text-wrap: pretty;
   }
 
-  .tools {
+  /* Plegables nativos: cero JavaScript, accesibles por teclado de fábrica y
+     —lo que importa aquí— el contenido sigue en el HTML, así que los
+     rastreadores y los LLM lo leen igual aunque esté cerrado.
+
+     Cada ficha medía ~1.400 px en móvil y el inspector quedaba a 4 pantallas;
+     con cinco servidores habría estado a ocho. Lo que NO se pliega es lo
+     citable: descripción, endpoint, cabeceras y los nombres de las tools. */
+  .fold {
     padding-top: 0.9rem;
     border-top: 1px solid var(--color-hair);
   }
 
-  .tools-head {
-    margin: 0 0 0.5rem;
+  .fold summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: baseline;
+    cursor: pointer;
+    /* Área táctil: sin esto el resumen se queda en ~19 px de alto. */
+    padding-block: 0.35rem;
+    list-style: none;
+  }
+
+  .fold summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Triángulo propio: el nativo no se puede colorear y desaparece en algunos
+     navegadores al quitar list-style. */
+  .fold summary::before {
+    content: "›";
+    display: inline-block;
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    transition: transform 0.15s ease;
+  }
+
+  .fold[open] summary::before {
+    transform: rotate(90deg);
+  }
+
+  .fold summary:hover .fold-label,
+  .fold summary:focus-visible .fold-label {
+    color: var(--color-accent);
+  }
+
+  .fold summary:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .fold-label {
     color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: 0.7rem;
@@ -211,7 +267,27 @@ const needsAuth = server.requiredHeaders.length > 0;
     text-transform: uppercase;
   }
 
-  .tools dl {
+  /* Los nombres de las tools se ven SIN abrir: son lo que responde "¿sirve
+     para esto?" y lo que un LLM cita. Solo se pliega qué hace cada una. */
+  .fold-peek {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .fold-peek code {
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fold summary::before {
+      transition: none;
+    }
+  }
+
+  .fold dl {
     display: grid;
     grid-template-columns: auto 1fr;
     gap: 0.3rem 0.85rem;
@@ -219,7 +295,7 @@ const needsAuth = server.requiredHeaders.length > 0;
     font-size: 0.85rem;
   }
 
-  .tools dt code {
+  .fold dt code {
     color: var(--color-accent);
     font-family: var(--font-mono);
     font-size: 0.8rem;

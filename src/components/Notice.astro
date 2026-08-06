@@ -25,23 +25,35 @@ interface Props {
    * De paso el título se auto-contiene, que es lo que hace citable un pasaje.
    */
   server?: string;
+  /**
+   * Sin marco ni título propios: el aviso va dentro de un `<details>` que ya
+   * pone el título en su `<summary>`, así que repetirlo sería redundante y
+   * anidaría dos cajas.
+   */
+  bare?: boolean;
 }
 
-const { notice, lang, id, server } = Astro.props;
+const { notice, lang, id, server, bare } = Astro.props;
 // El <aside> es un landmark: sin nombre accesible, un lector de pantalla
 // anuncia "complementary" a secas y con dos avisos no se distinguen.
 const headingId = `${id ?? notice.kind}-title`;
 ---
 
 <aside
-  class={`notice notice-${notice.kind}`}
+  class={bare ? `notice notice-bare notice-${notice.kind}` : `notice notice-${notice.kind}`}
   id={id}
-  aria-labelledby={headingId}
+  aria-labelledby={bare ? undefined : headingId}
+  aria-label={bare ? `${notice.title[lang]} — ${server ?? ""}`.trim() : undefined}
   data-testid={`notice-${notice.kind}`}
 >
-  <h3 id={headingId}>
-    {notice.title[lang]}{server ? <> — <code>{server}</code></> : null}
-  </h3>
+  {
+    bare ? null : (
+      <h3 id={headingId}>
+        {notice.title[lang]}
+        {server ? <> — <code>{server}</code></> : null}
+      </h3>
+    )
+  }
   {notice.body.map((p) => <p>{p[lang]}</p>)}
   {
     notice.bullets && notice.bullets.length > 0 && (
@@ -55,6 +67,14 @@ const headingId = `${id ?? notice.kind}-title`;
 </aside>
 
 <style>
+  /* Dentro de un plegable el marco sobra: el `<details>` ya delimita. */
+  .notice-bare {
+    margin-block-start: 0;
+    padding: 0.25rem 0 0;
+    border: 0;
+    background: none;
+  }
+
   .notice {
     margin-block-start: 1rem;
     padding: 1rem 1.15rem;
