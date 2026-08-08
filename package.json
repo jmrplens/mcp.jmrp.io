@@ -2,6 +2,7 @@
   "name": "mcp.jmrp.io",
   "type": "module",
   "private": true,
+  "license": "MIT",
   "packageManager": "pnpm@11.18.0",
   "scripts": {
     "dev": "astro dev",

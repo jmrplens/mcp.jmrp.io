@@ -34,3 +34,29 @@ export function contentDate(): string | undefined {
     return undefined;
   }
 }
+
+/**
+ * Fecha de publicación del sitio, para `datePublished`: el primer commit.
+ *
+ * Es un hecho, no una elección: el repositorio nació con el sitio. La misma
+ * regla que arriba para el caso sin git — `undefined` y el campo se omite,
+ * porque una fecha ausente es correcta y una inventada no.
+ */
+export function publishedDate(): string | undefined {
+  const opts = {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "ignore"],
+  } satisfies Parameters<typeof execFileSync>[2];
+  try {
+    const out = execFileSync(
+      GIT,
+      ["log", "--max-parents=0", "--format=%cI"],
+      opts,
+    ).trim();
+    // Un repo puede tener varias raíces (merges de historias); la más antigua
+    // es la última línea.
+    return out.split("\n").at(-1) || undefined;
+  } catch {
+    return undefined;
+  }
+}

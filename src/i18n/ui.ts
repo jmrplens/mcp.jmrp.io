@@ -34,6 +34,14 @@ export const ui = {
 
     noticePointer:
       "Before pasting a credential, read the notice on that server's card above: it says exactly where the value goes and what the browser itself prevents.",
+    /**
+     * Título del plegable de configuración por cliente. `{server}` se
+     * sustituye por el nombre en ServerCard: las cadenas de este fichero son
+     * estáticas y el nombre del servidor no se traduce.
+     */
+    clientHead: "How do I add {server} to an MCP client?",
+    clientEnvHint:
+      "In the JSON files the ${…} placeholders read the token from your environment — VS Code prompts for it and stores it itself — so the credential never lives in the file. In the command, replace <your token> by hand.",
     optionalHeaders: "Optional headers",
     noCredentials: "No credentials required",
     inspector: "Inspector",
@@ -43,6 +51,17 @@ export const ui = {
       "Servers that need credentials show their header fields once you select them. Whatever you type there stays in this tab: it is sent with the request and never stored. Read the note below before pasting a token.",
     pill: "servers · streamable HTTP",
     lede: "Two Model Context Protocol servers, self-hosted and free to use. Point your MCP client at an endpoint, or try them right here in the browser.",
+    /**
+     * Una frase que define MCP y nombra el dominio.
+     *
+     * El lede asume que el lector ya sabe qué es MCP; para el que llega desde
+     * una pregunta genérica («¿qué es un servidor MCP?») este es el único
+     * bloque autocontenido. Y lleva «mcp.jmrp.io» a propósito: los titulares
+     * son genéricos («MCP servers»), así que sin la marca en el primer texto
+     * extraíble, una cita de la página no dice de quién es.
+     */
+    whatIsMcp:
+      "The Model Context Protocol (MCP) is an open standard that lets AI assistants use external tools and data sources; mcp.jmrp.io hosts two such servers, libgen and gitlab.",
     serversEyebrow: "Servers",
     inspectorEyebrow: "Inspector",
     machineIndex: "Machine-readable index",
@@ -132,6 +151,10 @@ export const ui = {
 
     noticePointer:
       "Antes de pegar una credencial, lee el aviso en la ficha de ese servidor, arriba: dice exactamente a dónde va el valor y qué impide el propio navegador.",
+    /** Ver `en.clientHead`: `{server}` lo sustituye ServerCard. */
+    clientHead: "¿Cómo añado {server} a un cliente MCP?",
+    clientEnvHint:
+      "En los ficheros JSON, los marcadores ${…} leen el token de tu entorno — VS Code lo pide y lo guarda él mismo — así que la credencial nunca vive en el fichero. En el comando, sustituye <your token> a mano.",
     optionalHeaders: "Cabeceras opcionales",
     noCredentials: "No requiere credenciales",
     inspector: "Inspector",
@@ -141,6 +164,9 @@ export const ui = {
       "Los servidores que piden credenciales muestran sus campos al seleccionarlos. Lo que escribas ahí se queda en esta pestaña: viaja con la petición y no se guarda en ningún sitio. Lee la nota de abajo antes de pegar un token.",
     pill: "servidores · streamable HTTP",
     lede: "Dos servidores Model Context Protocol, self-hosted y de uso libre. Apunta tu cliente MCP a un endpoint, o pruébalos aquí mismo en el navegador.",
+    /** Ver `en.whatIsMcp`: define MCP y ancla la marca al primer texto. */
+    whatIsMcp:
+      "El Model Context Protocol (MCP) es un estándar abierto que permite a los asistentes de IA usar herramientas y fuentes de datos externas; mcp.jmrp.io aloja dos de esos servidores, libgen y gitlab.",
     serversEyebrow: "Servidores",
     inspectorEyebrow: "Inspector",
     machineIndex: "Índice para máquinas",

@@ -18,6 +18,11 @@
 import type { McpHeader, McpServer } from "../data/servers";
 import { servers } from "../data/servers";
 import { ui } from "../i18n/ui";
+import {
+  claudeCodeCommand,
+  cursorJson,
+  vscodeJson,
+} from "../lib/client-config";
 import { LANGS, pageUrl, SITE_NAME, SITE_ORIGIN } from "../lib/seo";
 
 /** Nombre humano de cada idioma, para los enlaces del índice. */
@@ -124,6 +129,27 @@ Accept: application/json, text/event-stream
 ${server.requiredHeaders.map((h) => `${h.name}: <your value>`).join("\n")}
 
 {"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}
+\`\`\`
+
+Use it in a client — mind the top-level key: Cursor reads \`mcpServers\` with
+no \`type\` field, VS Code reads \`servers\` with \`type: "http"\`.
+
+Claude Code:
+
+\`\`\`sh
+${claudeCodeCommand(server)}
+\`\`\`
+
+Cursor (\`~/.cursor/mcp.json\`):
+
+\`\`\`json
+${cursorJson(server)}
+\`\`\`
+
+VS Code (\`.vscode/mcp.json\`):
+
+\`\`\`json
+${vscodeJson(server, "en")}
 \`\`\`
 `;
 }

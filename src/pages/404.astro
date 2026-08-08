@@ -1,0 +1,89 @@
+---
+/**
+ * Página 404 con marca. nginx la sirve vía `error_page 404 /404.html` (el
+ * vhost lo edita un humano, como toda la lista blanca); el código de estado
+ * sigue siendo 404 — la página solo pone cuerpo al error.
+ *
+ * Es UNA página para los dos idiomas: nginx no sabe en qué idioma navegabas,
+ * así que el texto va en inglés con su línea en español y enlaces a las dos
+ * portadas. El `<p lang="es">` mantiene correcta la pronunciación de los
+ * lectores de pantalla.
+ */
+import { ui } from "../i18n/ui";
+import Base from "../layouts/Base.astro";
+---
+
+<Base
+  title="Page not found — MCP servers · jmrp.io"
+  description={ui.en.lede}
+  lang="en"
+>
+  <section class="nf">
+    <p class="code" aria-hidden="true">404</p>
+    <h1>Page not found</h1>
+    <p>
+      Nothing lives at this address. The servers, their endpoints and the
+      inspector are on the home page.
+    </p>
+    <p lang="es">
+      Esta dirección no existe. Los servidores, sus endpoints y el inspector
+      están en la portada.
+    </p>
+    <p class="links">
+      <a href="/">English</a>
+      <a href="/es/">Español</a>
+      <a href="/servers.json"><code>/servers.json</code></a>
+      <a href="/llms.txt"><code>/llms.txt</code></a>
+    </p>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    padding-block: clamp(3rem, 9vw, 5.5rem);
+  }
+
+  .code {
+    margin: 0 0 0.5rem;
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    letter-spacing: 0.12em;
+  }
+
+  h1 {
+    margin: 0 0 1.25rem;
+    color: var(--color-text-heading);
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 6vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
+
+  p {
+    max-width: 58ch;
+    margin: 0 0 0.6rem;
+    color: var(--color-text);
+    text-wrap: pretty;
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+  }
+
+  .links a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .links a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

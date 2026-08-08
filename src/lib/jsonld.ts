@@ -17,16 +17,21 @@
  * por lista blanca de `location =` y añadir una entrada exigiría editar
  * /etc/nginx a mano. Su URL dereferenciable sigue siendo la de jmrp.io.
  */
+import type { McpNotice } from "../data/servers";
 import { servers } from "../data/servers";
 import type { Lang } from "../i18n/ui";
 import { ui } from "../i18n/ui";
-import { contentDate } from "./build-date";
+import { contentDate, publishedDate } from "./build-date";
 import { loadPersonNode, PERSON_ID } from "./identity";
 import { LANGS, pageUrl, SITE_NAME, SITE_ORIGIN } from "./seo";
 
 // Ver build-date.ts: HEAD si el árbol está limpio, ahora si está sucio. El
 // fallback a la hora actual solo aplica sin git, y ahí es lo único que queda.
 const BUILD_DATE = contentDate() ?? new Date().toISOString();
+
+// Primer commit del repo. Sin git no hay fecha y el campo se omite: ver
+// build-date.ts.
+const PUBLISHED_DATE = publishedDate();
 
 /** `@id` del nodo `WebSite`, al que cuelgan las páginas por `isPartOf`. */
 const WEBSITE_ID = `${SITE_ORIGIN}/#website`;
@@ -103,17 +108,25 @@ export async function buildSiteGraph(
     license: "https://opensource.org/licenses/MIT",
     isAccessibleForFree: true,
     dateModified: BUILD_DATE,
+    ...(PUBLISHED_DATE && { datePublished: PUBLISHED_DATE }),
     // Qué sabe hacer, sin ejecutar el endpoint: es la pregunta que un agente
     // hace sobre un servidor MCP, y hasta ahora solo la respondía `tools/list`
     // en vivo.
     featureList: server.tools.map((tool) => tool.name),
     offers: {
       "@type": "Offer",
+      // `url` es la propiedad recomendada que faltaba: dónde se obtiene lo
+      // ofertado. Para un endpoint gratuito, el endpoint mismo.
+      url: server.endpoint,
       price: "0",
       priceCurrency: "USD",
       availability: "https://schema.org/InStock",
     },
     provider: ref(PERSON_ID),
+    // `provider` dice quién lo OPERA; `author` quién lo HIZO. Aquí son la
+    // misma persona y el texto visible ya lo afirma ("who is also the author
+    // of both servers") — el grafo debe contar la misma historia.
+    author: ref(PERSON_ID),
     // Camino de vuelta al código: `targetProduct` no tiene inversa en
     // schema.org, así que sin esto quien entra por `mainEntity` nunca llega
     // al repositorio.
@@ -184,10 +197,45 @@ export async function buildSiteGraph(
     author: ref(PERSON_ID),
     publisher: ref(PERSON_ID),
     dateModified: BUILD_DATE,
+    ...(PUBLISHED_DATE && { datePublished: PUBLISHED_DATE }),
     // `mainEntity` y no solo `about`: estos servidores no son algo de lo que
     // la página habla, son su asunto.
     mainEntity: apis.map((api) => ref(api["@id"])),
     about: apis.map((api) => ref(api["@id"])),
+    // Los avisos son los pasajes concisos y autocontenidos de la página —
+    // política del token, postura legal, límites — y sus `id` de DOM ya
+    // existen (los pone ServerCard para poder enlazarlos). `speakable` los
+    // señala como los pasajes que un asistente puede leer en voz alta o citar.
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: servers.flatMap((server) =>
+        server.notices.map((notice) => `#${server.id}-${notice.kind}`),
+      ),
+    },
+  };
+
+  // Los avisos de las fichas son literalmente preguntas con su respuesta
+  // (política del token, postura legal, límites): marcarlos como FAQPage
+  // formaliza esa estructura para quien extrae respuestas. Google ya no pinta
+  // rich results de FAQ para sitios como este (restringido en 2023); el
+  // destinatario son los asistentes, no la SERP. Sale de `servers.ts`, la
+  // misma fuente que pinta los avisos: no puede desincronizarse del texto.
+  const faq = {
+    "@type": "FAQPage",
+    "@id": `${url}#faq`,
+    inLanguage: lang,
+    isPartOf: ref(`${url}#webpage`),
+    about: apis.map((api) => ref(api["@id"])),
+    mainEntity: servers.flatMap((server) =>
+      server.notices.map((notice) => ({
+        "@type": "Question",
+        name: notice.title[lang],
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: noticeAnswer(notice, lang),
+        },
+      })),
+    ),
   };
 
   const person = await loadPersonNode();
@@ -195,9 +243,27 @@ export async function buildSiteGraph(
   return {
     "@context": "https://schema.org",
     "@graph": person
-      ? [website, webpage, ...apis, ...sources, person]
-      : [website, webpage, ...apis, ...sources],
+      ? [website, webpage, faq, ...apis, ...sources, person]
+      : [website, webpage, faq, ...apis, ...sources],
   };
+}
+
+/**
+ * La respuesta de un aviso como texto plano para `acceptedAnswer`.
+ *
+ * Párrafos y viñetas en orden — las viñetas son frases completas — y sin los
+ * acentos graves del markup: en un literal de texto JSON-LD serían ruido.
+ *
+ * @param notice Aviso de `src/data/servers.ts`.
+ * @param lang Idioma de la página.
+ * @returns El texto de la respuesta, de una pieza.
+ */
+function noticeAnswer(notice: McpNotice, lang: Lang): string {
+  const parts = [...notice.body, ...(notice.bullets ?? [])];
+  return parts
+    .map((part) => part[lang])
+    .join(" ")
+    .replaceAll("`", "");
 }
 
 /**

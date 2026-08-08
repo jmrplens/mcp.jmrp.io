@@ -26,6 +26,11 @@ const ORIGIN = "https://mcp.jmrp.io";
  * `security_headers*_mcp.conf` NO están: se copian a /etc/nginx, no se sirven.
  */
 const SERVED_AT_ROOT = [
+  // Página de error con marca. No se sirve por su URL sino vía
+  // `error_page 404 /404.html` en el vhost (con su `location = /404.html
+  // internal;`) — y las error_page propias van ANTES del include compartido,
+  // que trae las globales y en nginx gana la primera.
+  "404.html",
   // Clave de IndexNow. No es un secreto: el protocolo exige publicarla para
   // demostrar control del dominio.
   "8b3b0f3c6a883bd7d274f2cf7645921a.txt",

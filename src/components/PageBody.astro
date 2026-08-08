@@ -24,6 +24,10 @@ const t = ui[lang];
   <p class="pill"><span class="dot" aria-hidden="true"></span>{servers.length} {t.pill}</p>
   <h1>{t.title}</h1>
   <p class="lede">{t.lede}</p>
+  {/* La definición de MCP con la marca: el único bloque autocontenido para
+      quien no sabe qué es esto, y el ancla de entidad que los titulares
+      genéricos no dan. Ver `whatIsMcp` en ui.ts. */}
+  <p class="what-is">{t.whatIsMcp}</p>
 </section>
 
 <section aria-labelledby="servers-h">
@@ -112,6 +116,14 @@ const t = ui[lang];
     margin: 0;
     color: var(--color-text);
     font-size: 1.0625rem;
+    text-wrap: pretty;
+  }
+
+  .what-is {
+    max-width: 62ch;
+    margin: 0.9rem 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
     text-wrap: pretty;
   }
 

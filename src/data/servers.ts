@@ -87,7 +87,10 @@ export const servers: McpServer[] = [
     repo: "https://github.com/jmrplens/libgen-mcp",
     docs: "https://github.com/jmrplens/libgen-mcp#readme",
     docsSite: "https://jmrplens.github.io/libgen-mcp/",
-    sameAs: ["https://glama.ai/mcp/servers/jmrplens/libgen-mcp"],
+    sameAs: [
+      "https://glama.ai/mcp/servers/jmrplens/libgen-mcp",
+      "https://cursor.directory/plugins/libgen-mcp",
+    ],
     tools: [
       {
         name: "search",
@@ -124,15 +127,18 @@ export const servers: McpServer[] = [
         // Títulos únicos y con las palabras que la gente busca: se pintan como
         // <h3> dentro del <summary>, así que son las anclas por las que un
         // recuperador trocea la página. "Limits and availability" repetido
-        // dos veces era ruido, no señal.
+        // dos veces era ruido, no señal. Y en forma de PREGUNTA literal: el
+        // primer párrafo es su respuesta directa, que es el par que los
+        // motores de respuestas extraen — y el mismo que emite el FAQPage
+        // del JSON-LD, que nace de estos avisos.
         title: {
-          en: "Where libgen searches: sources and legal position",
-          es: "Dónde busca libgen: fuentes y postura legal",
+          en: "Where does libgen search, and what is its legal position?",
+          es: "¿Dónde busca libgen y cuál es su postura legal?",
         },
         body: [
           {
-            en: "libgen is a client of third-party public indexes: it queries Library Genesis mirrors and open-access providers (arXiv, Crossref, OpenLibrary, Gutenberg, dblp, PubMed, ERIC, Unpaywall). It hosts no catalogue and stores or redistributes no content of its own — `download` returns a link to the source, it does not serve the file.",
-            es: "libgen es un cliente de índices públicos de terceros: consulta mirrors de Library Genesis y proveedores de acceso abierto (arXiv, Crossref, OpenLibrary, Gutenberg, dblp, PubMed, ERIC, Unpaywall). No aloja catálogo alguno ni almacena o redistribuye contenido propio — `download` devuelve un enlace a la fuente, no sirve el fichero.",
+            en: "libgen is a client of third-party public indexes: it queries open-access providers (arXiv, Crossref, OpenLibrary, Gutenberg, dblp, PubMed, ERIC, Unpaywall) and Library Genesis mirrors. It hosts no catalogue and stores or redistributes no content of its own — `download` returns a link to the source, it does not serve the file.",
+            es: "libgen es un cliente de índices públicos de terceros: consulta proveedores de acceso abierto (arXiv, Crossref, OpenLibrary, Gutenberg, dblp, PubMed, ERIC, Unpaywall) y mirrors de Library Genesis. No aloja catálogo alguno ni almacena o redistribuye contenido propio — `download` devuelve un enlace a la fuente, no sirve el fichero.",
           },
           {
             en: "What you do with those links is your responsibility, and the rules that apply depend on where you are.",
@@ -143,8 +149,8 @@ export const servers: McpServer[] = [
       {
         kind: "limits",
         title: {
-          en: "libgen rate limits and availability",
-          es: "Límites de peticiones y disponibilidad de libgen",
+          en: "What are libgen's rate limits and availability?",
+          es: "¿Qué límites de peticiones y disponibilidad tiene libgen?",
         },
         // El primer párrafo se parece al de gitlab a propósito solo en el
         // fondo, no en la letra: los recuperadores deduplican chunks casi
@@ -163,9 +169,13 @@ export const servers: McpServer[] = [
     ],
     requiredHeaders: [],
     optionalHeaders: [],
+    // El acceso abierto va PRIMERO por decisión de posicionamiento
+    // (2026-08-08): la mitad open-access es la que cualquier asistente puede
+    // citar y recomendar sin reparos, y liderar con Library Genesis hacía que
+    // esa cautela se contagiara al servidor entero.
     description: {
-      en: "Search, download and read books, papers and comics from Library Genesis, plus keyless open-access discovery (arXiv, Crossref, OpenLibrary, Gutenberg, dblp, PubMed, ERIC). No account required.",
-      es: "Busca, descarga y lee libros, artículos y cómics de Library Genesis, más descubrimiento de acceso abierto sin claves (arXiv, Crossref, OpenLibrary, Gutenberg, dblp, PubMed, ERIC). No requiere cuenta.",
+      en: "Keyless discovery across open-access sources — arXiv, Crossref, OpenLibrary, Gutenberg, dblp, PubMed, ERIC — plus search, reading and download links for books, papers and comics via Library Genesis. No account required.",
+      es: "Descubrimiento sin claves en fuentes de acceso abierto — arXiv, Crossref, OpenLibrary, Gutenberg, dblp, PubMed, ERIC — más búsqueda, lectura y enlaces de descarga de libros, artículos y cómics vía Library Genesis. No requiere cuenta.",
     },
   },
   {
@@ -178,6 +188,8 @@ export const servers: McpServer[] = [
     sameAs: [
       "https://glama.ai/mcp/servers/jmrplens/gitlab-mcp-server",
       "https://mcpservers.org/servers/jmrplens/gitlab-mcp-server",
+      "https://mcp.so/server/gitlab-mcp-server/jmrplens",
+      "https://cursor.directory/plugins/gitlab-mcp-server",
     ],
     tools: [
       {
@@ -199,8 +211,8 @@ export const servers: McpServer[] = [
       {
         kind: "security",
         title: {
-          en: "Where your GitLab token goes",
-          es: "A dónde va tu token de GitLab",
+          en: "Where does your GitLab token go?",
+          es: "¿A dónde va tu token de GitLab?",
         },
         body: [
           {
@@ -243,8 +255,8 @@ export const servers: McpServer[] = [
       {
         kind: "limits",
         title: {
-          en: "gitlab rate limits and availability",
-          es: "Límites de peticiones y disponibilidad de gitlab",
+          en: "What are gitlab's rate limits and availability?",
+          es: "¿Qué límites de peticiones y disponibilidad tiene gitlab?",
         },
         body: [
           {
@@ -278,9 +290,14 @@ export const servers: McpServer[] = [
         },
       },
     ],
+    // El número va en la descripción a propósito: "¿qué servidor MCP de
+    // GitLab uso?" se responde comparando cobertura, y 1006 (la cifra del
+    // README del repo, de donde no debe divergir) es el hecho citable que
+    // diferencia a este. La descripción llega a la ficha, a servers.json,
+    // al JSON-LD y a llms.txt desde aquí, de una sola vez.
     description: {
-      en: "Projects, merge requests, issues, pipelines, releases and more against any GitLab instance. Your token travels per request and is never stored.",
-      es: "Proyectos, merge requests, incidencias, pipelines, releases y más contra cualquier instancia de GitLab. Tu token viaja en cada petición y nunca se guarda.",
+      en: "A catalogue of 1,006 GitLab operations — projects, merge requests, issues, pipelines, releases and more — against any GitLab instance. Your token travels per request and is never stored.",
+      es: "Un catálogo de 1006 operaciones de GitLab — proyectos, merge requests, incidencias, pipelines, releases y más — contra cualquier instancia de GitLab. Tu token viaja en cada petición y nunca se guarda.",
     },
   },
 ];

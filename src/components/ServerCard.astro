@@ -5,6 +5,7 @@
  */
 import type { McpServer } from "../data/servers";
 import { ui } from "../i18n/ui";
+import ClientSetup from "./ClientSetup.astro";
 import Notice from "./Notice.astro";
 
 interface Props {
@@ -75,6 +76,17 @@ const needsAuth = server.requiredHeaders.length > 0;
         ))
       }
     </dl>
+  </details>
+
+  {/* La configuración por cliente, plegada como las tools: la pregunta que
+      trae a la gente a un endpoint alojado, contestada en el dominio y no en
+      el sitio de documentación de cada servidor. El título es un <h3> en
+      forma de pregunta, como los avisos: es un ancla de extracción más. */}
+  <details class="fold fold-client">
+    <summary>
+      <h3 class="fold-label">{t.clientHead.replace("{server}", () => server.name)}</h3>
+    </summary>
+    <ClientSetup server={server} lang={lang} />
   </details>
 
   {

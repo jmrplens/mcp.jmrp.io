@@ -1,0 +1,92 @@
+---
+/**
+ * Fragmentos de conexión de un servidor para los clientes MCP habituales.
+ *
+ * Vive plegado en la ficha (ver ServerCard): es la respuesta a «¿cómo lo
+ * añado a mi cliente?», que era la única pregunta de la página cuya respuesta
+ * vivía fuera del dominio. Los fragmentos salen de `src/lib/client-config.ts`,
+ * no de markup escrito a mano: un MCP nuevo llega con los suyos.
+ */
+import type { McpServer } from "../data/servers";
+import type { Lang } from "../i18n/ui";
+import { ui } from "../i18n/ui";
+import {
+  claudeCodeCommand,
+  cursorJson,
+  vscodeJson,
+} from "../lib/client-config";
+
+interface Props {
+  server: McpServer;
+  lang: Lang;
+}
+
+const { server, lang } = Astro.props;
+const t = ui[lang];
+
+// Cada bloque nombra su fichero porque ahí está el error clásico: Cursor lee
+// `mcpServers` sin `type`; VS Code lee `servers` con `type: "http"`.
+const blocks = [
+  { label: "Claude Code", code: claudeCodeCommand(server) },
+  { label: "Cursor — ~/.cursor/mcp.json", code: cursorJson(server) },
+  { label: "VS Code — .vscode/mcp.json", code: vscodeJson(server, lang) },
+];
+
+const hasSecret = server.requiredHeaders.some((header) => header.secret);
+---
+
+<div class="client-setup">
+  {
+    blocks.map((block) => (
+      <figure>
+        <figcaption>{block.label}</figcaption>
+        <pre><code>{block.code}</code></pre>
+      </figure>
+    ))
+  }
+  {hasSecret && <p class="hint">{t.clientEnvHint}</p>}
+</div>
+
+<style>
+  .client-setup {
+    padding-top: 0.25rem;
+  }
+
+  figure {
+    margin: 0 0 0.8rem;
+  }
+
+  figcaption {
+    margin-bottom: 0.3rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* El bloque desborda en horizontal DENTRO de sí mismo: la ficha vive en una
+     rejilla con minmax(…, 1fr) y un <pre> sin overflow propio la ensancha
+     entera en móvil. */
+  pre {
+    margin: 0;
+    padding: 0.6rem 0.75rem;
+    overflow-x: auto;
+    border: 1px solid var(--color-hair);
+    border-radius: 6px;
+    background: var(--color-bg-subtle);
+  }
+
+  code {
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .hint {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+    text-wrap: pretty;
+  }
+</style>
