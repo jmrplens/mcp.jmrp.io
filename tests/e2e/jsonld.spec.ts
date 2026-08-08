@@ -14,7 +14,14 @@ import { ui } from "../../src/i18n/ui";
 
 const PERSON_ID = "https://jmrp.io/#person";
 
-type Node = Record<string, unknown> & { "@type"?: string; "@id"?: string };
+type Node = Record<string, unknown> & {
+  "@type"?: string | string[];
+  "@id"?: string;
+};
+
+/** `@type` puede ser array: los endpoints son WebAPI + SoftwareApplication. */
+const hasType = (n: Node, t: string) =>
+  Array.isArray(n["@type"]) ? n["@type"].includes(t) : n["@type"] === t;
 
 /** Lee y parsea el único bloque `application/ld+json` de la página actual. */
 async function readGraph(
@@ -46,7 +53,7 @@ test("la raíz sirve el grafo en inglés, enlazado a la persona", async ({
   expect(person?.["@type"]).toBe("Person");
   expect(person?.sameAs).toContain("https://github.com/jmrplens");
 
-  const apis = graph.filter((n) => n["@type"] === "WebAPI");
+  const apis = graph.filter((n) => hasType(n, "WebAPI"));
   expect(apis.map((n) => n.url)).toEqual([
     "https://mcp.jmrp.io/libgen",
     "https://mcp.jmrp.io/gitlab",
