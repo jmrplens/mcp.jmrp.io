@@ -60,7 +60,7 @@ const needsAuth = server.requiredHeaders.length > 0;
 
   <details class="fold fold-tools">
     <summary>
-      <span class="fold-label">{t.toolsHead}</span>
+      <h3 class="fold-label">{t.toolsHead} — {server.name}</h3>
       <span class="fold-peek">
         {server.tools.map((tool) => <code>{tool.name}</code>)}
       </span>
@@ -78,18 +78,26 @@ const needsAuth = server.requiredHeaders.length > 0;
   </details>
 
   {
+    /* El aviso de seguridad llega ABIERTO: es donde el visitante decide si
+       pega una credencial, y plegado quedaba visible la tranquilización
+       ("nunca se almacena") con todas las cautelas escondidas tras el clic —
+       el reparto exactamente al revés del correcto. Los demás sí se pliegan:
+       el problema de scroll que motivó los plegables era real, solo estaba
+       resuelto sobre el aviso equivocado.
+
+       El título va en un <h3> DENTRO del summary (válido en HTML): sin él la
+       página tenía 734 palabras colgando de dos H2, y los recuperadores
+       trocean por encabezados — cada aviso pasa a ser un pasaje con ancla
+       propia. */
     server.notices.map((notice) => (
-      <details class={`fold fold-${notice.kind}`}>
+      <details
+        class={`fold fold-${notice.kind}`}
+        open={notice.kind === "security"}
+      >
         <summary>
-          <span class="fold-label">{notice.title[lang]}</span>
+          <h3 class="fold-label">{notice.title[lang]}</h3>
         </summary>
-        <Notice
-          notice={notice}
-          lang={lang}
-          server={server.name}
-          id={`${server.id}-${notice.kind}`}
-          bare
-        />
+        <Notice notice={notice} lang={lang} id={`${server.id}-${notice.kind}`} />
       </details>
     ))
   }
@@ -259,10 +267,22 @@ const needsAuth = server.requiredHeaders.length > 0;
     outline-offset: 2px;
   }
 
+  /* Vale para el <span> antiguo y para el <h3> actual: el heading llega con
+     márgenes y tamaño de título de base.css y aquí se le da aspecto de
+     etiqueta. Sigue siendo un encabezado para el outline y los extractores. */
   .fold-label {
+    /* flex:1 con basis 0: el summary tiene flex-wrap, y el salto de línea se
+       decide por la BASE del ítem (su max-content), no por el shrink — así
+       que un título largo saltaba entero a la línea siguiente y dejaba el
+       chevrón huérfano. Con basis 0 nunca salta: crece junto al chevrón y
+       envuelve por dentro. */
+    flex: 1 1 0;
+    min-width: 0;
+    margin: 0;
     color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: 0.7rem;
+    font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
   }
@@ -271,6 +291,9 @@ const needsAuth = server.requiredHeaders.length > 0;
      para esto?" y lo que un LLM cita. Solo se pliega qué hace cada una. */
   .fold-peek {
     display: flex;
+    /* Siempre en su propia línea, bajo el título: si compartieran fila, los
+       chips estrujaban el rótulo y lo partían en dos líneas. */
+    flex-basis: 100%;
     flex-wrap: wrap;
     gap: 0.4rem;
   }

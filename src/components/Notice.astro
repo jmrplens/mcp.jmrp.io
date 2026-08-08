@@ -1,14 +1,16 @@
 ---
 /**
- * Un aviso que pertenece a UN servidor.
+ * El cuerpo de un aviso de servidor. Vive dentro de un `<details>` cuyo
+ * `<summary>` lleva el título como `<h3>`, así que aquí solo van párrafos
+ * y viñetas.
  *
- * Antes había un solo bloque suelto al final de la página con la política del
- * token, que solo aplica a gitlab. Con dos servidores ya obligaba al visitante
- * a averiguar cuál le afectaba, y con un tercero habría sido peor. Ahora cada
- * aviso vive dentro de la ficha de su servidor.
- *
- * `kind` decide el color del borde, no el contenido: seguridad en acento,
- * legal en neutro y límites en neutro atenuado.
+ * Es un `<div>`, no un `<aside>`, y eso importa más de lo que parece: los
+ * extractores tipo readability —el pipeline que alimenta RAG y agentes—
+ * tratan `<aside>` como contenido complementario y lo PODAN. Con `<aside>`,
+ * el 67% del texto de la página (límites, política del token, descargo
+ * legal) desaparecía de la extracción; medido, no supuesto. Y semánticamente
+ * también era incorrecto: estos avisos no son tangenciales, son el contenido
+ * central de la ficha.
  */
 import type { McpNotice } from "../data/servers";
 import type { Lang } from "../i18n/ui";
@@ -18,42 +20,12 @@ interface Props {
   lang: Lang;
   /** Id para poder referenciarlo desde el inspector. */
   id?: string;
-  /**
-   * Servidor al que pertenece. Se añade al título porque dos servidores
-   * pueden tener un aviso con el mismo nombre —"Límites y disponibilidad" lo
-   * tienen los dos— y entonces quien navega por landmarks los oye idénticos.
-   * De paso el título se auto-contiene, que es lo que hace citable un pasaje.
-   */
-  server?: string;
-  /**
-   * Sin marco ni título propios: el aviso va dentro de un `<details>` que ya
-   * pone el título en su `<summary>`, así que repetirlo sería redundante y
-   * anidaría dos cajas.
-   */
-  bare?: boolean;
 }
 
-const { notice, lang, id, server, bare } = Astro.props;
-// El <aside> es un landmark: sin nombre accesible, un lector de pantalla
-// anuncia "complementary" a secas y con dos avisos no se distinguen.
-const headingId = `${id ?? notice.kind}-title`;
+const { notice, lang, id } = Astro.props;
 ---
 
-<aside
-  class={bare ? `notice notice-bare notice-${notice.kind}` : `notice notice-${notice.kind}`}
-  id={id}
-  aria-labelledby={bare ? undefined : headingId}
-  aria-label={bare ? `${notice.title[lang]} — ${server ?? ""}`.trim() : undefined}
-  data-testid={`notice-${notice.kind}`}
->
-  {
-    bare ? null : (
-      <h3 id={headingId}>
-        {notice.title[lang]}
-        {server ? <> — <code>{server}</code></> : null}
-      </h3>
-    )
-  }
+<div class="notice" id={id} data-testid={`notice-${notice.kind}`}>
   {notice.body.map((p) => <p>{p[lang]}</p>)}
   {
     notice.bullets && notice.bullets.length > 0 && (
@@ -64,44 +36,11 @@ const headingId = `${id ?? notice.kind}-title`;
       </ul>
     )
   }
-</aside>
+</div>
 
 <style>
-  /* Dentro de un plegable el marco sobra: el `<details>` ya delimita. */
-  .notice-bare {
-    margin-block-start: 0;
-    padding: 0.25rem 0 0;
-    border: 0;
-    background: none;
-  }
-
   .notice {
-    margin-block-start: 1rem;
-    padding: 1rem 1.15rem;
-    border: 1px solid var(--color-hair);
-    border-inline-start: 3px solid var(--color-border);
-    border-radius: 8px;
-    background: var(--color-bg-subtle);
-  }
-
-  /* Solo el de seguridad lleva acento: es el único donde el visitante toma una
-     decisión con consecuencias (pegar una credencial). */
-  .notice-security {
-    border-inline-start-color: var(--color-accent);
-  }
-
-  h3 code {
-    color: var(--color-accent);
-    font-family: var(--font-mono);
-    font-size: 0.9em;
-  }
-
-  h3 {
-    margin: 0 0 0.6rem;
-    color: var(--color-text-heading);
-    font-family: var(--font-display);
-    font-size: 0.9375rem;
-    font-weight: 700;
+    padding: 0.25rem 0 0;
   }
 
   p {

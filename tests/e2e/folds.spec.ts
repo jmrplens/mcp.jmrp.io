@@ -49,3 +49,18 @@ test("el resumen es alcanzable por teclado y tiene área táctil", async ({
     /.*/,
   );
 });
+
+test("el aviso del token llega ABIERTO; la tranquilización nunca sin las cautelas", async ({
+  page,
+}) => {
+  await page.goto("/");
+  // Si esto falla, alguien volvió a plegar las advertencias de seguridad en
+  // el punto exacto donde se pega una credencial. La auditoría lo describió
+  // bien: tranquilización visible + cautelas ocultas es el peor reparto
+  // posible, y no se acepta por mucho scroll que ahorre.
+  const security = page.locator("details.fold-security").first();
+  await expect(security).toHaveAttribute("open", /.*/);
+  await expect(
+    security.locator("li", { hasText: /read_api/ }),
+  ).toBeVisible();
+});

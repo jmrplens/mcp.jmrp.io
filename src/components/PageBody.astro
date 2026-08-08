@@ -27,10 +27,14 @@ const t = ui[lang];
 </section>
 
 <section aria-labelledby="servers-h">
-  <p class="eyebrow" id="servers-h">
+  {/* h2 y no p: eran rótulos decorativos y la página colgaba 734 palabras de
+      dos únicos H2 (los nombres de las fichas). Como h2 dan outline real sin
+      cambiar el aspecto — .eyebrow ya fija tamaño, peso y márgenes. */}
+  <h2 class="eyebrow" id="servers-h">
     <span aria-hidden="true">//</span>
     {t.serversEyebrow}
-  </p>
+  </h2>
+  <p class="section-intro">{t.serversIntro}</p>
   <div class="grid">
     {servers.map((s) => <ServerCard server={s} lang={lang} />)}
   </div>
@@ -41,15 +45,27 @@ const t = ui[lang];
 </section>
 
 <section aria-labelledby="inspector-h">
-  <p class="eyebrow" id="inspector-h">
+  <h2 class="eyebrow" id="inspector-h">
     <span aria-hidden="true">//</span>
     {t.inspectorEyebrow}
-  </p>
+  </h2>
   <p class="section-intro">{t.inspectorIntro}</p>
   <Inspector client:load servers={servers} lang={lang} />
   <p class="notice-pointer">
     {t.noticePointer}
   </p>
+</section>
+
+<section aria-labelledby="privacy-h">
+  {/* Corta y sin plegar a propósito: un sitio que acepta credenciales debe
+      decir qué registra sin pedir un clic. Cada afirmación es verificable:
+      la CSP la aplica el navegador, la retención de logs es la de logrotate
+      y las métricas se construyeron para descartar los argumentos. */}
+  <h2 class="eyebrow" id="privacy-h">
+    <span aria-hidden="true">//</span>
+    {t.privacyEyebrow}
+  </h2>
+  {t.privacyBody.map((paragraph) => <p class="privacy-text">{paragraph}</p>)}
 </section>
 
 <style>
@@ -148,6 +164,14 @@ const t = ui[lang];
   /* El inspector es donde se pega el token, pero la política de ese token
      pertenece a gitlab y vive en su ficha. Este puntero une las dos cosas sin
      duplicar el texto ni mezclar los avisos de los dos servidores. */
+  .privacy-text {
+    max-width: 62ch;
+    margin: 0 0 0.7rem;
+    color: var(--color-text);
+    font-size: 0.875rem;
+    text-wrap: pretty;
+  }
+
   .notice-pointer {
     margin: 1rem 0 0;
     color: var(--color-text-muted);

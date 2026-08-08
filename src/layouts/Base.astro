@@ -14,6 +14,7 @@ import "../styles/global.css";
 
 import { Font } from "astro:assets";
 
+import { contentDate } from "../lib/build-date";
 import { buildSiteGraph, safeJsonLd } from "../lib/jsonld";
 import {
   alternates,
@@ -32,6 +33,13 @@ interface Props {
 }
 
 const { title, description, lang } = Astro.props;
+
+// La misma fecha que dateModified y el lastmod del sitemap: una sola verdad.
+const updated = contentDate() ?? new Date().toISOString();
+const updatedHuman = new Intl.DateTimeFormat(
+  lang === "es" ? "es-ES" : "en-GB",
+  { day: "numeric", month: "long", year: "numeric" },
+).format(new Date(updated));
 const alternate = lang === "en" ? "/es/" : "/";
 // Canonical, og:url y twitter:url son el MISMO valor a propósito: tres
 // declaraciones distintas de dónde vive esta página son tres oportunidades de
@@ -47,8 +55,20 @@ const otherLocales = Object.entries(OG_LOCALES)
 // jmrp.io de GitHub, con el snapshot commiteado como respaldo (ver identity.ts).
 const jsonLd = safeJsonLd(await buildSiteGraph({ lang, title, description }));
 const t = {
-  en: { skip: "Skip to content", source: "Source", other: "Español" },
-  es: { skip: "Saltar al contenido", source: "Código", other: "English" },
+  en: {
+    skip: "Skip to content",
+    source: "Source",
+    other: "Español",
+    footerBy: "Servers and site by",
+    footerUpdated: "Updated",
+  },
+  es: {
+    skip: "Saltar al contenido",
+    source: "Código",
+    other: "English",
+    footerBy: "Servidores y sitio de",
+    footerUpdated: "Actualizado",
+  },
 }[lang];
 ---
 
@@ -165,9 +185,24 @@ const t = {
 
     <main id="main"><slot /></main>
 
+    {/* Identidad y frescura VISIBLES. Estaban completas en el JSON-LD y
+        ausentes para una persona: la auditoría lo llamó "autoridad regalada",
+        y las respuestas de IA que citan texto visible no tenían a quién
+        atribuir. El mailto también resuelve que security.txt existiera sin
+        estar enlazado desde ninguna parte. */}
     <footer class="site-footer">
-      <span>mcp.jmrp.io</span>
-      <a href="https://jmrp.io">jmrp.io</a>
+      <p class="footer-id">
+        {t.footerBy}
+        <a href="https://jmrp.io/about/" rel="author">José Manuel Requena Plens</a>
+        ·
+        {t.footerUpdated}
+        <time datetime={updated}>{updatedHuman}</time>
+      </p>
+      <p class="footer-links">
+        <a href="https://jmrp.io">jmrp.io</a>
+        <a href="mailto:mail@jmrp.io">mail@jmrp.io</a>
+        <a href="/.well-known/security.txt">security.txt</a>
+      </p>
     </footer>
   </body>
 </html>
@@ -177,6 +212,7 @@ const t = {
   .site-header,
   .site-footer {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-4, 1rem);
@@ -218,6 +254,14 @@ const t = {
   }
 
   .site-nav a,
+  .site-footer p {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: baseline;
+    margin: 0;
+  }
+
   .site-footer a {
     color: var(--color-text-muted);
     text-decoration: none;

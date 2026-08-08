@@ -17,30 +17,16 @@
  * por lista blanca de `location =` y añadir una entrada exigiría editar
  * /etc/nginx a mano. Su URL dereferenciable sigue siendo la de jmrp.io.
  */
-import { execFileSync } from "node:child_process";
-
 import { servers } from "../data/servers";
 import type { Lang } from "../i18n/ui";
 import { ui } from "../i18n/ui";
+import { contentDate } from "./build-date";
 import { loadPersonNode, PERSON_ID } from "./identity";
-
-/**
- * Fecha del último commit, no la del build.
- *
- * Con `new Date()` cada despliegue anunciaría contenido nuevo aunque no
- * cambiara nada, y los buscadores acaban ignorando el campo. Si git no está
- * disponible se cae a la fecha actual, que es lo único que queda.
- */
-const BUILD_DATE = (() => {
-  try {
-    return execFileSync("/usr/bin/git", ["log", "-1", "--format=%cI"], {
-      encoding: "utf8",
-    }).trim();
-  } catch {
-    return new Date().toISOString();
-  }
-})();
 import { LANGS, pageUrl, SITE_NAME, SITE_ORIGIN } from "./seo";
+
+// Ver build-date.ts: HEAD si el árbol está limpio, ahora si está sucio. El
+// fallback a la hora actual solo aplica sin git, y ahí es lo único que queda.
+const BUILD_DATE = contentDate() ?? new Date().toISOString();
 
 /** `@id` del nodo `WebSite`, al que cuelgan las páginas por `isPartOf`. */
 const WEBSITE_ID = `${SITE_ORIGIN}/#website`;
@@ -103,21 +89,40 @@ export async function buildSiteGraph(
     description: localized(server.description),
     documentation: server.docsSite ?? server.docs,
     serviceType: "Model Context Protocol server",
-    // El mismo ancla de Wikidata que el `knowsAbout` del autor: liga el
-    // servidor y a quien lo escribe al nodo canónico de MCP.
-    additionalType: "https://www.wikidata.org/entity/Q133436854",
+    // El mismo ancla de Wikidata que el `knowsAbout` del autor — y con el
+    // MISMO esquema `http://`, que es el URI de concepto canónico de Wikidata
+    // y el que ya usa jmrp.io. Con `https://` el grafo declaraba dos recursos
+    // distintos para el mismo concepto.
+    // eslint-disable-next-line sonarjs/no-clear-text-protocols, unicorn/prefer-https -- No es un enlace: es el IRI de CONCEPTO canónico de Wikidata, que usa http:// por definición (la web sirve https, el identificador no cambia). Con https sería un recurso RDF distinto del que ya usan knowsAbout y jmrp.io — de hecho eslint --fix lo "corrigió" en silencio y partió la entidad en dos.
+    additionalType: "http://www.wikidata.org/entity/Q133436854",
     applicationCategory: "DeveloperApplication",
     operatingSystem: "Any (HTTP)",
-    license: "https://spdx.org/licenses/MIT.html",
+    // La misma IRI de licencia que usa jmrp.io/projects, no la de SPDX: en RDF
+    // son recursos distintos, y las entidades de este dominio deben contar la
+    // misma historia que las del canónico.
+    license: "https://opensource.org/licenses/MIT",
     isAccessibleForFree: true,
     dateModified: BUILD_DATE,
+    // Qué sabe hacer, sin ejecutar el endpoint: es la pregunta que un agente
+    // hace sobre un servidor MCP, y hasta ahora solo la respondía `tools/list`
+    // en vivo.
+    featureList: server.tools.map((tool) => tool.name),
     offers: {
       "@type": "Offer",
       price: "0",
-      priceCurrency: "EUR",
+      priceCurrency: "USD",
       availability: "https://schema.org/InStock",
     },
     provider: ref(PERSON_ID),
+    // Camino de vuelta al código: `targetProduct` no tiene inversa en
+    // schema.org, así que sin esto quien entra por `mainEntity` nunca llega
+    // al repositorio.
+    isBasedOn: ref(`${server.repo}#sourcecode`),
+    softwareHelp: ref(server.docsSite ?? server.docs),
+    // Fichas de directorios MCP que describen ESTE servidor (no el repo: el
+    // repo se enlaza vía isBasedOn → codeRepository). Si no hay, el undefined
+    // desaparece solo al serializar.
+    sameAs: server.sameAs,
     // Cómo se llama de verdad: POST con JSON-RPC, no un GET a la URL. Un
     // rastreador que siga `url` recibe un 405, que es correcto por diseño.
     potentialAction: {
@@ -133,21 +138,29 @@ export async function buildSiteGraph(
     },
   }));
 
-  // El grafo afirmaba que existe un endpoint y que el autor posee un software
-  // en GitHub, y nunca decía que fueran lo mismo: el `owns` del documento de
-  // identidad apuntaba a `…#software`, un nodo que no definía nadie. Definirlo
-  // aquí cierra esa referencia colgante y une el repositorio con su endpoint,
-  // que es la evidencia que respalda "¿me puedo fiar de esto?".
+  // El nodo de código fuente une el endpoint con su repositorio — la
+  // evidencia que respalda "¿me puedo fiar de esto?".
+  //
+  // `@id` = `#sourcecode`, NUNCA `#software`: ese IRI ya lo define
+  // jmrp.io/projects como SoftwareApplication con otro nombre y otra licencia,
+  // y describir el mismo `@id` con datos contradictorios desde dos páginas
+  // hace que la entidad fusionada se contradiga a sí misma (regresión que
+  // llegó a estar publicada). El puente al nodo canónico es una REFERENCIA en
+  // `targetProduct` — apuntar sin redefinir es exactamente como debe funcionar
+  // linked data, igual que los `owns` del documento de identidad.
   const sources = servers.map((server) => ({
     "@type": "SoftwareSourceCode",
-    "@id": `${server.repo}#software`,
+    "@id": `${server.repo}#sourcecode`,
     name: server.repo.split("/").pop(),
     codeRepository: server.repo,
     programmingLanguage: "Go",
     runtimePlatform: "Go",
-    license: "https://spdx.org/licenses/MIT.html",
+    license: "https://opensource.org/licenses/MIT",
     author: ref(PERSON_ID),
-    targetProduct: ref(`${server.endpoint}#api`),
+    targetProduct: [
+      ref(`${server.endpoint}#api`),
+      ref(`${server.repo}#software`),
+    ],
   }));
 
   const website = {

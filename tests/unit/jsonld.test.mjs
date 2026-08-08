@@ -63,9 +63,10 @@ test("TODAS las páginas llevan un bloque JSON-LD que parsea", () => {
 });
 
 test("cada endpoint se une con el repositorio que lo produce", () => {
-  // El grafo afirmaba que existe un endpoint y que el autor posee un software
-  // en GitHub, y nunca decía que fueran lo mismo. Sin esta arista se pierde la
-  // evidencia que respalda "¿me puedo fiar de esto?".
+  // El nodo de código une el endpoint con su repo — la evidencia de "¿me puedo
+  // fiar de esto?". Su @id es #sourcecode, NUNCA #software: ese IRI lo define
+  // jmrp.io/projects con otros datos, y redefinirlo aquí hacía que la entidad
+  // fusionada se contradijera a sí misma (regresión que llegó a publicarse).
   for (const page of htmlPages()) {
     const graph = graphOf(page);
     // La cuenta sale de `servers.json`, que nace de la misma fuente que el
@@ -80,8 +81,32 @@ test("cada endpoint se une con el repositorio que lo produce", () => {
     const ids = new Set(graph.map((n) => n["@id"]));
     for (const source of sources) {
       assert.ok(
-        ids.has(source.targetProduct?.["@id"]),
-        `${page}: ${source["@id"]} apunta a un endpoint que no está en el grafo`,
+        String(source["@id"]).endsWith("#sourcecode"),
+        `${page}: ${source["@id"]} pisa el @id canónico de jmrp.io/projects`,
+      );
+      // targetProduct es un array: el endpoint local (debe resolver en este
+      // grafo) y el #software canónico de jmrp.io (referencia externa, que es
+      // exactamente como debe funcionar linked data — apuntar sin redefinir).
+      const raw = source.targetProduct ?? [];
+      const targets = Array.isArray(raw) ? raw : [raw];
+      assert.ok(
+        targets.some((t) => ids.has(t["@id"])),
+        `${page}: ${source["@id"]} no apunta a ningún endpoint del grafo`,
+      );
+    }
+    // Y la vuelta: desde el endpoint se llega al código sin inversa de
+    // targetProduct, vía isBasedOn.
+    const apis = graph.filter((n) =>
+      (Array.isArray(n["@type"]) ? n["@type"] : [n["@type"]]).includes("WebAPI"),
+    );
+    for (const api of apis) {
+      assert.ok(
+        ids.has(api.isBasedOn?.["@id"]),
+        `${page}: ${api["@id"]} no enlaza su código fuente (isBasedOn)`,
+      );
+      assert.ok(
+        Array.isArray(api.featureList) && api.featureList.length > 0,
+        `${page}: ${api["@id"]} sin featureList — un agente no sabe qué hace`,
       );
     }
   }

@@ -111,7 +111,11 @@ ${server.description.en}
 - Repository: ${server.repo}
 - Documentation: ${server.docsSite ?? server.docs}${auth}${headerBlock(server.requiredHeaders, "Required")}${headerBlock(server.optionalHeaders, "Optional")}
 
-List its tools with:
+Tools:
+
+${server.tools.map((tool) => `- \`${tool.name}\` — ${tool.what.en}`).join("\n")}
+
+Verify the live list with:
 
 \`\`\`http
 POST ${server.endpoint}
@@ -138,7 +142,8 @@ export function buildLlmsFullTxt(): string {
   const credentials =
     secretHeaders.length === 0
       ? ""
-      : `## Credential policy
+      : `
+## Credential policy
 
 ${secretHeaders.map((h) => `\`${h.name}\``).join(", ")} travels in the request that needs it and is
 never stored: not by the server, which uses it for that single call and forgets

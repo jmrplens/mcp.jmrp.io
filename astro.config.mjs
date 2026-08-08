@@ -1,5 +1,4 @@
 // @ts-check
-import { execFileSync } from "node:child_process";
 
 import preact from "@astrojs/preact";
 import sitemap from "@astrojs/sitemap";
@@ -7,34 +6,12 @@ import UnoCSS from "@unocss/astro";
 import { defineConfig, fontProviders } from "astro/config";
 
 import postBuild from "./src/integrations/post-build.ts";
+import { contentDate } from "./src/lib/build-date.ts";
 
-/**
- * Fecha del último commit, en ISO-8601, para el `lastmod` del sitemap.
- *
- * Se usa la fecha del commit y NO `new Date()` ni el mtime de los ficheros: con
- * la hora del build, cada despliegue —aunque no cambie una coma— anunciaría a
- * los buscadores que el contenido es nuevo, que es exactamente la señal que
- * hace que dejen de fiarse del campo. El mtime tampoco vale: un `git clone`
- * lo pone a la hora del checkout.
- *
- * Si no hay git (tarball, contenedor sin `.git`), se devuelve `undefined` y el
- * sitemap sale SIN `lastmod`. Un sitemap sin fecha es correcto; uno con una
- * fecha inventada, no.
- *
- * @returns {string | undefined} Fecha ISO del commit de HEAD, si se puede leer.
- */
-function lastCommitDate() {
-  try {
-    return execFileSync("git", ["log", "-1", "--format=%cI"], {
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-    }).trim();
-  } catch {
-    return;
-  }
-}
-
-const LASTMOD = lastCommitDate();
+// La fecha del contenido sale del helper compartido con el JSON-LD y el pie:
+// tres superficies, una sola verdad. Ver src/lib/build-date.ts para la regla
+// (HEAD si el árbol está limpio, ahora si está sucio) y su porqué.
+const LASTMOD = contentDate();
 
 export default defineConfig({
   site: "https://mcp.jmrp.io",

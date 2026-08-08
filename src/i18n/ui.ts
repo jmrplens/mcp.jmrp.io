@@ -23,6 +23,15 @@ export const ui = {
     documentation: "Documentation",
     credentialsRequired: "Credentials required",
     toolsHead: "Tools",
+    serversIntro:
+      "Both servers speak streamable HTTP: one POST per JSON-RPC 2.0 call, stateless — no session header — answering JSON or an SSE stream depending on your Accept header (application/json, text/event-stream). A GET to an endpoint returns 405 by design.",
+    privacyEyebrow: "Privacy & data",
+    privacyBody: [
+      "This service is run by José Manuel Requena Plens (jmrp.io), who is also the author of both servers. The site sets no cookies and runs no analytics scripts: the Content-Security-Policy forbids talking to any third party, and the browser enforces it.",
+      "The web server keeps standard access logs — IP address, user agent, request path — for abuse prevention, rotated out after at most a year. Usage metrics record only the JSON-RPC method and tool name, never the arguments: what you search for is not part of any metric.",
+      "Credentials you send travel as headers to the server you chose, are used for that request and are not persisted. Details, in the notice on each server's card.",
+    ],
+
     noticePointer:
       "Before pasting a credential, read the notice on that server's card above: it says exactly where the value goes and what the browser itself prevents.",
     optionalHeaders: "Optional headers",
@@ -112,6 +121,15 @@ export const ui = {
     documentation: "Documentación",
     credentialsRequired: "Requiere credenciales",
     toolsHead: "Herramientas",
+    serversIntro:
+      "Ambos servidores hablan streamable HTTP: un POST por llamada JSON-RPC 2.0, sin estado — sin cabecera de sesión — respondiendo JSON o un stream SSE según tu cabecera Accept (application/json, text/event-stream). Un GET al endpoint devuelve 405 a propósito.",
+    privacyEyebrow: "Privacidad y datos",
+    privacyBody: [
+      "Este servicio lo opera José Manuel Requena Plens (jmrp.io), autor también de los dos servidores. El sitio no usa cookies ni scripts de analítica: la Content-Security-Policy prohíbe hablar con terceros, y la aplica el navegador.",
+      "El servidor web guarda logs de acceso estándar — dirección IP, user agent, ruta — para prevenir abusos, rotados como mucho al año. Las métricas de uso registran solo el método JSON-RPC y el nombre de la herramienta, nunca los argumentos: lo que buscas no forma parte de ninguna métrica.",
+      "Las credenciales que envías viajan como cabeceras al servidor que elijas, se usan para esa petición y no se persisten. El detalle, en el aviso de la ficha de cada servidor.",
+    ],
+
     noticePointer:
       "Antes de pegar una credencial, lee el aviso en la ficha de ese servidor, arriba: dice exactamente a dónde va el valor y qué impide el propio navegador.",
     optionalHeaders: "Cabeceras opcionales",

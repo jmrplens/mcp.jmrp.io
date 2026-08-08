@@ -55,6 +55,14 @@ export type McpServer = {
   docs: string;
   /** Sitio de documentación completo, si lo hay. */
   docsSite?: string;
+  /**
+   * Fichas de directorios MCP que describen ESTE servidor (Glama,
+   * mcpservers.org…). Van al `sameAs` del nodo del endpoint: son los sitios
+   * que los modelos ya rastrean, y enlazarlos une la entidad con sus
+   * menciones. El repositorio NO va aquí — no es la misma entidad que el
+   * endpoint; se enlaza vía `isBasedOn`.
+   */
+  sameAs?: string[];
   /** Cabeceras que el cliente DEBE enviar. Vacío = sin credenciales. */
   requiredHeaders: McpHeader[];
   optionalHeaders: McpHeader[];
@@ -79,6 +87,7 @@ export const servers: McpServer[] = [
     repo: "https://github.com/jmrplens/libgen-mcp",
     docs: "https://github.com/jmrplens/libgen-mcp#readme",
     docsSite: "https://jmrplens.github.io/libgen-mcp/",
+    sameAs: ["https://glama.ai/mcp/servers/jmrplens/libgen-mcp"],
     tools: [
       {
         name: "search",
@@ -112,14 +121,18 @@ export const servers: McpServer[] = [
     notices: [
       {
         kind: "legal",
+        // Títulos únicos y con las palabras que la gente busca: se pintan como
+        // <h3> dentro del <summary>, así que son las anclas por las que un
+        // recuperador trocea la página. "Limits and availability" repetido
+        // dos veces era ruido, no señal.
         title: {
-          en: "About the sources this server queries",
-          es: "Sobre las fuentes que consulta este servidor",
+          en: "Where libgen searches: sources and legal position",
+          es: "Dónde busca libgen: fuentes y postura legal",
         },
         body: [
           {
-            en: "This server is a client of third-party public indexes: it queries Library Genesis mirrors and open-access providers (arXiv, Crossref, OpenLibrary, Gutenberg, dblp, PubMed, ERIC, Unpaywall). It hosts no catalogue and stores or redistributes no content of its own — `download` returns a link to the source, it does not serve the file.",
-            es: "Este servidor es un cliente de índices públicos de terceros: consulta mirrors de Library Genesis y proveedores de acceso abierto (arXiv, Crossref, OpenLibrary, Gutenberg, dblp, PubMed, ERIC, Unpaywall). No aloja catálogo alguno ni almacena o redistribuye contenido propio — `download` devuelve un enlace a la fuente, no sirve el fichero.",
+            en: "libgen is a client of third-party public indexes: it queries Library Genesis mirrors and open-access providers (arXiv, Crossref, OpenLibrary, Gutenberg, dblp, PubMed, ERIC, Unpaywall). It hosts no catalogue and stores or redistributes no content of its own — `download` returns a link to the source, it does not serve the file.",
+            es: "libgen es un cliente de índices públicos de terceros: consulta mirrors de Library Genesis y proveedores de acceso abierto (arXiv, Crossref, OpenLibrary, Gutenberg, dblp, PubMed, ERIC, Unpaywall). No aloja catálogo alguno ni almacena o redistribuye contenido propio — `download` devuelve un enlace a la fuente, no sirve el fichero.",
           },
           {
             en: "What you do with those links is your responsibility, and the rules that apply depend on where you are.",
@@ -130,13 +143,16 @@ export const servers: McpServer[] = [
       {
         kind: "limits",
         title: {
-          en: "Limits and availability",
-          es: "Límites y disponibilidad",
+          en: "libgen rate limits and availability",
+          es: "Límites de peticiones y disponibilidad de libgen",
         },
+        // El primer párrafo se parece al de gitlab a propósito solo en el
+        // fondo, no en la letra: los recuperadores deduplican chunks casi
+        // idénticos y descartan uno sin que controles cuál.
         body: [
           {
-            en: "This is a personal service, offered as-is and with no SLA. It may change or go away without notice, so do not build anything critical on top of it — run your own instance for that: the server is open source and a single static binary.",
-            es: "Es un servicio personal, ofrecido tal cual y sin SLA. Puede cambiar o desaparecer sin aviso, así que no montes nada crítico encima — para eso levanta tu propia instancia: el servidor es open source y un único binario estático.",
+            en: "libgen at mcp.jmrp.io is a personal service, offered as-is and with no SLA. It may change or go away without notice, so do not build anything critical on top of it — run your own instance instead: the server is open source and a single static binary.",
+            es: "libgen en mcp.jmrp.io es un servicio personal, ofrecido tal cual y sin SLA. Puede cambiar o desaparecer sin aviso, así que no montes nada crítico encima — levanta tu propia instancia: el servidor es open source y un único binario estático.",
           },
           {
             en: "Requests towards the Library Genesis mirrors are rate-limited to about 2 per second per instance (3 instances, so roughly 6 per second in total). That ceiling is deliberately low: it points at third-party mirrors, and going faster would spend their capacity, not ours.",
@@ -159,6 +175,10 @@ export const servers: McpServer[] = [
     repo: "https://github.com/jmrplens/gitlab-mcp-server",
     docs: "https://github.com/jmrplens/gitlab-mcp-server#readme",
     docsSite: "https://jmrplens.github.io/gitlab-mcp-server/",
+    sameAs: [
+      "https://glama.ai/mcp/servers/jmrplens/gitlab-mcp-server",
+      "https://mcpservers.org/servers/jmrplens/gitlab-mcp-server",
+    ],
     tools: [
       {
         name: "gitlab_find_action",
@@ -179,17 +199,22 @@ export const servers: McpServer[] = [
       {
         kind: "security",
         title: {
-          en: "About the token you are about to paste",
-          es: "Sobre el token que vas a pegar",
+          en: "Where your GitLab token goes",
+          es: "A dónde va tu token de GitLab",
         },
         body: [
           {
             en: "Your token stays in your browser's memory only. It is not written to localStorage or cookies, never travels in the URL, and is gone on reload. It is sent solely as a PRIVATE-TOKEN header to mcp.jmrp.io/gitlab, which neither stores nor logs it: the server uses it for that request and forgets it.",
             es: "Tu token se queda solo en la memoria de tu navegador. No se guarda en localStorage ni en cookies, no viaja en la URL y desaparece al recargar. Se envía únicamente como cabecera PRIVATE-TOKEN a mcp.jmrp.io/gitlab, que no lo almacena ni lo registra: el servidor lo usa para esa petición y lo olvida.",
           },
+          // Cada afirmación con su respaldo real: la CSP prueba el DESTINO
+          // (el navegador la aplica); lo que el servidor haga después no lo
+          // prueba ninguna cabecera — se remite al código fuente, que es lo
+          // único verificable. La versión anterior presentaba las dos cosas
+          // bajo el mismo "no hace falta que te fíes", y eso sobre-vendía.
           {
-            en: "You do not have to take that on trust. This page's Content-Security-Policy declares connect-src 'self' and form-action 'self', so the browser itself refuses to send anything to a third party — even if the page's own code tried to.",
-            es: "No hace falta que te fíes de nuestra palabra. La Content-Security-Policy de esta página declara connect-src 'self' y form-action 'self', así que es el propio navegador el que impide enviar nada a un tercero — aunque el código de la página quisiera hacerlo.",
+            en: "The destination is not a matter of trust: this page's Content-Security-Policy declares connect-src 'self' and form-action 'self', so the browser itself refuses to send the token anywhere but this domain. What the server then does — use it for that request and discard it — you can verify in its source code, which is public.",
+            es: "El destino no es cuestión de confianza: la Content-Security-Policy de esta página declara connect-src 'self' y form-action 'self', así que es el propio navegador el que impide enviar el token a ningún sitio que no sea este dominio. Lo que el servidor haga después — usarlo para esa petición y descartarlo — puedes comprobarlo en su código fuente, que es público.",
           },
           {
             en: "Even so, be suspicious of any site asking for a token — this one included. The sensible habits are:",
@@ -218,13 +243,13 @@ export const servers: McpServer[] = [
       {
         kind: "limits",
         title: {
-          en: "Limits and availability",
-          es: "Límites y disponibilidad",
+          en: "gitlab rate limits and availability",
+          es: "Límites de peticiones y disponibilidad de gitlab",
         },
         body: [
           {
-            en: "This is a personal service, offered as-is and with no SLA. It may change or go away without notice, so do not build anything critical on top of it — run your own instance for that: the server is open source and a single static binary.",
-            es: "Es un servicio personal, ofrecido tal cual y sin SLA. Puede cambiar o desaparecer sin aviso, así que no montes nada crítico encima — para eso levanta tu propia instancia: el servidor es open source y un único binario estático.",
+            en: "The gitlab endpoint at mcp.jmrp.io is likewise personal, with no SLA and no continuity guarantee. For anything critical, run your own instance — the server is open source and ships as one static binary.",
+            es: "El endpoint gitlab de mcp.jmrp.io es igualmente personal, sin SLA ni garantía de continuidad. Para algo crítico, levanta tu propia instancia — el servidor es open source y un único binario estático.",
           },
           {
             en: "Whatever quota applies is your GitLab instance's, spent with your own token: this server adds no limit of its own beyond the site-wide one.",
