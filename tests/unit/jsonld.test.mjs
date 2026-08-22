@@ -181,10 +181,21 @@ test("los nodos propios enlazan a la persona por @id, sin redeclararla", () => {
     // Toda referencia `{"@id": …}` que sale de un nodo propio tiene que
     // resolver dentro del grafo: un @id mal escrito deja el nodo huérfano y no
     // hay validador que avise en el build.
+    //
+    // Excepción: las dos versiones de idioma se apuntan entre sí con
+    // `workTranslation` / `translationOfWork`, y el nodo de la otra vive en la
+    // otra página. No se redefine aquí a propósito — es el mismo principio por
+    // el que los `#software` se referencian pero viven en jmrp.io/projects:
+    // referenciar sin redefinir es linked data correcto, y redefinir es
+    // justamente lo que parte la entidad.
+    const crossLang = new Set([
+      "https://mcp.jmrp.io/#webpage",
+      "https://mcp.jmrp.io/es/#webpage",
+    ]);
     for (const node of own) {
       for (const ref of collectRefs(node)) {
         assert.ok(
-          ids.has(ref),
+          ids.has(ref) || crossLang.has(ref),
           `${page}: ${node["@id"]} referencia ${ref}, que no está en el grafo`,
         );
       }
