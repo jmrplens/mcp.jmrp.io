@@ -40,7 +40,14 @@ test("una búsqueda real se lanza desde el formulario, sin escribir JSON", async
 }) => {
   // Contra el servidor de verdad: una búsqueda consulta varios mirrors y pasa
   // de los 30 s por defecto del test.
-  test.setTimeout(120_000);
+  //
+  // Desde que el despliegue corre con `LIBGEN_MCP_EXTRA_SOURCES=always`
+  // (2026-08-22), CADA búsqueda consulta además Anna's Archive, arXiv,
+  // Crossref, OpenLibrary, Gutenberg, dblp, PubMed y ERIC, en lugar de hacerlo
+  // solo cuando el catálogo viene vacío. Medido contra producción: 92 s y
+  // 114 s en dos intentos seguidos, así que los 60 s de antes se quedaban
+  // cortos y el test fallaba por reloj, no por avería.
+  test.setTimeout(240_000);
   await page.goto("/");
   await page.getByTestId("load-tools").click();
   const picker = page.getByTestId("catalog-tools").locator("select");
@@ -52,7 +59,7 @@ test("una búsqueda real se lanza desde el formulario, sin escribir JSON", async
 
   const status = page.getByTestId("inspector-status");
   await expect(status).toContainText("tools/call", { timeout: 60_000 });
-  await expect(status).toContainText("OK", { timeout: 60_000 });
+  await expect(status).toContainText("OK", { timeout: 180_000 });
   await expect(page.getByTestId("inspector-output")).toContainText("result");
 });
 
