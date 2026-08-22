@@ -81,6 +81,19 @@ const t = {
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
 
+    {/* `max-snippet:-1` quita el tope de cuánto texto puede citar Google, y es
+        la directiva que sostiene toda la jugada de este sitio: sus respuestas
+        están marcadas como FAQPage y speakable justamente para que se citen
+        enteras. Los bots de IA (GPTBot, ClaudeBot, PerplexityBot) NO leen esto
+        —para ellos manda robots.txt—, pero AI Overviews y el grounding de
+        Gemini se sirven del índice de Googlebot, que sí lo respeta.
+        Mismo valor que las 126 páginas de jmrp.io: una sola política para el
+        dominio y el subdominio. */}
+    <meta
+      name="robots"
+      content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
+    />
+
     {/* Las anotaciones hreflang se emiten ENTERAS en las dos páginas, cada una
         incluyéndose a sí misma. Google exige que toda versión liste todas las
         versiones —ella incluida— y descarta el clúster completo si falta la

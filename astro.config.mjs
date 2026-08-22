@@ -72,9 +72,23 @@ export default defineConfig({
     // versiones. Sin ellos el sitemap declaraba el namespace xhtml y no lo
     // usaba, así que las anotaciones hreflang solo vivían en el <head> — y una
     // sola vía es una sola oportunidad de que Google agrupe bien el clúster.
+    // `x-default` lo añade el serialize porque `i18n` NO tiene opción para él:
+    // emite un xhtml:link por locale y nada más. Sin esto el <head> anunciaba
+    // en/es/x-default y el sitemap solo en/es — dos canales contradiciéndose
+    // sobre a qué versión mandar a un visitante sin idioma preferente.
+    // Apunta a la raíz, que es la EN, igual que el <link> del <head>.
     sitemap({
       i18n: { defaultLocale: "en", locales: { en: "en", es: "es" } },
-      serialize: (item) => (LASTMOD ? { ...item, lastmod: LASTMOD } : item),
+      serialize: (item) => ({
+        ...item,
+        ...(LASTMOD && { lastmod: LASTMOD }),
+        ...(item.links && {
+          links: [
+            ...item.links,
+            { url: "https://mcp.jmrp.io/", lang: "x-default" },
+          ],
+        }),
+      }),
     }),
     UnoCSS(),
     postBuild(),

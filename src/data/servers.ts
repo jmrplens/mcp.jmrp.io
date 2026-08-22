@@ -137,8 +137,8 @@ export const servers: McpServer[] = [
         },
         body: [
           {
-            en: "libgen is a client of third-party public indexes: it queries open-access providers (arXiv, Crossref, OpenLibrary, Gutenberg, dblp, PubMed, ERIC, Unpaywall) and Library Genesis mirrors. It hosts no catalogue and stores or redistributes no content of its own — `download` returns a link to the source, it does not serve the file.",
-            es: "libgen es un cliente de índices públicos de terceros: consulta proveedores de acceso abierto (arXiv, Crossref, OpenLibrary, Gutenberg, dblp, PubMed, ERIC, Unpaywall) y mirrors de Library Genesis. No aloja catálogo alguno ni almacena o redistribuye contenido propio — `download` devuelve un enlace a la fuente, no sirve el fichero.",
+            en: "libgen is a client of third-party public indexes: it queries open-access providers (arXiv, Crossref, OpenLibrary, Gutenberg, dblp, PubMed, ERIC) and shadow-library sources — Library Genesis mirrors, Anna's Archive, Sci-Hub, SciDB and randombook.org. It hosts no catalogue and stores or redistributes no content of its own — `download` returns a link to the source, it does not serve the file.",
+            es: "libgen es un cliente de índices públicos de terceros: consulta proveedores de acceso abierto (arXiv, Crossref, OpenLibrary, Gutenberg, dblp, PubMed, ERIC) y fuentes de bibliotecas en la sombra — mirrors de Library Genesis, Anna's Archive, Sci-Hub, SciDB y randombook.org. No aloja catálogo alguno ni almacena o redistribuye contenido propio — `download` devuelve un enlace a la fuente, no sirve el fichero.",
           },
           {
             en: "What you do with those links is your responsibility, and the rules that apply depend on where you are.",
@@ -290,14 +290,22 @@ export const servers: McpServer[] = [
         },
       },
     ],
-    // El número va en la descripción a propósito: "¿qué servidor MCP de
-    // GitLab uso?" se responde comparando cobertura, y 1006 (la cifra del
-    // README del repo, de donde no debe divergir) es el hecho citable que
-    // diferencia a este. La descripción llega a la ficha, a servers.json,
+    // La cobertura va en la descripción a propósito: "¿qué servidor MCP de
+    // GitLab uso?" se responde comparando cobertura, y es el hecho citable
+    // que diferencia a este. La descripción llega a la ficha, a servers.json,
     // al JSON-LD y a llms.txt desde aquí, de una sola vez.
+    //
+    // Es "más de 1.000" y no una cifra exacta por dos razones que cazó la
+    // auditoría del 2026-08-22: el número real DEPENDE DEL PLAN (~847 en
+    // Community Edition, hasta 1071 en Ultimate), así que uno fijo es falso
+    // para el "contra cualquier instancia" que promete esta misma frase; y
+    // el 1006 que había aquí venía de la descripción de la v1.0.x en el
+    // registro MCP, que el upstream ya no publica — su README y su docs site
+    // dicen hoy "1000+". Una cifra citable equivocada es peor que ninguna,
+    // porque es justo la que los asistentes repiten.
     description: {
-      en: "A catalogue of 1,006 GitLab operations — projects, merge requests, issues, pipelines, releases and more — against any GitLab instance. Your token travels per request and is never stored.",
-      es: "Un catálogo de 1006 operaciones de GitLab — proyectos, merge requests, incidencias, pipelines, releases y más — contra cualquier instancia de GitLab. Tu token viaja en cada petición y nunca se guarda.",
+      en: "A catalogue of over 1,000 GitLab operations — projects, merge requests, issues, pipelines, releases and more — against any GitLab instance. Your token travels per request and is never stored.",
+      es: "Un catálogo de más de 1.000 operaciones de GitLab — proyectos, merge requests, incidencias, pipelines, releases y más — contra cualquier instancia de GitLab. Tu token viaja en cada petición y nunca se guarda.",
     },
   },
 ];
