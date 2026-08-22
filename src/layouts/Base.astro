@@ -31,9 +31,25 @@ interface Props {
   title: string;
   description: string;
   lang: "en" | "es";
+  /**
+   * This page is an error body (the 404), not a real address.
+   *
+   * It suppresses every head element that claims an identity: canonical,
+   * hreflang, Open Graph, Twitter and the JSON-LD graph — and it asks for
+   * `noindex`.
+   *
+   * Why it matters: all of those are derived from `lang`, so the 404 was
+   * emitting the HOME PAGE's identity. Its canonical pointed at `/`, and its
+   * graph redefined `https://mcp.jmrp.io/#webpage` with `name: "Page not
+   * found"` — the very entity-splitting hazard this codebase fights elsewhere
+   * (see the `#sourcecode` comment in jsonld.ts): two documents describing one
+   * `@id` with contradictory data, and a consumer merging them could end up
+   * calling the home page "Page not found".
+   */
+  errorPage?: boolean;
 }
 
-const { title, description, lang } = Astro.props;
+const { title, description, lang, errorPage = false } = Astro.props;
 
 // La misma fecha que dateModified y el lastmod del sitemap: una sola verdad.
 const updated = contentDate() ?? new Date().toISOString();
@@ -51,7 +67,11 @@ const otherLocales = Object.entries(OG_LOCALES)
 // El grafo se serializa aquí, en el frontmatter, para que `set:html` reciba
 // una cadena ya escapada. `buildSiteGraph` descarga el documento de identidad de
 // jmrp.io de GitHub, con el snapshot commiteado como respaldo (ver identity.ts).
-const jsonLd = safeJsonLd(await buildSiteGraph({ lang, title, description }));
+// An error body describes no entity, so it builds no graph. Emitting one made
+// the 404 redefine the home page's `@id` with a different name.
+const jsonLd = errorPage
+  ? undefined
+  : safeJsonLd(await buildSiteGraph({ lang, title, description }));
 const t = {
   en: {
     skip: "Skip to content",
@@ -77,7 +97,7 @@ const t = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
+    {!errorPage && <link rel="canonical" href={canonical} />}
 
     {/* `max-snippet:-1` lifts the cap on how much text Google may quote, and
         it is the directive the whole play of this site rests on: its answers
@@ -89,7 +109,11 @@ const t = {
         subdomain. */}
     <meta
       name="robots"
-      content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
+      content={
+        errorPage
+          ? "noindex, follow"
+          : "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
+      }
     />
 
     {/* Las anotaciones hreflang se emiten ENTERAS en las dos páginas, cada una
@@ -99,9 +123,10 @@ const t = {
         agruparse. Salen de `alternates()` y no de un ternario para que dar de
         alta un idioma nuevo no pueda volver a dejar la lista coja. */}
     {
-      alternates().map((alt) => (
-        <link rel="alternate" hreflang={alt.hreflang} href={alt.href} />
-      ))
+      !errorPage &&
+        alternates().map((alt) => (
+          <link rel="alternate" hreflang={alt.hreflang} href={alt.href} />
+        ))
     }
 
     {/* El índice de endpoints en JSON, declarado como representación
@@ -126,31 +151,37 @@ const t = {
         Mastodon, Slack o WhatsApp sale como URL pelada: ni título, ni
         descripción, ni imagen. `og:image` va en ABSOLUTO porque ninguno de
         esos clientes resuelve rutas relativas. */}
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content={canonical} />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
-    <meta property="og:site_name" content={SITE_NAME} />
-    <meta property="og:locale" content={OG_LOCALES[lang]} />
     {
-      otherLocales.map((locale) => (
-        <meta property="og:locale:alternate" content={locale} />
-      ))
-    }
-    <meta property="og:image" content={ogImage} />
-    <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content={String(OG_IMAGE_SIZE.width)} />
-    <meta property="og:image:height" content={String(OG_IMAGE_SIZE.height)} />
-    <meta property="og:image:alt" content={imageAlt} />
+      /* Not on the error body: `og:url` and `twitter:url` are the canonical,
+         so a shared 404 link would have previewed as the home page. */
+      !errorPage && (
+        <>
+          <meta property="og:type" content="website" />
+          <meta property="og:url" content={canonical} />
+          <meta property="og:title" content={title} />
+          <meta property="og:description" content={description} />
+          <meta property="og:site_name" content={SITE_NAME} />
+          <meta property="og:locale" content={OG_LOCALES[lang]} />
+          {otherLocales.map((locale) => (
+            <meta property="og:locale:alternate" content={locale} />
+          ))}
+          <meta property="og:image" content={ogImage} />
+          <meta property="og:image:type" content="image/png" />
+          <meta property="og:image:width" content={String(OG_IMAGE_SIZE.width)} />
+          <meta property="og:image:height" content={String(OG_IMAGE_SIZE.height)} />
+          <meta property="og:image:alt" content={imageAlt} />
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@jmrplens" />
-    <meta name="twitter:creator" content="@jmrplens" />
-    <meta name="twitter:url" content={canonical} />
-    <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={ogImage} />
-    <meta name="twitter:image:alt" content={imageAlt} />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:site" content="@jmrplens" />
+          <meta name="twitter:creator" content="@jmrplens" />
+          <meta name="twitter:url" content={canonical} />
+          <meta name="twitter:title" content={title} />
+          <meta name="twitter:description" content={description} />
+          <meta name="twitter:image" content={ogImage} />
+          <meta name="twitter:image:alt" content={imageAlt} />
+        </>
+      )
+    }
 
     {/* Datos estructurados. `is:inline` es obligatorio: sin él Astro trata el
         bloque como un script propio y lo saca a un módulo del bundle, con lo
@@ -159,7 +190,11 @@ const t = {
         No hay nada que tocar en la CSP: `script-src` no aplica a un bloque de
         datos `ld+json`, y aun así el post-build le pone el placeholder
         `nonce="NGINX_CSP_NONCE"` como a cualquier `script:not([src])`. */}
-    <script is:inline type="application/ld+json" set:html={jsonLd} />
+    {
+      jsonLd && (
+        <script is:inline type="application/ld+json" set:html={jsonLd} />
+      )
+    }
 
     {/* Sin estos <Font> Astro NO emite las variables --font-*, y como
         tokens.css define --font-body como `var(--font-ibm-plex-sans), ...`,

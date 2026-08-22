@@ -17,7 +17,15 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { test } from "node:test";
 
-const DIST = new URL("../../dist/", import.meta.url);
+// `dist` es un SYMLINK al color activo del blue/green, así que apunta a lo
+// PUBLICADO, no a lo recién construido. `DIST_DIR` permite validar un build
+// que aún no se ha desplegado (p. ej. `pnpm build:only && DIST_DIR=builds/green
+// pnpm test:unit`), que es justo lo que hace falta para no publicar algo sin
+// haberlo probado. Sin la variable, se comporta como siempre.
+const DIST = new URL(
+  `../../${process.env.DIST_DIR ?? "dist"}/`,
+  import.meta.url,
+);
 const ORIGIN = "https://mcp.jmrp.io";
 
 /**

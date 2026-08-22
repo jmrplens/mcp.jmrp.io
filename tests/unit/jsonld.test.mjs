@@ -13,15 +13,32 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { test } from "node:test";
 
-const DIST = new URL("../../dist/", import.meta.url);
+// `dist` es un SYMLINK al color activo del blue/green, así que apunta a lo
+// PUBLICADO, no a lo recién construido. `DIST_DIR` permite validar un build
+// que aún no se ha desplegado (p. ej. `pnpm build:only && DIST_DIR=builds/green
+// pnpm test:unit`), que es justo lo que hace falta para no publicar algo sin
+// haberlo probado. Sin la variable, se comporta como siempre.
+const DIST = new URL(
+  `../../${process.env.DIST_DIR ?? "dist"}/`,
+  import.meta.url,
+);
 const PERSON_ID = "https://jmrp.io/#person";
 
-/** Rutas de todas las páginas HTML generadas, relativas a `dist/`. */
+/**
+ * Paths of the generated HTML pages that DECLARE an entity, relative to
+ * `dist/`.
+ *
+ * `404.html` is excluded on purpose: it is an error body, not an address, so
+ * it emits no graph. Emitting one was worse than not — everything derives from
+ * `lang`, so the 404 redefined `https://mcp.jmrp.io/#webpage` with
+ * `name: "Page not found"`, exactly the entity split the rest of the code
+ * avoids. Pinned by `el 404 no declara identidad`.
+ */
 function htmlPages() {
   const pages = fs
     .readdirSync(DIST, { recursive: true })
     .map(String)
-    .filter((f) => f.endsWith(".html"));
+    .filter((f) => f.endsWith(".html") && f !== "404.html");
   assert.ok(pages.length > 1, "el sitio tiene al menos la raíz y /es/");
   return pages;
 }
@@ -182,12 +199,12 @@ test("los nodos propios enlazan a la persona por @id, sin redeclararla", () => {
     // resolver dentro del grafo: un @id mal escrito deja el nodo huérfano y no
     // hay validador que avise en el build.
     //
-    // Excepción: las dos versiones de idioma se apuntan entre sí con
-    // `workTranslation` / `translationOfWork`, y el nodo de la otra vive en la
-    // otra página. No se redefine aquí a propósito — es el mismo principio por
-    // el que los `#software` se referencian pero viven en jmrp.io/projects:
-    // referenciar sin redefinir es linked data correcto, y redefinir es
-    // justamente lo que parte la entidad.
+    // Exception: the two language versions point at each other with
+    // `workTranslation` / `translationOfWork`, and the other node lives on the
+    // other page. It is deliberately not redefined here — the same principle
+    // by which `#software` nodes are referenced but live on jmrp.io/projects:
+    // referencing without redefining is correct linked data, and redefining is
+    // precisely what splits the entity.
     const crossLang = new Set([
       "https://mcp.jmrp.io/#webpage",
       "https://mcp.jmrp.io/es/#webpage",
@@ -230,3 +247,37 @@ function collectRefs(node) {
   walk(node, true);
   return found;
 }
+
+test("el 404 no declara identidad ni pide indexación", () => {
+  const html = fs.readFileSync(new URL("404.html", DIST), "utf8");
+
+  // No graph: emitting one would redefine the home page's @id under a
+  // different name — two documents describing one entity with contradictory
+  // data, the regression this repo already suffered with `#software`.
+  assert.equal(
+    html.includes("application/ld+json"),
+    false,
+    "el 404 emite JSON-LD: estaría redefiniendo la identidad de la portada",
+  );
+
+  // No canonical: it pointed at `/`, i.e. it declared itself to BE the home
+  // page.
+  assert.equal(
+    /<link[^>]+rel="canonical"/.test(html),
+    false,
+    "el 404 declara canonical, y el suyo apuntaba a la portada",
+  );
+
+  // No hreflang and no Open Graph for the same reason: `og:url` is the
+  // canonical, so a shared 404 link previewed as the home page.
+  assert.equal(/hreflang=/.test(html), false, "el 404 emite hreflang");
+  assert.equal(/property="og:url"/.test(html), false, "el 404 emite og:url");
+
+  // And it must not ask to be indexed. The 404 status already prevents it,
+  // but saying `index, follow` in an error body contradicts itself.
+  assert.match(
+    html,
+    /<meta[^>]+content="noindex, follow"[^>]*>/,
+    "el 404 no pide noindex",
+  );
+});
