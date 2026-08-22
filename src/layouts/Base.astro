@@ -61,7 +61,10 @@ const lang = getLangFromUrl(Astro.url);
 // La misma fecha que dateModified y el lastmod del sitemap: una sola verdad.
 const updated = contentDate() ?? new Date().toISOString();
 const updatedHuman = humanDate(updated, lang);
-const alternate = pageUrl(lang === "en" ? "es" : "en", page);
+// The visible language switch stays a site-relative path. It still derives
+// from `pageUrl()` so it can never drift from the canonical, but an absolute
+// URL here would jump a dev or preview server straight to production.
+const alternate = new URL(pageUrl(lang === "en" ? "es" : "en", page)).pathname;
 // Canonical, og:url y twitter:url son el MISMO valor a propósito: tres
 // declaraciones distintas de dónde vive esta página son tres oportunidades de
 // contradecirse. Todas salen de `pageUrl()`.
