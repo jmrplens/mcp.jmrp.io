@@ -64,14 +64,25 @@ const AI_BOTS = [
   "Timpibot",
 ];
 
+/** La señal, repetida en cada grupo — ver el comentario de `BODY`. */
+const CONTENT_SIGNAL = "Content-Signal: search=yes, ai-input=yes, ai-train=yes";
+
 /**
- * Bloque `User-agent` + `Allow: /` para cada agente de una lista.
+ * Bloque `User-agent` + `Content-Signal` + `Allow: /` para cada agente.
+ *
+ * La señal se repite en todos los grupos a propósito: por RFC 9309 un rastreador
+ * obedece UN solo grupo, el más específico que le corresponde, e ignora el resto
+ * incluido `*`. Declarada solo en el comodín, los ~30 agentes con grupo propio
+ * —justo sus destinatarios— nunca la veían (auditoría GEO de jmrp.io
+ * 2026-08-22, M6).
  *
  * @param agents Nombres de los agentes tal cual los envían.
  * @returns Los bloques separados por una línea en blanco.
  */
 function allowAll(agents: string[]): string {
-  return agents.map((agent) => `User-agent: ${agent}\nAllow: /`).join("\n\n");
+  return agents
+    .map((agent) => `User-agent: ${agent}\n${CONTENT_SIGNAL}\nAllow: /`)
+    .join("\n\n");
 }
 
 const BODY = `User-agent: *
