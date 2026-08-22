@@ -14,6 +14,7 @@ import "../styles/global.css";
 
 import { Font } from "astro:assets";
 
+import { ui } from "../i18n/ui";
 import { getLangFromUrl } from "../i18n/utils";
 import { contentDate } from "../lib/build-date";
 import { humanDate } from "../lib/format";
@@ -82,22 +83,7 @@ const otherLocales = Object.entries(OG_LOCALES)
 const jsonLd = errorPage
   ? undefined
   : safeJsonLd(await buildSiteGraph({ lang, title, description }));
-const t = {
-  en: {
-    skip: "Skip to content",
-    source: "Source",
-    other: "Español",
-    footerBy: "Servers and site by",
-    footerUpdated: "Updated",
-  },
-  es: {
-    skip: "Saltar al contenido",
-    source: "Código",
-    other: "English",
-    footerBy: "Servidores y sitio de",
-    footerUpdated: "Actualizado",
-  },
-}[lang];
+const t = ui[lang];
 ---
 
 <!doctype html>
