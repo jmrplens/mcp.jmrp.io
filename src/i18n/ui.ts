@@ -270,4 +270,5 @@ export const ui = {
   },
 } as const;
 
-export type Lang = keyof typeof ui;
+// `Lang` now lives in `./config`; re-exported so existing imports keep working.
+export type { Lang } from "./config";
