@@ -1,0 +1,35 @@
+/* TEAM */
+
+    Engineer: José Manuel Requena Plens
+    Contact: mail [at] jmrp.io
+    Mastodon: @jmrplens@mstdn.jmrp.io
+    GitHub: @jmrplens
+    Site: https://jmrp.io
+
+/* SITE */
+
+    Language: English / Español
+    Standards: HTML5, CSS3, WCAG 2.2 AA
+    Components: Astro, UnoCSS, Preact
+    Software: nginx, Cloudflare Workers, Docker
+
+/* SERVERS */
+
+    This subdomain hosts Model Context Protocol servers, not just a page
+    about them. Both are open source and run from home:
+
+    libgen  https://github.com/jmrplens/libgen-mcp
+    gitlab  https://github.com/jmrplens/gitlab-mcp-server
+
+    Machine-readable equivalents of everything above:
+    /servers.json, /llms.txt and /llms-full.txt.
+
+/* NOTE */
+
+    Statically generated, no cookies and no analytics scripts — the
+    Content-Security-Policy forbids talking to any third party and the
+    browser enforces it. The GitLab token the inspector asks for lives in
+    the tab's memory only; reloading the page drops it.
+
+    A personal service, offered as-is and with no SLA. If you depend on
+    it, run your own instance instead.

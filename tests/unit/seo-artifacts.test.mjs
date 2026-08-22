@@ -44,6 +44,7 @@ const SERVED_AT_ROOT = [
   "8b3b0f3c6a883bd7d274f2cf7645921a.txt",
   "apple-touch-icon.png",
   "favicon.svg",
+  "humans.txt",
   "index.html",
   "llms-full.txt",
   "llms.txt",

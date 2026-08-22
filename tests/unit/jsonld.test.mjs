@@ -80,10 +80,13 @@ test("TODAS las páginas llevan un bloque JSON-LD que parsea", () => {
 });
 
 test("cada endpoint se une con el repositorio que lo produce", () => {
-  // El nodo de código une el endpoint con su repo — la evidencia de "¿me puedo
-  // fiar de esto?". Su @id es #sourcecode, NUNCA #software: ese IRI lo define
-  // jmrp.io/projects con otros datos, y redefinirlo aquí hacía que la entidad
-  // fusionada se contradijera a sí misma (regresión que llegó a publicarse).
+  // The code node ties an endpoint to its repo — the evidence behind "can I
+  // trust this?". Its @id is #source-code, NEVER #software: that IRI is
+  // defined by jmrp.io/projects with different data, and redefining it here
+  // made the merged entity contradict itself (a regression that did ship).
+  //
+  // The hyphenated form is the one both documentation sites use for the same
+  // repository, so the estate has ONE identifier per repo instead of two.
   for (const page of htmlPages()) {
     const graph = graphOf(page);
     // La cuenta sale de `servers.json`, que nace de la misma fuente que el
@@ -98,7 +101,7 @@ test("cada endpoint se une con el repositorio que lo produce", () => {
     const ids = new Set(graph.map((n) => n["@id"]));
     for (const source of sources) {
       assert.ok(
-        String(source["@id"]).endsWith("#sourcecode"),
+        String(source["@id"]).endsWith("#source-code"),
         `${page}: ${source["@id"]} pisa el @id canónico de jmrp.io/projects`,
       );
       // targetProduct es un array: el endpoint local (debe resolver en este

@@ -105,8 +105,16 @@ export async function buildSiteGraph(
     // MISMO esquema `http://`, que es el URI de concepto canónico de Wikidata
     // y el que ya usa jmrp.io. Con `https://` el grafo declaraba dos recursos
     // distintos para el mismo concepto.
+    //
+    // `about` and not `additionalType`: schema.org defines the latter as "a
+    // relationship between something and a CLASS that the thing is in", for
+    // pulling more specific TYPES from external vocabularies. Q133436854 is
+    // the Model Context Protocol — a protocol concept, not a class this
+    // endpoint instantiates. The node is already multi-typed as WebAPI +
+    // SoftwareApplication, so `about` carries the same entity anchor with the
+    // semantics schema.org actually documents.
     // eslint-disable-next-line sonarjs/no-clear-text-protocols, unicorn/prefer-https -- No es un enlace: es el IRI de CONCEPTO canónico de Wikidata, que usa http:// por definición (la web sirve https, el identificador no cambia). Con https sería un recurso RDF distinto del que ya usan knowsAbout y jmrp.io — de hecho eslint --fix lo "corrigió" en silencio y partió la entidad en dos.
-    additionalType: "http://www.wikidata.org/entity/Q133436854",
+    about: "http://www.wikidata.org/entity/Q133436854",
     applicationCategory: "DeveloperApplication",
     operatingSystem: "Any (HTTP)",
     // La misma IRI de licencia que usa jmrp.io/projects, no la de SPDX: en RDF
@@ -137,7 +145,7 @@ export async function buildSiteGraph(
     // Camino de vuelta al código: `targetProduct` no tiene inversa en
     // schema.org, así que sin esto quien entra por `mainEntity` nunca llega
     // al repositorio.
-    isBasedOn: ref(`${server.repo}#sourcecode`),
+    isBasedOn: ref(`${server.repo}#source-code`),
     // `softwareHelp` used to be a bare `ref()`, pointing at an `@id` nothing
     // defines: the gitlab docs site names its node `…/#webpage`, never the
     // naked URL, so the reference dangled. libgen's happened to resolve — its
@@ -198,25 +206,36 @@ export async function buildSiteGraph(
     ],
   }));
 
-  // El nodo de código fuente une el endpoint con su repositorio — la
-  // evidencia que respalda "¿me puedo fiar de esto?".
+  // The source-code node ties an endpoint to the repository that produces it —
+  // the evidence behind "can I trust this?".
   //
-  // `@id` = `#sourcecode`, NUNCA `#software`: ese IRI ya lo define
-  // jmrp.io/projects como SoftwareApplication con otro nombre y otra licencia,
-  // y describir el mismo `@id` con datos contradictorios desde dos páginas
-  // hace que la entidad fusionada se contradiga a sí misma (regresión que
-  // llegó a estar publicada). El puente al nodo canónico es una REFERENCIA en
-  // `targetProduct` — apuntar sin redefinir es exactamente como debe funcionar
-  // linked data, igual que los `owns` del documento de identidad.
+  // `@id` = `#source-code`, NEVER `#software`: that IRI is already defined by
+  // jmrp.io/projects as a SoftwareApplication with a different name and
+  // licence, and describing one `@id` with contradictory data from two pages
+  // makes the merged entity contradict itself (a regression that did reach
+  // production). The bridge to the canonical node is a REFERENCE in
+  // `targetProduct` — pointing without redefining is how linked data is meant
+  // to work, same as the `owns` list of the identity document.
+  //
+  // The hyphen is not cosmetic. This node used to be `#sourcecode`, and both
+  // documentation sites (jmrplens.github.io/{gitlab-mcp-server,libgen-mcp})
+  // define `#source-code` for the SAME `codeRepository` — so one repository
+  // had two IRIs across the estate, splitting its signals and disagreeing on
+  // `name` and `runtimePlatform`. Aligning on the hyphenated form follows the
+  // estate's own convention (jmrp.io writes `#person`, `#software`, `#api` for
+  // single words and `#project-list` for compounds) and puts the majority of
+  // the ecosystem on one identifier.
+  //
+  // And it is deliberately a STUB: the documentation sites are the home of
+  // this entity and carry `name`, `creator`, `maintainer`, `isPartOf` and the
+  // real `runtimePlatform` (the OS list — the old `runtimePlatform: "Go"` here
+  // was wrong anyway, since `programmingLanguage` already says Go). What this
+  // page has to add, and nobody else can, is which hosted endpoint that code
+  // powers.
   const sources = servers.map((server) => ({
     "@type": "SoftwareSourceCode",
-    "@id": `${server.repo}#sourcecode`,
-    name: server.repo.split("/").pop(),
+    "@id": `${server.repo}#source-code`,
     codeRepository: server.repo,
-    programmingLanguage: "Go",
-    runtimePlatform: "Go",
-    license: "https://opensource.org/licenses/MIT",
-    author: ref(PERSON_ID),
     targetProduct: [
       ref(`${server.endpoint}#api`),
       ref(`${server.repo}#software`),
@@ -261,10 +280,11 @@ export async function buildSiteGraph(
     publisher: ref(PERSON_ID),
     dateModified: BUILD_DATE,
     ...(PUBLISHED_DATE && { datePublished: PUBLISHED_DATE }),
-    // `mainEntity` y no solo `about`: estos servidores no son algo de lo que
-    // la página habla, son su asunto.
+    // `mainEntity` y no `about`: estos servidores no son algo de lo que la
+    // página habla, son su asunto. `about` decía exactamente lo mismo con la
+    // afirmación más débil, así que sobraba: schema.org ya define mainEntity
+    // como "the primary entity described in this page", que es el caso.
     mainEntity: apis.map((api) => ref(api["@id"])),
-    about: apis.map((api) => ref(api["@id"])),
     // Los avisos son los pasajes concisos y autocontenidos de la página —
     // política del token, postura legal, límites — y sus `id` de DOM ya
     // existen (los pone ServerCard para poder enlazarlos). `speakable` los
