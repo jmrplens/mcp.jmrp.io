@@ -290,19 +290,19 @@ export const servers: McpServer[] = [
         },
       },
     ],
-    // La cobertura va en la descripción a propósito: "¿qué servidor MCP de
-    // GitLab uso?" se responde comparando cobertura, y es el hecho citable
-    // que diferencia a este. La descripción llega a la ficha, a servers.json,
-    // al JSON-LD y a llms.txt desde aquí, de una sola vez.
+    // Coverage goes in the description on purpose: "which GitLab MCP server
+    // should I use?" is answered by comparing coverage, and it is the citable
+    // fact that sets this one apart. From here the description reaches the
+    // card, servers.json, the JSON-LD and llms.txt in one go.
     //
-    // Es "más de 1.000" y no una cifra exacta por dos razones que cazó la
-    // auditoría del 2026-08-22: el número real DEPENDE DEL PLAN (~847 en
-    // Community Edition, hasta 1071 en Ultimate), así que uno fijo es falso
-    // para el "contra cualquier instancia" que promete esta misma frase; y
-    // el 1006 que había aquí venía de la descripción de la v1.0.x en el
-    // registro MCP, que el upstream ya no publica — su README y su docs site
-    // dicen hoy "1000+". Una cifra citable equivocada es peor que ninguna,
-    // porque es justo la que los asistentes repiten.
+    // It says "over 1,000" rather than an exact figure for two reasons the
+    // 2026-08-22 audit caught: the real number DEPENDS ON THE TIER (~847 on
+    // Community Edition, up to 1071 on Ultimate), so a fixed one is false for
+    // the "against any GitLab instance" this very sentence promises; and the
+    // 1006 that used to be here came from the v1.0.x description in the MCP
+    // registry, which upstream no longer publishes — its README and docs site
+    // now say "1000+". A wrong citable figure is worse than none, because it
+    // is precisely the one assistants repeat.
     description: {
       en: "A catalogue of over 1,000 GitLab operations — projects, merge requests, issues, pipelines, releases and more — against any GitLab instance. Your token travels per request and is never stored.",
       es: "Un catálogo de más de 1.000 operaciones de GitLab — proyectos, merge requests, incidencias, pipelines, releases y más — contra cualquier instancia de GitLab. Tu token viaja en cada petición y nunca se guarda.",

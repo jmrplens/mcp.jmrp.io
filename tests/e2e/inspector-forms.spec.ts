@@ -38,15 +38,15 @@ test("las tools se eligen de una lista y su esquema se vuelve formulario", async
 test("una búsqueda real se lanza desde el formulario, sin escribir JSON", async ({
   page,
 }) => {
-  // Contra el servidor de verdad: una búsqueda consulta varios mirrors y pasa
-  // de los 30 s por defecto del test.
+  // Against the real server: a search hits several mirrors and takes longer
+  // than the test's default 30 s.
   //
-  // Desde que el despliegue corre con `LIBGEN_MCP_EXTRA_SOURCES=always`
-  // (2026-08-22), CADA búsqueda consulta además Anna's Archive, arXiv,
-  // Crossref, OpenLibrary, Gutenberg, dblp, PubMed y ERIC, en lugar de hacerlo
-  // solo cuando el catálogo viene vacío. Medido contra producción: 92 s y
-  // 114 s en dos intentos seguidos, así que los 60 s de antes se quedaban
-  // cortos y el test fallaba por reloj, no por avería.
+  // Since the deployment runs with `LIBGEN_MCP_EXTRA_SOURCES=always`
+  // (2026-08-22), EVERY search additionally queries Anna's Archive, arXiv,
+  // Crossref, OpenLibrary, Gutenberg, dblp, PubMed and ERIC, instead of doing
+  // so only when the catalog comes back empty. Measured against production:
+  // 92 s and 114 s on two consecutive runs, so the previous 60 s fell short
+  // and the test was failing on the clock, not on a fault.
   test.setTimeout(240_000);
   await page.goto("/");
   await page.getByTestId("load-tools").click();

@@ -72,11 +72,13 @@ export default defineConfig({
     // versiones. Sin ellos el sitemap declaraba el namespace xhtml y no lo
     // usaba, así que las anotaciones hreflang solo vivían en el <head> — y una
     // sola vía es una sola oportunidad de que Google agrupe bien el clúster.
-    // `x-default` lo añade el serialize porque `i18n` NO tiene opción para él:
-    // emite un xhtml:link por locale y nada más. Sin esto el <head> anunciaba
-    // en/es/x-default y el sitemap solo en/es — dos canales contradiciéndose
-    // sobre a qué versión mandar a un visitante sin idioma preferente.
-    // Apunta a la raíz, que es la EN, igual que el <link> del <head>.
+    //
+    // `x-default` is added in serialize because `i18n` has NO option for it:
+    // it emits one xhtml:link per locale and nothing else. Without this the
+    // <head> advertised en/es/x-default and the sitemap only en/es — two
+    // channels contradicting each other about where to send a visitor with no
+    // language preference. It points at the root, which is the EN version,
+    // same as the <link> in the <head>.
     sitemap({
       i18n: { defaultLocale: "en", locales: { en: "en", es: "es" } },
       serialize: (item) => ({

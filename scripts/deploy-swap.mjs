@@ -1,20 +1,19 @@
 #!/usr/bin/env node
 /**
- * Atomic blue/green deploy swap for the static build. Portado de jmrp.io,
- * que ya lo usaba; aquí se trajo por una razón concreta.
+ * Atomic blue/green deploy swap for the static build. Ported from jmrp.io,
+ * which already used it; it was brought here for a specific reason.
  *
- * POR QUÉ: el vhost sirve `root /var/www/mcp.jmrp.io/dist`, así que mientras
- * `dist` fue un directorio real, CUALQUIER `astro build` publicaba al instante
- * — incluido el que corre dentro de `pnpm check`. El origen se quedaba con el
- * contenido nuevo y el borde de Cloudflare con el viejo, porque la purga vive
- * en el deploy y nadie la había llamado. La auditoría GEO del 2026-08-22 pilló
- * el sitio exactamente así: `/` sirviendo una versión anterior con el `age`
- * subiendo, y el sitemap anunciando un `lastmod` 3 h más nuevo que la propia
- * página.
+ * WHY: the vhost serves `root /var/www/mcp.jmrp.io/dist`, so while `dist` was
+ * a real directory, ANY `astro build` published instantly — including the one
+ * that runs inside `pnpm check`. The origin ended up with the new content and
+ * the Cloudflare edge with the old one, because the purge lives in the deploy
+ * and nobody had called it. The 2026-08-22 GEO audit caught the site exactly
+ * like that: `/` serving an earlier version with a climbing `age`, and the
+ * sitemap advertising a `lastmod` 3 h newer than the page itself.
  *
- * Con blue/green, `dist` es un symlink y un build a secas escribe en el color
- * INACTIVO: no publica nada. Publicar es el `swap`, un rename(2) sobre el
- * symlink — atómico, así que nginx nunca ve un root a medias.
+ * With blue/green, `dist` is a symlink and a bare build writes to the INACTIVE
+ * colour: it publishes nothing. Publishing is the `swap`, a rename(2) over the
+ * symlink — atomic, so Nginx never sees a half-written root.
  *
  * `prepare`: picks the inactive color dir (builds/blue|builds/green),
  *   empties it, and prints its relative path to stdout.

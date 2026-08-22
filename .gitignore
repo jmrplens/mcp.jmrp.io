@@ -146,9 +146,9 @@ edge-nonce-worker/
 # Informes de auditoría GEO: se regeneran ejecutando /geo-audit, nunca se
 # versionan (quedarían obsoletos y contradiciendo al sitio en vivo).
 #
-# El comodín NO es cosmético: cubre también los informes archivados con fecha
-# (GEO-AUDIT-REPORT-2026-08-08.md). Basta uno sin ignorar para dejar el árbol
-# sucio, y entonces contentDate() cae en su rama "sucio" y publica un sello de
-# reloj en vez de la fecha del commit — el fallo exacto que src/lib/build-date.ts
-# existe para evitar. Lo destapó la auditoría del 2026-08-22.
+# The wildcard is NOT cosmetic: it also covers date-stamped archived reports
+# (GEO-AUDIT-REPORT-2026-08-08.md). A single unignored one leaves the tree
+# dirty, and contentDate() then falls into its "dirty" branch and publishes a
+# wall-clock stamp instead of the commit date — the exact failure
+# src/lib/build-date.ts exists to prevent. Uncovered by the 2026-08-22 audit.
 GEO-AUDIT-REPORT*.md

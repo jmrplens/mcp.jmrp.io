@@ -14,14 +14,14 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
-// El `.env` del repo (gitignorado) trae la clave de Bing Webmaster. Igual que
-// en jmrp.io: `loadEnvFile` NO pisa lo que ya venga del entorno, así que una
-// variable exportada sigue mandando. Si el fichero no existe no pasa nada —
-// cada consumidor decide si puede seguir sin su credencial.
+// The repo's `.env` (gitignored) carries the Bing Webmaster key. Same as in
+// jmrp.io: `loadEnvFile` does NOT override what already comes from the
+// environment, so an exported value still wins. A missing file is fine — each
+// consumer decides whether it can carry on without its credential.
 try {
   process.loadEnvFile(new URL("../.env", import.meta.url));
 } catch {
-  // Sin .env: se sigue con lo que haya en el entorno.
+  // No .env: carry on with whatever the environment provides.
 }
 
 const DIST = path.resolve("dist");
@@ -251,18 +251,19 @@ if (INDEXNOW_KEY) {
 
 // ── Bing Webmaster (URL Submission) ────────────────────────────────────────
 //
-// IndexNow y esta API son pipelines DISTINTOS, no alternativas: el primero es
-// el protocolo abierto (Bing + Yandex), esta es la cuota propia del sitio en
-// Bing Webmaster. jmrp.io usa las dos desde siempre; aquí solo estaba IndexNow.
+// IndexNow and this API are DIFFERENT pipelines, not alternatives: the first
+// is the open protocol (Bing + Yandex), this one is the site's own Bing
+// Webmaster quota. jmrp.io has always used both; here only IndexNow existed.
 //
-// Importa porque la auditoría del 2026-08-22 midió por la API de Bing que este
-// subdominio tiene `InIndex: 0` — nunca rastreado, `AnchorCount: 0` — mientras
-// jmrp.io va por 903. bingbot lleva semanas releyendo el sitemap sin bajar una
-// sola página. Es la única palanca on-site que queda sobre eso: el subdominio
-// ya es propiedad verificada por derecho propio, así que la llamada se acepta.
+// It matters because the 2026-08-22 audit measured through Bing's API that
+// this subdomain sits at `InIndex: 0` — never crawled, `AnchorCount: 0` —
+// while jmrp.io is at 903. bingbot has spent weeks re-reading the sitemap
+// without fetching a single page. This is the only on-site lever left on that:
+// the subdomain is already a verified property in its own right, so the call
+// is accepted.
 //
-// La clave sale del `.env` del repo. Si falta, se avisa y NO se falla: el
-// origen ya está desplegado y la indexación es un extra.
+// The key comes from the repo's `.env`. If it is missing we warn and do NOT
+// fail: the origin is already deployed and indexing is a bonus.
 const bingKey = process.env.BING_WEBMASTER_API_KEY;
 
 if (bingKey) {
@@ -282,8 +283,8 @@ if (bingKey) {
         signal: AbortSignal.timeout(15_000),
       },
     );
-    // La API devuelve 200 con `{"d":null}` cuando acepta. Un 400 suele ser
-    // cuota agotada del día, que no es un fallo del despliegue.
+    // The API returns 200 with `{"d":null}` when it accepts. A 400 is usually
+    // the daily quota being spent, which is not a deployment failure.
     console.log(
       response.ok
         ? `✓ Bing Webmaster avisado (HTTP ${response.status})`
