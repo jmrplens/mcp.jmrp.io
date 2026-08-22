@@ -137,7 +137,18 @@ design-audit/
 
 # Documentos de trabajo (spec, planes): se quedan en disco, fuera del repo público.
 docs/superpowers/
+# Operación: scripts, auditorías y documentación de infraestructura. Viven aquí
+# —y no dispersos por /root— para que todo lo del proyecto esté en un sitio,
+# pero no se publican: `ops/mcp_server_info.md` describe la infraestructura y
+# los scripts llevan credenciales de Portainer.
+ops/
 docs/nginx-vhost-reference.conf
+
+# Secretos operativos del proyecto. Viven en el repo para no dispersarlos por
+# el servidor, pero NUNCA se versionan: aquí está la sal de la clave de
+# afinidad del balanceo, cuyo mecanismo el sitio publica en /internals/ pero
+# cuyo valor no puede salir de aquí.
+secrets/
 
 # El worker del edge se mantiene solo en local: se despliega con wrangler,
 # no forma parte del sitio, y su configuración lleva ids de cuenta y zona.
