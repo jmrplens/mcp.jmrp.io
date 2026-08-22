@@ -21,6 +21,7 @@
 import type { APIRoute, GetStaticPaths } from "astro";
 
 import { servers } from "../../data/servers";
+import { liveVersion } from "../../lib/live-version";
 
 /**
  * One route per server, so each gets its card at `<endpoint>/server-card`.
@@ -37,8 +38,11 @@ export const getStaticPaths: GetStaticPaths = () =>
  *   `src/data/servers.ts` that {@link getStaticPaths} passed through.
  * @returns The card as `application/mcp-server-card+json`.
  */
-export const GET: APIRoute = ({ props }) => {
+export const GET: APIRoute = async ({ props }) => {
   const { server } = props as { server: (typeof servers)[number] };
+  // Read from the running server so the card matches what a client will see;
+  // `server.version` is only the fallback. See src/lib/live-version.ts.
+  const version = await liveVersion(server.endpoint, server.version);
 
   // Headers are declared on the remote, which is where a client needs them.
   // `isSecret` is what tells a client not to log or persist the value — the
@@ -62,7 +66,7 @@ export const GET: APIRoute = ({ props }) => {
     $schema:
       "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
     name: server.registryName,
-    version: server.version,
+    version,
     description: server.description.en,
     title: server.name,
     websiteUrl: server.docsSite ?? server.docs,

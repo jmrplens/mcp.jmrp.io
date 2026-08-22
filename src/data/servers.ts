@@ -73,13 +73,17 @@ export type McpServer = {
    */
   registryName: string;
   /**
-   * Version currently deployed, for the Server Card.
+   * FALLBACK version for the Server Card.
    *
-   * Kept by hand and therefore ADVISORY: the updater bumps the containers
-   * hourly and the site is deployed far less often, so this can lag. The
-   * Server Card spec expects exactly that — cards are "advisory rather than
-   * binding" and clients are told to prefer the live `initialize` response
-   * where the two disagree. Refresh it when it drifts far enough to matter.
+   * The card prefers whatever the running server reports on `/health` at build
+   * time (see `src/lib/live-version.ts`); this value is what it falls back to
+   * when that read fails — an offline build, a stopped container, or a server
+   * that does not publish a version.
+   *
+   * Even the live read cannot make the card authoritative: an update between
+   * two site deploys still drifts. That is why the Server Card spec calls
+   * cards "advisory rather than binding" and tells clients to prefer the live
+   * `initialize` response where the two disagree.
    */
   version: string;
   endpoint: string;
@@ -118,7 +122,7 @@ export const servers: McpServer[] = [
     id: "libgen",
     name: "libgen",
     registryName: "io.github.jmrplens/libgen-mcp",
-    version: "1.6.1",
+    version: "1.6.2",
     endpoint: "https://mcp.jmrp.io/libgen",
     repo: "https://github.com/jmrplens/libgen-mcp",
     docs: "https://github.com/jmrplens/libgen-mcp#readme",
