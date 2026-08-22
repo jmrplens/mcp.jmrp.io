@@ -333,3 +333,52 @@ test("el <title> deja sitio a la expresión por la que se busca esto", () => {
     );
   }
 });
+
+test("el catálogo de descubrimiento y las server cards son coherentes", () => {
+  // Discovery for a domain with SEVERAL MCP servers is two documents: the
+  // catalog lists them and points at one card each, and every card describes
+  // exactly one server. If they drift, a client following the catalog fetches
+  // a card that does not exist.
+  const catalog = JSON.parse(read("well-known/ai-catalog.json"));
+  const index = JSON.parse(read("servers.json"));
+
+  assert.equal(
+    catalog.entries.length,
+    index.servers.length,
+    "el catálogo no lista los mismos servidores que servers.json",
+  );
+
+  for (const entry of catalog.entries) {
+    assert.equal(
+      entry.type,
+      "application/mcp-server-card+json",
+      `${entry.identifier}: type incorrecto`,
+    );
+
+    // La URL de la card tiene que existir de verdad en el build. El vhost la
+    // sirve con un `location =`, que gana al `^~ /libgen` del proxy.
+    const path = new URL(entry.url).pathname.replace(/^\//, "");
+    const card = JSON.parse(read(path));
+
+    assert.ok(card.name?.includes("/"), `${path}: name no es reverse-DNS`);
+    assert.ok(card.version, `${path}: sin version`);
+    assert.ok(card.description, `${path}: sin description`);
+
+    // El endpoint de la card debe ser uno de los reales, no la URL de la card.
+    const url = card.remotes?.[0]?.url;
+    assert.ok(
+      Object.values(index.endpoints).includes(url),
+      `${path}: remotes[0].url (${url}) no es un endpoint de servers.json`,
+    );
+
+    // Una credencial declarada sin `isSecret` es una invitación a registrarla.
+    for (const header of card.remotes[0].headers ?? []) {
+      if (!header.isRequired) continue;
+      const declared = index.servers.find((s) => s.endpoint === url);
+      assert.ok(
+        declared.requiredHeaders.includes(header.name),
+        `${path}: cabecera ${header.name} no declarada en servers.json`,
+      );
+    }
+  }
+});

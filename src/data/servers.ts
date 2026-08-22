@@ -64,6 +64,24 @@ export type McpPromptInfo = {
 export type McpServer = {
   id: string;
   name: string;
+  /**
+   * Reverse-DNS identifier, the same one the official MCP registry lists.
+   *
+   * Not derivable from `repo`: the registry namespaces by the publisher's
+   * GitHub identity, so it must match what is published there or a client
+   * reconciling the Server Card against the registry sees two servers.
+   */
+  registryName: string;
+  /**
+   * Version currently deployed, for the Server Card.
+   *
+   * Kept by hand and therefore ADVISORY: the updater bumps the containers
+   * hourly and the site is deployed far less often, so this can lag. The
+   * Server Card spec expects exactly that — cards are "advisory rather than
+   * binding" and clients are told to prefer the live `initialize` response
+   * where the two disagree. Refresh it when it drifts far enough to matter.
+   */
+  version: string;
   endpoint: string;
   repo: string;
   docs: string;
@@ -99,6 +117,8 @@ export const servers: McpServer[] = [
   {
     id: "libgen",
     name: "libgen",
+    registryName: "io.github.jmrplens/libgen-mcp",
+    version: "1.6.1",
     endpoint: "https://mcp.jmrp.io/libgen",
     repo: "https://github.com/jmrplens/libgen-mcp",
     docs: "https://github.com/jmrplens/libgen-mcp#readme",
@@ -227,6 +247,8 @@ export const servers: McpServer[] = [
   {
     id: "gitlab",
     name: "gitlab",
+    registryName: "io.github.jmrplens/gitlab-mcp-server",
+    version: "2.6.5",
     endpoint: "https://mcp.jmrp.io/gitlab",
     repo: "https://github.com/jmrplens/gitlab-mcp-server",
     docs: "https://github.com/jmrplens/gitlab-mcp-server#readme",
