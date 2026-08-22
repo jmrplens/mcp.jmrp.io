@@ -1,0 +1,42 @@
+---
+/**
+ * Visible freshness line, rendered INSIDE `<main>`.
+ *
+ * Extracted out of the page that first carried it (the home page's privacy
+ * section) because every page of the site ends up needing the same three
+ * lines: the same date, computed by `contentDate()` and formatted through
+ * `humanDate()`, next to the same `updatedIn` string. A page that goes out
+ * without this line goes out undated to extractors — `readability`, the
+ * library behind most RAG pipelines, prunes `<footer>`, where the identical
+ * date already lives — and that gap (`byline: null`) is a bug this site
+ * already paid for once. One component is what stops a future page (the
+ * inspector, internals) from reintroducing it by omission.
+ */
+import type { Lang } from "../i18n/config.ts";
+import { ui } from "../i18n/ui";
+import { contentDate } from "../lib/build-date";
+import { humanDate } from "../lib/format";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = ui[lang];
+// Same date as the footer, dateModified and the sitemap's lastmod, through
+// the shared helper.
+const updated = contentDate() ?? new Date().toISOString();
+---
+
+<p class="updated-line">
+  {t.updatedIn}{" "}
+  <time datetime={updated}>{humanDate(updated, lang)}</time>
+</p>
+
+<style>
+  .updated-line {
+    margin: 1.25rem 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+  }
+</style>

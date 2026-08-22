@@ -9,10 +9,9 @@
  */
 import { servers } from "../data/servers";
 import { ui } from "../i18n/ui";
-import { contentDate } from "../lib/build-date";
-import { humanDate } from "../lib/format";
 import { pageUrl } from "../lib/seo";
 import ServerCard from "./ServerCard.astro";
+import UpdatedLine from "./UpdatedLine.astro";
 
 interface Props {
   lang: "en" | "es";
@@ -20,10 +19,6 @@ interface Props {
 
 const { lang } = Astro.props;
 const t = ui[lang];
-// Same date as the footer, dateModified and sitemap lastmod, through the
-// shared helper. It is repeated here INSIDE <main> on purpose: readability
-// prunes <footer>, so to an extractor the page came out undated.
-const updated = contentDate() ?? new Date().toISOString();
 // Site-relative, like the language switch in Base.astro: an absolute URL
 // here would jump a dev or preview server straight to production.
 const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
@@ -116,23 +111,12 @@ const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
   </p>
 </section>
 
-<section aria-labelledby="privacy-h">
-  {/* Corta y sin plegar a propósito: un sitio que acepta credenciales debe
-      decir qué registra sin pedir un clic. Cada afirmación es verificable:
-      la CSP la aplica el navegador, la retención de logs es la de logrotate
-      y las métricas se construyeron para descartar los argumentos. */}
-  <h2 class="eyebrow" id="privacy-h">
-    {t.privacyEyebrow}
-  </h2>
-  {t.privacyBody.map((paragraph) => <p class="privacy-text">{paragraph}</p>)}
-  {/* Visible freshness INSIDE <main>. The footer carries the same date, but
-      readability prunes <footer> and extraction pipelines saw an undated page
-      (`byline: null`). Here it survives. */}
-  <p class="updated-line">
-    {t.updatedIn}{" "}
-    <time datetime={updated}>{humanDate(updated, lang)}</time>
-  </p>
-</section>
+{/* Visible freshness INSIDE <main>. It used to close the "Privacy & data"
+    section that lived here; that section moved to its own page
+    (`PoliciesPage.astro`), but the home page still needs its own dated line —
+    see `UpdatedLine.astro` for why an undated page is a real problem, not a
+    cosmetic one. */}
+<UpdatedLine lang={lang} />
 
 <style>
   .hero {
@@ -261,25 +245,11 @@ const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
     text-underline-offset: 3px;
   }
 
-  .privacy-text {
-    max-width: 62ch;
-    margin: 0 0 0.7rem;
-    color: var(--color-text);
-    font-size: 0.875rem;
-    text-wrap: pretty;
-  }
-
   .section-intro {
     max-width: 62ch;
     margin: 0 0 1.5rem;
     color: var(--color-text);
     text-wrap: pretty;
-  }
-
-  .updated-line {
-    margin: 1.25rem 0 0;
-    color: var(--color-text-muted);
-    font-size: 0.8125rem;
   }
 
   /* Wide content scrolls inside its own container: the page body must never

@@ -30,6 +30,13 @@ export const common = {
     other: "Español",
     footerBy: "Servers and site by",
     footerUpdated: "Updated",
+    /**
+     * Footer link to `/policies/`. It lives in the shared chrome, not on the
+     * home page, because every page should be able to reach it — the same
+     * reasoning that put `security.txt` in this footer after it existed with
+     * no link to it from anywhere.
+     */
+    footerPolicies: "Policies",
   },
   es: {
     title: "Servidores MCP",
@@ -43,5 +50,7 @@ export const common = {
     other: "English",
     footerBy: "Servidores y sitio de",
     footerUpdated: "Actualizado",
+    /** Ver `en.footerPolicies`: enlace del pie a `/policies/`. */
+    footerPolicies: "Políticas",
   },
 } as const;

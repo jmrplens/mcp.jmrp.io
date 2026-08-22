@@ -1,0 +1,122 @@
+---
+/**
+ * Policies page — privacy, logging, availability, egress and the legal
+ * position, all in one place.
+ *
+ * Split out of the home page for the same reason the inspector was (see
+ * `InspectorPage.astro`): the home page's job is to say what these servers do
+ * and let a visitor act on it cheaply, and a growing block of policy prose
+ * was dead weight on the page search engines and assistants quote most. Only
+ * "Privacy & data" used to live there; the rest of what is here (logging,
+ * availability, egress, the legal position) had never been written down
+ * anywhere on the site.
+ */
+import { ui } from "../../i18n/ui";
+import { getLangFromUrl } from "../../i18n/utils";
+import { pageUrl } from "../../lib/seo";
+import UpdatedLine from "../UpdatedLine.astro";
+
+const lang = getLangFromUrl(Astro.url);
+const t = ui[lang];
+// Site-relative, like every other cross-page link on this site: an absolute
+// URL here would jump a dev or preview server straight to production.
+const homeHref = new URL(pageUrl(lang, "home")).pathname;
+---
+
+<p class="back-link">
+  <a href={homeHref}>{t.policiesBackToHome}</a>
+</p>
+
+<p class="policies-intro">{t.policiesIntro}</p>
+
+<section aria-labelledby="privacy-h">
+  <h2 class="eyebrow" id="privacy-h">{t.privacyEyebrow}</h2>
+  {t.privacyBody.map((paragraph) => <p class="policy-text">{paragraph}</p>)}
+</section>
+
+<section aria-labelledby="logs-h">
+  <h2 class="eyebrow" id="logs-h">{t.logsEyebrow}</h2>
+  {t.logsBody.map((paragraph) => <p class="policy-text">{paragraph}</p>)}
+</section>
+
+<section aria-labelledby="sla-h">
+  <h2 class="eyebrow" id="sla-h">{t.slaEyebrow}</h2>
+  {t.slaBody.map((paragraph) => <p class="policy-text">{paragraph}</p>)}
+</section>
+
+<section aria-labelledby="egress-h">
+  <h2 class="eyebrow" id="egress-h">{t.egressEyebrow}</h2>
+  {t.egressBody.map((paragraph) => <p class="policy-text">{paragraph}</p>)}
+</section>
+
+<section aria-labelledby="legal-h">
+  <h2 class="eyebrow" id="legal-h">{t.legalEyebrow}</h2>
+  {t.legalBody.map((paragraph) => <p class="policy-text">{paragraph}</p>)}
+</section>
+
+{/* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
+    cannot just live in the footer. */}
+<UpdatedLine lang={lang} />
+
+<style>
+  /* Copied from InspectorPage.astro's / PageBody.astro's shared rules: Astro
+     scopes <style> per component, so a class used on more than one page needs
+     its own copy here. */
+  .back-link {
+    margin: 0 0 1.5rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .back-link a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .back-link a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .policies-intro {
+    max-width: 62ch;
+    margin: 0 0 2.5rem;
+    color: var(--color-text);
+    font-size: 1.0625rem;
+    text-wrap: pretty;
+  }
+
+  section {
+    padding-block-end: 2.75rem;
+  }
+
+  /* Eyebrow with `//`, painted from CSS so it does NOT exist in the DOM —
+     `textContent`-based extractors would otherwise read the heading as
+     "//Privacy & data". See HomePage.astro for the full rationale. */
+  .eyebrow {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin: 0 0 1.25rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .eyebrow::before {
+    color: var(--color-accent);
+    content: "//";
+  }
+
+  .policy-text {
+    max-width: 62ch;
+    margin: 0 0 0.7rem;
+    color: var(--color-text);
+    font-size: 0.875rem;
+    text-wrap: pretty;
+  }
+</style>

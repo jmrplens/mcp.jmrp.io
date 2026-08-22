@@ -70,6 +70,10 @@ const alternate = new URL(pageUrl(lang === "en" ? "es" : "en", page)).pathname;
 // declaraciones distintas de dónde vive esta página son tres oportunidades de
 // contradecirse. Todas salen de `pageUrl()`.
 const canonical = pageUrl(lang, page);
+// Footer link to `/policies/`, site-relative for the same reason `alternate`
+// is above. It is in the shared footer, not just on the home page, so every
+// page — this one included — stays able to reach it.
+const policiesHref = new URL(pageUrl(lang, "policies")).pathname;
 const ogImage = ogImageUrl(lang);
 const imageAlt = ogImageAlt(lang);
 const otherLocales = Object.entries(OG_LOCALES)
@@ -231,7 +235,9 @@ const t = ui[lang];
         ausentes para una persona: la auditoría lo llamó "autoridad regalada",
         y las respuestas de IA que citan texto visible no tenían a quién
         atribuir. El mailto también resuelve que security.txt existiera sin
-        estar enlazado desde ninguna parte. */}
+        estar enlazado desde ninguna parte — mismo motivo por el que
+        `/policies/` va aquí y no solo en la portada: cualquier página tiene
+        que poder llegar a ella. */}
     <footer class="site-footer">
       <p class="footer-id">
         {t.footerBy}
@@ -243,6 +249,7 @@ const t = ui[lang];
       <p class="footer-links">
         <a href="https://jmrp.io">jmrp.io</a>
         <a href="mailto:mail@jmrp.io">mail@jmrp.io</a>
+        <a href={policiesHref}>{t.footerPolicies}</a>
         <a href="/.well-known/security.txt">security.txt</a>
       </p>
     </footer>

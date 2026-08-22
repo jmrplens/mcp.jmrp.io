@@ -1,0 +1,16 @@
+---
+/**
+ * Policies route. Delegates to the shared page component; the language comes
+ * from the URL.
+ */
+import PoliciesPage from "../../components/pages/PoliciesPage.astro";
+import { ui } from "../../i18n/ui";
+import { getLangFromUrl } from "../../i18n/utils";
+import Base from "../../layouts/Base.astro";
+
+const t = ui[getLangFromUrl(Astro.url)];
+---
+
+<Base title={t.policiesMetaTitle} description={t.policiesIntro} page="policies">
+  <PoliciesPage />
+</Base>
