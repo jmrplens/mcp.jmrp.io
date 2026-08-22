@@ -46,11 +46,24 @@ export const GET: APIRoute = () => {
       },
       ...servers.map((server) => ({
         anchor: server.endpoint,
+        // Two descriptions when the server publishes its own card: ours is the
+        // SEP-2127 shape (identity + how to connect) and the server's is the
+        // SEP-1649 one (the full `initialize` mirror, every tool and prompt
+        // enumerated). RFC 9727 allows several `service-desc`, and a client
+        // picking either gets something useful.
         "service-desc": [
           {
             href: `${server.endpoint}/server-card`,
             type: "application/mcp-server-card+json",
           },
+          ...(server.nativeCard
+            ? [
+                {
+                  href: `${server.endpoint}/.well-known/mcp/server-card.json`,
+                  type: "application/json",
+                },
+              ]
+            : []),
         ],
         "service-doc": [
           { href: server.docsSite ?? server.docs, type: "text/html" },

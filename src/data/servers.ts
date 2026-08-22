@@ -113,6 +113,22 @@ export type McpServer = {
   tools: McpToolInfo[];
   /** Prompts que expone, si los hay. */
   prompts?: McpPromptInfo[];
+  /**
+   * The server publishes its OWN Server Card at
+   * `<endpoint>/.well-known/mcp/server-card.json`.
+   *
+   * That document is the SEP-1649 shape — it mirrors the `initialize`
+   * response, so it enumerates every tool, prompt, resource and resource
+   * template (41 KB for gitlab). It is NOT the same thing as the card this
+   * site publishes at `<endpoint>/server-card`, which is the current SEP-2127
+   * shape: small, carrying the reverse-DNS identity and how to connect, and
+   * deliberately WITHOUT the primitives.
+   *
+   * So the two are complementary, not duplicates, and both get announced in
+   * the RFC 9727 catalog. Flag per server because libgen does not implement it
+   * yet — it answers 405 there.
+   */
+  nativeCard?: boolean;
   /** Avisos propios de este servidor. */
   notices: McpNotice[];
 };
@@ -252,6 +268,7 @@ export const servers: McpServer[] = [
     id: "gitlab",
     name: "gitlab",
     registryName: "io.github.jmrplens/gitlab-mcp-server",
+    nativeCard: true,
     version: "2.6.5",
     endpoint: "https://mcp.jmrp.io/gitlab",
     repo: "https://github.com/jmrplens/gitlab-mcp-server",
