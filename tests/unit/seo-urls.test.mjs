@@ -8,6 +8,9 @@ test("pageUrl compone la URL de cada página e idioma", () => {
   assert.equal(pageUrl("es"), "https://mcp.jmrp.io/es/");
   assert.equal(pageUrl("en", "inspector"), "https://mcp.jmrp.io/inspector/");
   assert.equal(pageUrl("es", "inspector"), "https://mcp.jmrp.io/es/inspector/");
+  assert.equal(pageUrl("en", "internals"), "https://mcp.jmrp.io/internals/");
+  assert.equal(pageUrl("es", "internals"), "https://mcp.jmrp.io/es/internals/");
+  assert.equal(pageUrl("en", "policies"), "https://mcp.jmrp.io/policies/");
   assert.equal(pageUrl("es", "policies"), "https://mcp.jmrp.io/es/policies/");
 });
 
