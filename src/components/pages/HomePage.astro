@@ -5,12 +5,309 @@
  * Keeps what makes the site citable: the MCP definition with the brand in the
  * first extractable sentence, the comparison table, and both server cards WITH
  * their notices (the FAQPage and speakable nodes hang off these). The
- * inspector and the privacy section live on their own pages now.
+ * inspector and the policies page live on their own pages now.
+ *
+ * Used to delegate to `PageBody.astro`, kept as a separate file because the
+ * mirrored `src/pages/es/` route needed the SAME markup with different
+ * strings. That reason no longer applies: the language now comes from the
+ * URL (`getLangFromUrl`), not a prop, so the split bought nothing but an extra
+ * file to open — this component was one `<PageBody lang={lang} />` line.
+ * Content absorbed here in its own commit, separate from Task 6's actual
+ * content change, so that diff reads as what it is.
  */
+import { servers } from "../../data/servers";
+import { ui } from "../../i18n/ui";
 import { getLangFromUrl } from "../../i18n/utils";
-import PageBody from "../PageBody.astro";
+import { pageUrl } from "../../lib/seo";
+import ServerCard from "../ServerCard.astro";
+import UpdatedLine from "../UpdatedLine.astro";
 
 const lang = getLangFromUrl(Astro.url);
+const t = ui[lang];
+// Site-relative, like the language switch in Base.astro: an absolute URL
+// here would jump a dev or preview server straight to production.
+const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
 ---
 
-<PageBody lang={lang} />
+<section class="hero">
+  <p class="pill"><span class="dot" aria-hidden="true"></span>{servers.length} {t.pill}</p>
+  <h1>{t.title}</h1>
+  <p class="lede">{t.lede}</p>
+  {/* La definición de MCP con la marca: el único bloque autocontenido para
+      quien no sabe qué es esto, y el ancla de entidad que los titulares
+      genéricos no dan. Ver `whatIsMcp` en ui.ts. */}
+  <p class="what-is">{t.whatIsMcp}</p>
+  {/* The old lede promised trying the servers "right here"; now that the
+      inspector lives on its own page, that promise is a real link instead
+      (Ruling R6 — see the comment on `home.tryInBrowser`). */}
+  <p class="try-inspector">
+    <a href={inspectorHref}>{t.tryInBrowser}</a>
+  </p>
+</section>
+
+<section aria-labelledby="servers-h">
+  {/* h2 y no p: eran rótulos decorativos y la página colgaba 734 palabras de
+      dos únicos H2 (los nombres de las fichas). Como h2 dan outline real sin
+      cambiar el aspecto — .eyebrow ya fija tamaño, peso y márgenes. */}
+  <h2 class="eyebrow" id="servers-h">
+    {t.serversEyebrow}
+  </h2>
+  <p class="section-intro">{t.serversIntro}</p>
+  <div class="grid">
+    {servers.map((s) => <ServerCard server={s} lang={lang} />)}
+  </div>
+  {/* A real <table>, not a styled grid, and built from `servers` rather than
+      hand-written: adding a third MCP must not mean editing markup.
+      It exists because the page had zero tables and this is the question that
+      actually brings people to a hosted endpoint — "which of these two do I
+      want?". AI Overviews lifts tables straight out of the page, and a
+      two-item comparison is exactly the shape it takes. */}
+  <table class="compare">
+    <caption>{t.compareHead}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{t.compareAttribute}</th>
+        {servers.map((s) => <th scope="col">{s.name}</th>)}
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">{t.compareCredential}</th>
+        {
+          servers.map((s) => (
+            <td>
+              {s.requiredHeaders.length > 0
+                ? s.requiredHeaders.map((h) => h.name).join(", ")
+                : t.compareNoCredential}
+            </td>
+          ))
+        }
+      </tr>
+      <tr>
+        <th scope="row">{t.compareCovers}</th>
+        {
+          servers.map((s) => (
+            <td>{s.id === "libgen" ? t.compareCoversLibgen : t.compareCoversGitlab}</td>
+          ))
+        }
+      </tr>
+      <tr>
+        <th scope="row">{t.compareTools}</th>
+        {servers.map((s) => <td>{s.tools.length}</td>)}
+      </tr>
+      <tr>
+        <th scope="row">{t.compareEndpoint}</th>
+        {
+          servers.map((s) => (
+            <td><code>{s.endpoint}</code></td>
+          ))
+        }
+      </tr>
+      <tr>
+        <th scope="row">{t.compareTransport}</th>
+        {servers.map(() => <td>{t.compareTransportValue}</td>)}
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="machine">
+    <a href="/servers.json"><code>/servers.json</code></a>
+    <span>— {t.machineIndex}</span>
+  </p>
+</section>
+
+{/* Visible freshness INSIDE <main>. It used to close the "Privacy & data"
+    section that lived here; that section moved to its own page
+    (`PoliciesPage.astro`), but the home page still needs its own dated line —
+    see `UpdatedLine.astro` for why an undated page is a real problem, not a
+    cosmetic one. */}
+<UpdatedLine lang={lang} />
+
+<style>
+  .hero {
+    padding-block: clamp(3rem, 9vw, 5.5rem) 3rem;
+  }
+
+  /* Píldora de estado con punto, igual que la de jmrp.io. Aquí dice algo
+     verificable —cuántos servidores hay y qué transporte hablan— en vez de
+     ser un adorno. */
+  .pill {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0 0 1.5rem;
+    padding: 0.35rem 0.8rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--color-success);
+  }
+
+  h1 {
+    max-width: 18ch;
+    margin: 0 0 1.25rem;
+    color: var(--color-text-heading);
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 7vw, 3.75rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
+
+  .lede {
+    max-width: 58ch;
+    margin: 0;
+    color: var(--color-text);
+    font-size: 1.0625rem;
+    text-wrap: pretty;
+  }
+
+  .what-is {
+    max-width: 62ch;
+    margin: 0.9rem 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    text-wrap: pretty;
+  }
+
+  /* Eyebrow with `//`: jmrp.io's section marker.
+     The `//` is painted from CSS and does NOT exist in the DOM. It used to be
+     a <span aria-hidden>, which handled screen readers but not extractors:
+     `aria-hidden` has no effect on `textContent`, which is what readability
+     and friends read, so headings came out as "//Servers" and "//Privacy &
+     data". With ::before the ornament leaves the extracted text and looks
+     exactly the same. `InspectorPage.astro` keeps its own copy of this rule
+     now that its "//Inspector" heading lives there instead. */
+  .eyebrow {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin: 0 0 1.25rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .eyebrow::before {
+    color: var(--color-accent);
+    content: "//";
+  }
+
+  section {
+    padding-block-end: 3.5rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+    gap: 1.25rem;
+  }
+
+  .machine {
+    margin: 1.25rem 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+  }
+
+  .machine a {
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    text-decoration: none;
+  }
+
+  .machine a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* Same look as `.machine`: a small mono pointer out of the hero, this one
+     to the inspector's own page instead of a machine-readable file. */
+  .try-inspector {
+    margin: 0.9rem 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+  }
+
+  .try-inspector a {
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    text-decoration: none;
+  }
+
+  .try-inspector a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .section-intro {
+    max-width: 62ch;
+    margin: 0 0 1.5rem;
+    color: var(--color-text);
+    text-wrap: pretty;
+  }
+
+  /* Wide content scrolls inside its own container: the page body must never
+     scroll horizontally on a phone. */
+  .compare {
+    display: block;
+    max-width: 100%;
+    margin: 1.75rem 0 0;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .compare caption {
+    margin-bottom: 0.75rem;
+    color: var(--color-text-heading);
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-align: start;
+  }
+
+  .compare th,
+  .compare td {
+    padding: 0.5rem 0.9rem;
+    border-bottom: 1px solid var(--color-hair);
+    text-align: start;
+    vertical-align: top;
+  }
+
+  .compare thead th {
+    color: var(--color-text-heading);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+
+  .compare tbody th {
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .compare td {
+    color: var(--color-text);
+    /* The reach cells are full sentences: they need to wrap even though the
+       table as a whole is nowrap for the endpoint column. */
+    white-space: normal;
+  }
+
+  .compare code {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    overflow-wrap: anywhere;
+  }
+</style>
