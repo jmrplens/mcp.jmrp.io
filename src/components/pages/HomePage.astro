@@ -1,0 +1,16 @@
+---
+/**
+ * Home page — the canonical entry point.
+ *
+ * Keeps what makes the site citable: the MCP definition with the brand in the
+ * first extractable sentence, the comparison table, and both server cards WITH
+ * their notices (the FAQPage and speakable nodes hang off these). The
+ * inspector and the privacy section live on their own pages now.
+ */
+import { getLangFromUrl } from "../../i18n/utils";
+import PageBody from "../PageBody.astro";
+
+const lang = getLangFromUrl(Astro.url);
+---
+
+<PageBody lang={lang} />

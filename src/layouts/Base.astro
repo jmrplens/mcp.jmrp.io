@@ -14,6 +14,7 @@ import "../styles/global.css";
 
 import { Font } from "astro:assets";
 
+import { getLangFromUrl } from "../i18n/utils";
 import { contentDate } from "../lib/build-date";
 import { humanDate } from "../lib/format";
 import { buildSiteGraph, safeJsonLd } from "../lib/jsonld";
@@ -23,6 +24,7 @@ import {
   OG_LOCALES,
   ogImageAlt,
   ogImageUrl,
+  type PageId,
   pageUrl,
   SITE_NAME,
 } from "../lib/seo";
@@ -30,7 +32,8 @@ import {
 interface Props {
   title: string;
   description: string;
-  lang: "en" | "es";
+  /** Which page this is, for the canonical URL and the hreflang cluster. */
+  page?: PageId;
   /**
    * This page is an error body (the 404), not a real address.
    *
@@ -49,16 +52,20 @@ interface Props {
   errorPage?: boolean;
 }
 
-const { title, description, lang, errorPage = false } = Astro.props;
+const { title, description, page = "home", errorPage = false } = Astro.props;
+// The language comes from the URL, never from a prop: that is what lets the
+// mirrored route files under `src/pages/es/` be identical to their English
+// counterparts, and therefore impossible to drift apart.
+const lang = getLangFromUrl(Astro.url);
 
 // La misma fecha que dateModified y el lastmod del sitemap: una sola verdad.
 const updated = contentDate() ?? new Date().toISOString();
 const updatedHuman = humanDate(updated, lang);
-const alternate = lang === "en" ? "/es/" : "/";
+const alternate = pageUrl(lang === "en" ? "es" : "en", page);
 // Canonical, og:url y twitter:url son el MISMO valor a propósito: tres
 // declaraciones distintas de dónde vive esta página son tres oportunidades de
 // contradecirse. Todas salen de `pageUrl()`.
-const canonical = pageUrl(lang);
+const canonical = pageUrl(lang, page);
 const ogImage = ogImageUrl(lang);
 const imageAlt = ogImageAlt(lang);
 const otherLocales = Object.entries(OG_LOCALES)
@@ -124,7 +131,7 @@ const t = {
         alta un idioma nuevo no pueda volver a dejar la lista coja. */}
     {
       !errorPage &&
-        alternates().map((alt) => (
+        alternates(page).map((alt) => (
           <link rel="alternate" hreflang={alt.hreflang} href={alt.href} />
         ))
     }

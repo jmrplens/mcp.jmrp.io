@@ -1,11 +1,16 @@
 ---
-import PageBody from "../../components/PageBody.astro";
+/**
+ * Home route. Delegates to the shared page component; the language comes from
+ * the URL.
+ */
+import HomePage from "../../components/pages/HomePage.astro";
 import { ui } from "../../i18n/ui";
+import { getLangFromUrl } from "../../i18n/utils";
 import Base from "../../layouts/Base.astro";
 
-const t = ui.es;
+const t = ui[getLangFromUrl(Astro.url)];
 ---
 
-<Base title={t.metaTitle} description={t.lede} lang="es">
-  <PageBody lang="es" />
+<Base title={t.metaTitle} description={t.lede} page="home">
+  <HomePage />
 </Base>
