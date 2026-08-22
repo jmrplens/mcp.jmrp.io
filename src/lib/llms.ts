@@ -107,6 +107,16 @@ function serverSection(server: McpServer): string {
       ? "\n- Authentication: none. The server is public and takes no credentials."
       : "";
 
+  // Built here rather than inline in the template below: nesting a template
+  // literal inside another trips sonarjs/no-nested-template-literals, and the
+  // same reason `headerBlock` exists.
+  const promptLines = (server.prompts ?? [])
+    .map((prompt) => `- \`${prompt.name}\` — ${prompt.what.en}`)
+    .join("\n");
+  const promptBlock = promptLines
+    ? `\n\nPrompts — canned plans a client can render, beyond the tools above:\n\n${promptLines}`
+    : "";
+
   return `## ${server.name}
 
 ${server.description.en}
@@ -114,11 +124,12 @@ ${server.description.en}
 - Endpoint: \`${server.endpoint}\` (POST only; GET answers 405)
 - Transport: streamable HTTP, stateless JSON-RPC 2.0
 - Repository: ${server.repo}
-- Documentation: ${server.docsSite ?? server.docs}${auth}${headerBlock(server.requiredHeaders, "Required")}${headerBlock(server.optionalHeaders, "Optional")}
+- Documentation: ${server.docsSite ?? server.docs}
+- Health: \`${server.endpoint}/health\` (GET, no credentials)${auth}${headerBlock(server.requiredHeaders, "Required")}${headerBlock(server.optionalHeaders, "Optional")}
 
 Tools:
 
-${server.tools.map((tool) => `- \`${tool.name}\` — ${tool.what.en}`).join("\n")}
+${server.tools.map((tool) => `- \`${tool.name}\` — ${tool.what.en}`).join("\n")}${promptBlock}
 
 Verify the live list with:
 

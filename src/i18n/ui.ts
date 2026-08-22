@@ -23,8 +23,28 @@ export const ui = {
     documentation: "Documentation",
     credentialsRequired: "Credentials required",
     toolsHead: "Tools",
+    promptsHead: "Prompts",
+    promptsIntro:
+      "Canned plans a client can render, beyond the tools above. Ask your assistant for one by name.",
     serversIntro:
       "Both servers speak streamable HTTP: one POST per JSON-RPC 2.0 call, stateless — no session header — answering JSON or an SSE stream depending on your Accept header (application/json, text/event-stream). A GET to an endpoint returns 405 by design.",
+    // Comparison table strings. The table answers the question that actually
+    // brings people to a hosted MCP endpoint — "which of these two do I
+    // want?" — and it is a table on purpose: AI Overviews extracts tables
+    // directly, and this page had none.
+    compareHead: "Which of the two do I want?",
+    compareIntro:
+      "Both speak the same protocol over the same transport. What differs is what they reach and whether they ask you for a credential.",
+    compareAttribute: "",
+    compareEndpoint: "Endpoint",
+    compareCredential: "Credential",
+    compareTools: "Tools",
+    compareTransport: "Transport",
+    compareCovers: "Reaches",
+    compareNoCredential: "None — it is public",
+    compareTransportValue: "streamable HTTP, stateless",
+    compareCoversLibgen: "Books and papers: open-access providers plus shadow-library sources",
+    compareCoversGitlab: "Any GitLab instance, over its REST API",
     privacyEyebrow: "Privacy & data",
     // Visible freshness inside <main>: the footer carries the same date, but
     // readability prunes it and extractors saw the page as undated.
@@ -143,8 +163,24 @@ export const ui = {
     documentation: "Documentación",
     credentialsRequired: "Requiere credenciales",
     toolsHead: "Herramientas",
+    promptsHead: "Prompts",
+    promptsIntro:
+      "Planes listos que un cliente puede renderizar, además de las herramientas de arriba. Pídeselos a tu asistente por su nombre.",
     serversIntro:
       "Ambos servidores hablan streamable HTTP: un POST por llamada JSON-RPC 2.0, sin estado — sin cabecera de sesión — respondiendo JSON o un stream SSE según tu cabecera Accept (application/json, text/event-stream). Un GET al endpoint devuelve 405 a propósito.",
+    compareHead: "¿Cuál de los dos quiero?",
+    compareIntro:
+      "Los dos hablan el mismo protocolo sobre el mismo transporte. Lo que cambia es hasta dónde llegan y si te piden una credencial.",
+    compareAttribute: "",
+    compareEndpoint: "Endpoint",
+    compareCredential: "Credencial",
+    compareTools: "Tools",
+    compareTransport: "Transporte",
+    compareCovers: "Alcance",
+    compareNoCredential: "Ninguna — es público",
+    compareTransportValue: "streamable HTTP, sin estado",
+    compareCoversLibgen: "Libros y artículos: proveedores de acceso abierto y fuentes de bibliotecas en la sombra",
+    compareCoversGitlab: "Cualquier instancia de GitLab, por su API REST",
     privacyEyebrow: "Privacidad y datos",
     updatedIn: "Esta página se actualizó por última vez el",
     privacyBody: [

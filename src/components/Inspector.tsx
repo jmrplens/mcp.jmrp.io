@@ -341,6 +341,14 @@ export default function Inspector({
         {/* Pestañas: las tres cosas que un servidor MCP puede ofrecer. Antes
             había cuatro botones sueltos que solo listaban, y lo listado no se
             podía usar: se veía que había 37 prompts y ahí se acababa. */}
+        {/* The two action buttons sit OUTSIDE the tablist. A `role="tablist"`
+            may only contain `role="tab"` children, and `initialize` and
+            `cancel` are not tabs: axe reported "Element has children which are
+            not allowed: button", and it was the single failing Lighthouse
+            audit on both pages (aria-required-children 0/100, with everything
+            else at 100). The row looks the same — `.tabs-row` now carries the
+            flex layout the tablist used to provide. */}
+        <div className="tabs-row">
         <div className="tabs" role="tablist" aria-label={t.handshake}>
           {TABS.map((name) => (
             <button
@@ -361,6 +369,7 @@ export default function Inspector({
               {name === "resources" ? t.tabResources : null}
             </button>
           ))}
+        </div>
           <button
             type="button"
             className="tab-init tab"

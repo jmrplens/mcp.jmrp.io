@@ -23,7 +23,14 @@ import type { Lang } from "../i18n/ui";
 import { ui } from "../i18n/ui";
 import { contentDate, publishedDate } from "./build-date";
 import { loadPersonNode, PERSON_ID } from "./identity";
-import { LANGS, pageUrl, SITE_NAME, SITE_ORIGIN } from "./seo";
+import {
+  LANGS,
+  OG_IMAGE_SIZE,
+  ogImageUrl,
+  pageUrl,
+  SITE_NAME,
+  SITE_ORIGIN,
+} from "./seo";
 
 // Ver build-date.ts: HEAD si el árbol está limpio, ahora si está sucio. El
 // fallback a la hora actual solo aplica sin git, y ahí es lo único que queda.
@@ -131,24 +138,64 @@ export async function buildSiteGraph(
     // schema.org, así que sin esto quien entra por `mainEntity` nunca llega
     // al repositorio.
     isBasedOn: ref(`${server.repo}#sourcecode`),
-    softwareHelp: ref(server.docsSite ?? server.docs),
+    // `softwareHelp` used to be a bare `ref()`, pointing at an `@id` nothing
+    // defines: the gitlab docs site names its node `…/#webpage`, never the
+    // naked URL, so the reference dangled. libgen's happened to resolve — its
+    // docs site does define a CollectionPage with the bare `@id` — so the same
+    // code behaved differently per server, which is how the 2026-08-22 audit
+    // found it. A typed inline node says what the URL is without claiming to
+    // define someone else's `@id`; the range is CreativeWork, so a plain URL
+    // would not do either.
+    softwareHelp: {
+      "@type": "WebPage",
+      url: server.docsSite ?? server.docs,
+      name: `${server.name} documentation`,
+    },
+    // What a caller has to bring. This is the "can I actually use this?" fact,
+    // and until now only /servers.json answered it — the graph did not.
+    permissions:
+      server.requiredHeaders.length > 0
+        ? server.requiredHeaders
+            .map((h) => `Requires a ${h.name} header on every request.`)
+            .join(" ")
+        : "None. The server is public and takes no credentials.",
+    softwareRequirements:
+      "An MCP client speaking streamable HTTP (JSON-RPC 2.0 over POST).",
+    // The descriptions are bilingual literals, so the node is too.
+    inLanguage: ["en", "es"],
     // Fichas de directorios MCP que describen ESTE servidor (no el repo: el
     // repo se enlaza vía isBasedOn → codeRepository). Si no hay, el undefined
     // desaparece solo al serializar.
     sameAs: server.sameAs,
     // Cómo se llama de verdad: POST con JSON-RPC, no un GET a la URL. Un
     // rastreador que siga `url` recibe un 405, que es correcto por diseño.
-    potentialAction: {
-      "@type": "Action",
-      name: "JSON-RPC 2.0 call over streamable HTTP",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: server.endpoint,
-        httpMethod: "POST",
-        encodingType: "application/json",
-        contentType: "application/json, text/event-stream",
+    // Two actions: how to call it, and how to ask whether it is up. The second
+    // is the question an agent asks BEFORE the first, and until now only
+    // /servers.json answered it — the health URLs were absent from the graph
+    // even though both return 200.
+    potentialAction: [
+      {
+        "@type": "Action",
+        name: "JSON-RPC 2.0 call over streamable HTTP",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: server.endpoint,
+          httpMethod: "POST",
+          encodingType: "application/json",
+          contentType: "application/json, text/event-stream",
+        },
       },
-    },
+      {
+        "@type": "CheckAction",
+        name: "Health check",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${server.endpoint}/health`,
+          httpMethod: "GET",
+          contentType: "application/json",
+        },
+      },
+    ],
   }));
 
   // El nodo de código fuente une el endpoint con su repositorio — la
@@ -194,6 +241,22 @@ export async function buildSiteGraph(
     description,
     inLanguage: lang,
     isPartOf: ref(WEBSITE_ID),
+    // The FAQ is part of this page. Without it the link ran one way only:
+    // #faq declared its `isPartOf`, but nothing led from the page down to it.
+    hasPart: ref(`${url}#faq`),
+    // hreflang already says these two pages are translations of each other;
+    // the graph did not. Same pairing jmrp.io/about/#profile already emits.
+    ...(lang === "en"
+      ? { workTranslation: ref(`${pageUrl("es")}#webpage`) }
+      : { translationOfWork: ref(`${pageUrl("en")}#webpage`) }),
+    // The OG cards exist and return 200, and the page node carried no image
+    // at all.
+    primaryImageOfPage: {
+      "@type": "ImageObject",
+      url: ogImageUrl(lang),
+      width: OG_IMAGE_SIZE.width,
+      height: OG_IMAGE_SIZE.height,
+    },
     author: ref(PERSON_ID),
     publisher: ref(PERSON_ID),
     dateModified: BUILD_DATE,
@@ -206,6 +269,11 @@ export async function buildSiteGraph(
     // política del token, postura legal, límites — y sus `id` de DOM ya
     // existen (los pone ServerCard para poder enlazarlos). `speakable` los
     // señala como los pasajes que un asistente puede leer en voz alta o citar.
+    //
+    // These ids now sit on the <details>, which wraps the question in its
+    // <summary> together with the answer. They used to sit on the inner notice
+    // div — the answer alone — so a read-aloud produced "libgen is a client of
+    // third-party public indexes…" with no question attached to it.
     speakable: {
       "@type": "SpeakableSpecification",
       cssSelector: servers.flatMap((server) =>
@@ -220,9 +288,16 @@ export async function buildSiteGraph(
   // rich results de FAQ para sitios como este (restringido en 2023); el
   // destinatario son los asistentes, no la SERP. Sale de `servers.ts`, la
   // misma fuente que pinta los avisos: no puede desincronizarse del texto.
+  // `url` and `name`: FAQPage is a subclass of WebPage, so without them the
+  // graph described the same document as two WebPages, one of which could not
+  // be tied to a URL at all. The `hasPart` on the WebPage node below is the
+  // matching inverse — the FAQ used to be reachable upward from itself but not
+  // downward from the page.
   const faq = {
     "@type": "FAQPage",
     "@id": `${url}#faq`,
+    url,
+    name: title,
     inLanguage: lang,
     isPartOf: ref(`${url}#webpage`),
     about: apis.map((api) => ref(api["@id"])),

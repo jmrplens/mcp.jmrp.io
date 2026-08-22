@@ -47,6 +47,60 @@ const updated = contentDate() ?? new Date().toISOString();
   <div class="grid">
     {servers.map((s) => <ServerCard server={s} lang={lang} />)}
   </div>
+  {/* A real <table>, not a styled grid, and built from `servers` rather than
+      hand-written: adding a third MCP must not mean editing markup.
+      It exists because the page had zero tables and this is the question that
+      actually brings people to a hosted endpoint — "which of these two do I
+      want?". AI Overviews lifts tables straight out of the page, and a
+      two-item comparison is exactly the shape it takes. */}
+  <table class="compare">
+    <caption>{t.compareHead}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{t.compareAttribute}</th>
+        {servers.map((s) => <th scope="col">{s.name}</th>)}
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">{t.compareCredential}</th>
+        {
+          servers.map((s) => (
+            <td>
+              {s.requiredHeaders.length > 0
+                ? s.requiredHeaders.map((h) => h.name).join(", ")
+                : t.compareNoCredential}
+            </td>
+          ))
+        }
+      </tr>
+      <tr>
+        <th scope="row">{t.compareCovers}</th>
+        {
+          servers.map((s) => (
+            <td>{s.id === "libgen" ? t.compareCoversLibgen : t.compareCoversGitlab}</td>
+          ))
+        }
+      </tr>
+      <tr>
+        <th scope="row">{t.compareTools}</th>
+        {servers.map((s) => <td>{s.tools.length}</td>)}
+      </tr>
+      <tr>
+        <th scope="row">{t.compareEndpoint}</th>
+        {
+          servers.map((s) => (
+            <td><code>{s.endpoint}</code></td>
+          ))
+        }
+      </tr>
+      <tr>
+        <th scope="row">{t.compareTransport}</th>
+        {servers.map(() => <td>{t.compareTransportValue}</td>)}
+      </tr>
+    </tbody>
+  </table>
+
   <p class="machine">
     <a href="/servers.json"><code>/servers.json</code></a>
     <span>— {t.machineIndex}</span>
@@ -218,5 +272,59 @@ const updated = contentDate() ?? new Date().toISOString();
     margin: 1.25rem 0 0;
     color: var(--color-text-muted);
     font-size: 0.8125rem;
+  }
+
+  /* Wide content scrolls inside its own container: the page body must never
+     scroll horizontally on a phone. */
+  .compare {
+    display: block;
+    max-width: 100%;
+    margin: 1.75rem 0 0;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .compare caption {
+    margin-bottom: 0.75rem;
+    color: var(--color-text-heading);
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-align: start;
+  }
+
+  .compare th,
+  .compare td {
+    padding: 0.5rem 0.9rem;
+    border-bottom: 1px solid var(--color-hair);
+    text-align: start;
+    vertical-align: top;
+  }
+
+  .compare thead th {
+    color: var(--color-text-heading);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+
+  .compare tbody th {
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .compare td {
+    color: var(--color-text);
+    /* The reach cells are full sentences: they need to wrap even though the
+       table as a whole is nowrap for the endpoint column. */
+    white-space: normal;
+  }
+
+  .compare code {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    overflow-wrap: anywhere;
   }
 </style>

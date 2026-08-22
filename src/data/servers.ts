@@ -47,6 +47,20 @@ export type McpToolInfo = {
   what: Bilingual;
 };
 
+/**
+ * An MCP prompt the server exposes: a canned plan a client can render.
+ *
+ * Modelled separately from tools because it is a different capability of the
+ * protocol. It is documented here because the inspector lists prompts live,
+ * but no crawler runs the inspector — before this they appeared nowhere in the
+ * static surface (card, /servers.json, llms-full.txt), which the 2026-08-22
+ * audit flagged: they are a differentiator against other libgen MCP servers.
+ */
+export type McpPromptInfo = {
+  name: string;
+  what: Bilingual;
+};
+
 export type McpServer = {
   id: string;
   name: string;
@@ -75,6 +89,8 @@ export type McpServer = {
    * pero obliga a una llamada en vivo que ningún buscador hace.
    */
   tools: McpToolInfo[];
+  /** Prompts que expone, si los hay. */
+  prompts?: McpPromptInfo[];
   /** Avisos propios de este servidor. */
   notices: McpNotice[];
 };
@@ -118,6 +134,36 @@ export const servers: McpServer[] = [
         what: {
           en: "Resolve a download link from an md5, ISBN or DOI. Over HTTP it returns the link, it does not write files.",
           es: "Resuelve un enlace de descarga a partir de un md5, ISBN o DOI. Por HTTP devuelve el enlace, no escribe ficheros.",
+        },
+      },
+    ],
+    prompts: [
+      {
+        name: "acquire_book",
+        what: {
+          en: "Find a book across the catalogs and open-access sources, then generate step-by-step instructions to confirm and download the best matching edition.",
+          es: "Busca un libro en los catálogos y las fuentes de acceso abierto, y genera instrucciones paso a paso para confirmar y descargar la mejor edición.",
+        },
+      },
+      {
+        name: "research_topic",
+        what: {
+          en: "Survey papers and books on a topic across the catalogs and open-access sources, then build a reading list with instructions to download and produce an annotated bibliography.",
+          es: "Revisa artículos y libros sobre un tema en los catálogos y las fuentes de acceso abierto, y arma una lista de lectura con instrucciones para descargarlos y producir una bibliografía anotada.",
+        },
+      },
+      {
+        name: "get_paper",
+        what: {
+          en: "Resolve a specific paper by DOI or by a free-text citation and generate instructions to download it.",
+          es: "Resuelve un artículo concreto por DOI o por una cita en texto libre y genera instrucciones para descargarlo.",
+        },
+      },
+      {
+        name: "download_troubleshoot",
+        what: {
+          en: "Diagnose a failed or stuck download and produce a step-by-step recovery plan tailored to the identifier, the enabled providers, and any error message.",
+          es: "Diagnostica una descarga fallida o atascada y produce un plan de recuperación paso a paso según el identificador, los proveedores habilitados y el mensaje de error.",
         },
       },
     ],

@@ -91,6 +91,37 @@ const needsAuth = server.requiredHeaders.length > 0;
     </dl>
   </details>
 
+  {
+    /* Prompts: a protocol capability the card never mentioned. The inspector
+       lists them live, but no crawler runs the inspector, so for anything that
+       reads the page they did not exist. Only rendered when a server has
+       them. */
+    server.prompts?.length ? (
+      <details class="fold fold-prompts">
+        <summary>
+          <h3 class="fold-label">{t.promptsHead} — {server.name}</h3>
+          <span class="fold-peek">
+            {server.prompts.map((prompt, i) => (
+              <>
+                {i > 0 && " "}
+                <code>{prompt.name}</code>
+              </>
+            ))}
+          </span>
+        </summary>
+        <p class="fold-intro">{t.promptsIntro}</p>
+        <dl>
+          {server.prompts.map((prompt) => (
+            <>
+              <dt><code>{prompt.name}</code></dt>
+              <dd>{prompt.what[lang]}</dd>
+            </>
+          ))}
+        </dl>
+      </details>
+    ) : null
+  }
+
   {/* La configuración por cliente, plegada como las tools: la pregunta que
       trae a la gente a un endpoint alojado, contestada en el dominio y no en
       el sitio de documentación de cada servidor. El título es un <h3> en
@@ -115,14 +146,21 @@ const needsAuth = server.requiredHeaders.length > 0;
        trocean por encabezados — cada aviso pasa a ser un pasaje con ancla
        propia. */
     server.notices.map((notice) => (
+      /* The id lives on the <details>, not on the notice body inside it, so
+         that it wraps the QUESTION and its ANSWER. Two things depend on that:
+         an `#gitlab-security` link now lands on the question rather than
+         mid-answer, and `speakable` in the JSON-LD points at these same ids —
+         with the id on the inner div, a read-aloud got the answer with no
+         question attached. */
       <details
         class={`fold fold-${notice.kind}`}
+        id={`${server.id}-${notice.kind}`}
         open={notice.kind === "security"}
       >
         <summary>
           <h3 class="fold-label">{notice.title[lang]}</h3>
         </summary>
-        <Notice notice={notice} lang={lang} id={`${server.id}-${notice.kind}`} />
+        <Notice notice={notice} lang={lang} />
       </details>
     ))
   }
@@ -202,6 +240,13 @@ const needsAuth = server.requiredHeaders.length > 0;
     font-family: var(--font-mono);
     font-size: 0.7rem;
     font-weight: 600;
+  }
+
+  .fold-intro {
+    margin: 0 0 0.6rem;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    text-wrap: pretty;
   }
 
   .endpoint code {

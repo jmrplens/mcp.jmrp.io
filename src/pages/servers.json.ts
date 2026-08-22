@@ -27,6 +27,12 @@ export const GET: APIRoute = () =>
           transport: "streamable-http",
           description: s.description.en,
           tools: s.tools.map((tool) => tool.name),
+          // Prompts are a separate MCP capability from tools, and this index
+          // only listed tools. The inspector lists them live, but no crawler
+          // runs the inspector. Dropped entirely when a server has none.
+          ...(s.prompts?.length && {
+            prompts: s.prompts.map((prompt) => prompt.name),
+          }),
           requiredHeaders: s.requiredHeaders.map((h) => h.name),
           optionalHeaders: s.optionalHeaders.map((h) => h.name),
           repository: s.repo,
