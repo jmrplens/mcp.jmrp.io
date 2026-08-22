@@ -9,8 +9,8 @@ test("getLangFromUrl saca el idioma del primer segmento", () => {
     ["https://mcp.jmrp.io/inspector/", "en"],
     ["https://mcp.jmrp.io/es/", "es"],
     ["https://mcp.jmrp.io/es/inspector/", "es"],
-    // Un segmento que NO es un idioma cae al idioma por defecto: es una
-    // página inglesa, no un 404 de idioma.
+    // A first segment that is NOT a language falls back to the default one:
+    // it is an English page, not a language 404.
     ["https://mcp.jmrp.io/internals/", "en"],
   ];
   for (const [href, expected] of cases) {
