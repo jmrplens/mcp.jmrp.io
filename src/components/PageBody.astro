@@ -9,6 +9,8 @@
  */
 import { servers } from "../data/servers";
 import { ui } from "../i18n/ui";
+import { contentDate } from "../lib/build-date";
+import { humanDate } from "../lib/format";
 import Inspector from "./Inspector";
 import ServerCard from "./ServerCard.astro";
 
@@ -18,6 +20,10 @@ interface Props {
 
 const { lang } = Astro.props;
 const t = ui[lang];
+// Same date as the footer, dateModified and sitemap lastmod, through the
+// shared helper. It is repeated here INSIDE <main> on purpose: readability
+// prunes <footer>, so to an extractor the page came out undated.
+const updated = contentDate() ?? new Date().toISOString();
 ---
 
 <section class="hero">
@@ -35,7 +41,6 @@ const t = ui[lang];
       dos únicos H2 (los nombres de las fichas). Como h2 dan outline real sin
       cambiar el aspecto — .eyebrow ya fija tamaño, peso y márgenes. */}
   <h2 class="eyebrow" id="servers-h">
-    <span aria-hidden="true">//</span>
     {t.serversEyebrow}
   </h2>
   <p class="section-intro">{t.serversIntro}</p>
@@ -50,7 +55,6 @@ const t = ui[lang];
 
 <section aria-labelledby="inspector-h">
   <h2 class="eyebrow" id="inspector-h">
-    <span aria-hidden="true">//</span>
     {t.inspectorEyebrow}
   </h2>
   <p class="section-intro">{t.inspectorIntro}</p>
@@ -66,10 +70,16 @@ const t = ui[lang];
       la CSP la aplica el navegador, la retención de logs es la de logrotate
       y las métricas se construyeron para descartar los argumentos. */}
   <h2 class="eyebrow" id="privacy-h">
-    <span aria-hidden="true">//</span>
     {t.privacyEyebrow}
   </h2>
   {t.privacyBody.map((paragraph) => <p class="privacy-text">{paragraph}</p>)}
+  {/* Visible freshness INSIDE <main>. The footer carries the same date, but
+      readability prunes <footer> and extraction pipelines saw an undated page
+      (`byline: null`). Here it survives. */}
+  <p class="updated-line">
+    {t.updatedIn}{" "}
+    <time datetime={updated}>{humanDate(updated, lang)}</time>
+  </p>
 </section>
 
 <style>
@@ -127,8 +137,13 @@ const t = ui[lang];
     text-wrap: pretty;
   }
 
-  /* Eyebrow con `//`: es el marcador de sección de jmrp.io. El `//` va en un
-     span aria-hidden para que un lector de pantalla no lea "barra barra". */
+  /* Eyebrow with `//`: jmrp.io's section marker.
+     The `//` is painted from CSS and does NOT exist in the DOM. It used to be
+     a <span aria-hidden>, which handled screen readers but not extractors:
+     `aria-hidden` has no effect on `textContent`, which is what readability
+     and friends read, so headings came out as "//Servers", "//Inspector" and
+     "//Privacy & data". With ::before the ornament leaves the extracted text
+     and looks exactly the same. */
   .eyebrow {
     display: flex;
     gap: 0.6rem;
@@ -142,8 +157,9 @@ const t = ui[lang];
     text-transform: uppercase;
   }
 
-  .eyebrow span {
+  .eyebrow::before {
     color: var(--color-accent);
+    content: "//";
   }
 
   section {
@@ -196,5 +212,11 @@ const t = ui[lang];
     margin: 0 0 1.5rem;
     color: var(--color-text);
     text-wrap: pretty;
+  }
+
+  .updated-line {
+    margin: 1.25rem 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
   }
 </style>

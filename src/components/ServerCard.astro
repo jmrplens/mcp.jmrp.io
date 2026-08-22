@@ -33,8 +33,16 @@ const needsAuth = server.requiredHeaders.length > 0;
 
   <p class="card-desc">{server.description[lang]}</p>
 
+  {/* The `{" "}` here and in the two blocks below are separators for
+      EXTRACTORS, not decoration. Without them `textContent` — what readability
+      and RAG pipelines read — ran words together:
+      "POSThttps://mcp.jmrp.io/libgen", "searchget_detailsreaddownload",
+      "RepositoryDocumentation". An assistant quoting the tool list emitted a
+      garbage token.
+      They are invisible: all three containers are flex, and per the flexbox
+      spec an anonymous item containing only white space is not rendered. */}
   <p class="endpoint">
-    <span class="verb">POST</span>
+    <span class="verb">POST</span>{" "}
     <code>{server.endpoint}</code>
   </p>
 
@@ -63,7 +71,12 @@ const needsAuth = server.requiredHeaders.length > 0;
     <summary>
       <h3 class="fold-label">{t.toolsHead} — {server.name}</h3>
       <span class="fold-peek">
-        {server.tools.map((tool) => <code>{tool.name}</code>)}
+        {server.tools.map((tool, i) => (
+          <>
+            {i > 0 && " "}
+            <code>{tool.name}</code>
+          </>
+        ))}
       </span>
     </summary>
     <dl>
@@ -115,7 +128,7 @@ const needsAuth = server.requiredHeaders.length > 0;
   }
 
   <p class="links">
-    <a href={server.repo}>{t.repository}</a>
+    <a href={server.repo}>{t.repository}</a>{" "}
     <a href={server.docsSite ?? server.docs}>{t.documentation}</a>
   </p>
 </article>

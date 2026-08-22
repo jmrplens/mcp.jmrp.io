@@ -15,6 +15,7 @@ import "../styles/global.css";
 import { Font } from "astro:assets";
 
 import { contentDate } from "../lib/build-date";
+import { humanDate } from "../lib/format";
 import { buildSiteGraph, safeJsonLd } from "../lib/jsonld";
 import {
   alternates,
@@ -36,10 +37,7 @@ const { title, description, lang } = Astro.props;
 
 // La misma fecha que dateModified y el lastmod del sitemap: una sola verdad.
 const updated = contentDate() ?? new Date().toISOString();
-const updatedHuman = new Intl.DateTimeFormat(
-  lang === "es" ? "es-ES" : "en-GB",
-  { day: "numeric", month: "long", year: "numeric" },
-).format(new Date(updated));
+const updatedHuman = humanDate(updated, lang);
 const alternate = lang === "en" ? "/es/" : "/";
 // Canonical, og:url y twitter:url son el MISMO valor a propósito: tres
 // declaraciones distintas de dónde vive esta página son tres oportunidades de
@@ -81,14 +79,14 @@ const t = {
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
 
-    {/* `max-snippet:-1` quita el tope de cuánto texto puede citar Google, y es
-        la directiva que sostiene toda la jugada de este sitio: sus respuestas
-        están marcadas como FAQPage y speakable justamente para que se citen
-        enteras. Los bots de IA (GPTBot, ClaudeBot, PerplexityBot) NO leen esto
-        —para ellos manda robots.txt—, pero AI Overviews y el grounding de
-        Gemini se sirven del índice de Googlebot, que sí lo respeta.
-        Mismo valor que las 126 páginas de jmrp.io: una sola política para el
-        dominio y el subdominio. */}
+    {/* `max-snippet:-1` lifts the cap on how much text Google may quote, and
+        it is the directive the whole play of this site rests on: its answers
+        are marked up as FAQPage and speakable precisely so they get quoted in
+        full. AI bots (GPTBot, ClaudeBot, PerplexityBot) do NOT read this —
+        robots.txt is what governs them — but AI Overviews and Gemini
+        grounding are served from Googlebot's index, which does honour it.
+        Same value as jmrp.io's 126 pages: one policy for domain and
+        subdomain. */}
     <meta
       name="robots"
       content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
