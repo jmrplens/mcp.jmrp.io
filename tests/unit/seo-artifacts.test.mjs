@@ -382,3 +382,21 @@ test("el catálogo de descubrimiento y las server cards son coherentes", () => {
     }
   }
 });
+
+test("las páginas llevan los tokens que nginx sustituye por el estado en vivo", () => {
+  // El estado (versión y nodos vivos de cada MCP) lo inyecta
+  // /etc/nginx/lua/mcp_ssr_status.lua sustituyendo estos tokens al vuelo. Si
+  // desaparecen del build, la sustitución no falla: simplemente no ocurre, y
+  // la página sale sin estado sin que nada se ponga rojo. De ahí este test.
+  //
+  // En `astro preview` (los e2e) los tokens NO se sustituyen, porque los hooks
+  // lua solo existen en el vhost de producción. Eso es lo esperado.
+  for (const [name, html] of pages()) {
+    for (const token of ["MCPSSR_LIBGEN_STATUS", "MCPSSR_GITLAB_STATUS"]) {
+      assert.ok(
+        html.includes(token),
+        `${name}: falta el token ${token} — nginx no tendrá qué sustituir`,
+      );
+    }
+  }
+});

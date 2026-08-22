@@ -46,6 +46,22 @@ const needsAuth = server.requiredHeaders.length > 0;
     <code>{server.endpoint}</code>
   </p>
 
+  {/* Live status, injected at the ORIGIN by /etc/nginx/lua/mcp_ssr_status.lua:
+      nginx swaps this token for the running version and how many of the three
+      instances answered, polled from their /health and cached 5 minutes.
+
+      It is done server-side and not with client JavaScript precisely because
+      the audience includes Googlebot, GPTBot and RAG pipelines, none of which
+      run scripts. Same technique as jmrp.io's /homelab page.
+
+      If the token reaches a browser unsubstituted, nginx is not applying the
+      filter — in local `astro preview` that is expected, since the Lua hooks
+      only exist in the production vhost. */}
+  <p class="live-status" data-ssr={`mcp-${server.id}`}>
+    <span class="live-dot" aria-hidden="true"></span>
+    {server.id === "libgen" ? "MCPSSR_LIBGEN_STATUS" : "MCPSSR_GITLAB_STATUS"}
+  </p>
+
   {
     needsAuth && (
       <dl class="headers">
@@ -240,6 +256,23 @@ const needsAuth = server.requiredHeaders.length > 0;
     font-family: var(--font-mono);
     font-size: 0.7rem;
     font-weight: 600;
+  }
+
+  .live-status {
+    display: flex;
+    gap: 0.45rem;
+    align-items: center;
+    margin: -0.35rem 0 0;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .live-dot {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: var(--color-success);
   }
 
   .fold-intro {
