@@ -14,6 +14,16 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
+// El `.env` del repo (gitignorado) trae la clave de Bing Webmaster. Igual que
+// en jmrp.io: `loadEnvFile` NO pisa lo que ya venga del entorno, así que una
+// variable exportada sigue mandando. Si el fichero no existe no pasa nada —
+// cada consumidor decide si puede seguir sin su credencial.
+try {
+  process.loadEnvFile(new URL("../.env", import.meta.url));
+} catch {
+  // Sin .env: se sigue con lo que haya en el entorno.
+}
+
 const DIST = path.resolve("dist");
 const SNIPPETS = "/etc/nginx/snippets";
 
@@ -237,4 +247,53 @@ if (INDEXNOW_KEY) {
   } catch (error) {
     console.warn(`⚠ no se pudo avisar a IndexNow: ${oneLine(error.message)}`);
   }
+}
+
+// ── Bing Webmaster (URL Submission) ────────────────────────────────────────
+//
+// IndexNow y esta API son pipelines DISTINTOS, no alternativas: el primero es
+// el protocolo abierto (Bing + Yandex), esta es la cuota propia del sitio en
+// Bing Webmaster. jmrp.io usa las dos desde siempre; aquí solo estaba IndexNow.
+//
+// Importa porque la auditoría del 2026-08-22 midió por la API de Bing que este
+// subdominio tiene `InIndex: 0` — nunca rastreado, `AnchorCount: 0` — mientras
+// jmrp.io va por 903. bingbot lleva semanas releyendo el sitemap sin bajar una
+// sola página. Es la única palanca on-site que queda sobre eso: el subdominio
+// ya es propiedad verificada por derecho propio, así que la llamada se acepta.
+//
+// La clave sale del `.env` del repo. Si falta, se avisa y NO se falla: el
+// origen ya está desplegado y la indexación es un extra.
+const bingKey = process.env.BING_WEBMASTER_API_KEY;
+
+if (bingKey) {
+  try {
+    const response = await fetch(
+      `https://ssl.bing.com/webmaster/api.svc/json/SubmitUrlbatch?apikey=${encodeURIComponent(bingKey)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          siteUrl: "https://mcp.jmrp.io",
+          urlList: ["https://mcp.jmrp.io/", "https://mcp.jmrp.io/es/"],
+        }),
+        signal: AbortSignal.timeout(15_000),
+      },
+    );
+    // La API devuelve 200 con `{"d":null}` cuando acepta. Un 400 suele ser
+    // cuota agotada del día, que no es un fallo del despliegue.
+    console.log(
+      response.ok
+        ? `✓ Bing Webmaster avisado (HTTP ${response.status})`
+        : `⚠ Bing Webmaster devolvió HTTP ${response.status}`,
+    );
+  } catch (error) {
+    console.warn(`⚠ no se pudo avisar a Bing: ${oneLine(error.message)}`);
+  }
+} else {
+  console.warn(
+    "⚠ sin BING_WEBMASTER_API_KEY: no se envían las URLs a Bing Webmaster.",
+  );
 }
