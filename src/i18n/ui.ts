@@ -1,7 +1,6 @@
 import { common } from "./ui/common.ts";
 import { home } from "./ui/home.ts";
 import { inspector } from "./ui/inspector.ts";
-import { internals } from "./ui/internals.ts";
 import { policies } from "./ui/policies.ts";
 
 /**
@@ -11,18 +10,22 @@ import { policies } from "./ui/policies.ts";
  * when this was split: the file had grown to 273 lines and four pages would
  * have tripled it.
  *
- * `common` is spread LAST on purpose. `internals.ts` already defines its own
- * `metaTitle`/`title`/`lede` for the page a later task builds, and those key
- * names collide with `common`'s site-identity strings of the same name.
- * `home` is the only page live today, so `common`'s values (which are what
- * every current consumer of `ui.en.title` etc. expects) must win the merge —
- * spreading `common` last guarantees that regardless of what any other page
- * module defines. Whoever wires up `/internals/` should read
- * `internals.en.title` directly rather than through this merged object.
+ * `internals` is NOT part of this merge, on purpose. It already defines its
+ * own `metaTitle`/`title`/`lede` (for the page a later task builds), and
+ * those names collide with `common`'s site-identity keys of the same name.
+ * Spreading it in here would not be a type error even when it should be one:
+ * if `common.es.title` were ever accidentally dropped, the merge would
+ * silently fall through to `internals.es.title` instead of leaving `title`
+ * missing — which is exactly the incomplete-language bug this file's typing
+ * exists to catch (confirmed by deleting `common.es.title` and watching
+ * `pnpm typecheck` report 0 errors while `internals` was still spread in).
+ * Whoever wires up `/internals/` should import `internals` from
+ * `./ui/internals.ts` directly and read `internals.en.title` there, rather
+ * than through this merged object.
  */
 export const ui = {
-  en: { ...home.en, ...inspector.en, ...internals.en, ...policies.en, ...common.en },
-  es: { ...home.es, ...inspector.es, ...internals.es, ...policies.es, ...common.es },
+  en: { ...home.en, ...inspector.en, ...policies.en, ...common.en },
+  es: { ...home.es, ...inspector.es, ...policies.es, ...common.es },
 } as const;
 
 // `Lang` now lives in `./config`; re-exported so existing imports keep working.
