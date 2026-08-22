@@ -22,7 +22,7 @@ export const common = {
      */
     metaTitle: "MCP servers — free Model Context Protocol endpoints · jmrp.io",
     subtitle: "Self-hosted Model Context Protocol servers, free to use.",
-    lede: "Two Model Context Protocol servers, self-hosted and free to use. Point your MCP client at an endpoint, or try them right here in the browser.",
+    lede: "Two Model Context Protocol servers, self-hosted and free to use. Point your MCP client at an endpoint, or try them in the browser.",
     // Chrome strings: header, footer and the skip link. Every page renders
     // them through `Base.astro`.
     skip: "Skip to content",
@@ -37,7 +37,7 @@ export const common = {
     metaTitle:
       "Servidores MCP — Model Context Protocol de uso libre · jmrp.io",
     subtitle: "Servidores Model Context Protocol self-hosted, de uso libre.",
-    lede: "Dos servidores Model Context Protocol, self-hosted y de uso libre. Apunta tu cliente MCP a un endpoint, o pruébalos aquí mismo en el navegador.",
+    lede: "Dos servidores Model Context Protocol, self-hosted y de uso libre. Apunta tu cliente MCP a un endpoint, o pruébalos en el navegador.",
     skip: "Saltar al contenido",
     source: "Código",
     other: "English",

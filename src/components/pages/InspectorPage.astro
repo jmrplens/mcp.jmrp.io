@@ -1,0 +1,99 @@
+---
+/**
+ * Inspector page — the interactive island that talks to the MCP servers from
+ * the visitor's browser.
+ *
+ * Split out of the home page so the home page ships zero JavaScript: the URL
+ * search engines crawl and assistants cite must not depend on a client-side
+ * island being hydrated. See `home.tryInBrowser` for the link that sends
+ * visitors here from the hero, and `common.lede` (Ruling R6) for why the
+ * home page's promise stayed true without embedding this page in it.
+ */
+import { servers } from "../../data/servers";
+import { ui } from "../../i18n/ui";
+import { getLangFromUrl } from "../../i18n/utils";
+import { pageUrl } from "../../lib/seo";
+import Inspector from "../Inspector";
+
+const lang = getLangFromUrl(Astro.url);
+const t = ui[lang];
+// Site-relative, like the language switch in Base.astro: an absolute URL
+// here would jump a dev or preview server straight to production.
+const homeHref = new URL(pageUrl(lang, "home")).pathname;
+---
+
+<p class="back-link">
+  <a href={homeHref}>{t.backToHome}</a>
+</p>
+
+<section aria-labelledby="inspector-h">
+  <h2 class="eyebrow" id="inspector-h">
+    {t.inspectorEyebrow}
+  </h2>
+  <p class="section-intro">{t.inspectorIntro}</p>
+  <Inspector client:load servers={servers} lang={lang} />
+  <p class="notice-pointer">
+    {t.noticePointer}
+  </p>
+</section>
+
+<style>
+  /* Copied from PageBody.astro's shared rules: Astro scopes <style> per
+     component, so a class used on both pages needs its own copy here. */
+  .back-link {
+    margin: 0 0 1.5rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .back-link a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .back-link a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  section {
+    padding-block-end: 3.5rem;
+  }
+
+  /* Eyebrow with `//`: jmrp.io's section marker, painted from CSS so it does
+     NOT exist in the DOM — `textContent`-based extractors would otherwise
+     read the heading as "//Inspector". See PageBody.astro for the full
+     rationale. */
+  .eyebrow {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin: 0 0 1.25rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .eyebrow::before {
+    color: var(--color-accent);
+    content: "//";
+  }
+
+  .section-intro {
+    max-width: 62ch;
+    margin: 0 0 1.5rem;
+    color: var(--color-text);
+    text-wrap: pretty;
+  }
+
+  .notice-pointer {
+    margin: 1rem 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    text-wrap: pretty;
+  }
+</style>

@@ -11,7 +11,7 @@ import { servers } from "../data/servers";
 import { ui } from "../i18n/ui";
 import { contentDate } from "../lib/build-date";
 import { humanDate } from "../lib/format";
-import Inspector from "./Inspector";
+import { pageUrl } from "../lib/seo";
 import ServerCard from "./ServerCard.astro";
 
 interface Props {
@@ -24,6 +24,9 @@ const t = ui[lang];
 // shared helper. It is repeated here INSIDE <main> on purpose: readability
 // prunes <footer>, so to an extractor the page came out undated.
 const updated = contentDate() ?? new Date().toISOString();
+// Site-relative, like the language switch in Base.astro: an absolute URL
+// here would jump a dev or preview server straight to production.
+const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
 ---
 
 <section class="hero">
@@ -34,6 +37,12 @@ const updated = contentDate() ?? new Date().toISOString();
       quien no sabe qué es esto, y el ancla de entidad que los titulares
       genéricos no dan. Ver `whatIsMcp` en ui.ts. */}
   <p class="what-is">{t.whatIsMcp}</p>
+  {/* The old lede promised trying the servers "right here"; now that the
+      inspector lives on its own page, that promise is a real link instead
+      (Ruling R6 — see the comment on `home.tryInBrowser`). */}
+  <p class="try-inspector">
+    <a href={inspectorHref}>{t.tryInBrowser}</a>
+  </p>
 </section>
 
 <section aria-labelledby="servers-h">
@@ -104,17 +113,6 @@ const updated = contentDate() ?? new Date().toISOString();
   <p class="machine">
     <a href="/servers.json"><code>/servers.json</code></a>
     <span>— {t.machineIndex}</span>
-  </p>
-</section>
-
-<section aria-labelledby="inspector-h">
-  <h2 class="eyebrow" id="inspector-h">
-    {t.inspectorEyebrow}
-  </h2>
-  <p class="section-intro">{t.inspectorIntro}</p>
-  <Inspector client:load servers={servers} lang={lang} />
-  <p class="notice-pointer">
-    {t.noticePointer}
   </p>
 </section>
 
@@ -195,9 +193,10 @@ const updated = contentDate() ?? new Date().toISOString();
      The `//` is painted from CSS and does NOT exist in the DOM. It used to be
      a <span aria-hidden>, which handled screen readers but not extractors:
      `aria-hidden` has no effect on `textContent`, which is what readability
-     and friends read, so headings came out as "//Servers", "//Inspector" and
-     "//Privacy & data". With ::before the ornament leaves the extracted text
-     and looks exactly the same. */
+     and friends read, so headings came out as "//Servers" and "//Privacy &
+     data". With ::before the ornament leaves the extracted text and looks
+     exactly the same. `InspectorPage.astro` keeps its own copy of this rule
+     now that its "//Inspector" heading lives there instead. */
   .eyebrow {
     display: flex;
     gap: 0.6rem;
@@ -243,20 +242,29 @@ const updated = contentDate() ?? new Date().toISOString();
     text-underline-offset: 3px;
   }
 
-  /* El inspector es donde se pega el token, pero la política de ese token
-     pertenece a gitlab y vive en su ficha. Este puntero une las dos cosas sin
-     duplicar el texto ni mezclar los avisos de los dos servidores. */
+  /* Same look as `.machine`: a small mono pointer out of the hero, this one
+     to the inspector's own page instead of a machine-readable file. */
+  .try-inspector {
+    margin: 0.9rem 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+  }
+
+  .try-inspector a {
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    text-decoration: none;
+  }
+
+  .try-inspector a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
   .privacy-text {
     max-width: 62ch;
     margin: 0 0 0.7rem;
     color: var(--color-text);
-    font-size: 0.875rem;
-    text-wrap: pretty;
-  }
-
-  .notice-pointer {
-    margin: 1rem 0 0;
-    color: var(--color-text-muted);
     font-size: 0.875rem;
     text-wrap: pretty;
   }

@@ -9,12 +9,21 @@
  */
 export const inspector = {
   en: {
-    inspector: "Inspector",
+    /**
+     * `<title>` of `/inspector/`.
+     *
+     * Named `inspectorMetaTitle`, not `metaTitle`: this module is flattened
+     * into the merged `ui` object alongside `common`, which already owns
+     * `metaTitle` for the home page. An unprefixed name here would collide —
+     * silently dropping one of the two under the plain spread in `ui.ts` —
+     * which is exactly what `i18n-modules.test.mjs` exists to catch.
+     */
+    inspectorMetaTitle: "Inspector — try the MCP servers in your browser · jmrp.io",
     inspectorEyebrow: "Inspector",
     inspectorIntro:
       "Query the servers straight from your browser. Pick one, call a method and read the raw JSON-RPC response.",
-    inspectorCredentials:
-      "Servers that need credentials show their header fields once you select them. Whatever you type there stays in this tab: it is sent with the request and never stored. Read the note below before pasting a token.",
+    /** Link from `/inspector/` back to the home page. */
+    backToHome: "Back to the servers",
     noticePointer:
       "Before pasting a credential, read the notice on that server's card above: it says exactly where the value goes and what the browser itself prevents.",
     insp: {
@@ -75,12 +84,13 @@ export const inspector = {
     },
   },
   es: {
-    inspector: "Inspector",
+    /** See `en.inspectorMetaTitle`: document `<title>`, not the H1. */
+    inspectorMetaTitle: "Inspector — prueba los servidores MCP en tu navegador · jmrp.io",
     inspectorEyebrow: "Inspector",
     inspectorIntro:
       "Consulta los servidores desde tu propio navegador. Elige uno, llama a un método y lee la respuesta JSON-RPC tal cual.",
-    inspectorCredentials:
-      "Los servidores que piden credenciales muestran sus campos al seleccionarlos. Lo que escribas ahí se queda en esta pestaña: viaja con la petición y no se guarda en ningún sitio. Lee la nota de abajo antes de pegar un token.",
+    /** See `en.backToHome`: link back to the home page. */
+    backToHome: "Volver a los servidores",
     noticePointer:
       "Antes de pegar una credencial, lee el aviso en la ficha de ese servidor, arriba: dice exactamente a dónde va el valor y qué impide el propio navegador.",
     /** Ver `en.insp`: los identificadores del protocolo se quedan en inglés. */

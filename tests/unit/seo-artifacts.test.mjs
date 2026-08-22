@@ -180,8 +180,13 @@ test("el sitemap lleva lastmod y las anotaciones hreflang", () => {
       "sin xhtml:link es, el clúster solo vive en el <head>",
     );
   }
+  // Not a fixed literal: the site now has more than the two home pages
+  // (`/inspector/` joined in this task, `/internals/` and `/policies/` are
+  // coming), and each one gets its own <url> entry. The invariant that
+  // matters is that NONE of them is missing a <lastmod>, not a specific count.
+  const locs = [...sitemap.matchAll(/<loc>[^<]+<\/loc>/g)];
   const lastmods = [...sitemap.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)];
-  assert.equal(lastmods.length, 2, "cada URL necesita su lastmod");
+  assert.equal(lastmods.length, locs.length, "cada URL necesita su lastmod");
   for (const [, value] of lastmods) {
     assert.ok(
       !Number.isNaN(Date.parse(value)),

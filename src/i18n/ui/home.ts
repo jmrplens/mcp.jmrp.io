@@ -20,6 +20,15 @@ export const home = {
      */
     whatIsMcp:
       "The Model Context Protocol (MCP) is an open standard that lets AI assistants use external tools and data sources; mcp.jmrp.io hosts two such servers, libgen and gitlab.",
+    /**
+     * Hero link to `/inspector/`.
+     *
+     * `common.lede` used to promise "try them right here in the browser"; now
+     * that the inspector lives on its own page, the promise is fulfilled with
+     * a real link instead of markup forced into the lede string (which is
+     * also the meta description, the JSON-LD and llms.txt — see Ruling R6).
+     */
+    tryInBrowser: "Try them in the browser",
     serversEyebrow: "Servers",
     serversIntro:
       "Both servers speak streamable HTTP: one POST per JSON-RPC 2.0 call, stateless — no session header — answering JSON or an SSE stream depending on your Accept header (application/json, text/event-stream). A GET to an endpoint returns 405 by design.",
@@ -64,6 +73,8 @@ export const home = {
     /** Ver `en.whatIsMcp`: define MCP y ancla la marca al primer texto. */
     whatIsMcp:
       "El Model Context Protocol (MCP) es un estándar abierto que permite a los asistentes de IA usar herramientas y fuentes de datos externas; mcp.jmrp.io aloja dos de esos servidores, libgen y gitlab.",
+    /** See `en.tryInBrowser`: hero link to `/inspector/`. */
+    tryInBrowser: "Pruébalos en el navegador",
     serversEyebrow: "Servidores",
     serversIntro:
       "Ambos servidores hablan streamable HTTP: un POST por llamada JSON-RPC 2.0, sin estado — sin cabecera de sesión — respondiendo JSON o un stream SSE según tu cabecera Accept (application/json, text/event-stream). Un GET al endpoint devuelve 405 a propósito.",
