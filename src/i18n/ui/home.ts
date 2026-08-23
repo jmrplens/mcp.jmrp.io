@@ -77,6 +77,14 @@ export const home = {
      * to answer it in full, instead of just asserting "it's not stored".
      */
     affinityLink: "How that hash is derived, with the code",
+    /**
+     * Replaces the old tools/prompts `<details>` folds on this card: they
+     * moved to their own page (`/servers/<id>/`), one per server, with a
+     * direct link into the inspector for each entry — see
+     * `.superpowers/sdd/servers-section-spec.md`. This is the pointer from
+     * the (now lighter) home card to that page.
+     */
+    viewServerCard: "View the full server card",
   },
   es: {
     pill: "servidores · streamable HTTP",
@@ -119,5 +127,7 @@ export const home = {
     noCredentials: "No requiere credenciales",
     /** Ver `en.affinityLink`: enlace a `/internals/#affinity-h`. */
     affinityLink: "Cómo se deriva ese hash, con el código a la vista",
+    /** Ver `en.viewServerCard`: enlace a la ficha completa del servidor. */
+    viewServerCard: "Ver la ficha completa del servidor",
   },
 } as const;

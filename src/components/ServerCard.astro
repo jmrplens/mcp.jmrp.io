@@ -3,9 +3,10 @@
  * Ficha de un servidor MCP. Se alimenta de `src/data/servers.ts`, que es la
  * única fuente de verdad: dar de alta un MCP nuevo no debe tocar markup.
  */
+import { getServerCard } from "../data/server-cards";
 import type { McpServer } from "../data/servers";
 import { ui } from "../i18n/ui";
-import { pageUrl } from "../lib/seo";
+import { pageUrl, serverPageUrl } from "../lib/seo";
 import ClientSetup from "./ClientSetup.astro";
 import Notice from "./Notice.astro";
 
@@ -20,6 +21,15 @@ const needsAuth = server.requiredHeaders.length > 0;
 // Site-relative, like every other cross-page link on this site: an absolute
 // URL here would jump a dev or preview server straight to production.
 const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h`;
+// Counts come from the FULL SEP-1649 card, not `server.tools`/`server.prompts`
+// above: those are the curated, hand-translated subset this card already
+// shows inline, and gitlab's card alone has 37 prompts that never made it
+// into that curated list (see `/servers/<id>/`'s own header comment). `card`
+// can be absent for a server with no committed snapshot yet — the link below
+// only renders when it exists, since `/servers/<id>/` itself would 404
+// otherwise.
+const card = getServerCard(server.id);
+const serverPageHref = new URL(serverPageUrl(lang, server.id)).pathname;
 ---
 
 {/* El `id` es el ÚNICO destino enlazable por servidor que tiene el sitio: sin
@@ -87,43 +97,23 @@ const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h
     )
   }
 
-  <details class="fold fold-tools">
-    <summary>
-      <h4 class="fold-label">{t.toolsHead} — {server.name}</h4>
-    </summary>
-    <dl>
-      {
-        server.tools.map((tool) => (
-          <>
-            <dt><code>{tool.name}</code></dt>
-            <dd>{tool.what[lang]}</dd>
-          </>
-        ))
-      }
-    </dl>
-  </details>
-
   {
-    /* Prompts: a protocol capability the card never mentioned. The inspector
-       lists them live, but no crawler runs the inspector, so for anything that
-       reads the page they did not exist. Only rendered when a server has
-       them. */
-    server.prompts?.length ? (
-      <details class="fold fold-prompts">
-        <summary>
-          <h4 class="fold-label">{t.promptsHead} — {server.name}</h4>
-        </summary>
-        <p class="fold-intro">{t.promptsIntro}</p>
-        <dl>
-          {server.prompts.map((prompt) => (
-            <>
-              <dt><code>{prompt.name}</code></dt>
-              <dd>{prompt.what[lang]}</dd>
-            </>
-          ))}
-        </dl>
-      </details>
-    ) : null
+    /* Replaces the old tools/prompts `<details>` folds: that content moved to
+       its own page, `/servers/<id>/`, with a Server Card nearly complete
+       (every tool, prompt, resource and resource template, each linking
+       straight into the inspector) instead of a curated, sometimes-partial
+       subset hidden behind a click with no URL of its own — see
+       `.superpowers/sdd/servers-section-spec.md`. This card keeps only a
+       pointer and the headline counts. */
+    card && (
+      <p class="server-card-link">
+        <a href={serverPageHref}>{t.viewServerCard}</a>{" "}
+        <span class="server-card-counts">
+          ({card.tools.length} {t.toolsHead}
+          {card.prompts.length > 0 && `, ${card.prompts.length} ${t.promptsHead}`})
+        </span>
+      </p>
+    )
   }
 
   {/* La configuración por cliente, plegada como las tools: la pregunta que
@@ -294,6 +284,31 @@ const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h
     color: var(--color-text-muted);
     font-size: 0.85rem;
     text-wrap: pretty;
+  }
+
+  /* Pointer to `/servers/<id>/`, replacing the old tools/prompts folds. Same
+     hairline-topped rhythm as those folds had, so removing them does not
+     leave an odd gap in the card's vertical spacing. */
+  .server-card-link {
+    padding-top: 0.9rem;
+    margin: 0;
+    border-top: 1px solid var(--color-hair);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .server-card-link a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .server-card-link a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .server-card-counts {
+    color: var(--color-text-muted);
   }
 
   .endpoint code {
