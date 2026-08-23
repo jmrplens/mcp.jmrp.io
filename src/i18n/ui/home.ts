@@ -67,6 +67,14 @@ export const home = {
       "In the JSON files the ${…} placeholders read the token from your environment — VS Code prompts for it and stores it itself — so the credential never lives in the file. In the command, replace <your token> by hand.",
     optionalHeaders: "Optional headers",
     noCredentials: "No credentials required",
+    /**
+     * Link from gitlab's security notice to `/internals/#affinity-h`: how
+     * the token becomes a routing decision, with the real nginx directive
+     * shown (salt value excluded). Added alongside the internals page
+     * (Task 7) so the notice that raises the token question has somewhere
+     * to answer it in full, instead of just asserting "it's not stored".
+     */
+    affinityLink: "How that hash is derived, with the code",
   },
   es: {
     pill: "servidores · streamable HTTP",
@@ -105,5 +113,7 @@ export const home = {
       "En los ficheros JSON, los marcadores ${…} leen el token de tu entorno — VS Code lo pide y lo guarda él mismo — así que la credencial nunca vive en el fichero. En el comando, sustituye <your token> a mano.",
     optionalHeaders: "Cabeceras opcionales",
     noCredentials: "No requiere credenciales",
+    /** Ver `en.affinityLink`: enlace a `/internals/#affinity-h`. */
+    affinityLink: "Cómo se deriva ese hash, con el código a la vista",
   },
 } as const;

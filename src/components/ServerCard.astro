@@ -5,6 +5,7 @@
  */
 import type { McpServer } from "../data/servers";
 import { ui } from "../i18n/ui";
+import { pageUrl } from "../lib/seo";
 import ClientSetup from "./ClientSetup.astro";
 import Notice from "./Notice.astro";
 
@@ -16,6 +17,9 @@ interface Props {
 const { server, lang } = Astro.props;
 const t = ui[lang];
 const needsAuth = server.requiredHeaders.length > 0;
+// Site-relative, like every other cross-page link on this site: an absolute
+// URL here would jump a dev or preview server straight to production.
+const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h`;
 ---
 
 {/* El `id` es el ÚNICO destino enlazable por servidor que tiene el sitio: sin
@@ -177,6 +181,18 @@ const needsAuth = server.requiredHeaders.length > 0;
           <h3 class="fold-label">{notice.title[lang]}</h3>
         </summary>
         <Notice notice={notice} lang={lang} />
+        {
+          /* Only gitlab's security notice qualifies: it is the one that
+             raises the token question, and `/internals/#affinity-h` is
+             where the hashing it describes is shown in full, code included.
+             libgen's affinity key is the IP address — no token, nothing to
+             point at here. */
+          server.id === "gitlab" && notice.kind === "security" && (
+            <p class="notice-link">
+              <a href={affinityHref}>{t.affinityLink}</a>
+            </p>
+          )
+        }
       </details>
     ))
   }
@@ -425,6 +441,23 @@ const needsAuth = server.requiredHeaders.length > 0;
     color: var(--color-accent);
     font-family: var(--font-mono);
     font-size: 0.8rem;
+  }
+
+  /* Trailing link inside the security notice, pointing at `/internals/`. */
+  .notice-link {
+    margin: 0.6rem 0 0;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .notice-link a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .notice-link a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .links {
