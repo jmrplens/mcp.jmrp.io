@@ -25,6 +25,7 @@ import {
   OG_LOCALES,
   ogImageAlt,
   ogImageUrl,
+  PAGE_PATHS,
   type PageId,
   pageUrl,
   SITE_NAME,
@@ -88,6 +89,28 @@ const jsonLd = errorPage
   ? undefined
   : safeJsonLd(await buildSiteGraph({ lang, title, description, page }));
 const t = ui[lang];
+const otherLang = lang === "en" ? "es" : "en";
+
+// One nav item per page, in the CURRENT language, for both the desktop nav
+// and the mobile drawer (they render from the same array, no JS involved).
+// Reading the ids from `PAGE_PATHS` — instead of a hand-written list — means
+// a future fifth page shows up here automatically instead of silently
+// missing from navigation. Every href is `pageUrl()` reduced to its
+// pathname, the same site-relative pattern `alternate` and `policiesHref`
+// already use above: an absolute URL here would send a dev/preview build
+// straight to production.
+const NAV_LABELS: Record<PageId, string> = {
+  home: t.navHome,
+  inspector: t.navInspector,
+  internals: t.navInternals,
+  policies: t.navPolicies,
+};
+const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
+  id,
+  href: new URL(pageUrl(lang, id)).pathname,
+  label: NAV_LABELS[id],
+  current: id === page,
+}));
 ---
 
 <!doctype html>
@@ -95,6 +118,53 @@ const t = ui[lang];
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    {/* Applies the forced theme override BEFORE first paint, so a visitor who
+        picked "light" never sees a flash of the dark-first default while the
+        rest of the document loads. `is:inline` is required, not stylistic:
+        without it Vite pulls the block into a bundled module chunk, and the
+        post-build's nonce injection (see the JSON-LD comment below) only
+        patches `<script>` tags that are still literally inline in the HTML.
+        `window.toggleTheme()` is the single source of truth the theme button
+        script (end of <body>) calls into — kept this small on purpose, since
+        this site has exactly one theme button and does not need the
+        multi-instance class-based wiring jmrp.io's version carries for its
+        header+drawer pair. No `astro:after-swap` handling either: this site
+        has no ClientRouter, so every navigation is a fresh document load and
+        this script simply runs again from scratch. */}
+    <script is:inline>
+      (function () {
+        var KEY = "theme";
+        function resolveTheme() {
+          try {
+            var saved = localStorage.getItem(KEY);
+            if (saved === "light" || saved === "dark") return saved;
+          } catch (e) {
+            /* Storage disabled or unavailable: fall through to the OS preference. */
+          }
+          return window.matchMedia("(prefers-color-scheme: light)").matches
+            ? "light"
+            : "dark";
+        }
+        document.documentElement.dataset.theme = resolveTheme();
+        window.toggleTheme = function () {
+          var next =
+            document.documentElement.dataset.theme === "dark"
+              ? "light"
+              : "dark";
+          try {
+            localStorage.setItem(KEY, next);
+          } catch (e) {
+            /* No persistence available: the choice still applies this load. */
+          }
+          document.documentElement.dataset.theme = next;
+          window.dispatchEvent(
+            new CustomEvent("theme-changed", { detail: { theme: next } }),
+          );
+        };
+      })();
+    </script>
+
     <title>{title}</title>
     <meta name="description" content={description} />
     {!errorPage && <link rel="canonical" href={canonical} />}
@@ -228,15 +298,146 @@ const t = ui[lang];
     <a class="skip" href="#main">{t.skip}</a>
 
     <header class="site-header">
-      <a class="brand" href="https://jmrp.io" rel="home">
-        <span class="brand-sigil">~ &rsaquo;</span><span class="brand-name"
-          >mcp</span
-        >
-      </a>
-      <nav class="site-nav" aria-label={lang === "es" ? "Idioma" : "Language"}>
-        <a href={alternate} lang={lang === "en" ? "es" : "en"}>{t.other}</a>
-        <a href="https://github.com/jmrplens/mcp.jmrp.io">{t.source}</a>
-      </nav>
+      {/* Checkbox-hack drawer toggle: the ONLY thing that opens/closes the
+          mobile drawer is this checkbox's `:checked` state via `html:has()`
+          in the <style> block below. Both the burger (`.menu-toggle`) and
+          the scrim (`.menu-backdrop`) are plain `<label for="nav-open">`
+          elements, so the drawer works with JavaScript fully disabled — the
+          inline script at the end of <body> only layers on Escape-to-close,
+          moving focus, and `inert` on the background. */}
+      <input
+        type="checkbox"
+        id="nav-open"
+        class="nav-open-cb sr-only"
+        aria-controls="nav-drawer"
+        aria-expanded="false"
+      />
+
+      <div class="header-bar">
+        <a class="brand" href="https://jmrp.io" rel="home">
+          <span class="brand-sigil">~ &rsaquo;</span><span class="brand-name"
+            >mcp</span
+          >
+        </a>
+
+        <nav class="site-nav" aria-label={t.mainNavLabel}>
+          <ul class="nav-links">
+            {
+              navItems.map((item) => (
+                <li>
+                  <a
+                    href={item.href}
+                    aria-current={item.current ? "page" : undefined}
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+
+        <div class="header-controls">
+          {/* Unlike jmrp.io's version, this is NOT a naive locale-prefix
+              swap: `alternate` (computed above) already comes from
+              `pageUrl(otherLang, page)`, so from `/es/internals/` this goes
+              to `/internals/`, never to the home page.
+
+              No `hreflang` here on purpose: that annotation belongs to the
+              `<link rel="alternate">` cluster in <head> (built from
+              `alternates()`), which is already correct and complete. A
+              second, body-level `hreflang=` would also leak onto the 404
+              body — the one page that must emit no identity signals at all,
+              since its `<head>` block is suppressed by `errorPage`. */}
+          <div
+            class="lang-switch"
+            role="group"
+            aria-label={t.langSwitchLabel}
+          >
+            <a href={alternate} lang={otherLang}>{t.other}</a>
+          </div>
+
+          <button
+            type="button"
+            id="theme-toggle"
+            class="theme-toggle"
+            aria-label={t.themeToggle}
+            data-label-light={t.themeToLight}
+            data-label-dark={t.themeToDark}
+          >
+            <span
+              class="i-mdi:white-balance-sunny icon-sun"
+              aria-hidden="true"
+            />
+            <span
+              class="i-mdi:moon-waning-crescent icon-moon"
+              aria-hidden="true"
+            />
+          </button>
+
+          <a
+            class="gh-link"
+            href="https://github.com/jmrplens/mcp.jmrp.io"
+            aria-label={t.source}
+          >
+            <span class="i-simple-icons:github" aria-hidden="true" />
+          </a>
+
+          <label for="nav-open" id="menu-toggle" class="menu-toggle">
+            <span class="sr-only">{t.menuOpen}</span>
+            <span class="i-mdi:menu icon-menu-open" aria-hidden="true" />
+            <span class="i-mdi:close icon-menu-close" aria-hidden="true" />
+          </label>
+        </div>
+      </div>
+
+      <label for="nav-open" class="menu-backdrop" aria-hidden="true">
+        <span class="sr-only">{t.menuClose}</span>
+      </label>
+
+      <div
+        id="nav-drawer"
+        class="nav-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t.menuDialogLabel}
+        tabindex="-1"
+      >
+        <div class="drawer-head">
+          {/* Not focusable on purpose — it is a `<label>`, which cannot take
+              keyboard focus. A keyboard user closes with Escape (script
+              below) or by shift-tabbing back to the `#nav-open` checkbox
+              itself and pressing Space; see the report for why the
+              focusable button twin jmrp.io swaps in via JS is left out. */}
+          <label for="nav-open" class="drawer-close" aria-hidden="true">
+            <span class="sr-only">{t.menuClose}</span>
+            <span class="i-mdi:close" aria-hidden="true" />
+          </label>
+        </div>
+
+        <ul class="drawer-links">
+          {
+            navItems.map((item) => (
+              <li>
+                <a
+                  href={item.href}
+                  aria-current={item.current ? "page" : undefined}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+          <li>
+            <a
+              class="drawer-gh"
+              href="https://github.com/jmrplens/mcp.jmrp.io"
+            >
+              {t.source}
+            </a>
+          </li>
+        </ul>
+      </div>
     </header>
 
     <main id="main"><slot /></main>
@@ -263,12 +464,121 @@ const t = ui[lang];
         <a href="/.well-known/security.txt">security.txt</a>
       </p>
     </footer>
+
+    {/* Progressive enhancement only — see the two comments in the <header>
+        above. `is:inline` for the same nonce reason as the theme-detection
+        script in <head>: without it Vite would bundle this into an external
+        module and the post-build's nonce patch would not apply to it. */}
+    <script is:inline>
+      (function () {
+        // Theme button: reflect the live theme in aria-label and dispatch
+        // the toggle. One instance on this site, so plain `getElementById`
+        // is enough — no need for jmrp.io's class-based multi-instance sync.
+        var themeBtn = document.getElementById("theme-toggle");
+        if (themeBtn) {
+          var updateThemeLabel = function () {
+            var isDark = document.documentElement.dataset.theme !== "light";
+            var label = themeBtn.getAttribute(
+              isDark ? "data-label-light" : "data-label-dark",
+            );
+            if (label) themeBtn.setAttribute("aria-label", label);
+          };
+          updateThemeLabel();
+          themeBtn.addEventListener("click", function () {
+            if (typeof window.toggleTheme === "function") {
+              window.toggleTheme();
+            }
+          });
+          window.addEventListener("theme-changed", updateThemeLabel);
+        }
+
+        // Mobile drawer a11y: the #nav-open checkbox already opens and
+        // closes the drawer with zero JS (see the <style> block's
+        // `html:has(#nav-open:checked)` rules). Everything here only adds
+        // what CSS cannot do on its own: Escape-to-close, moving focus in
+        // and out, and taking the background out of the tab order while
+        // the drawer is open.
+        var checkbox = document.getElementById("nav-open");
+        var drawer = document.getElementById("nav-drawer");
+        var main = document.getElementById("main");
+        var footer = document.querySelector(".site-footer");
+        if (!checkbox || !drawer) return;
+
+        var setBackgroundInert = function (on) {
+          if (main) main.inert = on;
+          if (footer) footer.inert = on;
+        };
+
+        checkbox.addEventListener("change", function () {
+          checkbox.setAttribute(
+            "aria-expanded",
+            checkbox.checked ? "true" : "false",
+          );
+          setBackgroundInert(checkbox.checked);
+          // Deferred two animation frames: activating a <label> also runs
+          // the browser's OWN default action of focusing its associated
+          // control (the checkbox), and on the very first interaction of
+          // the page that default action is still in flight when a single
+          // queued callback (a plain "change" listener, a setTimeout(0), or
+          // one requestAnimationFrame) runs — so calling drawer.focus()
+          // there gets silently overridden back to the checkbox a moment
+          // later. Verified by hand with Playwright: 0 or 1 deferred frames
+          // reproduce it on a fresh page load (a SECOND open/close cycle on
+          // the same page does not, because by then a frame has already
+          // rendered) — 2 frames closes the gap either way. This does not
+          // affect the CSS itself: the drawer is already visually open by
+          // the time this runs, `:has()` applied its style the instant the
+          // checkbox's state changed.
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              if (checkbox.checked) {
+                drawer.focus({ preventScroll: true });
+              } else {
+                checkbox.focus({ preventScroll: true });
+              }
+            });
+          });
+        });
+
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" && checkbox.checked) {
+            checkbox.checked = false;
+            // Firing "change" manually: setting `.checked` from script does
+            // NOT dispatch the event on its own, and the listener above is
+            // what runs the focus/inert cleanup.
+            checkbox.dispatchEvent(new Event("change"));
+          }
+        });
+      })();
+    </script>
   </body>
 </html>
 
 <style>
-  /* Franja superior e inferior en mono, como la navegación de jmrp.io. */
-  .site-header,
+  /* Franja superior e inferior en mono, como la navegación de jmrp.io.
+
+     Sticky with the blur on ::before, NOT on .site-header directly: a
+     `backdrop-filter` set on the header itself would make it the containing
+     block for the drawer's `position: fixed`, breaking its off-screen
+     `transform` and pulling it into the document's scroll width. */
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header);
+    border-bottom: 1px solid var(--color-hair);
+  }
+
+  .site-header::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    content: "";
+    background: var(--color-bg-header);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .header-bar,
   .site-footer {
     display: flex;
     flex-wrap: wrap;
@@ -284,10 +594,6 @@ const t = ui[lang];
     padding: 1rem var(--pad, 1.5rem);
     font-family: var(--font-mono);
     font-size: 0.8125rem;
-  }
-
-  .site-header {
-    border-bottom: 1px solid var(--color-hair);
   }
 
   .brand {
@@ -307,12 +613,251 @@ const t = ui[lang];
     color: var(--color-accent);
   }
 
-  .site-nav {
+  /* ===== Desktop page nav — hidden below 40rem, replaced by the drawer === */
+  .nav-links {
     display: flex;
     gap: 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
-  .site-nav a,
+  .nav-links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  .nav-links a:hover {
+    color: var(--color-accent);
+  }
+
+  .nav-links a[aria-current="page"] {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* ===== Controls cluster: language, theme, GitHub, burger =============== */
+  .header-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .lang-switch a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  .lang-switch a:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* 44px is the project's minimum tap target for icon-only controls (see
+     ThemeToggle/gh-link/menu-toggle below, and .drawer-close/.drawer-links a
+     further down). */
+  .theme-toggle,
+  .gh-link,
+  .menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    font-size: var(--text-xl);
+    color: var(--color-text);
+    cursor: pointer;
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
+  }
+
+  .theme-toggle:hover,
+  .gh-link:hover,
+  .menu-toggle:hover {
+    color: var(--color-accent);
+  }
+
+  /* Sun/moon swap by data-theme. Dark is the default (no attribute), so the
+     sun shows first — clicking it switches TO light. */
+  .icon-moon {
+    display: none;
+  }
+
+  :global(html[data-theme="light"]) .icon-sun {
+    display: none;
+  }
+
+  :global(html[data-theme="light"]) .icon-moon {
+    display: block;
+  }
+
+  /* Burger: hidden here, shown only inside the ≤40rem query below. Icon swap
+     (bars/close) follows the checkbox via :has() — zero JS. */
+  .menu-toggle {
+    display: none;
+  }
+
+  .icon-menu-close {
+    display: none;
+  }
+
+  :global(html:has(#nav-open:checked)) .icon-menu-open {
+    display: none;
+  }
+
+  :global(html:has(#nav-open:checked)) .icon-menu-close {
+    display: block;
+  }
+
+  /* ===== Mobile drawer + scrim ============================================
+     Open/close is the CSS checkbox hack: #nav-open is a hidden checkbox, the
+     burger and the scrim are <label for="nav-open">, and every rule below
+     that keys off `html:has(#nav-open:checked)` only takes effect inside the
+     ≤40rem query — so the drawer cannot render "open" above that width even
+     if the checkbox were somehow left checked (e.g. resizing the window
+     past the breakpoint while it was open on a phone). `.nav-open-cb` is
+     also hidden outright above 40rem, on top of that, matching jmrp.io's own
+     defense against the same edge case. All of this works with JavaScript
+     fully disabled; see the inline script at the end of <body> for the small
+     amount of progressive enhancement layered on top (Escape, focus
+     movement, `inert` on the background) and the report for what jmrp.io
+     additionally does that this site deliberately leaves out (the Tab
+     focus-trap, and the label→button swap for the close control). */
+  .menu-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-backdrop);
+    display: block;
+    background: var(--scrim);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--dur-2) var(--ease-out),
+      visibility var(--dur-2) var(--ease-out);
+  }
+
+  .nav-drawer {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-end: 0;
+    z-index: var(--z-drawer);
+    display: flex;
+    flex-direction: column;
+    width: var(--drawer-w);
+    padding: var(--space-md);
+    overflow-y: auto;
+    background: var(--color-bg-secondary);
+    border-inline-start: var(--border-1);
+    visibility: hidden;
+    transition:
+      transform var(--dur-3) var(--ease-out),
+      visibility var(--dur-3) var(--ease-out);
+    transform: translateX(110%);
+  }
+
+  .nav-drawer:focus {
+    outline: none;
+  }
+
+  .drawer-head {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: var(--space-sm);
+  }
+
+  .drawer-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    font-size: var(--text-xl);
+    color: var(--color-text);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+  }
+
+  .drawer-close:hover {
+    color: var(--color-accent);
+  }
+
+  .drawer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .drawer-links a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 var(--space-sm);
+    color: var(--color-text);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+  }
+
+  .drawer-links a:hover {
+    color: var(--color-accent);
+    background: var(--color-surface-2);
+  }
+
+  .drawer-links a[aria-current="page"] {
+    color: var(--color-accent);
+    font-weight: var(--fw-semibold);
+  }
+
+  .drawer-gh {
+    margin-top: var(--space-sm);
+    border-top: var(--border-hair);
+  }
+
+  @media (width > 40rem) {
+    .nav-open-cb {
+      display: none;
+    }
+
+    .menu-backdrop,
+    .nav-drawer {
+      display: none;
+    }
+  }
+
+  @media (width <= 40rem) {
+    .nav-links,
+    .gh-link {
+      display: none;
+    }
+
+    .menu-toggle {
+      display: flex;
+    }
+
+    :global(html:has(#nav-open:checked)) .menu-backdrop {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    :global(html:has(#nav-open:checked)) .nav-drawer {
+      visibility: visible;
+      transform: translateX(0);
+    }
+
+    /* CSS-only scroll lock — the inline script does not reimplement this. */
+    :global(html:has(#nav-open:checked)) body {
+      overflow: hidden;
+    }
+  }
+
   .site-footer p {
     display: flex;
     flex-wrap: wrap;
@@ -326,7 +871,6 @@ const t = ui[lang];
     text-decoration: none;
   }
 
-  .site-nav a:hover,
   .site-footer a:hover {
     color: var(--color-accent);
     text-decoration: underline;

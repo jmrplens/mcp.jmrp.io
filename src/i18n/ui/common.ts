@@ -52,6 +52,30 @@ export const common = {
      * no link to it from anywhere.
      */
     footerPolicies: "Policies",
+    // Header navigation: one label per PageId. Short on purpose — they sit
+    // next to each other in a single row, unlike the page's own <h1>.
+    navHome: "Home",
+    navInspector: "Inspector",
+    navInternals: "Internals",
+    navPolicies: "Policies",
+    /** `aria-label` of the `<nav>` landmark that holds the four page links. */
+    mainNavLabel: "Main navigation",
+    /** `aria-label` of the language-switch `<nav>` group. */
+    langSwitchLabel: "Switch language",
+    /** sr-only label inside the burger control that opens the mobile drawer. */
+    menuOpen: "Menu",
+    /** sr-only label on both the scrim and the drawer's close control. */
+    menuClose: "Close menu",
+    /** `aria-label` of the drawer's `role="dialog"` container. */
+    menuDialogLabel: "Navigation menu",
+    /**
+     * Fallback `aria-label` for the theme button, rendered before the inline
+     * script resolves the real state. Overwritten immediately by
+     * `themeToLight`/`themeToDark` once the current theme is known.
+     */
+    themeToggle: "Toggle theme",
+    themeToLight: "Switch to light theme",
+    themeToDark: "Switch to dark theme",
   },
   es: {
     title: "Servidores MCP",
@@ -71,5 +95,26 @@ export const common = {
     footerUpdated: "Actualizado",
     /** Ver `en.footerPolicies`: enlace del pie a `/policies/`. */
     footerPolicies: "Políticas",
+    /** Ver `en.navHome`..`en.navPolicies`: etiquetas cortas de la navegación. */
+    navHome: "Inicio",
+    navInspector: "Inspector",
+    navInternals: "Funcionamiento interno",
+    navPolicies: "Políticas",
+    /** Ver `en.mainNavLabel`. */
+    mainNavLabel: "Navegación principal",
+    /** Ver `en.langSwitchLabel`. */
+    langSwitchLabel: "Cambiar idioma",
+    /** Ver `en.menuOpen`. */
+    menuOpen: "Menú",
+    /** Ver `en.menuClose`. */
+    menuClose: "Cerrar menú",
+    /** Ver `en.menuDialogLabel`. */
+    menuDialogLabel: "Menú de navegación",
+    /** Ver `en.themeToggle`. */
+    themeToggle: "Alternar tema",
+    /** Ver `en.themeToLight`. */
+    themeToLight: "Cambiar a tema claro",
+    /** Ver `en.themeToDark`. */
+    themeToDark: "Cambiar a tema oscuro",
   },
 } as const;
