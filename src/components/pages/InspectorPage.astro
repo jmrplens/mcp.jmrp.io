@@ -26,9 +26,8 @@ const homeHref = new URL(pageUrl(lang, "home")).pathname;
   <a href={homeHref}>{t.backToHome}</a>
 </p>
 
-<h1 id="inspector-h">{t.inspectorTitle}</h1>
-
 <section aria-labelledby="inspector-h">
+  <h1 id="inspector-h">{t.inspectorTitle}</h1>
   <p class="section-intro">{t.inspectorIntro}</p>
   <Inspector client:load servers={servers} lang={lang} />
   <p class="notice-pointer">
