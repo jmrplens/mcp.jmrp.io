@@ -7,6 +7,7 @@ import { defineConfig, fontProviders } from "astro/config";
 
 import postBuild from "./src/integrations/post-build.ts";
 import { contentDate } from "./src/lib/build-date.ts";
+import { DEFAULT_LANG } from "./src/lib/seo.ts";
 
 // La fecha del contenido sale del helper compartido con el JSON-LD y el pie:
 // tres superficies, una sola verdad. Ver src/lib/build-date.ts para la regla
@@ -77,8 +78,20 @@ export default defineConfig({
     // it emits one xhtml:link per locale and nothing else. Without this the
     // <head> advertised en/es/x-default and the sitemap only en/es — two
     // channels contradicting each other about where to send a visitor with no
-    // language preference. It points at the root, which is the EN version,
-    // same as the <link> in the <head>.
+    // language preference.
+    //
+    // It must point at THIS ENTRY's own page in the default language, exactly
+    // like `alternates()` does for the <head> — NOT at the site root for
+    // every entry. Pointing everything at the root was fine while there was
+    // only one page (root WAS the EN version of the only page), but that
+    // premise is false now: the sitemap entry for `/inspector/` was still
+    // declaring `x-default` → `/`, contradicting `/inspector/`'s own <head>,
+    // which correctly self-references `/inspector/`.
+    //
+    // `item.links` already groups this entry with its sibling in the OTHER
+    // language (see @astrojs/sitemap's `createGetI18nLinks`), so the entry
+    // whose `lang` is the site's default IS the right x-default target — no
+    // need to reconstruct the URL by hand.
     sitemap({
       i18n: { defaultLocale: "en", locales: { en: "en", es: "es" } },
       serialize: (item) => ({
@@ -87,7 +100,12 @@ export default defineConfig({
         ...(item.links && {
           links: [
             ...item.links,
-            { url: "https://mcp.jmrp.io/", lang: "x-default" },
+            {
+              url:
+                item.links.find((link) => link.lang === DEFAULT_LANG)?.url ??
+                item.url,
+              lang: "x-default",
+            },
           ],
         }),
       }),
