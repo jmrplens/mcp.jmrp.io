@@ -48,6 +48,13 @@ export const internals = {
     affinityCodeComment: "# the real value is never published",
     affinityConsequence:
       "The practical effect: because egress is also fixed per instance (next section), landing on the same node means your calls keep appearing to come from the same country — stable, not alternating request to request.",
+    /** Caption for the affinity diagram figure. The diagram's own text (SVG,
+     * `aria-hidden`) never carries meaning on its own — the caption and the
+     * surrounding prose above are the accessible equivalent. Deliberately
+     * short: it does not restate `affinityConsequence`, same anti-duplication
+     * rule this file already follows for `affinityLibgen`/`affinityGitlab`. */
+    diagramCaption:
+      "Same client, same node, same exit country — every time. Teal follows libgen's IP-based hash; violet follows gitlab's token-based hash. Both start at the same nginx and split where the affinity decision happens.",
 
     egressEyebrow: "Egress: which country a request leaves from",
     egressBody: [
@@ -95,6 +102,9 @@ export const internals = {
     affinityCodeComment: "# el valor real no se publica",
     affinityConsequence:
       "El efecto práctico: como el egreso también es fijo por instancia (siguiente sección), caer en el mismo nodo significa que tus llamadas siguen pareciendo venir del mismo país — estable, no alternando de una petición a la siguiente.",
+    /** Ver `en.diagramCaption`: leyenda de la figura del diagrama de afinidad. */
+    diagramCaption:
+      "Mismo cliente, mismo nodo, mismo país de salida — siempre. El trazo verde-azulado sigue el hash por IP de libgen; el violeta, el hash por token de gitlab. Los dos arrancan en el mismo nginx y se separan donde ocurre la decisión de afinidad.",
 
     egressEyebrow: "Egreso: de qué país sale una petición",
     egressBody: [

@@ -13,6 +13,8 @@
  * `metaTitle`/`title`/`lede` would silently mask `common`'s keys of the same
  * name under a flat spread).
  */
+import type { McpInstance } from "../../data/topology";
+import { topology } from "../../data/topology";
 import { ui } from "../../i18n/ui";
 import { internals } from "../../i18n/ui/internals.ts";
 import { getLangFromUrl } from "../../i18n/utils";
@@ -46,6 +48,81 @@ set_by_lua_block $mcp_affinity {
     end
     return ngx.var.remote_addr or ""
 }`;
+
+// ===== Affinity diagram — layout math (build-time, no runtime JS) ==========
+//
+// Everything below runs once, on the server, while Astro renders this page's
+// HTML. None of it ships to the browser: the diagram that reaches the client
+// is plain, static SVG plus CSS animations (see the <style> block). This is
+// what "no JavaScript on this page" (Restriction) means in practice — the
+// computation happens, just not where a crawler or an assistant would have
+// to run it.
+
+// Presentation constants for the diagram: "how many circles fit legibly on
+// the row", not an infrastructure fact. They live here, not in
+// `topology.ts`, because changing how the diagram draws should never look
+// like changing what is actually running.
+const MAX_DRAWN_NODES = 4; // beyond this, the rest folds into the "+" ghost node
+const NODE_GAP = 26; // center-to-center spacing along a node row
+
+/**
+ * Group one server's instances into "what the diagram draws": up to
+ * `MAX_DRAWN_NODES` real nodes plus an overflow count, and which one is
+ * highlighted as the client's matched node.
+ *
+ * IMPORTANT — `matchedIndex` is illustrative, not the real affinity
+ * algorithm. It is fixed at index 1 for every render; there is no hash
+ * computed here, and there could not be one: the real decision (see
+ * `affinitySnippet` above) is keyed by `$mcp_affinity_salt`, a secret that
+ * never leaves the server and is deliberately never in this repo. Do not
+ * read this function as "how nginx picks a node" — it only decides which
+ * circle the diagram lights up so the loop has something to rest on.
+ */
+function clusterOf(instances: McpInstance[]) {
+  const drawn = instances.slice(0, MAX_DRAWN_NODES);
+  const overflow = instances.length - drawn.length; // 0 → the ghost node shows a bare "+"
+  const matchedIndex = Math.min(1, drawn.length - 1);
+  return {
+    drawn,
+    overflow,
+    matchedIndex,
+    matchedCountry: instances[matchedIndex].egressCountry,
+  };
+}
+
+/**
+ * Center-to-center positions for a row of `count` nodes, centered on
+ * (centerX, centerY). Used for both the desktop row (horizontal branch) and
+ * the mobile row (still horizontal — see the mobile SVG below): only the
+ * `centerX`/`centerY` passed in differ.
+ */
+function rowPositions(count: number, centerX: number, centerY: number, gap = NODE_GAP) {
+  const span = (count - 1) * gap;
+  const startX = centerX - span / 2;
+  return Array.from({ length: count }, (_, i) => ({ x: startX + i * gap, y: centerY }));
+}
+
+const libgenCluster = clusterOf(topology.libgen);
+const gitlabCluster = clusterOf(topology.gitlab);
+
+// Desktop coordinates — viewBox 0 0 960 300, trunk at y=150, libgen branch at
+// y=90, gitlab branch at y=210 (see the desktop <svg> below). Computed once
+// and reused for both the drawn nodes and the ghost node, so the two never
+// diverge.
+const libgenRowDesktop = rowPositions(libgenCluster.drawn.length, 600, 90);
+const gitlabRowDesktop = rowPositions(gitlabCluster.drawn.length, 600, 210);
+// Non-null: `rowPositions` always returns at least one entry (a server always
+// has at least one instance), so the last element always exists.
+const libgenLastDesktop = libgenRowDesktop.at(-1)!;
+const gitlabLastDesktop = gitlabRowDesktop.at(-1)!;
+
+// Mobile coordinates — viewBox 0 0 240 900, both lanes centered on x=120;
+// only the x of each node varies by cluster, the y per node is fixed by the
+// lane layout (see the mobile <svg> below).
+const libgenRowMobile = rowPositions(libgenCluster.drawn.length, 120, 0);
+const gitlabRowMobile = rowPositions(gitlabCluster.drawn.length, 120, 0);
+const libgenLastMobileX = libgenRowMobile.at(-1)!.x;
+const gitlabLastMobileX = gitlabRowMobile.at(-1)!.x;
 ---
 
 <p class="back-link">
@@ -74,6 +151,176 @@ set_by_lua_block $mcp_affinity {
   {t.affinityCodeIntro.map((paragraph) => <p class="internals-text">{paragraph}</p>)}
   <pre><code>{affinitySnippet}</code></pre>
   <p class="internals-text">{t.affinityConsequence}</p>
+
+  {/* Decorative recap of the paragraphs above, nothing more: `aria-hidden`
+      on both <svg>s takes the whole figure out of the accessibility tree, so
+      the meaning lives entirely in `t.diagramCaption` plus the prose already
+      read above it — never only in the animation. See the layout math above
+      this component's frontmatter for `libgenCluster`/`gitlabCluster`. */}
+  <figure class="mcp-flow-figure">
+    <svg
+      class="mcp-flow mcp-flow--desktop"
+      viewBox="0 0 960 300"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <!-- Shared trunk: client, Cloudflare, nginx (the hash decision) -->
+      <line x1="60" y1="150" x2="380" y2="150" class="spine spine--neutral" />
+      <circle cx="60" cy="150" r="13" class="node node--neutral" />
+      <circle cx="210" cy="150" r="13" class="node node--neutral" />
+      <circle cx="380" cy="150" r="15" class="node node--hash" />
+
+      <!-- libgen branch (teal), y=90 -->
+      <line x1="380" y1="150" x2="600" y2="90" class="spine spine--libgen" />
+      <line x1="600" y1="90" x2="760" y2="90" class="spine spine--libgen" />
+      <line x1="760" y1="90" x2="880" y2="90" class="spine spine--libgen" />
+      {
+        libgenCluster.drawn.map((_instance, i) => {
+          const { x, y } = libgenRowDesktop[i];
+          const matched = i === libgenCluster.matchedIndex;
+          return (
+            <circle
+              cx={x}
+              cy={y}
+              r={matched ? 9 : 6}
+              class={`node node--libgen ${matched ? "node--matched" : "node--sibling"}`}
+            />
+          );
+        })
+      }
+      <g class="node-ghost node-ghost--libgen">
+        <circle cx={libgenLastDesktop.x + NODE_GAP} cy="90" r="7" />
+        <text x={libgenLastDesktop.x + NODE_GAP} y="94" text-anchor="middle">
+          {libgenCluster.overflow > 0 ? `+${libgenCluster.overflow}` : "+"}
+        </text>
+      </g>
+      <rect x="742" y="78" width="36" height="24" rx="6" class="chip chip--libgen" />
+      <text x="760" y="94" text-anchor="middle" class="chip-label chip-label--libgen">
+        {libgenCluster.matchedCountry === "ES" ? "ES" : "UK"}
+      </text>
+      <circle cx="880" cy="90" r="11" class="node node--libgen node--dest" />
+      <text x="880" y="118" text-anchor="middle" class="dest-label dest-label--libgen">
+        libgen
+      </text>
+
+      <!-- gitlab branch (violet), y=210, same shape -->
+      <line x1="380" y1="150" x2="600" y2="210" class="spine spine--gitlab" />
+      <line x1="600" y1="210" x2="760" y2="210" class="spine spine--gitlab" />
+      <line x1="760" y1="210" x2="880" y2="210" class="spine spine--gitlab" />
+      {
+        gitlabCluster.drawn.map((_instance, i) => {
+          const { x, y } = gitlabRowDesktop[i];
+          const matched = i === gitlabCluster.matchedIndex;
+          return (
+            <circle
+              cx={x}
+              cy={y}
+              r={matched ? 9 : 6}
+              class={`node node--gitlab ${matched ? "node--matched" : "node--sibling"}`}
+            />
+          );
+        })
+      }
+      <g class="node-ghost node-ghost--gitlab">
+        <circle cx={gitlabLastDesktop.x + NODE_GAP} cy="210" r="7" />
+        <text x={gitlabLastDesktop.x + NODE_GAP} y="214" text-anchor="middle">
+          {gitlabCluster.overflow > 0 ? `+${gitlabCluster.overflow}` : "+"}
+        </text>
+      </g>
+      <rect x="742" y="198" width="36" height="24" rx="6" class="chip chip--gitlab" />
+      <text x="760" y="214" text-anchor="middle" class="chip-label chip-label--gitlab">
+        {gitlabCluster.matchedCountry === "ES" ? "ES" : "UK"}
+      </text>
+      <circle cx="880" cy="210" r="11" class="node node--gitlab node--dest" />
+      <text x="880" y="238" text-anchor="middle" class="dest-label dest-label--gitlab">
+        gitlab
+      </text>
+
+      <!-- The two points that travel in a loop -->
+      <circle class="pulse pulse--libgen" cx="0" cy="0" r="5" />
+      <circle class="pulse pulse--gitlab" cx="0" cy="0" r="5" />
+    </svg>
+
+    <svg
+      class="mcp-flow mcp-flow--mobile"
+      viewBox="0 0 240 900"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <!-- libgen lane -->
+      <text x="120" y="16" text-anchor="middle" class="lane-label lane-label--libgen">
+        libgen
+      </text>
+      <line x1="120" y1="30" x2="120" y2="380" class="spine spine--libgen" />
+      <circle cx="120" cy="50" r="11" class="node node--neutral" />
+      <circle cx="120" cy="120" r="11" class="node node--neutral" />
+      <circle cx="120" cy="190" r="13" class="node node--hash" />
+      {
+        libgenCluster.drawn.map((_instance, i) => {
+          const { x } = libgenRowMobile[i];
+          const matched = i === libgenCluster.matchedIndex;
+          return (
+            <circle
+              cx={x}
+              cy="260"
+              r={matched ? 9 : 6}
+              class={`node node--libgen ${matched ? "node--matched" : "node--sibling"}`}
+            />
+          );
+        })
+      }
+      <g class="node-ghost node-ghost--libgen">
+        <circle cx={libgenLastMobileX + NODE_GAP} cy="260" r="7" />
+        <text x={libgenLastMobileX + NODE_GAP} y="264" text-anchor="middle">
+          {libgenCluster.overflow > 0 ? `+${libgenCluster.overflow}` : "+"}
+        </text>
+      </g>
+      <rect x="102" y="318" width="36" height="24" rx="6" class="chip chip--libgen" />
+      <text x="120" y="334" text-anchor="middle" class="chip-label chip-label--libgen">
+        {libgenCluster.matchedCountry === "ES" ? "ES" : "UK"}
+      </text>
+      <circle cx="120" cy="390" r="11" class="node node--libgen node--dest" />
+
+      <!-- gitlab lane, offset +460 in y -->
+      <text x="120" y="476" text-anchor="middle" class="lane-label lane-label--gitlab">
+        gitlab
+      </text>
+      <line x1="120" y1="490" x2="120" y2="840" class="spine spine--gitlab" />
+      <circle cx="120" cy="510" r="11" class="node node--neutral" />
+      <circle cx="120" cy="580" r="11" class="node node--neutral" />
+      <circle cx="120" cy="650" r="13" class="node node--hash" />
+      {
+        gitlabCluster.drawn.map((_instance, i) => {
+          const { x } = gitlabRowMobile[i];
+          const matched = i === gitlabCluster.matchedIndex;
+          return (
+            <circle
+              cx={x}
+              cy="720"
+              r={matched ? 9 : 6}
+              class={`node node--gitlab ${matched ? "node--matched" : "node--sibling"}`}
+            />
+          );
+        })
+      }
+      <g class="node-ghost node-ghost--gitlab">
+        <circle cx={gitlabLastMobileX + NODE_GAP} cy="720" r="7" />
+        <text x={gitlabLastMobileX + NODE_GAP} y="724" text-anchor="middle">
+          {gitlabCluster.overflow > 0 ? `+${gitlabCluster.overflow}` : "+"}
+        </text>
+      </g>
+      <rect x="102" y="778" width="36" height="24" rx="6" class="chip chip--gitlab" />
+      <text x="120" y="794" text-anchor="middle" class="chip-label chip-label--gitlab">
+        {gitlabCluster.matchedCountry === "ES" ? "ES" : "UK"}
+      </text>
+      <circle cx="120" cy="850" r="11" class="node node--gitlab node--dest" />
+
+      <circle class="pulse pulse--libgen-mobile" cx="0" cy="0" r="5" />
+      <circle class="pulse pulse--gitlab-mobile" cx="0" cy="0" r="5" />
+    </svg>
+
+    <figcaption class="mcp-flow-caption">{t.diagramCaption}</figcaption>
+  </figure>
 </section>
 
 <section aria-labelledby="egress-h">
@@ -201,5 +448,431 @@ set_by_lua_block $mcp_affinity {
     font-family: var(--font-mono);
     font-size: 0.8125rem;
     white-space: pre;
+  }
+
+  /* ===== Affinity diagram ===================================================
+     Session-affinity flow: client → Cloudflare → nginx (hash decision) → one
+     of N instances → egress → destination. Two colored loops (teal=libgen,
+     violet=gitlab) share the same trunk and fork where the hash actually
+     picks a node — see the SVG markup above and `t.diagramCaption` for the
+     accessible equivalent of what this draws. */
+  .mcp-flow-figure {
+    max-width: 62ch;
+    margin: 1.75rem 0;
+    padding: 1rem;
+    border: 1px solid var(--color-hair);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+  }
+
+  .mcp-flow {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* Desktop shown by default; swapped for mobile below (width <= 640px). */
+  .mcp-flow--mobile {
+    display: none;
+  }
+
+  /* ===== Strokes and nodes — neutral (shared trunk) ========================= */
+  .spine {
+    fill: none;
+    stroke-width: 1.5;
+  }
+
+  .spine--neutral {
+    stroke: var(--color-border);
+  }
+
+  .node--neutral {
+    fill: var(--color-bg-secondary);
+    stroke: var(--color-text-muted);
+    stroke-width: 1.5;
+  }
+
+  .node--hash {
+    fill: var(--color-bg-secondary);
+    stroke: var(--color-accent);
+    stroke-width: 2;
+  }
+
+  /* ===== libgen branch (teal) ================================================ */
+  .spine--libgen {
+    stroke: var(--teal);
+    stroke-opacity: 55%;
+  }
+
+  .node--libgen.node--matched {
+    fill: var(--teal);
+    stroke: var(--teal);
+  }
+
+  .node--libgen.node--sibling {
+    fill: none;
+    stroke: color-mix(in srgb, var(--teal) 45%, transparent);
+    stroke-width: 1.25;
+  }
+
+  .node--libgen.node--dest {
+    fill: var(--color-bg-secondary);
+    stroke: var(--teal);
+    stroke-width: 2;
+  }
+
+  .node-ghost--libgen circle {
+    fill: none;
+    stroke: color-mix(in srgb, var(--teal) 35%, transparent);
+    stroke-width: 1.25;
+    stroke-dasharray: 3 3;
+  }
+
+  .node-ghost--libgen text,
+  .chip-label--libgen,
+  .dest-label--libgen,
+  .lane-label--libgen {
+    fill: var(--teal-text);
+  }
+
+  .chip--libgen {
+    fill: var(--teal-dim);
+    stroke: color-mix(in srgb, var(--teal) 40%, transparent);
+  }
+
+  /* ===== gitlab branch (violet) — same rules, different color =============== */
+  .spine--gitlab {
+    stroke: var(--violet);
+    stroke-opacity: 55%;
+  }
+
+  .node--gitlab.node--matched {
+    fill: var(--violet);
+    stroke: var(--violet);
+  }
+
+  .node--gitlab.node--sibling {
+    fill: none;
+    stroke: color-mix(in srgb, var(--violet) 45%, transparent);
+    stroke-width: 1.25;
+  }
+
+  .node--gitlab.node--dest {
+    fill: var(--color-bg-secondary);
+    stroke: var(--violet);
+    stroke-width: 2;
+  }
+
+  .node-ghost--gitlab circle {
+    fill: none;
+    stroke: color-mix(in srgb, var(--violet) 35%, transparent);
+    stroke-width: 1.25;
+    stroke-dasharray: 3 3;
+  }
+
+  .node-ghost--gitlab text,
+  .chip-label--gitlab,
+  .dest-label--gitlab,
+  .lane-label--gitlab {
+    fill: var(--violet);
+  }
+
+  .chip--gitlab {
+    fill: var(--violet-dim);
+    stroke: color-mix(in srgb, var(--violet) 40%, transparent);
+  }
+
+  /* ===== Shared text ========================================================= */
+  .node-ghost text,
+  .chip-label,
+  .dest-label,
+  .lane-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: var(--fw-semibold);
+    dominant-baseline: middle;
+  }
+
+  .lane-label {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* ===== The traveling point ================================================= */
+  .pulse {
+    filter: drop-shadow(0 0 3px currentcolor);
+  }
+
+  .pulse--libgen,
+  .pulse--libgen-mobile {
+    fill: var(--teal);
+    color: var(--teal);
+  }
+
+  .pulse--gitlab,
+  .pulse--gitlab-mobile {
+    fill: var(--violet);
+    color: var(--violet);
+  }
+
+  /* Desktop path — EXACT coordinates from the desktop <svg> above (trunk
+     y=150, libgen branch y=90, gitlab branch y=210). Starts and ends resting
+     on the matched node: 0% and 100% coincide, so the loop never "jumps".
+     The 38%→45% stretch travels invisibly (opacity 0 at both ends) to hide
+     the teleport from destination back to client. */
+  @keyframes flow-libgen-desktop {
+    0%,
+    8% {
+      transform: translate(600px, 90px);
+      opacity: 100%;
+    }
+
+    20% {
+      transform: translate(760px, 90px);
+      opacity: 100%;
+    }
+
+    30%,
+    38% {
+      transform: translate(880px, 90px);
+      opacity: 100%;
+    }
+
+    38.001% {
+      opacity: 0%;
+    }
+
+    45% {
+      transform: translate(60px, 150px);
+      opacity: 0%;
+    }
+
+    55% {
+      transform: translate(60px, 150px);
+      opacity: 100%;
+    }
+
+    65% {
+      transform: translate(210px, 150px);
+    }
+
+    75% {
+      transform: translate(380px, 150px);
+    }
+
+    88%,
+    100% {
+      transform: translate(600px, 90px);
+    }
+  }
+
+  @keyframes flow-gitlab-desktop {
+    0%,
+    8% {
+      transform: translate(600px, 210px);
+      opacity: 100%;
+    }
+
+    20% {
+      transform: translate(760px, 210px);
+      opacity: 100%;
+    }
+
+    30%,
+    38% {
+      transform: translate(880px, 210px);
+      opacity: 100%;
+    }
+
+    38.001% {
+      opacity: 0%;
+    }
+
+    45% {
+      transform: translate(60px, 150px);
+      opacity: 0%;
+    }
+
+    55% {
+      transform: translate(60px, 150px);
+      opacity: 100%;
+    }
+
+    65% {
+      transform: translate(210px, 150px);
+    }
+
+    75% {
+      transform: translate(380px, 150px);
+    }
+
+    88%,
+    100% {
+      transform: translate(600px, 210px);
+    }
+  }
+
+  /* Mobile path — same stops, coordinates from the mobile <svg> above (libgen
+     lane 0-390, gitlab lane 460-850, both centered on x=120). */
+  @keyframes flow-libgen-mobile {
+    0%,
+    8% {
+      transform: translate(120px, 260px);
+      opacity: 100%;
+    }
+
+    20% {
+      transform: translate(120px, 330px);
+      opacity: 100%;
+    }
+
+    30%,
+    38% {
+      transform: translate(120px, 390px);
+      opacity: 100%;
+    }
+
+    38.001% {
+      opacity: 0%;
+    }
+
+    45% {
+      transform: translate(120px, 50px);
+      opacity: 0%;
+    }
+
+    55% {
+      transform: translate(120px, 50px);
+      opacity: 100%;
+    }
+
+    65% {
+      transform: translate(120px, 120px);
+    }
+
+    75% {
+      transform: translate(120px, 190px);
+    }
+
+    88%,
+    100% {
+      transform: translate(120px, 260px);
+    }
+  }
+
+  @keyframes flow-gitlab-mobile {
+    0%,
+    8% {
+      transform: translate(120px, 720px);
+      opacity: 100%;
+    }
+
+    20% {
+      transform: translate(120px, 790px);
+      opacity: 100%;
+    }
+
+    30%,
+    38% {
+      transform: translate(120px, 850px);
+      opacity: 100%;
+    }
+
+    38.001% {
+      opacity: 0%;
+    }
+
+    45% {
+      transform: translate(120px, 510px);
+      opacity: 0%;
+    }
+
+    55% {
+      transform: translate(120px, 510px);
+      opacity: 100%;
+    }
+
+    65% {
+      transform: translate(120px, 580px);
+    }
+
+    75% {
+      transform: translate(120px, 650px);
+    }
+
+    88%,
+    100% {
+      transform: translate(120px, 720px);
+    }
+  }
+
+  .pulse--libgen {
+    /* Rest state = same point as the keyframe's 0%/100%: this is what shows
+       when the animation does not run (see prefers-reduced-motion below). */
+    transform: translate(600px, 90px);
+    animation: flow-libgen-desktop 8s var(--ease-in-out) infinite;
+  }
+
+  .pulse--gitlab {
+    transform: translate(600px, 210px);
+    /* Negative delay: starts already half a cycle in, so the two points do
+       not travel in lockstep and read as two independent flows, not a
+       metronome. */
+    animation: flow-gitlab-desktop 8s var(--ease-in-out) infinite -4s;
+  }
+
+  .pulse--libgen-mobile {
+    transform: translate(120px, 260px);
+    animation: flow-libgen-mobile 8s var(--ease-in-out) infinite;
+  }
+
+  .pulse--gitlab-mobile {
+    transform: translate(120px, 720px);
+    animation: flow-gitlab-mobile 8s var(--ease-in-out) infinite -4s;
+  }
+
+  /* ===== prefers-reduced-motion ==============================================
+     `base.css` already forces `animation-duration: 0.001ms !important`
+     globally, but that alone would freeze the point on whatever frame the
+     style recalculation happened to land on — not necessarily the rest
+     frame. The rule below follows the same pattern as
+     `.realtime-pill__dot` in utilities.css and `.fold summary::before` in
+     ServerCard.astro: turn the animation off explicitly, so the base
+     (non-keyframe) `transform` declared above wins — which is exactly "the
+     point already sitting on its matched node", the self-explanatory frozen
+     state this diagram needs under reduced motion. */
+  @media (prefers-reduced-motion: reduce) {
+    .pulse--libgen,
+    .pulse--gitlab,
+    .pulse--libgen-mobile,
+    .pulse--gitlab-mobile {
+      animation: none;
+    }
+  }
+
+  /* ===== Responsive: swap SVG, not reflow the same one =======================
+     The site's global mobile breakpoint is `(width <= 900px)` (base.css),
+     used to rescale spacing; this diagram uses its own breakpoint because
+     the desktop SVG stops being legible well before the rest of the page
+     does — the two-branch fork needs roughly 500px of width so the country
+     chip does not crowd the destination node. */
+  @media (width <= 640px) {
+    .mcp-flow--desktop {
+      display: none;
+    }
+
+    .mcp-flow--mobile {
+      display: block;
+    }
+  }
+
+  /* ===== Caption ============================================================= */
+  .mcp-flow-caption {
+    max-width: 62ch;
+    margin: 0.85rem 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+    text-wrap: pretty;
   }
 </style>
