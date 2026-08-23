@@ -295,6 +295,14 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
     />
   </head>
   <body>
+    {/* jmrp.io's ambient hairline grid (utilities.css, imported here already
+        but never rendered until now), full-page: `position:absolute; inset:0`
+        inside body's `position:relative`, sitting behind everything via
+        `z-index:-1` in body's own stacking context (`isolation:isolate`,
+        base.css). Same markup and placement as jmrp.io's BaseLayout.astro —
+        first child of <body>, aria-hidden since it is purely decorative. */}
+    <div class="lab-grid lab-grid--page" aria-hidden="true"></div>
+
     <a class="skip" href="#main">{t.skip}</a>
 
     <header class="site-header">
@@ -346,13 +354,16 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
         </nav>
 
         <div class="header-controls">
-          {/* Unlike jmrp.io's version, this is NOT a naive locale-prefix
-              swap: `alternate` (computed above) already comes from
-              `pageUrl(otherLang, page)`, so from `/es/internals/` this goes
-              to `/internals/`, never to the home page.
+          {/* Two-segment `EN | ES` pill, jmrp.io's LanguageSwitcher.astro
+              design (`.lang-pill`/`.lang-seg`): the current locale is a
+              non-interactive active segment, the other is a link. Unlike
+              jmrp.io's version, `alternate` is NOT a naive locale-prefix
+              swap — it already comes from `pageUrl(otherLang, page)`, so
+              from `/es/internals/` this goes to `/internals/`, never to the
+              home page.
 
-              No `hreflang` here on purpose: that annotation belongs to the
-              `<link rel="alternate">` cluster in <head> (built from
+              No `hreflang` on the link on purpose: that annotation belongs
+              to the `<link rel="alternate">` cluster in <head> (built from
               `alternates()`), which is already correct and complete. A
               second, body-level `hreflang=` would also leak onto the 404
               body — the one page that must emit no identity signals at all,
@@ -362,7 +373,17 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
             role="group"
             aria-label={t.langSwitchLabel}
           >
-            <a href={alternate} lang={otherLang}>{t.other}</a>
+            <span class="lang-seg lang-seg--active" aria-current="true">
+              {lang.toUpperCase()}
+            </span>
+            <a
+              class="lang-seg"
+              href={alternate}
+              lang={otherLang}
+              aria-label={`${t.switchTo} ${t.other}`}
+            >
+              {otherLang.toUpperCase()}
+            </a>
           </div>
 
           <button
@@ -452,6 +473,34 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
             </a>
           </li>
         </ul>
+
+        {/* The language pill also lives in the drawer panel, like jmrp.io's
+            `.drawer__foot` (NavDrawer.astro) — requested explicitly: the
+            header-bar pill stays visible on mobile too (same call jmrp.io
+            makes for its own header + drawer pair), so this is a deliberate
+            duplicate, not a replacement. Only the language pill is
+            duplicated here, not the theme toggle: that one only asked for
+            the language switcher, and the theme button already works fine
+            from the bar behind the drawer. */}
+        <div class="drawer-foot">
+          <div
+            class="lang-switch"
+            role="group"
+            aria-label={t.langSwitchLabel}
+          >
+            <span class="lang-seg lang-seg--active" aria-current="true">
+              {lang.toUpperCase()}
+            </span>
+            <a
+              class="lang-seg"
+              href={alternate}
+              lang={otherLang}
+              aria-label={`${t.switchTo} ${t.other}`}
+            >
+              {otherLang.toUpperCase()}
+            </a>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -719,38 +768,54 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
     gap: var(--space-sm);
   }
 
-  /* Language switch: a single-word toggle (full locale name, not a 2-letter
-     code pill like jmrp.io's segmented EN|ES — this site shows one link at a
-     time), styled with the same chip chrome as jmrp.io's `.lang-seg`. */
-  .lang-switch a {
+  /* Two-segment `EN | ES` pill — same design as jmrp.io's LanguageSwitcher
+     component (`.lang-pill`/`.lang-seg`), ported verbatim. The pill itself
+     is the chip chrome (surface + border); each segment is a flat inset
+     button, with the active one picking up the accent-dim fill. */
+  .lang-switch {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    min-height: 40px;
-    padding: 0.3rem 0.75rem;
+    padding: 2px;
     font-family: var(--font-mono);
     font-size: var(--text-micro);
     font-weight: var(--fw-medium);
     letter-spacing: 0.04em;
-    color: var(--color-text-muted);
-    text-decoration: none;
     background-color: var(--color-surface-2);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
+  }
+
+  .lang-seg {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+    min-height: 40px;
+    padding: 0.25rem 0.5rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    border-radius: calc(var(--radius-md) - 3px);
     transition:
       color var(--dur-1) var(--ease-out),
       background-color var(--dur-1) var(--ease-out);
   }
 
-  .lang-switch a:hover,
-  .lang-switch a:focus-visible {
+  a.lang-seg:hover,
+  a.lang-seg:focus-visible {
     color: var(--color-text-heading);
     background-color: var(--color-bg-subtle);
   }
 
-  .lang-switch a:focus-visible {
+  a.lang-seg:focus-visible {
     outline: none;
     box-shadow: var(--focus-ring);
+  }
+
+  /* The active segment is a non-interactive <span>: accent text on an
+     accent-dim fill, same as jmrp.io's `.lang-seg--active`. */
+  .lang-seg--active {
+    color: var(--color-accent);
+    background-color: var(--accent-dim);
   }
 
   /* 44px is the project's minimum tap target for icon-only controls (see
@@ -972,6 +1037,16 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
   .drawer-gh {
     margin-top: var(--space-sm);
     border-top: var(--border-hair);
+  }
+
+  /* Footer row holding the language pill, pinned below the (flex: 1) link
+     list — same edge-to-edge hairline treatment as `.drawer-head` above,
+     and the same spot jmrp.io's `.drawer__foot` occupies in NavDrawer.astro. */
+  .drawer-foot {
+    display: flex;
+    justify-content: flex-end;
+    padding: 11px 14px;
+    border-top: 1px solid var(--color-hair);
   }
 
   @media (width > 40rem) {

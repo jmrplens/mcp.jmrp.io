@@ -31,7 +31,7 @@ const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
 
 <section class="hero">
   <p class="pill"><span class="dot" aria-hidden="true"></span>{servers.length} {t.pill}</p>
-  <h1>{t.title}</h1>
+  <h1 class="hero-title">{t.title}</h1>
   <p class="lede">{t.lede}</p>
   {/* La definición de MCP con la marca: el único bloque autocontenido para
       quien no sabe qué es esto, y el ancla de entidad que los titulares
@@ -157,30 +157,31 @@ const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
     background: var(--color-success);
   }
 
-  h1 {
-    max-width: 18ch;
-    margin: 0 0 1.25rem;
-    color: var(--color-text-heading);
-    font-family: var(--font-display);
-    font-size: clamp(2.5rem, 7vw, 3.75rem);
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1.05;
-  }
+  /* Size lives in base.css's `.hero-title` now (shared with the other
+     pages' `.subpage-title`); nothing page-specific left to override here. */
 
+  /* Same role as jmrp.io's `.hero__subtitle` (HomePage.astro there): the one
+     line right under the h1. Same scale — 20px / 1.4 — so it reads with the
+     same weight. */
   .lede {
     max-width: 58ch;
     margin: 0;
     color: var(--color-text);
-    font-size: 1.0625rem;
+    font-size: var(--text-xl);
+    line-height: 1.4;
     text-wrap: pretty;
   }
 
+  /* Same role as jmrp.io's `.hero__bio` first paragraph: real body copy, not
+     a caption, so it gets `--color-text` (not muted) at the 16px/1.65 body
+     scale — this sentence is the citability anchor (see `whatIsMcp` in
+     ui.ts), not a footnote. */
   .what-is {
     max-width: 62ch;
     margin: 0.9rem 0 0;
-    color: var(--color-text-muted);
-    font-size: 0.875rem;
+    color: var(--color-text);
+    font-size: var(--text-md);
+    line-height: 1.65;
     text-wrap: pretty;
   }
 
@@ -212,6 +213,9 @@ const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
   section {
     padding-block-end: 3.5rem;
   }
+
+  /* `.section-intro` now lives in base.css — Inspector had the exact same
+     rule under its own copy. */
 
   .grid {
     display: grid;
@@ -253,13 +257,6 @@ const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
   .try-inspector a:hover {
     text-decoration: underline;
     text-underline-offset: 3px;
-  }
-
-  .section-intro {
-    max-width: 62ch;
-    margin: 0 0 1.5rem;
-    color: var(--color-text);
-    text-wrap: pretty;
   }
 
   /* Wide content scrolls inside its own container: the page body must never

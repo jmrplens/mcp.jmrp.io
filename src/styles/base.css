@@ -144,6 +144,56 @@ h4 {
   font-size: 1.1em;
 }
 
+/* ===== Títulos de página (variantes fluidas de h1) =========================
+   jmrp.io no fuerza una única talla de h1 en todo el sitio: cada tipo de
+   página hereda el `h1` de arriba (familia, peso, color, balance, ancla de
+   scroll) y solo redefine tamaño/medida/entrelínea vía una clase — el hero
+   de la portada (`.hero__title`) usa un clamp; los encabezados de sección
+   (`.page-header h1`, `.cat-title`, `.tools-title`…) usan otro, cada uno
+   ajustado a su página. Este sitio tenía el equivalente, pero mal resuelto:
+   HomePage, InspectorPage, PoliciesPage e InternalsPage definían un h1 a
+   mano CADA UNA, con InspectorPage/PoliciesPage/InternalsPage repitiendo la
+   MISMA regla letra por letra ("Astro escopa los estilos, así que hace
+   falta una copia" — no, un selector global como este ya alcanza a
+   cualquier h1 del documento independientemente del componente que lo
+   renderice; la copia nunca hizo falta).
+   Las dos variantes de abajo son esa unificación: `.hero-title` para el
+   titular grande de la portada, `.subpage-title` para el título compartido
+   de Inspector/Policies/Internals. (Se llama `.subpage-title`, no
+   `.page-title`, porque esa clase ya existe en utilities.css con otro
+   diseño —breadcrumb con borde inferior— y no está en uso; reutilizar el
+   nombre la habría pisado.) */
+.hero-title,
+.subpage-title {
+  margin: 0 0 1.25rem;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.hero-title {
+  max-width: 18ch;
+  font-size: clamp(2.5rem, 7vw, 3.75rem);
+}
+
+.subpage-title {
+  max-width: 22ch;
+  font-size: clamp(2.25rem, 6vw, 3.25rem);
+}
+
+/* ===== Párrafo introductorio compartido =====================================
+   Misma regla que HomePage.astro y InspectorPage.astro tenían cada una por
+   separado bajo el nombre `.section-intro` (la intro corta que sigue a un
+   h1/h2 de sección). `font-size` se deja explícito en vez de heredarlo de
+   `html` — mismo valor (16px), pero documentado, como hace `.subtitle` en
+   jmrp.io (BlogIndex.astro). */
+.section-intro {
+  max-width: 62ch;
+  margin: 0 0 1.5rem;
+  color: var(--color-text);
+  font-size: var(--text-md);
+  text-wrap: pretty;
+}
+
 /* ===== Contenido largo (.prose) ============================================
    Escala tipográfica del contenido según el mockup ("Post completo"):
    cuerpo 17px / interlineado 1.78 (IBM Plex Sans); h2 26px y h3 19px en

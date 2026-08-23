@@ -43,10 +43,15 @@ const { notice, lang, id } = Astro.props;
     padding: 0.25rem 0 0;
   }
 
+  /* This is the central content of the card (see the file comment above),
+     not a caption, so it gets the site's normal body-text scale — 16px,
+     the same `--text-md` jmrp.io uses for its own non-hero paragraphs
+     (e.g. `.subtitle` in BlogIndex.astro) — instead of the smaller 14px it
+     had before. */
   p {
     margin: 0 0 0.6rem;
     color: var(--color-text);
-    font-size: 0.875rem;
+    font-size: var(--text-md);
     text-wrap: pretty;
   }
 
@@ -58,7 +63,7 @@ const { notice, lang, id } = Astro.props;
     margin: 0.6rem 0 0;
     padding-inline-start: 1.1rem;
     color: var(--color-text);
-    font-size: 0.875rem;
+    font-size: var(--text-md);
   }
 
   li {

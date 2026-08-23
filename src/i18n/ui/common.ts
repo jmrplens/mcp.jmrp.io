@@ -43,6 +43,14 @@ export const common = {
     skip: "Skip to content",
     source: "Source",
     other: "Español",
+    /**
+     * Accessible label prefix for the inactive segment of the two-letter
+     * `EN | ES` pill (`.lang-seg`, Base.astro) — `${switchTo} ${other}`,
+     * same pattern as jmrp.io's `ui.switchLanguage` ("Switch to {lang}").
+     * The visible text is just the two-letter code (`ES`), which is not
+     * descriptive enough on its own for a screen reader.
+     */
+    switchTo: "Switch to",
     footerBy: "Servers and site by",
     footerUpdated: "Updated",
     /**
@@ -91,6 +99,8 @@ export const common = {
     skip: "Saltar al contenido",
     source: "Código",
     other: "English",
+    /** Ver `en.switchTo`. */
+    switchTo: "Cambiar a",
     footerBy: "Servidores y sitio de",
     footerUpdated: "Actualizado",
     /** Ver `en.footerPolicies`: enlace del pie a `/policies/`. */
