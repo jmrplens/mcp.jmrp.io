@@ -404,12 +404,19 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
         tabindex="-1"
       >
         <div class="drawer-head">
-          {/* Not focusable on purpose — it is a `<label>`, which cannot take
-              keyboard focus. A keyboard user closes with Escape (script
-              below) or by shift-tabbing back to the `#nav-open` checkbox
-              itself and pressing Space; see the report for why the
-              focusable button twin jmrp.io swaps in via JS is left out. */}
-          <label for="nav-open" class="drawer-close" aria-hidden="true">
+          {/* A `<label>` cannot take keyboard focus on its own, so it gets
+              `tabindex` and a `button` role, and the script below makes Enter
+              and Space activate it. Without a reachable close control inside
+              an `aria-modal` dialog, a screen reader user on a phone — where
+              there is no Escape key — has no announced way out. Clicking it
+              still works with JavaScript disabled: it is a label, and the
+              scrim behind it is another one. */}
+          <label
+            for="nav-open"
+            class="drawer-close"
+            role="button"
+            tabindex="0"
+          >
             <span class="sr-only">{t.menuClose}</span>
             <span class="i-mdi:close" aria-hidden="true" />
           </label>
@@ -539,6 +546,20 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
             });
           });
         });
+
+        // Enter/Space on the close label. A <label> with role="button" is
+        // announced as a button, so it has to behave like one; the browser
+        // only gives it the click behaviour, not the keyboard one.
+        var closeLabel = drawer.querySelector(".drawer-close");
+        if (closeLabel) {
+          closeLabel.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              checkbox.checked = false;
+              checkbox.dispatchEvent(new Event("change"));
+            }
+          });
+        }
 
         document.addEventListener("keydown", function (event) {
           if (event.key === "Escape" && checkbox.checked) {
