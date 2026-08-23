@@ -25,7 +25,23 @@ try {
 }
 
 const DIST = path.resolve("dist");
-const SNIPPETS = "/etc/nginx/snippets";
+
+/**
+ * Where the generated `security_headers*.conf` are copied.
+ *
+ * Gated on the variable, like every other publish action in this script
+ * (Cloudflare, IndexNow, Bing): unset means "do not touch Nginx". Without the
+ * gate this step was the one thing here that assumed it always ran on the
+ * production host, so `pnpm build` in CI died on EACCES writing to
+ * /etc/nginx/snippets — CI has no Nginx and no business having one.
+ *
+ * The value lives in the repo's gitignored `.env` on the server. jmrp.io hit
+ * the failure mode this ordering avoids: there the variable was read BEFORE
+ * `.env` was merged, so for seven weeks every deploy logged "skipping Nginx"
+ * and silently stopped publishing the headers. Hence the loud warning below
+ * rather than a quiet skip.
+ */
+const SNIPPETS = process.env.POSTBUILD_NGINX_SNIPPETS_PATH;
 
 /**
  * Binarios por ruta ABSOLUTA, no por PATH.
@@ -110,30 +126,41 @@ function warnUnservedFiles() {
 
 warnUnservedFiles();
 
+if (!SNIPPETS) {
+  console.warn(
+    "⚠ POSTBUILD_NGINX_SNIPPETS_PATH sin definir: NO se despliegan las\n" +
+      "  cabeceras de seguridad ni se recarga nginx. Es lo correcto fuera del\n" +
+      "  servidor (CI, clon nuevo); en producción significa que el .env no se\n" +
+      "  está leyendo, y las cabeceras servidas se quedarán congeladas.",
+  );
+}
+
 /** Contenido previo de cada destino, para poder revertir. */
 const backups = new Map();
 
-for (const f of FILES) {
-  const dst = path.join(SNIPPETS, f);
-  if (fs.existsSync(dst)) backups.set(dst, fs.readFileSync(dst));
-  fs.copyFileSync(path.join(DIST, f), dst);
-}
-
-try {
-  execFileSync(NGINX_BIN, ["-t"], { stdio: "pipe" });
-} catch (error) {
-  for (const [dst, buf] of backups) fs.writeFileSync(dst, buf);
+if (SNIPPETS) {
   for (const f of FILES) {
     const dst = path.join(SNIPPETS, f);
-    if (!backups.has(dst)) fs.rmSync(dst, { force: true });
+    if (fs.existsSync(dst)) backups.set(dst, fs.readFileSync(dst));
+    fs.copyFileSync(path.join(DIST, f), dst);
   }
-  console.error("✗ 'nginx -t' falló; snippets restaurados, nginx NO recargado");
-  console.error(String(error.stderr ?? error));
-  process.exit(1);
-}
 
-execFileSync(SYSTEMCTL_BIN, ["reload", "nginx"]);
-console.log(`✓ ${FILES.join(", ")} desplegados y nginx recargado`);
+  try {
+    execFileSync(NGINX_BIN, ["-t"], { stdio: "pipe" });
+  } catch (error) {
+    for (const [dst, buf] of backups) fs.writeFileSync(dst, buf);
+    for (const f of FILES) {
+      const dst = path.join(SNIPPETS, f);
+      if (!backups.has(dst)) fs.rmSync(dst, { force: true });
+    }
+    console.error("✗ 'nginx -t' falló; snippets restaurados, nginx NO recargado");
+    console.error(String(error.stderr ?? error));
+    process.exit(1);
+  }
+
+  execFileSync(SYSTEMCTL_BIN, ["reload", "nginx"]);
+  console.log(`✓ ${FILES.join(", ")} desplegados y nginx recargado`);
+}
 
 /**
  * Aplana un texto ajeno a una sola línea legible.
