@@ -5,6 +5,7 @@ import { ui } from "../../src/i18n/ui.ts";
 import { common } from "../../src/i18n/ui/common.ts";
 import { home } from "../../src/i18n/ui/home.ts";
 import { inspector } from "../../src/i18n/ui/inspector.ts";
+import { internals } from "../../src/i18n/ui/internals.ts";
 import { policies } from "../../src/i18n/ui/policies.ts";
 
 // `ui` merges these four with a flat spread, so two modules sharing a key
@@ -34,8 +35,11 @@ test("ningún par de módulos mezclados comparte una clave", () => {
   }
 });
 
+// `internals` queda fuera de MERGED a propósito (sus claves chocan con las de
+// `common`), así que la paridad de idiomas del resto no lo cubría: era el
+// único módulo cuyo español podía quedarse corto sin que nada se quejara.
 test("los dos idiomas exponen exactamente las mismas claves", () => {
-  for (const [name, mod] of Object.entries(MERGED)) {
+  for (const [name, mod] of Object.entries({ ...MERGED, internals })) {
     assert.deepEqual(
       sorted(Object.keys(mod.en)),
       sorted(Object.keys(mod.es)),
