@@ -27,6 +27,8 @@ const homeHref = new URL(pageUrl(lang, "home")).pathname;
   <a href={homeHref}>{t.policiesBackToHome}</a>
 </p>
 
+<h1>{t.policiesTitle}</h1>
+
 <p class="policies-intro">{t.policiesIntro}</p>
 
 <section aria-labelledby="privacy-h">
@@ -59,6 +61,21 @@ const homeHref = new URL(pageUrl(lang, "home")).pathname;
 <UpdatedLine lang={lang} />
 
 <style>
+
+  /* Same rule as HomePage's `h1`: Astro scopes <style> per component, so the
+     shared look needs its own copy here. Every page needs an <h1> — without
+     one the document has no top-level heading and html-validate rejects the
+     jump straight to <h2>. */
+  h1 {
+    max-width: 22ch;
+    margin: 0 0 1.25rem;
+    color: var(--color-text-heading);
+    font-family: var(--font-display);
+    font-size: clamp(2.25rem, 6vw, 3.25rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
   /* Copied from InspectorPage.astro's / HomePage.astro's shared rules: Astro
      scopes <style> per component, so a class used on more than one page needs
      its own copy here. */

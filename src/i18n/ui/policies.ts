@@ -8,6 +8,12 @@ export const policies = {
   en: {
     policiesMetaTitle: "Policies — privacy, logging and legal position · jmrp.io",
     /**
+     * The page's `<h1>`. Prefixed like the rest of this module: these keys are
+     * flattened into the shared `ui` object, where a bare `title` would
+     * collide with the site identity one in `common.ts`.
+     */
+    policiesTitle: "Policies",
+    /**
      * Meta description AND the page's opening paragraph — same reasoning as
      * `inspector.inspectorIntro`: one string serving both roles can't drift
      * out of sync with itself.
@@ -44,6 +50,8 @@ export const policies = {
   },
   es: {
     policiesMetaTitle: "Políticas — privacidad, logs y postura legal · jmrp.io",
+    /** Ver `en.policiesTitle`: el `<h1>` de la página. */
+    policiesTitle: "Políticas",
     /** Ver `en.policiesIntro`: sirve de meta description y de párrafo inicial. */
     policiesIntro:
       "Qué cubre esta página: qué datos ven y guardan estos servidores, qué pasa si el servicio se cae, de dónde parece venir una petición, y la base legal de todo ello.",

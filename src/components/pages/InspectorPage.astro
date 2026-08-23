@@ -26,10 +26,9 @@ const homeHref = new URL(pageUrl(lang, "home")).pathname;
   <a href={homeHref}>{t.backToHome}</a>
 </p>
 
+<h1 id="inspector-h">{t.inspectorTitle}</h1>
+
 <section aria-labelledby="inspector-h">
-  <h2 class="eyebrow" id="inspector-h">
-    {t.inspectorEyebrow}
-  </h2>
   <p class="section-intro">{t.inspectorIntro}</p>
   <Inspector client:load servers={servers} lang={lang} />
   <p class="notice-pointer">
@@ -38,6 +37,21 @@ const homeHref = new URL(pageUrl(lang, "home")).pathname;
 </section>
 
 <style>
+
+  /* Same rule as HomePage's `h1`: Astro scopes <style> per component, so the
+     shared look needs its own copy here. Every page needs an <h1> — without
+     one the document has no top-level heading and html-validate rejects the
+     jump straight to <h2>. */
+  h1 {
+    max-width: 22ch;
+    margin: 0 0 1.25rem;
+    color: var(--color-text-heading);
+    font-family: var(--font-display);
+    font-size: clamp(2.25rem, 6vw, 3.25rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
   /* Copied from HomePage.astro's shared rules: Astro scopes <style> per
      component, so a class used on both pages needs its own copy here. */
   .back-link {
