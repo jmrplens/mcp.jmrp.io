@@ -15,8 +15,14 @@ test("las fichas llegan plegadas y se abren al pulsar", async ({ page }) => {
   const tools = page.locator("details.fold-tools").first();
 
   await expect(tools).not.toHaveAttribute("open", /.*/);
-  // Los nombres de las tools se ven SIN abrir: son lo citable.
-  await expect(tools.locator(".fold-peek code").first()).toBeVisible();
+  // Los nombres de las tools ya NO se muestran con el plegable cerrado: con
+  // un MCP de muchas herramientas eso era ruido. Pero siguen en el DOM, que
+  // es lo que los mantiene citables — un rastreador lee dentro de un
+  // <details> cerrado. Eso es justo lo que se comprueba aquí: presentes,
+  // no visibles.
+  const primerNombre = tools.locator("dt").first();
+  await expect(primerNombre).toBeAttached();
+  await expect(primerNombre).not.toBeVisible();
 
   await tools.locator("summary").click();
   await expect(tools).toHaveAttribute("open", /.*/);
