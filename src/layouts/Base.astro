@@ -329,6 +329,14 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
                     href={item.href}
                     aria-current={item.current ? "page" : undefined}
                   >
+                    {/* jmrp.io's breadcrumb cue on the active section: a
+                        decorative "/" ahead of the label, hidden from AT
+                        since aria-current already announces the state. */}
+                    {item.current && (
+                      <span class="nav-prefix" aria-hidden="true">
+                        /
+                      </span>
+                    )}
                     {item.label}
                   </a>
                 </li>
@@ -617,6 +625,21 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
     font-size: 0.8125rem;
   }
 
+  /* Fixed height like jmrp.io's header (--header-height/-mobile), instead of
+     the shared rule's vertical padding: with the 44px icon controls below
+     centered by `align-items: center`, this leaves ~10px of breathing room
+     above/below on desktop (7px on the ≤40rem row) with no overflow. */
+  .header-bar {
+    height: var(--header-height);
+    padding-block: 0;
+  }
+
+  @media (width <= 40rem) {
+    .header-bar {
+      height: var(--header-height-mobile);
+    }
+  }
+
   .brand {
     display: inline-flex;
     gap: 0.4rem;
@@ -637,46 +660,97 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
   /* ===== Desktop page nav — hidden below 40rem, replaced by the drawer === */
   .nav-links {
     display: flex;
-    gap: 1.25rem;
+    gap: 2px;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
   .nav-links a {
+    position: relative;
     display: inline-flex;
     align-items: center;
     min-height: 44px;
+    padding: 8px 12px;
     color: var(--color-text-muted);
     text-decoration: none;
+    border-radius: var(--radius-sm);
+    transition:
+      background-color var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out);
   }
 
   .nav-links a:hover {
+    color: var(--color-text-heading);
+    background-color: var(--color-surface-2);
+  }
+
+  .nav-links a:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  /* Active section: accent text, a "/" prefix, and a 2px amber underline —
+     same treatment as jmrp.io's Header.astro. */
+  .nav-links a[aria-current="page"] {
     color: var(--color-accent);
   }
 
-  .nav-links a[aria-current="page"] {
+  .nav-prefix {
+    margin-right: 0.3em;
     color: var(--color-accent);
-    text-decoration: underline;
-    text-underline-offset: 3px;
+  }
+
+  .nav-links a[aria-current="page"]::after {
+    position: absolute;
+    right: 12px;
+    bottom: 2px;
+    left: 12px;
+    height: 2px;
+    content: "";
+    background: var(--color-accent);
+    border-radius: 2px;
   }
 
   /* ===== Controls cluster: language, theme, GitHub, burger =============== */
   .header-controls {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: var(--space-sm);
   }
 
+  /* Language switch: a single-word toggle (full locale name, not a 2-letter
+     code pill like jmrp.io's segmented EN|ES — this site shows one link at a
+     time), styled with the same chip chrome as jmrp.io's `.lang-seg`. */
   .lang-switch a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0.3rem 0.75rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-micro);
+    font-weight: var(--fw-medium);
+    letter-spacing: 0.04em;
     color: var(--color-text-muted);
     text-decoration: none;
+    background-color: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    transition:
+      color var(--dur-1) var(--ease-out),
+      background-color var(--dur-1) var(--ease-out);
   }
 
-  .lang-switch a:hover {
-    color: var(--color-accent);
-    text-decoration: underline;
-    text-underline-offset: 3px;
+  .lang-switch a:hover,
+  .lang-switch a:focus-visible {
+    color: var(--color-text-heading);
+    background-color: var(--color-bg-subtle);
+  }
+
+  .lang-switch a:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
   }
 
   /* 44px is the project's minimum tap target for icon-only controls (see
@@ -696,12 +770,39 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
     background: none;
     border: none;
     border-radius: var(--radius-sm);
+    transition:
+      color var(--dur-2) var(--ease-out),
+      background-color var(--dur-2) var(--ease-out);
   }
 
-  .theme-toggle:hover,
-  .gh-link:hover,
-  .menu-toggle:hover {
+  .theme-toggle:hover {
     color: var(--color-accent);
+  }
+
+  /* GitHub link and burger get jmrp.io's `.gh-link`/`.drawer__close` hover:
+     a filled chip (heading color + surface background) instead of a bare
+     color swap. */
+  .gh-link:hover,
+  .gh-link:focus-visible,
+  .menu-toggle:hover {
+    color: var(--color-text-heading);
+    background: var(--color-surface-2);
+  }
+
+  .theme-toggle:focus-visible,
+  .gh-link:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  /* The burger toggle is a <label>, which cannot itself receive focus — the
+     real focusable control is the sr-only checkbox it targets. Without this,
+     a keyboard user tabbing to #nav-open gets no visible focus indicator at
+     all (the default outline would land on a 1px clipped element). Same
+     pattern as jmrp.io's `.nav-open-cb:focus-visible + nav .menu-toggle`,
+     adapted to this site's `.header-bar` wrapper instead of a bare `<nav>`. */
+  .nav-open-cb:focus-visible + .header-bar .menu-toggle {
+    box-shadow: var(--focus-ring);
   }
 
   /* Sun/moon swap by data-theme. Dark is the default (no attribute), so the
@@ -759,10 +860,13 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
     opacity: 0;
     visibility: hidden;
     transition:
-      opacity var(--dur-2) var(--ease-out),
-      visibility var(--dur-2) var(--ease-out);
+      opacity var(--dur-3) var(--ease-out),
+      visibility var(--dur-3) var(--ease-out);
   }
 
+  /* Frosted panel: translucent surface + blur + a soft cast shadow toward
+     the content, like jmrp.io's NavDrawer.astro (`--nd-shadow`) instead of a
+     flat opaque fill. */
   .nav-drawer {
     position: fixed;
     inset-block: 0;
@@ -771,10 +875,11 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
     display: flex;
     flex-direction: column;
     width: var(--drawer-w);
-    padding: var(--space-md);
-    overflow-y: auto;
-    background: var(--color-bg-secondary);
-    border-inline-start: var(--border-1);
+    background: color-mix(in srgb, var(--color-bg-secondary) 88%, transparent);
+    border-inline-start: 1px solid var(--color-border);
+    box-shadow: -30px 0 60px -30px rgb(0 0 0 / 55%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     visibility: hidden;
     transition:
       transform var(--dur-3) var(--ease-out),
@@ -786,10 +891,16 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
     outline: none;
   }
 
+  /* Edge-to-edge head with its own hairline, matching jmrp.io's
+     `.drawer__head` — the close control stays pinned above the scrollable
+     link list below instead of scrolling away with it. */
   .drawer-head {
     display: flex;
+    align-items: center;
     justify-content: flex-end;
-    margin-bottom: var(--space-sm);
+    height: var(--header-height-mobile);
+    padding: 0 14px;
+    border-bottom: 1px solid var(--color-hair);
   }
 
   .drawer-close {
@@ -799,42 +910,63 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
     width: 44px;
     height: 44px;
     font-size: var(--text-xl);
-    color: var(--color-text);
+    color: var(--color-text-muted);
     cursor: pointer;
     border-radius: var(--radius-sm);
+    transition:
+      color var(--dur-2) var(--ease-out),
+      background-color var(--dur-2) var(--ease-out);
   }
 
   .drawer-close:hover {
-    color: var(--color-accent);
-  }
-
-  .drawer-links {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .drawer-links a {
-    display: flex;
-    align-items: center;
-    min-height: 44px;
-    padding: 0 var(--space-sm);
-    color: var(--color-text);
-    text-decoration: none;
-    border-radius: var(--radius-sm);
-  }
-
-  .drawer-links a:hover {
-    color: var(--color-accent);
+    color: var(--color-text-heading);
     background: var(--color-surface-2);
   }
 
+  /* Only this list scrolls if content ever outgrows the viewport — the head
+     above stays fixed in place. */
+  .drawer-links {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    padding: 12px 14px;
+    overflow-y: auto;
+    list-style: none;
+  }
+
+  /* Larger, heading-weight rows (jmrp.io's `.tree__row` sizing) — this is a
+     page list, not the terminal command tree, so no glyphs/paths, just a
+     bigger, more legible tap target. */
+  .drawer-links a {
+    display: flex;
+    align-items: center;
+    min-height: 54px;
+    padding: 10px 12px;
+    font-size: var(--text-base);
+    font-weight: var(--fw-semibold);
+    color: var(--color-text-heading);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition:
+      background-color var(--dur-2) var(--ease-out),
+      box-shadow var(--dur-2) var(--ease-out);
+  }
+
+  .drawer-links a:hover,
+  .drawer-links a:focus-visible {
+    outline: none;
+    background: var(--color-surface-2);
+    box-shadow: inset 0 0 0 2px var(--accent-line);
+  }
+
+  /* Current section: persistent accent-dim fill + left accent bar, like
+     jmrp.io's `.tree__row[aria-current="page"]`. */
   .drawer-links a[aria-current="page"] {
     color: var(--color-accent);
-    font-weight: var(--fw-semibold);
+    background: var(--accent-dim);
+    box-shadow: inset 3px 0 0 var(--color-accent);
   }
 
   .drawer-gh {
