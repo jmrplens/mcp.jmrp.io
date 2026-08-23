@@ -53,11 +53,34 @@ test("la raíz sirve el grafo en inglés, enlazado a la persona", async ({
   expect(person?.["@type"]).toBe("Person");
   expect(person?.sameAs).toContain("https://github.com/jmrplens");
 
+  // La portada ya NO define los endpoints: cada uno se describe en su propia
+  // ficha (`/servers/<id>/`), que es donde vive la entidad. Aquí solo se los
+  // REFERENCIA por @id. Redefinirlos en las dos páginas es exactamente lo que
+  // parte una entidad en dos copias que pueden contradecirse.
   const apis = graph.filter((n) => hasType(n, "WebAPI"));
-  expect(apis.map((n) => n.url)).toEqual([
-    "https://mcp.jmrp.io/libgen",
-    "https://mcp.jmrp.io/gitlab",
-  ]);
+  expect(apis).toEqual([]);
+
+  const serialized = JSON.stringify(graph);
+  for (const id of [
+    "https://mcp.jmrp.io/libgen#api",
+    "https://mcp.jmrp.io/gitlab#api",
+  ]) {
+    expect(serialized).toContain(id);
+  }
+});
+
+test("cada ficha de servidor define SU endpoint, y solo el suyo", async ({
+  page,
+}) => {
+  for (const [id, url] of [
+    ["libgen", "https://mcp.jmrp.io/libgen"],
+    ["gitlab", "https://mcp.jmrp.io/gitlab"],
+  ]) {
+    await page.goto(`/servers/${id}/`);
+    const graph = await readGraph(page);
+    const apis = graph.filter((n) => hasType(n, "WebAPI"));
+    expect(apis.map((n) => n.url)).toEqual([url]);
+  }
 });
 
 test("/es/ declara su propia página sin duplicar el @id de la inglesa", async ({
@@ -71,8 +94,8 @@ test("/es/ declara su propia página sin duplicar el @id de la inglesa", async (
   expect(webpage?.inLanguage).toBe("es");
   expect(webpage?.description).toBe(ui.es.lede);
 
-  // El WebSite y los WebAPI, en cambio, son el MISMO nodo en los dos idiomas:
-  // su texto va etiquetado con @language en vez de repetido en cada página.
+  // El WebSite, en cambio, es el MISMO nodo en los dos idiomas: su texto va
+  // etiquetado con @language en vez de repetido en cada página.
   const website = graph.find((n) => n["@type"] === "WebSite");
   expect(website?.["@id"]).toBe("https://mcp.jmrp.io/#website");
   expect(website?.description).toEqual([
