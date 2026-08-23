@@ -54,11 +54,14 @@ test("el aviso del token llega ABIERTO; la tranquilización nunca sin las cautel
   page,
 }) => {
   await page.goto("/");
-  // Si esto falla, alguien volvió a plegar las advertencias de seguridad en
-  // el punto exacto donde se pega una credencial. La auditoría lo describió
-  // bien: tranquilización visible + cautelas ocultas es el peor reparto
-  // posible, y no se acepta por mucho scroll que ahorre.
+  // Estos avisos arrancaban abiertos, para que la cautela estuviera a la
+  // vista junto a la tranquilización. El autor pidió cerrarlos: la
+  // contrapartida es que la advertencia queda a un clic, así que lo que se
+  // vigila ahora es que ese clic funcione y que el contenido siga entero —
+  // plegado no es lo mismo que ausente.
   const security = page.locator("details.fold-security").first();
+  await expect(security).not.toHaveAttribute("open", /.*/);
+  await security.locator("summary").click();
   await expect(security).toHaveAttribute("open", /.*/);
   await expect(
     security.locator("li", { hasText: /read_api/ }),

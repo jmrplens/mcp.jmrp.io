@@ -172,10 +172,14 @@ const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h
          mid-answer, and `speakable` in the JSON-LD points at these same ids —
          with the id on the inner div, a read-aloud got the answer with no
          question attached. */
+      /* Every notice starts collapsed, security ones included. They used to
+         open by default so the caution sat next to the reassurance; the
+         author asked for it closed. The content is unchanged and the anchor
+         still lands on the question, so a link to `#gitlab-security` opens
+         it. */
       <details
         class={`fold fold-${notice.kind}`}
         id={`${server.id}-${notice.kind}`}
-        open={notice.kind === "security"}
       >
         <summary>
           <h4 class="fold-label">{notice.title[lang]}</h4>
@@ -412,9 +416,12 @@ const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h
     margin: 0;
     color: var(--color-text-muted);
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    /* Was 0.7rem, which left the question smaller than the answer under it —
+       the heading of a passage cannot be the quietest thing in it. Matched to
+       the notice body it opens (--text-md), not one step below. */
+    font-size: var(--text-md);
     font-weight: 500;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
   }
 
