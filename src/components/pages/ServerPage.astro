@@ -1,0 +1,704 @@
+---
+/**
+ * One server's detail page (`/servers/<id>/`) — its Server Card, laid out for
+ * reading and linking rather than as raw JSON: identity, then every tool,
+ * prompt, resource and resource template it publishes, each one linking
+ * straight into the inspector preconfigured to it. See
+ * `.superpowers/sdd/servers-section-spec.md` for the full rationale.
+ *
+ * `inputSchema`/`outputSchema` are deliberately absent — `server-cards.ts`'s
+ * curated `serverCards` already strips them (see that module's header
+ * comment); the live inspector is where a client inspects the real schema.
+ *
+ * Only `id` is a prop, like every other page component on this site — `lang`
+ * comes from the URL, not a parameter, so the mirrored `src/pages/es/`
+ * route stays byte-identical to its English counterpart.
+ */
+import type {
+  CardPromptArgument,
+  CardResourceTemplate,
+  PromptSummary,
+  ResourceSummary,
+  ToolSummary,
+} from "../../data/server-cards";
+import { getServerCard, getServerCardDocument } from "../../data/server-cards";
+import { servers } from "../../data/servers";
+import { ui } from "../../i18n/ui";
+import { serversPage } from "../../i18n/ui/servers-page";
+import { getLangFromUrl } from "../../i18n/utils";
+import { pageUrl } from "../../lib/seo";
+import { anchorSlug } from "../../lib/slug";
+import ServerEntryChips from "../ServerEntryChips.astro";
+import ServerToc from "../ServerToc.astro";
+import UpdatedLine from "../UpdatedLine.astro";
+
+interface Props {
+  id: string;
+}
+
+const { id } = Astro.props;
+
+const lang = getLangFromUrl(Astro.url);
+const t = ui[lang];
+const sp = serversPage[lang];
+
+// Guaranteed to exist: the route's `getStaticPaths` only generates a path
+// per id in `serverCards` (see `src/pages/servers/[server].astro`). Thrown,
+// not asserted with `!`, so a future drift between that list and this lookup
+// fails loudly at build time instead of silently typing past it.
+const card = getServerCard(id);
+if (!card) {
+  throw new Error(`[servers] no server card for id "${id}" — getStaticPaths should have prevented this`);
+}
+const doc = getServerCardDocument(id);
+if (!doc) {
+  throw new Error(`[servers] no server card document for id "${id}"`);
+}
+const serverMeta = servers.find((s) => s.id === id);
+if (!serverMeta) {
+  throw new Error(
+    `[servers] "${id}" has a Server Card but no entry in src/data/servers.ts`,
+  );
+}
+
+const serversHref = new URL(pageUrl(lang, "servers")).pathname;
+const inspectorBase = new URL(pageUrl(lang, "inspector")).pathname;
+const inspectorOverviewHref = `${inspectorBase}?server=${id}`;
+
+/**
+ * Deep link into the inspector, preconfigured to one tool/prompt/resource.
+ *
+ * @param tab Which inspector tab holds this entry.
+ * @param name The tool/prompt name, or — for a resource — its URI. Resource
+ *   templates have no matching tab, so callers never pass one for them.
+ * @returns Relative URL, same-origin — never absolute (see other pages'
+ *   `Href` comments for why).
+ */
+function inspectorHref(tab: "tools" | "prompts" | "resources", name: string): string {
+  return `${inspectorBase}?server=${id}&tab=${tab}&name=${encodeURIComponent(name)}`;
+}
+
+/** One entry, with its anchor id and chip label precomputed ONCE — the
+ * article's `id` and the matching chip's `href` both read off this same
+ * value, so the two can never drift apart. */
+interface Entry<T> {
+  id: string;
+  label: string;
+  data: T;
+}
+
+function toEntries<T extends { name: string }>(prefix: string, items: T[]): Entry<T>[] {
+  return items.map((item) => ({
+    id: `${prefix}-${anchorSlug(item.name)}`,
+    label: item.name,
+    data: item,
+  }));
+}
+
+const toolEntries: Entry<ToolSummary>[] = toEntries("tool", card.tools);
+const promptEntries: Entry<PromptSummary>[] = toEntries("prompt", card.prompts);
+// Resources key off their URI, not `name`: the SEP-1649 field guaranteed
+// unique, and the same value the inspector deep link's `name` param carries
+// for this family (see `servers-section-spec.md`'s "Deep-link al inspector").
+const resourceEntries: Entry<ResourceSummary>[] = card.resources.map((resource) => ({
+  id: `resource-${anchorSlug(resource.uri)}`,
+  label: resource.title ?? resource.name,
+  data: resource,
+}));
+const templateEntries: Entry<CardResourceTemplate>[] = doc.resourceTemplates.map(
+  (tmpl) => ({
+    id: `template-${anchorSlug(tmpl.uriTemplate)}`,
+    label: tmpl.name,
+    data: tmpl,
+  }),
+);
+
+const hasPrompts = promptEntries.length > 0;
+const hasResources = resourceEntries.length > 0;
+const hasTemplates = templateEntries.length > 0;
+
+// Above this many entries, the family gets a compact chip jump-index on top
+// of its full list (gitlab's 37 prompts / 37 resource templates); below it,
+// scrolling straight through the list is already fine (gitlab's 8
+// resources, everyone's handful of tools) — see the spec's TOC section for
+// why a chip grid exists at all.
+const CHIP_THRESHOLD = 8;
+
+const tocFamilies = [
+  { id: "tools-h", label: t.toolsHead, count: toolEntries.length },
+  ...(hasPrompts ? [{ id: "prompts-h", label: t.promptsHead, count: promptEntries.length }] : []),
+  ...(hasResources
+    ? [{ id: "resources-h", label: sp.resourcesHead, count: resourceEntries.length }]
+    : []),
+  ...(hasTemplates
+    ? [{ id: "templates-h", label: sp.templatesHead, count: templateEntries.length }]
+    : []),
+];
+
+const authText = card.authentication.required ? t.credentialsRequired : t.noCredentials;
+const authSchemes = card.authentication.schemes;
+
+/** True if an argument declares itself required — `arguments[].required` is
+ * omitted (not sent as `false`) when optional, see `CardPromptArgument`. */
+function isRequired(arg: CardPromptArgument): boolean {
+  return arg.required === true;
+}
+---
+
+<div class="server-page">
+  <p class="back-link">
+    <a href={serversHref}>{sp.backToServers}</a>
+  </p>
+
+  <header class="subpage-header" id="top">
+    <p class="section-title">{sp.eyebrowServer}</p>
+    <h1 class="subpage-title">{serverMeta.name}</h1>
+    <p class="subpage-intro">{serverMeta.description[lang]}</p>
+  </header>
+
+  <div class="server-layout">
+    {/* Checkbox-hack toggle for the mobile TOC panel — same mechanism as the
+        header's `#nav-open` in Base.astro (hidden checkbox + `:has()` +
+        `<label>` scrim/FAB), scoped to this page instead of the whole site.
+        Zero JavaScript: opening/closing works from mouse, touch AND
+        keyboard (Tab lands on this checkbox since it is not `tabindex="-1"`,
+        Space toggles it — the native behaviour every checkbox already has).
+        No inline script layers anything on top here, unlike the nav drawer:
+        the spec calls for these pages to ship no JS at all. */}
+    <input
+      type="checkbox"
+      id="toc-open"
+      class="toc-toggle-cb sr-only"
+      aria-controls="toc-panel"
+      aria-expanded="false"
+    />
+
+    <div class="server-content">
+      <section class="server-family" aria-labelledby="overview-h" id="overview-h">
+        <h2 class="subsection-title">{sp.overviewHead}</h2>
+        <dl class="meta-grid">
+          <div>
+            <dt>{sp.serverInfoLabel}</dt>
+            <dd><code>{card.serverInfo.name}</code></dd>
+          </div>
+          <div>
+            <dt>{sp.versionLabel}</dt>
+            <dd><code>{card.serverInfo.version}</code></dd>
+          </div>
+          <div>
+            <dt>{sp.endpointLabel}</dt>
+            <dd><code>{serverMeta.endpoint}</code></dd>
+          </div>
+          <div>
+            <dt>{sp.authLabel}</dt>
+            <dd>
+              {authText}
+              {authSchemes.length > 0 && ` (${authSchemes.join(", ")})`}
+            </dd>
+          </div>
+        </dl>
+        <p class="server-meta-links">
+          <a href={inspectorOverviewHref}>{sp.tryInInspector}</a>{" "}
+          <a href={serverMeta.repo}>{t.repository}</a>{" "}
+          <a href={serverMeta.docsSite ?? serverMeta.docs}>{t.documentation}</a>
+        </p>
+      </section>
+
+      <section class="server-family" aria-labelledby="tools-h" id="tools-h">
+        <h2 class="subsection-title">
+          {t.toolsHead} <span class="count">({toolEntries.length})</span>
+        </h2>
+        {
+          toolEntries.length > CHIP_THRESHOLD && (
+            <ServerEntryChips
+              entries={toolEntries}
+              ariaLabel={`${sp.chipIndexLabel} — ${t.toolsHead}`}
+            />
+          )
+        }
+        <div class="entry-list">
+          {
+            toolEntries.map((entry) => (
+              <article class="entry" id={entry.id}>
+                <h3 class="entry-title">{entry.data.title}</h3>
+                <p class="entry-name">
+                  <code>{entry.data.name}</code>
+                </p>
+                <p class="entry-desc">{entry.data.description}</p>
+                <p class="entry-cta">
+                  <a href={inspectorHref("tools", entry.data.name)}>{sp.tryInInspector}</a>
+                </p>
+              </article>
+            ))
+          }
+        </div>
+      </section>
+
+      {
+        hasPrompts && (
+          <section class="server-family" aria-labelledby="prompts-h" id="prompts-h">
+            <h2 class="subsection-title">
+              {t.promptsHead} <span class="count">({promptEntries.length})</span>
+            </h2>
+            <p class="fold-intro">{t.promptsIntro}</p>
+            {promptEntries.length > CHIP_THRESHOLD && (
+              <ServerEntryChips
+                entries={promptEntries}
+                ariaLabel={`${sp.chipIndexLabel} — ${t.promptsHead}`}
+              />
+            )}
+            <div class="entry-list">
+              {promptEntries.map((entry) => (
+                <article class="entry" id={entry.id}>
+                  <h3 class="entry-title">{entry.data.title}</h3>
+                  <p class="entry-name">
+                    <code>{entry.data.name}</code>
+                  </p>
+                  <p class="entry-desc">{entry.data.description}</p>
+                  {entry.data.arguments.length > 0 ? (
+                    <dl class="args">
+                      {entry.data.arguments.map((arg) => (
+                        <>
+                          <dt>
+                            <code>{arg.name}</code>
+                            {isRequired(arg) && <span class="req"> · {sp.requiredArg}</span>}
+                          </dt>
+                          <dd>{arg.description}</dd>
+                        </>
+                      ))}
+                    </dl>
+                  ) : (
+                    <p class="entry-desc entry-desc--muted">{sp.noArguments}</p>
+                  )}
+                  <p class="entry-cta">
+                    <a href={inspectorHref("prompts", entry.data.name)}>{sp.tryInInspector}</a>
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+        )
+      }
+
+      {
+        hasResources && (
+          <section class="server-family" aria-labelledby="resources-h" id="resources-h">
+            <h2 class="subsection-title">
+              {sp.resourcesHead} <span class="count">({resourceEntries.length})</span>
+            </h2>
+            <div class="entry-list">
+              {resourceEntries.map((entry) => (
+                <article class="entry" id={entry.id}>
+                  <h3 class="entry-title">{entry.label}</h3>
+                  <p class="entry-name">
+                    <code>{entry.data.uri}</code>
+                  </p>
+                  <p class="entry-desc">{entry.data.description}</p>
+                  {entry.data.mimeType && (
+                    <p class="entry-meta">
+                      {sp.mimeTypeLabel}: <code>{entry.data.mimeType}</code>
+                    </p>
+                  )}
+                  <p class="entry-cta">
+                    <a href={inspectorHref("resources", entry.data.uri)}>
+                      {sp.tryInInspector}
+                    </a>
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+        )
+      }
+
+      {
+        hasTemplates && (
+          <section class="server-family" aria-labelledby="templates-h" id="templates-h">
+            <h2 class="subsection-title">
+              {sp.templatesHead} <span class="count">({templateEntries.length})</span>
+            </h2>
+            <p class="fold-intro">{sp.templatesIntro}</p>
+            {templateEntries.length > CHIP_THRESHOLD && (
+              <ServerEntryChips
+                entries={templateEntries}
+                ariaLabel={`${sp.chipIndexLabel} — ${sp.templatesHead}`}
+              />
+            )}
+            <div class="entry-list">
+              {templateEntries.map((entry) => (
+                <article class="entry" id={entry.id}>
+                  <h3 class="entry-title">{entry.data.title}</h3>
+                  <p class="entry-name">
+                    <code>{entry.data.uriTemplate}</code>
+                  </p>
+                  <p class="entry-desc">{entry.data.description}</p>
+                  {entry.data.mimeType && (
+                    <p class="entry-meta">
+                      {sp.mimeTypeLabel}: <code>{entry.data.mimeType}</code>
+                    </p>
+                  )}
+                </article>
+              ))}
+            </div>
+          </section>
+        )
+      }
+
+      <UpdatedLine lang={lang} />
+    </div>
+
+    {/* Desktop: sticky rail, always visible above the breakpoint (see the
+        media queries below) — plain anchors, no JS. */}
+    <aside class="toc-rail">
+      <ServerToc overviewLabel={sp.overviewHead} families={tocFamilies} ariaLabel={sp.tocLabel} />
+    </aside>
+
+    {/* Mobile: floating button + panel, both driven by `#toc-open` above.
+        `<label for="toc-open">` toggles the checkbox on click/tap with zero
+        JavaScript — standard label behaviour, not a custom mechanism. */}
+    <label for="toc-open" class="toc-fab">
+      {sp.tocFabLabel}
+    </label>
+    <label for="toc-open" class="toc-scrim" aria-hidden="true"></label>
+    <div id="toc-panel" class="toc-panel" role="dialog" aria-modal="true" aria-label={sp.tocLabel}>
+      <label for="toc-open" class="toc-panel-close">
+        {sp.tocClose}
+      </label>
+      <ServerToc
+        overviewLabel={sp.overviewHead}
+        families={tocFamilies}
+        ariaLabel={sp.tocPanelLabel}
+      />
+    </div>
+  </div>
+</div>
+
+<style>
+  .server-page {
+    padding-top: var(--space-xl);
+    padding-bottom: var(--space-xl);
+  }
+
+  .back-link {
+    margin: 0 0 1.5rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .back-link a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .back-link a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* ===== Two-column layout: content + sticky rail, desktop only ========== */
+  .server-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-lg);
+  }
+
+  @media (width >= 64rem) {
+    .server-layout {
+      grid-template-columns: minmax(0, 1fr) 15rem;
+      align-items: start;
+    }
+  }
+
+  .server-content {
+    /* min-width:0 on a grid item: without it, a long unbroken token (a
+       resource URI, an endpoint) can force the grid track wider than the
+       viewport instead of wrapping inside `<code>` — the 360px scroll bug
+       this rule exists to prevent. */
+    min-width: 0;
+  }
+
+  .server-family {
+    margin-top: var(--space-lg-xl);
+  }
+
+  .server-family:first-child {
+    margin-top: 0;
+  }
+
+  .meta-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.4rem 1rem;
+    margin: 0 0 1rem;
+    font-size: var(--text-sm);
+  }
+
+  .meta-grid dt {
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .meta-grid dd {
+    margin: 0;
+    color: var(--color-text-heading);
+    overflow-wrap: anywhere;
+  }
+
+  .meta-grid code {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+
+  .server-meta-links {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .server-meta-links a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .server-meta-links a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .fold-intro {
+    margin: 0 0 1rem;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    text-wrap: pretty;
+  }
+
+  .entry-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .entry {
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--color-hair);
+    border-radius: var(--radius-md);
+    /* Anchor target offset: without this, jumping to #tool-x lands the
+       entry's top edge flush under the sticky site header. */
+    scroll-margin-top: calc(var(--header-height) + 1rem);
+  }
+
+  .entry-title {
+    margin: 0;
+    color: var(--color-text-heading);
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: var(--fw-medium);
+  }
+
+  .entry-name {
+    margin: 0.2rem 0 0;
+  }
+
+  .entry-name code {
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    overflow-wrap: anywhere;
+  }
+
+  .entry-desc {
+    margin: 0.5rem 0 0;
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    line-height: 1.6;
+    text-wrap: pretty;
+  }
+
+  .entry-desc--muted {
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+
+  .entry-meta {
+    margin: 0.5rem 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+  }
+
+  .entry-meta code {
+    font-family: var(--font-mono);
+  }
+
+  .args {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.3rem 0.85rem;
+    margin: 0.75rem 0 0;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-hair);
+    font-size: 0.85rem;
+  }
+
+  .args dt {
+    color: var(--color-text-heading);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+
+  .args dt code {
+    color: var(--color-accent);
+  }
+
+  .args .req {
+    color: var(--color-text-muted);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+  }
+
+  .args dd {
+    margin: 0;
+    color: var(--color-text-muted);
+    text-wrap: pretty;
+  }
+
+  .entry-cta {
+    margin: 0.75rem 0 0;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .entry-cta a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .entry-cta a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* ===== TOC: desktop sticky rail ========================================= */
+  .toc-rail {
+    display: none;
+  }
+
+  @media (width >= 64rem) {
+    .toc-rail {
+      display: block;
+      position: sticky;
+      top: calc(var(--header-height) + var(--space-lg));
+      max-height: calc(100vh - var(--header-height) - 2 * var(--space-lg));
+      padding: var(--space-md);
+      overflow-y: auto;
+      border: 1px solid var(--color-hair);
+      border-radius: var(--radius-md);
+      background: var(--color-bg-secondary);
+    }
+  }
+
+  /* ===== TOC: mobile FAB + panel + scrim, checkbox-hack ==================
+     Same technique as Base.astro's nav drawer (hidden checkbox + `:has()` +
+     `<label>` scrim), scoped to this page's own `#toc-open` instead of the
+     header's `#nav-open`. No inline script here at all — see the comment on
+     the checkbox above for why this one stays zero-JS where the nav drawer
+     layers a little progressive enhancement on top. */
+  .toc-fab,
+  .toc-scrim,
+  .toc-panel {
+    display: none;
+  }
+
+  @media (width < 64rem) {
+    .toc-fab {
+      position: fixed;
+      right: var(--space-md);
+      bottom: var(--space-md);
+      z-index: var(--z-fab);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.7rem 1.1rem;
+      color: var(--color-on-primary);
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      font-weight: var(--fw-medium);
+      text-decoration: none;
+      cursor: pointer;
+      background: var(--color-primary);
+      border-radius: var(--radius-pill);
+      box-shadow: var(--sh-pop);
+    }
+
+    .toc-fab::before {
+      content: "≡";
+    }
+
+    .toc-scrim {
+      position: fixed;
+      inset: 0;
+      z-index: var(--z-backdrop);
+      display: block;
+      background: var(--scrim);
+      opacity: 0;
+      visibility: hidden;
+      transition:
+        opacity var(--dur-3) var(--ease-out),
+        visibility var(--dur-3) var(--ease-out);
+    }
+
+    .toc-panel {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: var(--z-drawer);
+      display: block;
+      max-height: 70vh;
+      padding: var(--space-md);
+      overflow-y: auto;
+      background: var(--color-bg-secondary);
+      border-top: 1px solid var(--color-border);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      box-shadow: var(--sh-pop);
+      visibility: hidden;
+      transition:
+        transform var(--dur-3) var(--ease-out),
+        visibility var(--dur-3) var(--ease-out);
+      transform: translateY(100%);
+    }
+
+    .toc-panel-close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0.4rem 0.8rem;
+      margin: 0 0 0.5rem;
+      color: var(--color-text-muted);
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      cursor: pointer;
+      border: 1px solid var(--color-hair);
+      border-radius: var(--radius-md);
+    }
+
+    /* `.toc-scrim`/`.toc-panel` are TRUE siblings of `#toc-open` (both direct
+       children of `.server-layout`, both after it in source order), so a
+       plain sibling combinator reaches them — no `:has()` needed, unlike
+       Base.astro's nav drawer, where the checkbox and the elements it drives
+       are NOT siblings (the drawer needs to reach `<body>`, outside the
+       `<header>` the checkbox lives in). Astro scopes both sides of this
+       selector to the same component instance automatically. */
+    .toc-toggle-cb:checked ~ .toc-scrim {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .toc-toggle-cb:checked ~ .toc-panel {
+      visibility: visible;
+      transform: translateY(0);
+    }
+  }
+</style>

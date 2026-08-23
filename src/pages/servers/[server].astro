@@ -1,0 +1,59 @@
+---
+/**
+ * Server detail route: `/servers/<id>/`. Delegates to the shared page
+ * component; the language comes from the URL, exactly like the other
+ * mirrored routes (see ../policies.astro).
+ *
+ * DYNAMIC on purpose, one route for every server via `getStaticPaths` (same
+ * pattern as `../og-[lang].png.ts`): adding a third MCP means giving it a
+ * Server Card snapshot under `src/data/cards/`, never a new page file.
+ *
+ * Canonical/hreflang come from `serverPageUrl`/`serverPageAlternates`, NOT
+ * from `page="servers"` alone — `PAGE_PATHS.servers` is the fixed path of
+ * the INDEX, and every server would otherwise canonicalize to it. `page` is
+ * still passed as `"servers"` so the site nav highlights the right section
+ * and the breadcrumb reads `~/servers` — see Base.astro's prop docs.
+ *
+ * `skipGraph`: see Base.astro's `skipGraph` prop doc for why this page emits
+ * no JSON-LD graph yet.
+ */
+import type { GetStaticPaths } from "astro";
+
+import ServerPage from "../../components/pages/ServerPage.astro";
+import { serverCards } from "../../data/server-cards";
+import { servers } from "../../data/servers";
+import { serversPage } from "../../i18n/ui/servers-page";
+import { getLangFromUrl } from "../../i18n/utils";
+import Base from "../../layouts/Base.astro";
+import { serverPageAlternates, serverPageUrl } from "../../lib/seo";
+
+/** One route per server with a committed Server Card. */
+export const getStaticPaths = (() =>
+  Object.keys(serverCards).map((id) => ({ params: { server: id } }))) satisfies GetStaticPaths;
+
+const id = Astro.params.server as string;
+const lang = getLangFromUrl(Astro.url);
+const sp = serversPage[lang];
+
+// Guaranteed by getStaticPaths above; thrown rather than asserted so a
+// future drift between `serverCards` and `servers.ts` fails the build loudly
+// instead of rendering a page with no identity.
+const serverMeta = servers.find((s) => s.id === id);
+if (!serverMeta) {
+  throw new Error(`[servers] "${id}" has a Server Card but no entry in src/data/servers.ts`);
+}
+
+const title = `${serverMeta.name} ${sp.metaTitleServerSuffix}`;
+const description = serverMeta.description[lang];
+---
+
+<Base
+  title={title}
+  description={description}
+  page="servers"
+  canonicalOverride={serverPageUrl(lang, id)}
+  alternatesOverride={serverPageAlternates(id)}
+  skipGraph
+>
+  <ServerPage id={id} />
+</Base>
