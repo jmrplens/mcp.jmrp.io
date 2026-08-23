@@ -196,8 +196,13 @@ test("los nodos propios enlazan a la persona por @id, sin redeclararla", () => {
   for (const page of htmlPages()) {
     const graph = graphOf(page);
     const ids = new Set(graph.map((n) => n["@id"]));
+    // `@type` is sometimes an array — the endpoints are
+    // `["WebAPI", "SoftwareApplication"]` — so comparing it as a string
+    // silently matched nothing and left the WebAPI nodes untested.
     const own = graph.filter((n) =>
-      ["WebSite", "WebPage", "WebAPI"].includes(n["@type"]),
+      [n["@type"]]
+        .flat()
+        .some((t) => ["WebSite", "WebPage", "WebAPI"].includes(t)),
     );
 
     // Toda referencia `{"@id": …}` que sale de un nodo propio tiene que
