@@ -27,7 +27,7 @@ export const internals = {
 
     instancesEyebrow: "Three instances, one nginx",
     instancesBody: [
-      "Behind that nginx sit three instances of each server — libgen on ports 8811–8813, gitlab on 8821–8823 — load-balanced rather than run as a single process.",
+      "Behind that nginx sit three instances of each server, load-balanced rather than run as a single process.",
       "Each instance keeps its own cache, so a hit on one is not a hit on the others: the three-way split is the price of being able to spread load across them at all.",
     ],
 
@@ -74,7 +74,7 @@ export const internals = {
 
     instancesEyebrow: "Tres instancias, un solo nginx",
     instancesBody: [
-      "Detrás de ese nginx hay tres instancias de cada servidor — libgen en los puertos 8811–8813, gitlab en 8821–8823 — balanceadas en vez de correr como un único proceso.",
+      "Detrás de ese nginx hay tres instancias de cada servidor, balanceadas en vez de correr como un único proceso.",
       "Cada instancia tiene su propia caché, así que un acierto en una no lo es en las otras: el reparto entre tres es el precio de poder repartir carga entre ellas.",
     ],
 
