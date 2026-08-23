@@ -28,6 +28,9 @@ const DIST = new URL(
 );
 const ORIGIN = "https://mcp.jmrp.io";
 
+/** El vhost real, fuera del repo. Puede no existir si el build corre en otra máquina. */
+const VHOST = "/etc/nginx/sites-available/mcp.jmrp.io.conf";
+
 /**
  * Ficheros de la raíz de `dist/` que nginx sirve, cada uno con su `location`
  * en /etc/nginx/sites-enabled/mcp.jmrp.io.conf. Los snippets
@@ -96,6 +99,43 @@ test("la raíz de dist/ es exactamente la lista blanca del vhost", () => {
   );
 });
 
+/**
+ * Directorios de página que el vhost tiene que servir, cada uno con su
+ * `location`. Escrito a mano y no derivado de `dist/`, por el mismo motivo que
+ * SERVED_AT_ROOT: que añadir una página obligue a acordarse de nginx.
+ */
+const SERVED_PAGES = [
+  "index.html",
+  "es/index.html",
+  "inspector/index.html",
+  "es/inspector/index.html",
+  "internals/index.html",
+  "es/internals/index.html",
+  "policies/index.html",
+  "es/policies/index.html",
+];
+
+test("cada página generada tiene su location en el vhost", (t) => {
+  // Hermano de SERVED_AT_ROOT: ese test solo mira la RAÍZ de dist/ (filtra por
+  // entry.isFile()), así que las páginas nuevas, que viven en subdirectorios
+  // (inspector/index.html), no las ve — una página sin `location` daría 404
+  // en producción sin que nada se pusiera rojo.
+  if (!fs.existsSync(VHOST)) {
+    t.skip("el vhost no es legible en esta máquina");
+    return;
+  }
+  const vhost = fs.readFileSync(VHOST, "utf8");
+  for (const page of SERVED_PAGES) {
+    read(page); // falla con un mensaje útil si el build no la emitió
+    const url = "/" + page.replace(/index\.html$/, "");
+    assert.ok(
+      vhost.includes(`location = ${url} `) ||
+        vhost.includes(`location = ${url}\n`),
+      `${url} no tiene 'location' en el vhost: dará 404 en producción`,
+    );
+  }
+});
+
 test("robots.txt deja pasar a todo el mundo y anuncia el sitemap", () => {
   const robots = read("robots.txt");
   assert.match(robots, /^User-agent: \*$/m, "sin bloque comodín");
@@ -143,6 +183,25 @@ test("llms.txt y llms-full.txt describen los servidores de verdad", () => {
     "la ficha larga tiene que decir qué cabecera pide gitlab",
   );
   assert.ok(full.length > short.length, "el documento largo no es más largo");
+});
+
+test("llms.txt lista las cuatro páginas en los dos idiomas", () => {
+  const short = read("llms.txt");
+  for (const path of [
+    "/",
+    "/es/",
+    "/inspector/",
+    "/es/inspector/",
+    "/internals/",
+    "/es/internals/",
+    "/policies/",
+    "/es/policies/",
+  ]) {
+    assert.ok(
+      short.includes(`https://mcp.jmrp.io${path}`),
+      `llms.txt no menciona ${path}`,
+    );
+  }
 });
 
 test("las tarjetas sociales son PNG de 1200x630", () => {

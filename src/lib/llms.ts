@@ -17,16 +17,51 @@
  */
 import type { McpHeader, McpServer } from "../data/servers";
 import { servers } from "../data/servers";
+import type { Lang } from "../i18n/config";
 import { ui } from "../i18n/ui";
+import { internals } from "../i18n/ui/internals";
 import {
   claudeCodeCommand,
   cursorJson,
   vscodeJson,
 } from "../lib/client-config";
-import { LANGS, pageUrl, SITE_NAME, SITE_ORIGIN } from "../lib/seo";
+import { LANGS, type PageId, pageUrl, SITE_NAME, SITE_ORIGIN } from "../lib/seo";
 
 /** Nombre humano de cada idioma, para los enlaces del índice. */
 const LANG_NAMES: Record<string, string> = { en: "English", es: "Spanish" };
+
+/**
+ * Title and one-line description of one page, in one language.
+ *
+ * `internals` bypasses the merged `ui` object on purpose — see the header
+ * comment on `src/i18n/ui.ts` for why — so its title and lede are read from
+ * `internals[lang]` directly, exactly like `InternalsPage.astro` does.
+ *
+ * @param lang Language of the strings.
+ * @returns One entry per page, in `PAGE_PATHS` order.
+ */
+function pageEntries(
+  lang: Lang,
+): { page: PageId; title: string; description: string }[] {
+  return [
+    { page: "home", title: ui[lang].title, description: ui[lang].subtitle },
+    {
+      page: "inspector",
+      title: ui[lang].inspectorEyebrow,
+      description: ui[lang].inspectorIntro,
+    },
+    {
+      page: "internals",
+      title: internals[lang].title,
+      description: internals[lang].lede,
+    },
+    {
+      page: "policies",
+      title: ui[lang].footerPolicies,
+      description: ui[lang].policiesIntro,
+    },
+  ];
+}
 
 /**
  * Índice corto: qué es esto, dónde está cada cosa.
@@ -34,9 +69,15 @@ const LANG_NAMES: Record<string, string> = { en: "English", es: "Spanish" };
  * @returns El cuerpo de `/llms.txt`.
  */
 export function buildLlmsTxt(): string {
-  const pages = LANGS.map(
-    (lang) =>
-      `- [${ui[lang].title} (${LANG_NAMES[lang] ?? lang})](${pageUrl(lang)}): ${ui[lang].subtitle}`,
+  // Four pages × two languages: every page an assistant can land on gets its
+  // own line, not just the home page. Grouped by language rather than by
+  // page, same as before this task — adding a page only means growing
+  // `pageEntries`, never touching this loop.
+  const pages = LANGS.flatMap((lang) =>
+    pageEntries(lang).map(
+      ({ page, title, description }) =>
+        `- [${title} (${LANG_NAMES[lang] ?? lang})](${pageUrl(lang, page)}): ${description}`,
+    ),
   ).join("\n");
 
   const list = servers
