@@ -27,16 +27,32 @@
  * than an infographic, and did not read well on narrow screens.
  *
  * This build is neither: a compact horizontal strip (client → Cloudflare →
- * nginx → one of N nodes → egress → destination), ALWAYS static — nothing
- * in the strip itself moves or travels. What plays, in a loop, is a set of
- * five numbered annotation bubbles below it, one at a time, each pointing at
- * the strip piece it describes and highlighting that piece for as long as
- * it is shown (see the approved spec at
+ * nginx → one of N nodes → egress → destination) with a set of five
+ * numbered annotation bubbles below it, one at a time, each pointing at the
+ * strip piece it describes (see the approved spec at
  * `.superpowers/sdd/internals-diagram-spec.md` for the exact bubble
  * sequence and the non-negotiables). The bubble area reserves a FIXED
  * height (the tallest bubble's) so the page never jumps as they cycle —
  * that fixed reservation is the whole point: it is what "an infographic",
  * not "an animation", means in CSS terms here.
+ *
+ * UPDATE 2026-08-23, after the author's live review of the first cut: the
+ * strip itself now carries ONE highlight indicator (`.mcp-box-fill` /
+ * `.mcp-box-border`, see the "Traveling highlight box" section of the
+ * <style> block) that glides continuously along it, dwelling at whichever
+ * stage the current bubble narrates and travelling to the next with an
+ * accelerate/cruise/decelerate profile — never appearing or disappearing.
+ * The first cut instead highlighted each stage with its own opacity-only
+ * `::after` overlay, which the author read as "tosco" (choppy): the
+ * highlight popped in at one stage and popped out at the next instead of
+ * being seen to move. This is NOT a reversion to the "dots travelling"
+ * design rejected in Attempt 2 above — there is still exactly one
+ * indicator, not a race of particles, and the bubbles below (not the
+ * indicator) still carry the reading order. Both new elements share the
+ * exact same `box-travel` animation and the bubbles' `phase-N` keyframes
+ * now share its timeline (30s, not 24s — see the <style> block's "Bubble
+ * cycle" comment), so the indicator always arrives exactly when its
+ * bubble's text appears.
  *
  * The bubbles describe the mechanism in general terms (with a token, or
  * without one) rather than singling out libgen vs gitlab or which specific
@@ -85,11 +101,11 @@ set_by_lua_block $mcp_affinity {
 //
 // Everything below runs once, on the server, while Astro renders this page's
 // HTML. None of it ships to the browser: the diagram that reaches the client
-// is a static strip (plain HTML/CSS, no SVG, nothing draws or travels) plus
-// five annotation bubbles cycled by CSS animations alone (see the <style>
-// block). This is what "no JavaScript on this page" (Restriction) means in
-// practice — the computation happens, just not where a crawler or an
-// assistant would have to run it.
+// is a static strip (plain HTML/CSS, no SVG) plus five annotation bubbles and
+// one traveling highlight indicator, all cycled by CSS animations alone (see
+// the <style> block). This is what "no JavaScript on this page" (Restriction)
+// means in practice — the computation happens, just not where a crawler or
+// an assistant would have to run it.
 
 // "How many badges fit legibly", not an infrastructure fact — capped so the
 // diagram folds anything beyond it into the dim "+" ghost node instead of
@@ -148,16 +164,28 @@ function countryTag(country: McpInstance["egressCountry"]): string {
   <pre><code>{affinitySnippet}</code></pre>
   <p class="prose-text">{t.affinityConsequence}</p>
 
-  {/* Request-path figure: a static strip (nothing here moves — the
-      "aria-hidden" icons are pure decoration, the stage names and node
-      numbers/countries are real HTML, not SVG text) plus five annotation
-      bubbles that cycle one at a time via CSS animation alone. The bubble
-      area's height is reserved by `.mcp-bubbles`'s fixed `height` (see the
-      <style> block) — that is what keeps the page from jumping as they
-      cycle. `MATCHED_NODE_INDEX` only matters for the reduced-motion frozen
-      frame, defined entirely inside that media query below. */}
+  {/* Request-path figure: a strip of six fixed stages (the "aria-hidden"
+      icons are pure decoration, the stage names and node numbers/countries
+      are real HTML, not SVG text) plus a single highlight indicator that
+      glides between the five stages the bubbles narrate, and five
+      annotation bubbles that cycle one at a time via CSS animation alone.
+      The bubble area's height is reserved by `.mcp-bubbles`'s fixed
+      `height` (see the <style> block) — that is what keeps the page from
+      jumping as they cycle. `MATCHED_NODE_INDEX` only matters for the
+      reduced-motion frozen frame, defined entirely inside that media query
+      below. */}
   <figure class="mcp-flow-figure">
     <div class="mcp-strip">
+      {/* Traveling highlight box — see the <style> block's "Traveling
+          highlight box" section. Two elements sharing one animation: the
+          fill goes FIRST in the DOM (paints behind the stages below, via
+          `isolation: isolate` on `.mcp-strip` plus its own negative
+          `z-index`) and the border goes LAST (paints above everything, via
+          a positive `z-index`) — that split is what keeps the highlight's
+          background from ever covering a stage's icon or label text. Both
+          `aria-hidden`: purely decorative, like every icon on this strip. */}
+      <span class="mcp-box-fill" aria-hidden="true"></span>
+
       <div class="stage stage--client">
         <span class="stage-icon stage-icon--client" aria-hidden="true">
           <span></span><span></span><span></span>
@@ -204,35 +232,38 @@ function countryTag(country: McpInstance["egressCountry"]): string {
         <span class="stage-icon" aria-hidden="true"></span>
         <span class="stage-label">{t.diagramStageDestination}</span>
       </div>
+
+      <span class="mcp-box-border" aria-hidden="true"></span>
     </div>
 
     {/* Fixed-height annotation zone: exactly one bubble opaque at a time,
-        via the `phase-N` keyframes shared with each stage's highlight below
-        (see the <style> block's "Bubble cycle" section for the timing
-        table). `bubble-leader`'s `left` and each stage's highlight both key
-        off the same five column positions, defined once as `--pos` per
-        `.bubble--N` and reused by its leader/tail — see the <style> block's
-        "Shared column positions" comment for why. */}
+        via the `phase-N` keyframes shared with the highlight box's
+        `box-travel` animation above (see the <style> block's "Bubble
+        cycle" section for the timing table both share). `bubble-leader`'s
+        `left` and the highlight box's travel target both key off the same
+        five column positions, defined once as `--pos` per `.bubble--N` and
+        reused by its leader/tail — see the <style> block's "Shared column
+        positions" comment for why. */}
     <div class="mcp-bubbles">
       <div class="bubble bubble--1">
         <span class="bubble-leader" aria-hidden="true"></span>
-        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">1</span>{t.diagramBubble1}</p>
+        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">1</span><span class="bubble-text">{t.diagramBubble1}</span></p>
       </div>
       <div class="bubble bubble--2">
         <span class="bubble-leader" aria-hidden="true"></span>
-        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">2</span>{t.diagramBubble2}</p>
+        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">2</span><span class="bubble-text">{t.diagramBubble2}</span></p>
       </div>
       <div class="bubble bubble--3">
         <span class="bubble-leader" aria-hidden="true"></span>
-        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">3</span>{t.diagramBubble3}</p>
+        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">3</span><span class="bubble-text">{t.diagramBubble3}</span></p>
       </div>
       <div class="bubble bubble--4">
         <span class="bubble-leader" aria-hidden="true"></span>
-        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">4</span>{t.diagramBubble4}</p>
+        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">4</span><span class="bubble-text">{t.diagramBubble4}</span></p>
       </div>
       <div class="bubble bubble--5">
         <span class="bubble-leader" aria-hidden="true"></span>
-        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">5</span>{t.diagramBubble5}</p>
+        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">5</span><span class="bubble-text">{t.diagramBubble5}</span></p>
       </div>
     </div>
 
@@ -387,14 +418,23 @@ function countryTag(country: McpInstance["egressCountry"]): string {
   }
 
   /* ===== Request-path diagram =================================================
-     A compact, STATIC horizontal strip (client → Cloudflare → nginx → one of
-     N nodes → egress → destination — nothing here moves, ever) plus five
-     numbered bubbles that cycle one at a time below it. See this file's
-     header comment for why: two earlier versions were rejected, the second
-     one specifically for still reading as "an animation of dots travelling"
-     instead of an infographic. This one only animates a color highlight
-     (never position) on whichever strip piece the current bubble names, and
-     reserves a fixed height for the bubble zone so the page never jumps. */
+     A compact horizontal strip (client → Cloudflare → nginx → one of N nodes
+     → egress → destination — the six stages themselves never move, resize,
+     or reorder) plus five numbered bubbles that cycle one at a time below
+     it. See this file's header comment for why: two earlier versions were
+     rejected, the second one specifically for still reading as "an
+     animation of dots travelling" instead of an infographic, and reserves a
+     fixed height for the bubble zone so the page never jumps.
+
+     ONE thing does move now, deliberately: a single highlight indicator
+     (`.mcp-box-fill`/`.mcp-box-border`, see the "Traveling highlight box"
+     section below) glides between the five stages the bubbles narrate. That
+     is not the same defect as "dots travelling" above — there is one
+     indicator, not several, it follows the bubbles' reading order rather
+     than inventing its own, and the stages/labels/nodes it glides past are
+     still fixed HTML in a fixed grid. See this file's header comment,
+     "UPDATE 2026-08-23", for why this changed from the original
+     highlight-only version. */
   .mcp-flow-figure {
     max-width: 62ch;
     margin: 1.75rem 0;
@@ -427,6 +467,12 @@ function countryTag(country: McpInstance["egressCountry"]): string {
     grid-template-columns: 1fr 1.3fr 1fr 3fr 1fr 1.3fr;
     align-items: start;
     column-gap: 2px;
+    /* Gives `.mcp-box-fill`'s negative `z-index` (below) somewhere to land:
+       without this, a negative `z-index` on a descendant escapes past
+       `.mcp-strip` itself and paints behind `.mcp-flow-figure`'s own
+       background instead of just behind the stage icons/labels — see the
+       "Traveling highlight box" section below. */
+    isolation: isolate;
   }
 
   /* The connecting line, painted BEHIND every stage: a `::before` pseudo-
@@ -454,19 +500,57 @@ function countryTag(country: McpInstance["egressCountry"]): string {
     border-radius: var(--radius-md);
   }
 
-  /* The highlight overlay — present on every stage, invisible until its own
-     `phase-N` animation (see "Bubble cycle" below) makes it opaque for that
-     bubble's window. `.stage--destination` never gets a `phase-N` animation
-     assigned, so it stays invisible forever — there is no sixth bubble. */
-  .stage::after {
+  /* ===== Traveling highlight box ===============================================
+     ONE indicator that glides continuously along the strip — always
+     visible, dwelling at whichever stage the current bubble narrates and
+     travelling to the next with an accelerate/cruise/decelerate profile
+     (`box-travel` below, shared with the bubbles' timeline — see "Bubble
+     cycle" further down). This replaced an earlier version that highlighted
+     each stage with its own opacity-only `::after`, popping in at one stage
+     and out at the next — the author read that as "tosco" (choppy) and
+     asked for the indicator to stay on screen at all times. See this file's
+     header comment for the fuller history.
+
+     Two elements, not one — `.mcp-box-fill` and `.mcp-box-border` — because
+     CSS cannot give `z-index` to only half of a single element's own box
+     (its background, specifically). Splitting it in two is the author's own
+     fix for that: a fill-only copy BEHIND the strip's real content (icons,
+     labels, node badges — via `isolation: isolate` on `.mcp-strip` above
+     plus this element's own negative `z-index`, so the fill can never sit
+     on top of a stage's text) and a border-only copy ABOVE everything (a
+     positive `z-index`). Both run the exact same `box-travel` animation, so
+     they move as a single object with no separate clock to drift out of
+     sync.
+
+     `left`/`width` are animated (see `box-travel`); `top`/`height` are NOT
+     — every stage's own content height differs ("nodes" is tallest at every
+     breakpoint: 52.77px measured at ≥901px, 49.39px at 481–900px, 45.84px
+     at ≤480px), and one element cannot re-measure five different DOM boxes
+     in pure CSS. Sized generously to the tallest stage at each breakpoint
+     instead, so the indicator reads as one consistent "spotlight" gliding
+     under icon+label alike rather than tracing each stage's exact outline. */
+  .mcp-box-fill,
+  .mcp-box-border {
     position: absolute;
-    inset: -3px;
-    content: "";
-    border: 1px solid var(--color-accent);
+    top: -4px;
+    height: 61px; /* tallest stage (52.77px, "nodes" at ≥901px) + 2×4px */
     border-radius: var(--radius-md);
-    background: var(--accent-dim);
-    opacity: 0%;
+    /* `linear` here is a harmless default: every dwell segment below holds
+       its value constant (no interpolation needed) and every travel segment
+       sets its OWN `animation-timing-function` per keyframe — see
+       `box-travel`'s header comment. */
+    animation: box-travel 30s linear infinite;
     pointer-events: none;
+  }
+
+  .mcp-box-fill {
+    z-index: -1; /* behind every stage's static (non-positioned) content */
+    background: var(--accent-dim);
+  }
+
+  .mcp-box-border {
+    z-index: 2; /* above the connecting line and every stage/node badge */
+    border: 1px solid var(--color-accent);
   }
 
   .stage-icon {
@@ -521,9 +605,10 @@ function countryTag(country: McpInstance["egressCountry"]): string {
 
   /* ===== Node cluster ==========================================================
      The pool of available nodes, all of them, always visible, never colored
-     by which bubble is showing — bubble 4 highlights the whole cluster (via
-     `.stage--nodes::after` above), never a single badge. Numbers/countries
-     are real HTML text, not SVG: this is real data from `topology.ts`, not
+     by which bubble is showing — bubble 4 has the traveling highlight box
+     grow to cover the whole cluster (see "Traveling highlight box" and
+     `box-travel` above), never a single badge. Numbers/countries are real
+     HTML text, not SVG: this is real data from `topology.ts`, not
      decoration. */
   .node-cluster {
     display: flex;
@@ -620,23 +705,23 @@ function countryTag(country: McpInstance["egressCountry"]): string {
   }
 
   .bubble--1 {
-    animation: phase-1 24s var(--ease-in-out) infinite;
+    animation: phase-1 30s var(--ease-in-out) infinite;
   }
 
   .bubble--2 {
-    animation: phase-2 24s var(--ease-in-out) infinite;
+    animation: phase-2 30s var(--ease-in-out) infinite;
   }
 
   .bubble--3 {
-    animation: phase-3 24s var(--ease-in-out) infinite;
+    animation: phase-3 30s var(--ease-in-out) infinite;
   }
 
   .bubble--4 {
-    animation: phase-4 24s var(--ease-in-out) infinite;
+    animation: phase-4 30s var(--ease-in-out) infinite;
   }
 
   .bubble--5 {
-    animation: phase-5 24s var(--ease-in-out) infinite;
+    animation: phase-5 30s var(--ease-in-out) infinite;
   }
 
   /* The thin line that "points at the piece it describes" — from the top of
@@ -650,8 +735,21 @@ function countryTag(country: McpInstance["egressCountry"]): string {
     background: var(--color-border);
   }
 
+  /* `display: flex` is the vertical-centering fix: the number badge is
+     `1.1rem` tall, which happens to be close to ONE line of the 0.8125rem/
+     1.35 body text — so a one-line bubble already looked fine, but a
+     two-line bubble did not. Without flex, `.bubble-num` is an inline box
+     that sits next to the FIRST line only; the second line wraps back to
+     the box's left edge underneath it, reading as the number pinned to the
+     top of a taller block instead of centered against it. `align-items:
+     center` on the row centers the badge against the text's full height
+     (one line or two, EN or ES — see `.bubble-num`/`.bubble-text` below)
+     instead of just its first line. */
   .bubble-box {
     position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
     margin: 0.9rem 0 0;
     padding: 0.5rem 0.75rem;
     border: 1px solid var(--color-border);
@@ -689,139 +787,296 @@ function countryTag(country: McpInstance["egressCountry"]): string {
   }
 
   .bubble-num {
-    display: inline-flex;
+    display: flex;
+    flex: none; /* fixed circle, never shrunk to make room for the text */
     align-items: center;
     justify-content: center;
     width: 1.1rem;
     height: 1.1rem;
-    margin-right: 0.4rem;
     border-radius: 50%;
     background: var(--color-accent);
     color: var(--color-bg);
     font-family: var(--font-mono);
     font-size: 0.7rem;
     font-weight: var(--fw-semibold);
-    vertical-align: -3px;
+  }
+
+  /* The text half of the same flex row — `min-width: 0` is the standard
+     flexbox fix that lets a text item shrink below its own unbroken content
+     width and actually wrap, instead of overflowing `.bubble-box`. */
+  .bubble-text {
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   /* ===== Bubble cycle ===========================================================
-     Five phases, 20% of the 24s loop each, with a 4%-wide crossfade at every
-     INTERNAL boundary (18–22%, 38–42%, 58–62%, 78–82%) and a hard cut at the
-     loop point (98–100%/0%): bubble 5 is fully faded out by 100% and bubble
-     1 is already opaque at 0%, so the wrap reads as one clean cut, not a
-     flash. `phase-1`..`phase-5` drive BOTH a bubble's opacity (`.bubble--N`
-     above) and its target stage's highlight overlay (`.stage--*::after`
-     below) — same keyframes, same duration, same start (page load), so the
-     two stay in lockstep with no shared clock beyond that. */
+     A 30s loop (was 24s), shaped by five DWELLS (14% each, 4.2s — one per
+     bubble/stage) separated by five TRAVEL windows: four short 3%-wide hops
+     between adjacent stages (14–17%, 31–34%, 48–51%, 65–68%) and one long
+     18%-wide RETURN hop (82–100%) that carries the highlight box back from
+     "egress" to "client" to restart the loop. These are the exact same
+     breakpoints `box-travel` below uses for the highlight box's `left`/
+     `width` — this is what keeps a bubble's text and the box arriving at
+     its stage in lockstep, with one shared timeline (30s, same start, same
+     `infinite`) instead of two clocks that could drift.
+
+     Each bubble fades in/out over a 3%-wide window (matching the short
+     forward hops) positioned at the edges of its own dwell — bubble 1 both
+     opens the loop (0–14%) AND closes it (fading in over the last 3% of the
+     long return hop, 97–100%, so its 100% value already equals its 0%
+     value: a genuinely seamless loop, not the previous version's
+     deliberate hard cut). Bubble 5 mirrors that at the other end: it fades
+     out over the FIRST 3% of the return hop (82–85%) and then stays
+     invisible for the rest of that long hop — the box is still visibly
+     travelling during that stretch, just with no bubble narrating it,
+     which reads as a brief beat before the loop restarts rather than a
+     jump cut. */
   @keyframes phase-1 {
     0%,
-    18% {
+    14% {
       opacity: 100%;
     }
 
-    22%,
-    100% {
+    17%,
+    97% {
       opacity: 0%;
+    }
+
+    100% {
+      opacity: 100%;
     }
   }
 
   @keyframes phase-2 {
     0%,
-    18%,
+    14%,
     100% {
       opacity: 0%;
     }
 
-    22%,
-    38% {
+    17%,
+    31% {
       opacity: 100%;
     }
 
-    42% {
+    34% {
       opacity: 0%;
     }
   }
 
   @keyframes phase-3 {
     0%,
-    38%,
+    31%,
     100% {
       opacity: 0%;
     }
 
-    42%,
-    58% {
+    34%,
+    48% {
       opacity: 100%;
     }
 
-    62% {
+    51% {
       opacity: 0%;
     }
   }
 
   @keyframes phase-4 {
     0%,
-    58%,
+    48%,
     100% {
       opacity: 0%;
     }
 
-    62%,
-    78% {
+    51%,
+    65% {
       opacity: 100%;
     }
 
-    82% {
+    68% {
       opacity: 0%;
     }
   }
 
   @keyframes phase-5 {
     0%,
-    78% {
-      opacity: 0%;
-    }
-
-    82%,
-    98% {
-      opacity: 100%;
-    }
-
+    65%,
     100% {
       opacity: 0%;
     }
+
+    68%,
+    82% {
+      opacity: 100%;
+    }
+
+    85% {
+      opacity: 0%;
+    }
   }
 
-  .stage--client::after {
-    animation: phase-1 24s var(--ease-in-out) infinite;
-  }
+  /* ===== Traveling highlight box: the `box-travel` animation ===================
+     Drives `.mcp-box-fill`/`.mcp-box-border`'s `left`/`width` (see the
+     "Traveling highlight box" section above) across the SAME five dwells
+     and five travel windows as the bubble cycle's `phase-N` keyframes
+     above — same percentages, same 30s duration, so the box is always
+     parked exactly under the stage whose bubble is currently showing.
 
-  .stage--cloudflare::after {
-    animation: phase-2 24s var(--ease-in-out) infinite;
-  }
+     Each of the five DWELLS holds `left`/`width` constant at that stage's
+     column bounds (center-of-column values match the `--pos` custom
+     properties above: e.g. client is 5.81% center → 0%–11.628% bounds).
+     Each TRAVEL window is split into three equal-length sub-segments with
+     `animation-timing-function` set per keyframe — `ease-in`, then
+     `linear`, then `ease-out` — because a single `cubic-bezier` cannot
+     produce a genuine constant-speed middle: easing curves are smooth
+     start-to-end, they don't have a truly linear plateau. Three keyframes
+     per hop (built at the hop's own 1/3 and 2/3 points, in both `left` and
+     `width`) is the standard way around that: accelerate through the first
+     third, cruise at constant speed through the middle third, decelerate
+     through the last third. Verified on screen (not just computed on
+     paper) — see the SDD report for the rendered check.
 
-  .stage--nginx::after {
-    animation: phase-3 24s var(--ease-in-out) infinite;
-  }
+     The long RETURN hop (82–100%, egress → client) uses the same
+     three-segment shape over a much longer window: it is roughly 5.3× the
+     distance of a short forward hop (egress at 73.256% back to client at
+     0%, versus e.g. client→Cloudflare's 11.628 points), so it also gets
+     roughly 5.3× the forward hops' combined travel time — the box crosses
+     it at a comparable, not wildly different, apparent speed. `width` does
+     not change during the return hop: client and egress are both 1fr
+     columns (11.628% wide), so the return is a pure horizontal glide with
+     no resize, passing over — not stopping at — the stages in between. */
+  @keyframes box-travel {
+    0% {
+      left: 0%;
+      width: 11.628%;
+    }
 
-  .stage--nodes::after {
-    animation: phase-4 24s var(--ease-in-out) infinite;
-  }
+    14% {
+      left: 0%;
+      width: 11.628%;
+      animation-timing-function: ease-in;
+    }
 
-  .stage--egress::after {
-    animation: phase-5 24s var(--ease-in-out) infinite;
+    15% {
+      left: 3.876%;
+      width: 12.791%;
+      animation-timing-function: linear;
+    }
+
+    16% {
+      left: 7.752%;
+      width: 13.953%;
+      animation-timing-function: ease-out;
+    }
+
+    17% {
+      left: 11.628%;
+      width: 15.116%;
+    }
+
+    31% {
+      left: 11.628%;
+      width: 15.116%;
+      animation-timing-function: ease-in;
+    }
+
+    32% {
+      left: 16.667%;
+      width: 13.953%;
+      animation-timing-function: linear;
+    }
+
+    33% {
+      left: 21.706%;
+      width: 12.791%;
+      animation-timing-function: ease-out;
+    }
+
+    34% {
+      left: 26.744%;
+      width: 11.628%;
+    }
+
+    48% {
+      left: 26.744%;
+      width: 11.628%;
+      animation-timing-function: ease-in;
+    }
+
+    49% {
+      left: 30.62%;
+      width: 19.38%;
+      animation-timing-function: linear;
+    }
+
+    50% {
+      left: 34.496%;
+      width: 27.132%;
+      animation-timing-function: ease-out;
+    }
+
+    51% {
+      left: 38.372%;
+      width: 34.884%;
+    }
+
+    65% {
+      left: 38.372%;
+      width: 34.884%;
+      animation-timing-function: ease-in;
+    }
+
+    66% {
+      left: 50%;
+      width: 27.132%;
+      animation-timing-function: linear;
+    }
+
+    67% {
+      left: 61.628%;
+      width: 19.38%;
+      animation-timing-function: ease-out;
+    }
+
+    68% {
+      left: 73.256%;
+      width: 11.628%;
+    }
+
+    82% {
+      left: 73.256%;
+      width: 11.628%;
+      animation-timing-function: ease-in;
+    }
+
+    88% {
+      left: 48.837%;
+      width: 11.628%;
+      animation-timing-function: linear;
+    }
+
+    94% {
+      left: 24.419%;
+      width: 11.628%;
+      animation-timing-function: ease-out;
+    }
+
+    100% {
+      left: 0%;
+      width: 11.628%;
+    }
   }
 
   /* ===== prefers-reduced-motion =================================================
      `base.css` already forces `animation-duration: 0.001ms !important`
-     globally, but that alone would freeze every bubble and highlight on
-     whatever frame the style recalculation happened to land on — not
-     necessarily a coherent one. The rules below follow the same pattern as
-     `.realtime-pill__dot` in utilities.css: turn the animations off
-     explicitly, so a single coherent base state wins for all of them at
-     once — no bubbles at all, no stage highlighted from the normal cycle.
-     In their place, ONE static ring appears around the illustrative "always
-     this node" match (`MATCHED_NODE_INDEX` in the frontmatter above): the
+     globally, but that alone would freeze every bubble and the highlight
+     box on whatever frame the style recalculation happened to land on —
+     not necessarily a coherent one. The rules below follow the same
+     pattern as `.realtime-pill__dot` in utilities.css: turn the animations
+     off explicitly, so a single coherent base state wins for all of them
+     at once — no bubbles at all, no highlight box travelling. In their
+     place, ONE static ring appears around the illustrative "always this
+     node" match (`MATCHED_NODE_INDEX` in the frontmatter above): the
      frozen frame the spec asks for. The prose timeline right below the
      figure already carries every word the bubbles would have. */
   @media (prefers-reduced-motion: reduce) {
@@ -829,8 +1084,9 @@ function countryTag(country: McpInstance["egressCountry"]): string {
       display: none;
     }
 
-    .stage::after {
-      animation: none;
+    .mcp-box-fill,
+    .mcp-box-border {
+      display: none;
     }
 
     .node-badge--matched .node-badge-num {
@@ -869,6 +1125,15 @@ function countryTag(country: McpInstance["egressCountry"]): string {
 
     .bubble-box {
       font-size: 0.78rem;
+    }
+
+    /* Shorter tallest-stage content at this width (45.84px measured, vs.
+       52.77px at ≥901px — see the "Traveling highlight box" comment above)
+       means the highlight box needs less headroom here too. */
+    .mcp-box-fill,
+    .mcp-box-border {
+      top: -4px;
+      height: 54px;
     }
   }
 

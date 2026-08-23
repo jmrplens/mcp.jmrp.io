@@ -90,14 +90,6 @@ const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h
   <details class="fold fold-tools">
     <summary>
       <h4 class="fold-label">{t.toolsHead} — {server.name}</h4>
-      <span class="fold-peek">
-        {server.tools.map((tool, i) => (
-          <>
-            {i > 0 && " "}
-            <code>{tool.name}</code>
-          </>
-        ))}
-      </span>
     </summary>
     <dl>
       {
@@ -120,14 +112,6 @@ const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h
       <details class="fold fold-prompts">
         <summary>
           <h4 class="fold-label">{t.promptsHead} — {server.name}</h4>
-          <span class="fold-peek">
-            {server.prompts.map((prompt, i) => (
-              <>
-                {i > 0 && " "}
-                <code>{prompt.name}</code>
-              </>
-            ))}
-          </span>
         </summary>
         <p class="fold-intro">{t.promptsIntro}</p>
         <dl>
@@ -423,23 +407,6 @@ const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h
     font-weight: 500;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-  }
-
-  /* Los nombres de las tools se ven SIN abrir: son lo que responde "¿sirve
-     para esto?" y lo que un LLM cita. Solo se pliega qué hace cada una. */
-  .fold-peek {
-    display: flex;
-    /* Siempre en su propia línea, bajo el título: si compartieran fila, los
-       chips estrujaban el rótulo y lo partían en dos líneas. */
-    flex-basis: 100%;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-
-  .fold-peek code {
-    color: var(--color-accent);
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
   }
 
   @media (prefers-reduced-motion: reduce) {
