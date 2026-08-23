@@ -22,7 +22,7 @@ export const internals = {
 
     pathEyebrow: "The path of a request",
     pathBody: [
-      "A call to either server crosses the same five hops before it comes back: your client to Cloudflare, Cloudflare to nginx on the home server that fronts both MCPs, nginx to one of three running instances of the server you called, that instance out through an egress proxy, and the egress proxy to the actual destination — a Library Genesis mirror for libgen, or the GitLab instance you pointed gitlab at.",
+      "A call to either server crosses the same six steps before it comes back: your client to Cloudflare, Cloudflare to nginx on the home server that fronts both MCPs, nginx to one of three running instances of the server you called, that instance out through an egress proxy, and the egress proxy to the actual destination — a Library Genesis mirror for libgen, or the GitLab instance you pointed gitlab at.",
     ],
 
     instancesEyebrow: "Three instances, one nginx",
@@ -58,7 +58,7 @@ export const internals = {
      * this diagram drew one and got rejected. One client, one nginx, one
      * pool of nodes: libgen and gitlab differ only in which key nginx
      * computes, never in the shape of the pipeline. */
-    diagramCaption: "The same five hops every request crosses, and why the same client always lands on the same node.",
+    diagramCaption: "The same six steps every request crosses, and why the same client always lands on the same node.",
     /** Stage labels along the strip. `Cloudflare`/`nginx` are proper
      * nouns/product names, identical in both languages — see how the rest
      * of this file already treats them (e.g. `affinityIntro`). */
@@ -66,20 +66,25 @@ export const internals = {
     diagramStageNodes: "nodes",
     diagramStageEgress: "egress",
     diagramStageDestination: "destination",
-    /** The five annotation bubbles, cycled one at a time beside the strip —
-     * short by design, the full detail lives in `diagramTimelineStep1..5`
+    /** The six annotation bubbles, cycled one at a time beside the strip —
+     * short by design, the full detail lives in `diagramTimelineStep1..6`
      * below. Order and substance match the approved spec's bubble table
-     * exactly (`.superpowers/sdd/internals-diagram-spec.md`). */
+     * exactly (`.superpowers/sdd/internals-diagram-spec.md`), plus bubble 6
+     * (the request leaving for its destination), added so the traveling
+     * highlight box has somewhere to go after "egress" instead of jumping
+     * straight back to "you" — see `InternalsPage.astro`'s header comment,
+     * "UPDATE 2026-08-23 (destination hop)". */
     diagramBubble1: "Your client opens the request, with a PRIVATE-TOKEN or without one",
     diagramBubble2: "Cloudflare passes it through to the origin",
     diagramBubble3: "Here the key gets computed: your IP, or the token's hash",
     diagramBubble4: "The same key always picks the same node",
     diagramBubble5: "That node exits through its fixed country",
+    diagramBubble6: "That request leaves toward the destination you pointed the MCP at",
     /** Lead-in line for the prose timeline right below the figure — not a
      * heading (this page's heading levels are already accounted for), just
      * enough of a sentence for the numbered list to read naturally on its
      * own, including for anyone who never saw the figure above it. */
-    diagramTimelineIntro: "The same five steps, in full:",
+    diagramTimelineIntro: "The same six steps, in full:",
     diagramTimelineStep1:
       "It starts on your machine: your MCP client sends the request to whichever endpoint you pointed it at, /libgen or /gitlab, carrying a PRIVATE-TOKEN header if that server needs one — gitlab does, libgen does not.",
     diagramTimelineStep2:
@@ -90,6 +95,8 @@ export const internals = {
       "That key feeds a consistent-hash balancer, which is why it keeps choosing the same one of the three running instances for you — never a different one from one call to the next.",
     diagramTimelineStep5:
       "That instance always leaves through the same country — Spain or the United Kingdom, fixed per instance — so your calls keep appearing to come from the same place instead of alternating.",
+    diagramTimelineStep6:
+      "That connection reaches the actual destination: a Library Genesis mirror if you called libgen, or the GitLab instance you pointed gitlab at — the same server your client asked for back at the first step.",
 
     egressEyebrow: "Egress: which country a request leaves from",
     egressBody: [
@@ -111,7 +118,7 @@ export const internals = {
 
     pathEyebrow: "El camino de una petición",
     pathBody: [
-      "Una llamada a cualquiera de los dos servidores cruza los mismos cinco saltos antes de volver: tu cliente hasta Cloudflare, Cloudflare hasta el nginx del servidor de casa que da la cara por los dos MCP, nginx hasta una de las tres instancias en marcha del servidor que llamaste, esa instancia hacia fuera por un proxy de salida, y el proxy de salida hasta el destino real — un mirror de Library Genesis para libgen, o la instancia de GitLab a la que apuntaste gitlab.",
+      "Una llamada a cualquiera de los dos servidores cruza los mismos seis pasos antes de volver: tu cliente hasta Cloudflare, Cloudflare hasta el nginx del servidor de casa que da la cara por los dos MCP, nginx hasta una de las tres instancias en marcha del servidor que llamaste, esa instancia hacia fuera por un proxy de salida, y el proxy de salida hasta el destino real — un mirror de Library Genesis para libgen, o la instancia de GitLab a la que apuntaste gitlab.",
     ],
 
     instancesEyebrow: "Tres instancias, un solo nginx",
@@ -139,21 +146,23 @@ export const internals = {
       "El efecto práctico: como el egreso también es fijo por instancia (siguiente sección), caer en el mismo nodo significa que tus llamadas siguen pareciendo venir del mismo país — estable, no alternando de una petición a la siguiente.",
     /** Ver `en.diagramCaption`: leyenda breve de la figura del camino de la petición. */
     diagramCaption:
-      "Los mismos cinco saltos que cruza toda petición, y por qué el mismo cliente cae siempre en el mismo nodo.",
+      "Los mismos seis pasos que cruza toda petición, y por qué el mismo cliente cae siempre en el mismo nodo.",
     /** Ver `en.diagramStageClient` etc.: etiquetas de la tira. */
     diagramStageClient: "tú",
     diagramStageNodes: "nodos",
     diagramStageEgress: "salida",
     diagramStageDestination: "destino",
-    /** Ver `en.diagramBubble1..5`: los cinco globos, texto literal de la
-     * especificación aprobada (`.superpowers/sdd/internals-diagram-spec.md`). */
+    /** Ver `en.diagramBubble1..6`: los seis globos, texto literal de la
+     * especificación aprobada (`.superpowers/sdd/internals-diagram-spec.md`),
+     * más el globo 6 (la petición saliendo hacia su destino). */
     diagramBubble1: "Tu cliente abre la petición, con PRIVATE-TOKEN o sin él",
     diagramBubble2: "Cloudflare la pasa al origen",
     diagramBubble3: "Aquí se calcula la clave: tu IP, o el hash del token",
     diagramBubble4: "La misma clave elige siempre el mismo nodo",
     diagramBubble5: "Ese nodo sale por su país fijo",
+    diagramBubble6: "Esa petición sale hacia el destino al que apuntaste el MCP",
     /** Ver `en.diagramTimelineIntro`. */
-    diagramTimelineIntro: "Los mismos cinco pasos, completos:",
+    diagramTimelineIntro: "Los mismos seis pasos, completos:",
     diagramTimelineStep1:
       "Empieza en tu máquina: tu cliente MCP envía la petición al endpoint al que lo apuntaste, /libgen o /gitlab, con una cabecera PRIVATE-TOKEN si ese servidor la necesita — gitlab sí, libgen no.",
     diagramTimelineStep2:
@@ -164,6 +173,8 @@ export const internals = {
       "Esa clave alimenta un balanceador por hash consistente, por eso elige siempre la misma de las tres instancias en marcha para ti — nunca una distinta de una llamada a la siguiente.",
     diagramTimelineStep5:
       "Esa instancia sale siempre por el mismo país — España o Reino Unido, fijo por instancia — así que tus llamadas siguen pareciendo venir del mismo sitio en vez de alternar.",
+    diagramTimelineStep6:
+      "Esa conexión llega al destino real: un mirror de Library Genesis si llamaste a libgen, o la instancia de GitLab a la que apuntaste gitlab — el mismo servidor que pedía tu cliente ya en el primer paso.",
 
     egressEyebrow: "Egreso: de qué país sale una petición",
     egressBody: [

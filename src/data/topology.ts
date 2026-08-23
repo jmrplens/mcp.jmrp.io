@@ -10,7 +10,7 @@
  * uses `topology.libgen` as ITS illustrative pool of real nodes. That is
  * deliberate, not an oversight — the diagram draws ONE static strip (client
  * → Cloudflare → nginx → one of N nodes → egress → destination) plus a
- * five-bubble annotation sequence that describes the mechanism in general
+ * six-bubble annotation sequence that describes the mechanism in general
  * terms, never singling out libgen vs gitlab or which node a given request
  * actually lands on (see that component's header comment for the full
  * rationale, and for why an earlier version that forked into a libgen

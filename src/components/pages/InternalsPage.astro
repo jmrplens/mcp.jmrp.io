@@ -27,7 +27,7 @@
  * than an infographic, and did not read well on narrow screens.
  *
  * This build is neither: a compact horizontal strip (client → Cloudflare →
- * nginx → one of N nodes → egress → destination) with a set of five
+ * nginx → one of N nodes → egress → destination) with a set of six
  * numbered annotation bubbles below it, one at a time, each pointing at the
  * strip piece it describes (see the approved spec at
  * `.superpowers/sdd/internals-diagram-spec.md` for the exact bubble
@@ -50,9 +50,25 @@
  * indicator, not a race of particles, and the bubbles below (not the
  * indicator) still carry the reading order. Both new elements share the
  * exact same `box-travel` animation and the bubbles' `phase-N` keyframes
- * now share its timeline (30s, not 24s — see the <style> block's "Bubble
- * cycle" comment), so the indicator always arrives exactly when its
+ * share its timeline, so the indicator always arrives exactly when its
  * bubble's text appears.
+ *
+ * UPDATE 2026-08-23 (destination hop): the strip always had six stages
+ * (client → Cloudflare → nginx → nodes → egress → destination — see "The
+ * strip" section of the <style> block), but only the first five had a
+ * bubble/timeline step/box dwell, so the traveling box jumped straight from
+ * "egress" back to "client" and the caption never mentioned that egress
+ * hands off to an actual destination. The author: "añade punto 6 que es la
+ * salida, indicando que la petición sale hacia el objetivo que se le ha
+ * indicado al mcp... así la caja pasa por el último punto." Bubble 6 /
+ * `diagramTimelineStep6` narrate that hand-off (a Library Genesis mirror
+ * for libgen, or the GitLab instance the client pointed gitlab at — the
+ * same wording `pathBody` already used), `box-travel` gained a sixth dwell
+ * plus a fifth short forward hop (egress → destination), and the closing
+ * RETURN hop now runs destination → client instead of egress → client. The
+ * three-segment ease-in/linear/ease-out shape of every hop, and the "box
+ * never disappears" invariant, are unchanged — see "Bubble cycle" and
+ * "box-travel" below for the new timing table.
  *
  * The bubbles describe the mechanism in general terms (with a token, or
  * without one) rather than singling out libgen vs gitlab or which specific
@@ -87,21 +103,79 @@ const policiesHref = new URL(pageUrl(lang, "policies")).pathname;
 // only in `secrets/affinity-salt.env` on the server and is never checked
 // into this repo or built into this site. Do not replace this placeholder
 // with a real value, here or anywhere else.
-const affinitySnippet = `set $mcp_affinity_salt "…";   ${t.affinityCodeComment}
-
-set_by_lua_block $mcp_affinity {
-    local token = ngx.var.http_private_token
-    if token and token ~= "" then
-        return ngx.md5(ngx.var.mcp_affinity_salt .. token)
-    end
-    return ngx.var.remote_addr or ""
-}`;
+//
+// SYNTAX HIGHLIGHTING: hand-marked tokens, not a highlighter. `astro:
+// components`'s `<Code />` (Shiki) was tried first, as the Restriction
+// asked — it is zero client JS (Shiki runs at build time) and ships with
+// Astro already, so it adds no dependency. It was rejected on two counts,
+// both checked against this exact snippet rather than assumed: (1) every
+// bundled Shiki theme carries its OWN fixed palette (arbitrary hex, e.g. a
+// VS-Code-style blue/orange/green set) with no supported way to route
+// token colors through this site's existing `--color-*` tokens, which the
+// Restriction requires; dual light/dark theming would additionally need
+// its own `--astro-code-light`/`--astro-code-dark` CSS-variable switching
+// convention, parallel to and disconnected from `tokens.css`'s established
+// `:root`/`prefers-color-scheme`/`[data-theme]` one. (2) Shiki's stock
+// "nginx" grammar does not tokenize the embedded Lua body of
+// `set_by_lua_block { ... }` as Lua — the one block that most needs
+// contrast (the hash computation this whole section is about) would
+// render as one flat, unhighlighted span of "other" text. A 9-line
+// snippet that is fixed content (never user input, never changes without
+// a code edit) does not need a general-purpose grammar: hand-marking the
+// dozen tokens that matter is less machinery, not more, and every color
+// below is an EXISTING token already relied on elsewhere for AA text
+// contrast in both themes (`--color-accent`, `--teal-text`,
+// `--color-success`, `--color-info`, `--color-text-muted` — see
+// Inspector.css for other consumers of the last four as text). Each line
+// is an array of `{ text, cls? }` tokens rendered through Astro's normal
+// `{expression}` escaping below — no `set:html`, no manual HTML-escaping.
+type SnippetToken = { text: string; cls?: "kw" | "var" | "str" | "com" };
+const affinityTokens: SnippetToken[] = [
+  { text: "set", cls: "kw" },
+  { text: " " },
+  { text: "$mcp_affinity_salt", cls: "var" },
+  { text: " " },
+  { text: '"…"', cls: "str" },
+  { text: ";   " },
+  { text: t.affinityCodeComment, cls: "com" },
+  { text: "\n\n" },
+  { text: "set_by_lua_block", cls: "kw" },
+  { text: " " },
+  { text: "$mcp_affinity", cls: "var" },
+  { text: " {\n    " },
+  { text: "local", cls: "kw" },
+  { text: " token = " },
+  { text: "ngx.var.http_private_token", cls: "var" },
+  { text: "\n    " },
+  { text: "if", cls: "kw" },
+  { text: " token " },
+  { text: "and", cls: "kw" },
+  { text: " token ~= " },
+  { text: '""', cls: "str" },
+  { text: " " },
+  { text: "then", cls: "kw" },
+  { text: "\n        " },
+  { text: "return", cls: "kw" },
+  { text: " ngx.md5(" },
+  { text: "ngx.var.mcp_affinity_salt", cls: "var" },
+  { text: " .. token)\n    " },
+  { text: "end", cls: "kw" },
+  { text: "\n    " },
+  { text: "return", cls: "kw" },
+  { text: " " },
+  { text: "ngx.var.remote_addr", cls: "var" },
+  { text: " " },
+  { text: "or", cls: "kw" },
+  { text: " " },
+  { text: '""', cls: "str" },
+  { text: "\n}" },
+];
 
 // ===== Request-path diagram — build-time data, no runtime JS ===============
 //
 // Everything below runs once, on the server, while Astro renders this page's
 // HTML. None of it ships to the browser: the diagram that reaches the client
-// is a static strip (plain HTML/CSS, no SVG) plus five annotation bubbles and
+// is a static strip (plain HTML/CSS, no SVG) plus six annotation bubbles and
 // one traveling highlight indicator, all cycled by CSS animations alone (see
 // the <style> block). This is what "no JavaScript on this page" (Restriction)
 // means in practice — the computation happens, just not where a crawler or
@@ -126,7 +200,7 @@ const overflowCount = topology.libgen.length - nodes.length;
 // the `prefers-reduced-motion` rules in the <style> block). ILLUSTRATIVE,
 // not the real affinity outcome for any actual client — computing that
 // needs `$mcp_affinity_salt`, the secret this page never has (see
-// `affinitySnippet` above). Any index works; the point the ring makes is
+// `affinityTokens` above). Any index works; the point the ring makes is
 // "always this same one", not "specifically this one".
 const MATCHED_NODE_INDEX = 0;
 
@@ -161,13 +235,15 @@ function countryTag(country: McpInstance["egressCountry"]): string {
   <p class="prose-text">{t.affinityLibgen}</p>
   <p class="prose-text">{t.affinityGitlab}</p>
   {t.affinityCodeIntro.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
-  <pre><code>{affinitySnippet}</code></pre>
+  <pre><code>{affinityTokens.map((tok) =>
+    tok.cls ? <span class={`snippet-${tok.cls}`}>{tok.text}</span> : tok.text,
+  )}</code></pre>
   <p class="prose-text">{t.affinityConsequence}</p>
 
   {/* Request-path figure: a strip of six fixed stages (the "aria-hidden"
       icons are pure decoration, the stage names and node numbers/countries
       are real HTML, not SVG text) plus a single highlight indicator that
-      glides between the five stages the bubbles narrate, and five
+      glides between all six stages the bubbles narrate, and six
       annotation bubbles that cycle one at a time via CSS animation alone.
       The bubble area's height is reserved by `.mcp-bubbles`'s fixed
       `height` (see the <style> block) — that is what keeps the page from
@@ -241,7 +317,7 @@ function countryTag(country: McpInstance["egressCountry"]): string {
         `box-travel` animation above (see the <style> block's "Bubble
         cycle" section for the timing table both share). `bubble-leader`'s
         `left` and the highlight box's travel target both key off the same
-        five column positions, defined once as `--pos` per `.bubble--N` and
+        six column positions, defined once as `--pos` per `.bubble--N` and
         reused by its leader/tail — see the <style> block's "Shared column
         positions" comment for why. */}
     <div class="mcp-bubbles">
@@ -265,12 +341,16 @@ function countryTag(country: McpInstance["egressCountry"]): string {
         <span class="bubble-leader" aria-hidden="true"></span>
         <p class="bubble-box"><span class="bubble-num" aria-hidden="true">5</span><span class="bubble-text">{t.diagramBubble5}</span></p>
       </div>
+      <div class="bubble bubble--6">
+        <span class="bubble-leader" aria-hidden="true"></span>
+        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">6</span><span class="bubble-text">{t.diagramBubble6}</span></p>
+      </div>
     </div>
 
     <figcaption class="mcp-flow-caption">{t.diagramCaption}</figcaption>
   </figure>
 
-  {/* Prose timeline: same five numbers as the bubbles above, full detail,
+  {/* Prose timeline: same six numbers as the bubbles above, full detail,
       real HTML — this, not the figure, is what a crawler, an assistant or a
       `prefers-reduced-motion` visitor actually reads. See this file's
       header comment for why the detail lives here and not in the figure. */}
@@ -295,6 +375,10 @@ function countryTag(country: McpInstance["egressCountry"]): string {
     <li>
       <span class="mcp-timeline-num" aria-hidden="true">5</span>
       <p>{t.diagramTimelineStep5}</p>
+    </li>
+    <li>
+      <span class="mcp-timeline-num" aria-hidden="true">6</span>
+      <p>{t.diagramTimelineStep6}</p>
     </li>
   </ol>
 </section>
@@ -417,10 +501,39 @@ function countryTag(country: McpInstance["egressCountry"]): string {
     white-space: pre;
   }
 
+  /* ===== Snippet token colors ===================================================
+     Hand-marked highlighting for the nginx/Lua snippet above — see the
+     "SYNTAX HIGHLIGHTING" comment on `affinityTokens` in the frontmatter
+     for why this is spans + classes instead of a Shiki-powered `<Code />`.
+     Four categories, four EXISTING tokens, each already relied on
+     elsewhere for AA text contrast in both themes: directive keywords get
+     the same accent used on the nginx stage icon/label below (tying the
+     snippet back to "where the decision happens"), variables get the
+     teal already documented as AA text, strings get the success green,
+     and the one translated comment line gets the standard muted/secondary
+     text color. Unmarked tokens (braces, dots, the `ngx.md5(...)` call)
+     stay the plain `pre code` color above — not every token needs its own
+     hue to read clearly. */
+  .snippet-kw {
+    color: var(--color-accent);
+  }
+
+  .snippet-var {
+    color: var(--teal-text);
+  }
+
+  .snippet-str {
+    color: var(--color-success);
+  }
+
+  .snippet-com {
+    color: var(--color-text-muted);
+  }
+
   /* ===== Request-path diagram =================================================
      A compact horizontal strip (client → Cloudflare → nginx → one of N nodes
      → egress → destination — the six stages themselves never move, resize,
-     or reorder) plus five numbered bubbles that cycle one at a time below
+     or reorder) plus six numbered bubbles that cycle one at a time below
      it. See this file's header comment for why: two earlier versions were
      rejected, the second one specifically for still reading as "an
      animation of dots travelling" instead of an infographic, and reserves a
@@ -428,13 +541,14 @@ function countryTag(country: McpInstance["egressCountry"]): string {
 
      ONE thing does move now, deliberately: a single highlight indicator
      (`.mcp-box-fill`/`.mcp-box-border`, see the "Traveling highlight box"
-     section below) glides between the five stages the bubbles narrate. That
+     section below) glides between all six stages the bubbles narrate. That
      is not the same defect as "dots travelling" above — there is one
      indicator, not several, it follows the bubbles' reading order rather
      than inventing its own, and the stages/labels/nodes it glides past are
      still fixed HTML in a fixed grid. See this file's header comment,
-     "UPDATE 2026-08-23", for why this changed from the original
-     highlight-only version. */
+     "UPDATE 2026-08-23" and "UPDATE 2026-08-23 (destination hop)", for why
+     this changed from the original highlight-only version and for why it
+     now reaches a sixth stage. */
   .mcp-flow-figure {
     max-width: 62ch;
     margin: 1.75rem 0;
@@ -525,7 +639,7 @@ function countryTag(country: McpInstance["egressCountry"]): string {
      `left`/`width` are animated (see `box-travel`); `top`/`height` are NOT
      — every stage's own content height differs ("nodes" is tallest at every
      breakpoint: 52.77px measured at ≥901px, 49.39px at 481–900px, 45.84px
-     at ≤480px), and one element cannot re-measure five different DOM boxes
+     at ≤480px), and one element cannot re-measure six different DOM boxes
      in pure CSS. Sized generously to the tallest stage at each breakpoint
      instead, so the indicator reads as one consistent "spotlight" gliding
      under icon+label alike rather than tracing each stage's exact outline. */
@@ -656,13 +770,13 @@ function countryTag(country: McpInstance["egressCountry"]): string {
   }
 
   /* ===== Shared column positions ===============================================
-     The five bubble targets, as center-of-column percentages of the strip's
+     The six bubble targets, as center-of-column percentages of the strip's
      8.6-unit grid above (1fr client, 1.3fr Cloudflare, 1fr nginx, 3fr nodes,
-     1fr egress, 1.3fr destination — destination has no bubble, so no 6th
-     `--pos`). Column gap is 2px, imperceptible next to the figure's own
-     width, so ignoring it here is fine. Each `--pos` positions that bubble's
-     leader line and its box's speech-bubble tail below — one shared value
-     instead of repeating the same percentage three times per bubble. */
+     1fr egress, 1.3fr destination — every stage now has a bubble). Column
+     gap is 2px, imperceptible next to the figure's own width, so ignoring
+     it here is fine. Each `--pos` positions that bubble's leader line and
+     its box's speech-bubble tail below — one shared value instead of
+     repeating the same percentage three times per bubble. */
   .bubble--1 {
     --pos: 5.81%;
   }
@@ -681,6 +795,10 @@ function countryTag(country: McpInstance["egressCountry"]): string {
 
   .bubble--5 {
     --pos: 79.07%;
+  }
+
+  .bubble--6 {
+    --pos: 92.44%;
   }
 
   /* ===== The fixed-height bubble zone ==========================================
@@ -722,6 +840,10 @@ function countryTag(country: McpInstance["egressCountry"]): string {
 
   .bubble--5 {
     animation: phase-5 30s var(--ease-in-out) infinite;
+  }
+
+  .bubble--6 {
+    animation: phase-6 30s var(--ease-in-out) infinite;
   }
 
   /* The thin line that "points at the piece it describes" — from the top of
@@ -810,34 +932,42 @@ function countryTag(country: McpInstance["egressCountry"]): string {
   }
 
   /* ===== Bubble cycle ===========================================================
-     A 30s loop (was 24s), shaped by five DWELLS (14% each, 4.2s — one per
-     bubble/stage) separated by five TRAVEL windows: four short 3%-wide hops
-     between adjacent stages (14–17%, 31–34%, 48–51%, 65–68%) and one long
-     18%-wide RETURN hop (82–100%) that carries the highlight box back from
-     "egress" to "client" to restart the loop. These are the exact same
-     breakpoints `box-travel` below uses for the highlight box's `left`/
-     `width` — this is what keeps a bubble's text and the box arriving at
-     its stage in lockstep, with one shared timeline (30s, same start, same
-     `infinite`) instead of two clocks that could drift.
+     A 30s loop, shaped by six DWELLS (11% each, 3.3s — one per bubble/
+     stage, including "destination" since the 2026-08-23 destination-hop
+     update) separated by six TRAVEL windows: five short 3%-wide hops
+     between adjacent stages (11–14%, 25–28%, 39–42%, 53–56%, 67–70%) and
+     one long 19%-wide RETURN hop (81–100%) that carries the highlight box
+     back from "destination" to "client" to restart the loop. These are the
+     exact same breakpoints `box-travel` below uses for the highlight box's
+     `left`/`width` — this is what keeps a bubble's text and the box
+     arriving at its stage in lockstep, with one shared timeline (30s, same
+     start, same `infinite`) instead of two clocks that could drift. Adding
+     the sixth dwell+hop shrank the other five dwells (14%→11%) and short
+     hops (3% stayed 3%, unchanged) to keep the loop at 30s rather than
+     stretching it — see this file's header comment, "UPDATE 2026-08-23
+     (destination hop)".
 
      Each bubble fades in/out over a 3%-wide window (matching the short
      forward hops) positioned at the edges of its own dwell — bubble 1 both
-     opens the loop (0–14%) AND closes it (fading in over the last 3% of the
+     opens the loop (0–11%) AND closes it (fading in over the last 3% of the
      long return hop, 97–100%, so its 100% value already equals its 0%
-     value: a genuinely seamless loop, not the previous version's
-     deliberate hard cut). Bubble 5 mirrors that at the other end: it fades
-     out over the FIRST 3% of the return hop (82–85%) and then stays
-     invisible for the rest of that long hop — the box is still visibly
-     travelling during that stretch, just with no bubble narrating it,
-     which reads as a brief beat before the loop restarts rather than a
-     jump cut. */
+     value: a genuinely seamless loop, not a hard cut). Bubble 6 mirrors
+     that at the other end: it fades out over the FIRST 3% of the return
+     hop (81–84%) and then stays invisible for the rest of that long hop —
+     the box is still visibly travelling during that stretch, just with no
+     bubble narrating it, which reads as a brief beat before the loop
+     restarts rather than a jump cut. (This "fade early, stay dark through
+     the long hop" role moved from bubble 5 to bubble 6 with the
+     destination-hop update — bubble 5 is now a normal middle-of-the-loop
+     bubble like 2/3/4, fading in and out over its own two adjacent short
+     hops.) */
   @keyframes phase-1 {
     0%,
-    14% {
+    11% {
       opacity: 100%;
     }
 
-    17%,
+    14%,
     97% {
       opacity: 0%;
     }
@@ -849,83 +979,101 @@ function countryTag(country: McpInstance["egressCountry"]): string {
 
   @keyframes phase-2 {
     0%,
-    14%,
+    11%,
     100% {
       opacity: 0%;
     }
 
-    17%,
-    31% {
+    14%,
+    25% {
       opacity: 100%;
     }
 
-    34% {
+    28% {
       opacity: 0%;
     }
   }
 
   @keyframes phase-3 {
     0%,
-    31%,
+    25%,
     100% {
       opacity: 0%;
     }
 
-    34%,
-    48% {
+    28%,
+    39% {
       opacity: 100%;
     }
 
-    51% {
+    42% {
       opacity: 0%;
     }
   }
 
   @keyframes phase-4 {
     0%,
-    48%,
+    39%,
     100% {
       opacity: 0%;
     }
 
-    51%,
-    65% {
+    42%,
+    53% {
       opacity: 100%;
     }
 
-    68% {
+    56% {
       opacity: 0%;
     }
   }
 
   @keyframes phase-5 {
     0%,
-    65%,
+    53%,
     100% {
       opacity: 0%;
     }
 
-    68%,
-    82% {
+    56%,
+    67% {
       opacity: 100%;
     }
 
-    85% {
+    70% {
+      opacity: 0%;
+    }
+  }
+
+  @keyframes phase-6 {
+    0%,
+    67%,
+    100% {
+      opacity: 0%;
+    }
+
+    70%,
+    81% {
+      opacity: 100%;
+    }
+
+    84% {
       opacity: 0%;
     }
   }
 
   /* ===== Traveling highlight box: the `box-travel` animation ===================
      Drives `.mcp-box-fill`/`.mcp-box-border`'s `left`/`width` (see the
-     "Traveling highlight box" section above) across the SAME five dwells
-     and five travel windows as the bubble cycle's `phase-N` keyframes
+     "Traveling highlight box" section above) across the SAME six dwells
+     and six travel windows as the bubble cycle's `phase-N` keyframes
      above — same percentages, same 30s duration, so the box is always
      parked exactly under the stage whose bubble is currently showing.
 
-     Each of the five DWELLS holds `left`/`width` constant at that stage's
+     Each of the six DWELLS holds `left`/`width` constant at that stage's
      column bounds (center-of-column values match the `--pos` custom
-     properties above: e.g. client is 5.81% center → 0%–11.628% bounds).
-     Each TRAVEL window is split into three equal-length sub-segments with
+     properties above: e.g. client is 5.81% center → 0%–11.628% bounds;
+     destination is 92.44% center → 84.884%–100% bounds). Each TRAVEL
+     window is split into three equal-length sub-segments with
      `animation-timing-function` set per keyframe — `ease-in`, then
      `linear`, then `ease-out` — because a single `cubic-bezier` cannot
      produce a genuine constant-speed middle: easing curves are smooth
@@ -936,128 +1084,161 @@ function countryTag(country: McpInstance["egressCountry"]): string {
      through the last third. Verified on screen (not just computed on
      paper) — see the SDD report for the rendered check.
 
-     The long RETURN hop (82–100%, egress → client) uses the same
-     three-segment shape over a much longer window: it is roughly 5.3× the
-     distance of a short forward hop (egress at 73.256% back to client at
-     0%, versus e.g. client→Cloudflare's 11.628 points), so it also gets
-     roughly 5.3× the forward hops' combined travel time — the box crosses
-     it at a comparable, not wildly different, apparent speed. `width` does
-     not change during the return hop: client and egress are both 1fr
-     columns (11.628% wide), so the return is a pure horizontal glide with
-     no resize, passing over — not stopping at — the stages in between. */
+     Hop 5 (egress → destination, 67–70%) mirrors hop 1's shape exactly:
+     egress and client are both 1fr columns (11.628% wide) and Cloudflare
+     and destination are both 1.3fr (15.116% wide), so the two hops share
+     the same left/width deltas, just shifted along the strip.
+
+     The long RETURN hop (81–100%, destination → client) uses the same
+     three-segment shape over a much longer window: it covers roughly 7.3×
+     the distance of a short forward hop (destination at 84.884% back to
+     client at 0%, versus e.g. client→Cloudflare's 11.628 points), so it
+     also gets roughly 7.3× a forward hop's travel time (19% vs. 3%,
+     minus rounding) — the box crosses it at a comparable, not wildly
+     different, apparent speed. Unlike the pre-destination-hop version,
+     `width` DOES change here (15.116% → 11.628%, destination's column is
+     wider than client's): still a straight interpolation split into the
+     same three sub-segments, not a special case. Sub-segment marks land
+     at 87.333%/93.667% (exact thirds of the 19%-wide window) rather than
+     whole numbers — the window is not evenly divisible by 3 in whole
+     percent, and an exact third is more correct than a rounded one for an
+     accelerate/cruise/decelerate split. */
   @keyframes box-travel {
     0% {
       left: 0%;
       width: 11.628%;
     }
 
-    14% {
+    11% {
       left: 0%;
       width: 11.628%;
       animation-timing-function: ease-in;
     }
 
-    15% {
+    12% {
       left: 3.876%;
       width: 12.791%;
       animation-timing-function: linear;
     }
 
-    16% {
+    13% {
       left: 7.752%;
       width: 13.953%;
       animation-timing-function: ease-out;
     }
 
-    17% {
+    14% {
       left: 11.628%;
       width: 15.116%;
     }
 
-    31% {
+    25% {
       left: 11.628%;
       width: 15.116%;
       animation-timing-function: ease-in;
     }
 
-    32% {
+    26% {
       left: 16.667%;
       width: 13.953%;
       animation-timing-function: linear;
     }
 
-    33% {
+    27% {
       left: 21.706%;
       width: 12.791%;
       animation-timing-function: ease-out;
     }
 
-    34% {
+    28% {
       left: 26.744%;
       width: 11.628%;
     }
 
-    48% {
+    39% {
       left: 26.744%;
       width: 11.628%;
       animation-timing-function: ease-in;
     }
 
-    49% {
+    40% {
       left: 30.62%;
       width: 19.38%;
       animation-timing-function: linear;
     }
 
-    50% {
+    41% {
       left: 34.496%;
       width: 27.132%;
       animation-timing-function: ease-out;
     }
 
-    51% {
+    42% {
       left: 38.372%;
       width: 34.884%;
     }
 
-    65% {
+    53% {
       left: 38.372%;
       width: 34.884%;
       animation-timing-function: ease-in;
     }
 
-    66% {
+    54% {
       left: 50%;
       width: 27.132%;
       animation-timing-function: linear;
     }
 
-    67% {
+    55% {
       left: 61.628%;
       width: 19.38%;
       animation-timing-function: ease-out;
     }
 
-    68% {
+    56% {
       left: 73.256%;
       width: 11.628%;
     }
 
-    82% {
+    67% {
       left: 73.256%;
       width: 11.628%;
       animation-timing-function: ease-in;
     }
 
-    88% {
-      left: 48.837%;
-      width: 11.628%;
+    68% {
+      left: 77.132%;
+      width: 12.791%;
       animation-timing-function: linear;
     }
 
-    94% {
-      left: 24.419%;
-      width: 11.628%;
+    69% {
+      left: 81.008%;
+      width: 13.953%;
+      animation-timing-function: ease-out;
+    }
+
+    70% {
+      left: 84.884%;
+      width: 15.116%;
+    }
+
+    81% {
+      left: 84.884%;
+      width: 15.116%;
+      animation-timing-function: ease-in;
+    }
+
+    87.333% {
+      left: 56.589%;
+      width: 13.953%;
+      animation-timing-function: linear;
+    }
+
+    93.667% {
+      left: 28.295%;
+      width: 12.791%;
       animation-timing-function: ease-out;
     }
 
@@ -1137,22 +1318,33 @@ function countryTag(country: McpInstance["egressCountry"]): string {
     }
   }
 
-  /* ===== Caption ================================================================ */
+  /* ===== Caption ================================================================
+     `margin-top` only, not `.mcp-bubbles`'s own reserved height (see "The
+     fixed-height bubble zone" comment above — that height stays fixed on
+     purpose, it is what keeps the page from jumping). The author: "no sé
+     si en escritorio hay demasiado espacio vacío entre el globo de
+     información y el 'footer' de la caja de animación" — measured before
+     this change, the gap between `.mcp-bubbles`'s bottom edge and this
+     caption's top edge was exactly this margin (0.85rem = 13.6px at
+     1280px, 12.24px at 360px, since nothing else sits between them).
+     Halved to 0.4rem: still a visible break between the figure and its
+     caption, but not the fixed zone's own reserved whitespace below a
+     short bubble, which this rule cannot and should not touch. */
   .mcp-flow-caption {
     max-width: 62ch;
-    margin: 0.85rem 0 0;
+    margin: 0.4rem 0 0;
     color: var(--color-text-muted);
     font-size: 0.8125rem;
     text-wrap: pretty;
   }
 
   /* ===== Prose timeline =========================================================
-     Real HTML, same five numbers as the bubbles above — this is what a
+     Real HTML, same six numbers as the bubbles above — this is what a
      crawler, an assistant reading this page, or a `prefers-reduced-motion`
      visitor actually reads; see this file's header comment for why the
      detail lives here and not in the figure. Numbers are visual only
      (`.mcp-timeline-num`, `aria-hidden`) — the native `<ol>` already gives
-     assistive tech "item N of 5" for free, which is why `list-style` is
+     assistive tech "item N of 6" for free, which is why `list-style` is
      suppressed instead of layering a redundant visible one on top of it. */
   .mcp-timeline {
     max-width: 62ch;
