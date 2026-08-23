@@ -25,9 +25,14 @@ export const inspector = {
     inspectorIntro:
       "Query the servers straight from your browser. Pick one, call a method and read the raw JSON-RPC response.",
     /** Link from `/inspector/` back to the home page. */
-    backToHome: "Back to the servers",
+    /**
+      * The notice it points at lives on the home page's server cards, not
+      * here, so this has to be a link: saying "above" was leftover from when
+      * the inspector shared a page with the cards.
+      */
     noticePointer:
-      "Before pasting a credential, read the notice on that server's card above: it says exactly where the value goes and what the browser itself prevents.",
+      "Before pasting a credential, read the notice on that server's card: it says exactly where the value goes and what the browser itself prevents.",
+    noticePointerLink: "Read the gitlab notice",
     insp: {
       server: "Endpoint",
       needHeader: "Fill in this header before calling the server:",
@@ -93,10 +98,10 @@ export const inspector = {
     inspectorEyebrow: "Inspector",
     inspectorIntro:
       "Consulta los servidores desde tu propio navegador. Elige uno, llama a un método y lee la respuesta JSON-RPC tal cual.",
-    /** See `en.backToHome`: link back to the home page. */
-    backToHome: "Volver a los servidores",
+    /** Ver `en.noticePointer`: el aviso vive en la portada, así que va enlazado. */
     noticePointer:
-      "Antes de pegar una credencial, lee el aviso en la ficha de ese servidor, arriba: dice exactamente a dónde va el valor y qué impide el propio navegador.",
+      "Antes de pegar una credencial, lee el aviso en la ficha de ese servidor: dice exactamente a dónde va el valor y qué impide el propio navegador.",
+    noticePointerLink: "Leer el aviso de gitlab",
     /** Ver `en.insp`: los identificadores del protocolo se quedan en inglés. */
     insp: {
       server: "Servidor",

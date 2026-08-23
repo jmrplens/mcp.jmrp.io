@@ -25,6 +25,21 @@ export const common = {
     lede: "Two Model Context Protocol servers, self-hosted and free to use. Point your MCP client at an endpoint, or try them in the browser.",
     // Chrome strings: header, footer and the skip link. Every page renders
     // them through `Base.astro`.
+    /**
+     * Read by the SHARED `UpdatedLine.astro`, which every page renders — so it
+     * belongs here, not in one page's module. It lived in `policies.ts` and
+     * only worked because that module happens to be spread into `ui`: the day
+     * it were pulled out of the merge, as `internals` already was, the home
+     * page would have lost its date silently.
+     */
+    updatedIn: "This page was last updated on",
+    /**
+     * The same sentence used to sit in three page modules, and `policies` had
+     * to prefix its copy only because `inspector` already owned the bare name
+     * in the merged `ui` object — the collision guard forced a rename instead
+     * of the obvious fix. One string, one home.
+     */
+    backToHome: "Back to the servers",
     skip: "Skip to content",
     source: "Source",
     other: "Español",
@@ -45,6 +60,10 @@ export const common = {
       "Servidores MCP — Model Context Protocol de uso libre · jmrp.io",
     subtitle: "Servidores Model Context Protocol self-hosted, de uso libre.",
     lede: "Dos servidores Model Context Protocol, self-hosted y de uso libre. Apunta tu cliente MCP a un endpoint, o pruébalos en el navegador.",
+    /** Ver `en.updatedIn`: lo lee el componente compartido de la fecha. */
+    updatedIn: "Esta página se actualizó por última vez el",
+    /** Ver `en.backToHome`: enlace de vuelta a la portada, en las tres. */
+    backToHome: "Volver a los servidores",
     skip: "Saltar al contenido",
     source: "Código",
     other: "English",

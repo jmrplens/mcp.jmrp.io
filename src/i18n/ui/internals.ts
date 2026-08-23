@@ -19,7 +19,6 @@ export const internals = {
     metaTitle: "Internals — how a request reaches mcp.jmrp.io · jmrp.io",
     lede: "How a request actually reaches these servers: from your browser, through Cloudflare, nginx, one of three running instances and an egress proxy, to the destination it asked for.",
     /** Link from `/internals/` back to the home page. */
-    backToHome: "Back to the servers",
 
     pathEyebrow: "The path of a request",
     pathBody: [
@@ -67,8 +66,6 @@ export const internals = {
     title: "Funcionamiento interno",
     metaTitle: "Funcionamiento interno — cómo enruta mcp.jmrp.io · jmrp.io",
     lede: "Cómo llega de verdad una petición a estos servidores: desde tu navegador, pasando por Cloudflare, nginx, una de las tres instancias en marcha y un proxy de salida, hasta el destino que pedías.",
-    /** Ver `en.backToHome`: enlace de vuelta a la portada. */
-    backToHome: "Volver a los servidores",
 
     pathEyebrow: "El camino de una petición",
     pathBody: [

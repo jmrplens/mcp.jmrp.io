@@ -190,8 +190,7 @@ const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
      `aria-hidden` has no effect on `textContent`, which is what readability
      and friends read, so headings came out as "//Servers" and "//Privacy &
      data". With ::before the ornament leaves the extracted text and looks
-     exactly the same. `InspectorPage.astro` keeps its own copy of this rule
-     now that its "//Inspector" heading lives there instead. */
+     exactly the same. */
   .eyebrow {
     display: flex;
     gap: 0.6rem;

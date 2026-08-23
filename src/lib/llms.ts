@@ -47,7 +47,7 @@ function pageEntries(
     { page: "home", title: ui[lang].title, description: ui[lang].subtitle },
     {
       page: "inspector",
-      title: ui[lang].inspectorEyebrow,
+      title: ui[lang].inspectorTitle,
       description: ui[lang].inspectorIntro,
     },
     {
@@ -57,7 +57,7 @@ function pageEntries(
     },
     {
       page: "policies",
-      title: ui[lang].footerPolicies,
+      title: ui[lang].policiesTitle,
       description: ui[lang].policiesIntro,
     },
   ];

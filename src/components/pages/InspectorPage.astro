@@ -14,12 +14,15 @@ import { ui } from "../../i18n/ui";
 import { getLangFromUrl } from "../../i18n/utils";
 import { pageUrl } from "../../lib/seo";
 import Inspector from "../Inspector";
+import UpdatedLine from "../UpdatedLine.astro";
 
 const lang = getLangFromUrl(Astro.url);
 const t = ui[lang];
 // Site-relative, like the language switch in Base.astro: an absolute URL
 // here would jump a dev or preview server straight to production.
 const homeHref = new URL(pageUrl(lang, "home")).pathname;
+// The token notice lives on the gitlab card, on the home page.
+const gitlabNoticeHref = `${homeHref}#gitlab`;
 ---
 
 <p class="back-link">
@@ -31,9 +34,14 @@ const homeHref = new URL(pageUrl(lang, "home")).pathname;
   <p class="section-intro">{t.inspectorIntro}</p>
   <Inspector client:load servers={servers} lang={lang} />
   <p class="notice-pointer">
-    {t.noticePointer}
+    {t.noticePointer}{" "}
+    <a href={gitlabNoticeHref}>{t.noticePointerLink}</a>
   </p>
 </section>
+
+{/* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
+    cannot just live in the footer. */}
+<UpdatedLine lang={lang} />
 
 <style>
 
@@ -72,28 +80,6 @@ const homeHref = new URL(pageUrl(lang, "home")).pathname;
 
   section {
     padding-block-end: 3.5rem;
-  }
-
-  /* Eyebrow with `//`: jmrp.io's section marker, painted from CSS so it does
-     NOT exist in the DOM — `textContent`-based extractors would otherwise
-     read the heading as "//Inspector". See HomePage.astro for the full
-     rationale. */
-  .eyebrow {
-    display: flex;
-    gap: 0.6rem;
-    align-items: center;
-    margin: 0 0 1.25rem;
-    color: var(--color-text-muted);
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-
-  .eyebrow::before {
-    color: var(--color-accent);
-    content: "//";
   }
 
   .section-intro {

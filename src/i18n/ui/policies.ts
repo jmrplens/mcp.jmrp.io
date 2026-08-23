@@ -21,7 +21,6 @@ export const policies = {
     policiesIntro:
       "What this page covers: what data these servers see and keep, what happens if the service goes down, where a request looks like it comes from, and the legal footing under all of it.",
     /** Link from `/policies/` back to the home page. */
-    policiesBackToHome: "Back to the servers",
     privacyEyebrow: "Privacy & data",
     privacyBody: [
       "This service is run by José Manuel Requena Plens (jmrp.io), who is also the author of both servers. The site sets no cookies and runs no analytics scripts: the Content-Security-Policy forbids talking to any third party, and the browser enforces it.",
@@ -46,7 +45,6 @@ export const policies = {
     ],
     // Visible freshness inside <main>: the footer carries the same date, but
     // readability prunes it and extractors saw the page as undated.
-    updatedIn: "This page was last updated on",
   },
   es: {
     policiesMetaTitle: "Políticas — privacidad, logs y postura legal · jmrp.io",
@@ -55,8 +53,6 @@ export const policies = {
     /** Ver `en.policiesIntro`: sirve de meta description y de párrafo inicial. */
     policiesIntro:
       "Qué cubre esta página: qué datos ven y guardan estos servidores, qué pasa si el servicio se cae, de dónde parece venir una petición, y la base legal de todo ello.",
-    /** Ver `en.policiesBackToHome`: enlace de vuelta a la portada. */
-    policiesBackToHome: "Volver a los servidores",
     privacyEyebrow: "Privacidad y datos",
     privacyBody: [
       "Este servicio lo opera José Manuel Requena Plens (jmrp.io), autor también de los dos servidores. El sitio no usa cookies ni scripts de analítica: la Content-Security-Policy prohíbe hablar con terceros, y la aplica el navegador.",
@@ -79,6 +75,5 @@ export const policies = {
     legalBody: [
       "libgen es un cliente de índices públicos y mirrors de bibliotecas en la sombra que no opera ni controla, y no aloja nada propio. Lo que hagas con los enlaces que devuelve es responsabilidad tuya, bajo la ley que te sea aplicable. gitlab no hace más que retransmitir llamadas a la instancia de GitLab y el token que le des, y no concede ningún derecho más allá del que ya te concede esa instancia.",
     ],
-    updatedIn: "Esta página se actualizó por última vez el",
   },
 } as const;
