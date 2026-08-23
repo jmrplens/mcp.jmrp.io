@@ -32,6 +32,8 @@
   "devDependencies": {
     "@astrojs/check": "0.9.10",
     "@gorazdo/eslint-plugin-preact": "^1.0.7",
+    "@iconify-json/mdi": "^1.2.3",
+    "@iconify-json/simple-icons": "^1.2.93",
     "@playwright/test": "^1.62.1",
     "@types/html-minifier-terser": "^7.0.2",
     "@unocss/eslint-plugin": "^66.7.5",

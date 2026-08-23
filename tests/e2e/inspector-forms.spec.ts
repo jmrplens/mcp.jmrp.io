@@ -17,7 +17,7 @@ test.skip(
 test("las tools se eligen de una lista y su esquema se vuelve formulario", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/inspector/");
   await page.getByTestId("load-tools").click();
 
   const picker = page.getByTestId("catalog-tools").locator("select");
@@ -48,7 +48,7 @@ test("una búsqueda real se lanza desde el formulario, sin escribir JSON", async
   // 92 s and 114 s on two consecutive runs, so the previous 60 s fell short
   // and the test was failing on the clock, not on a fault.
   test.setTimeout(240_000);
-  await page.goto("/");
+  await page.goto("/inspector/");
   await page.getByTestId("load-tools").click();
   const picker = page.getByTestId("catalog-tools").locator("select");
   await expect(picker).toBeVisible({ timeout: 40_000 });
@@ -66,7 +66,7 @@ test("una búsqueda real se lanza desde el formulario, sin escribir JSON", async
 test("los prompts se listan con sus argumentos y se pueden renderizar", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/inspector/");
   await page.getByRole("tab", { name: "Prompts" }).click();
   await page.getByTestId("load-prompts").click();
 
@@ -113,7 +113,7 @@ test("los resources se listan con su tipo MIME y se pueden leer", async ({
       : { json: { jsonrpc: "2.0", id: 1, result: { contents: [] } } },
   );
 
-  await page.goto("/");
+  await page.goto("/inspector/");
   await serverSelect(page).selectOption("gitlab");
   await inspector(page).getByLabel("PRIVATE-TOKEN").fill("glpat-falso");
 
@@ -138,7 +138,7 @@ test("los resources se listan con su tipo MIME y se pueden leer", async ({
 test("cambiar de servidor no deja el catálogo del anterior", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/inspector/");
   await page.getByTestId("load-tools").click();
   const picker = page.getByTestId("catalog-tools").locator("select");
   await expect(picker).toBeVisible({ timeout: 40_000 });

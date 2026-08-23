@@ -1,0 +1,60 @@
+---
+/**
+ * Compact jump-index for a long family (gitlab's 37 prompts, 37 resource
+ * templates) — chips in a wrapping row, not a 37-line vertical list, per
+ * `servers-section-spec.md`'s TOC section ("un índice compacto de sus
+ * anclas (chips en rejilla, no una lista vertical)").
+ *
+ * `entries` carries the SAME `{id, label}` pairs the family's own entry
+ * articles are built from (see `ServerPage.astro`), so a chip's `href` can
+ * never point at an id the page does not actually have — there is no second
+ * slugging pass here that could drift from the first.
+ */
+export interface ChipEntry {
+  /** Anchor id, without the leading `#`. Must match the entry article's own `id`. */
+  id: string;
+  label: string;
+}
+
+interface Props {
+  entries: ChipEntry[];
+  ariaLabel: string;
+}
+
+const { entries, ariaLabel } = Astro.props;
+---
+
+<nav class="chip-index" aria-label={ariaLabel}>
+  {entries.map((entry) => <a class="chip" href={`#${entry.id}`}>{entry.label}</a>)}
+</nav>
+
+<style>
+  .chip-index {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0 0 1.5rem;
+  }
+
+  /* `.chip` (base shape: mono, pill, bordered) comes from utilities.css —
+     only the interactive/link-specific bits are added here. */
+  .chip-index .chip {
+    color: var(--color-text-muted);
+    text-decoration: none;
+    background: var(--color-bg-subtle);
+    transition:
+      color var(--dur-2) var(--ease-out),
+      border-color var(--dur-2) var(--ease-out);
+  }
+
+  .chip-index .chip:hover,
+  .chip-index .chip:focus-visible {
+    color: var(--color-accent);
+    border-color: var(--accent-line);
+  }
+
+  .chip-index .chip:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+</style>

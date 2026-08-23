@@ -14,7 +14,7 @@ test.skip(
 );
 
 test("tools/list contra libgen devuelve las herramientas", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/inspector/");
   await serverSelect(page).selectOption("libgen");
   await loadButton(page).click();
   const out = page.getByTestId("inspector-output");
@@ -23,7 +23,7 @@ test("tools/list contra libgen devuelve las herramientas", async ({ page }) => {
 });
 
 test("initialize contra libgen devuelve el protocolo", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/inspector/");
   const mcp = inspector(page);
   await serverSelect(page).selectOption("libgen");
   await mcp.getByRole("button", { name: "initialize" }).click();
@@ -40,7 +40,7 @@ test("initialize contra libgen devuelve el protocolo", async ({ page }) => {
 test("el inspector también funciona en la página en español", async ({
   page,
 }) => {
-  await page.goto("/es/");
+  await page.goto("/es/inspector/");
   await loadButton(page).click();
   await expect(page.getByTestId("inspector-output")).toContainText("search", {
     timeout: 30_000,

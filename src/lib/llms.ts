@@ -15,18 +15,91 @@
  * lo que espera la herramienta que lo consuma), pero enlazan y nombran la
  * versión española del sitio.
  */
+import { serverCards } from "../data/server-cards";
 import type { McpHeader, McpServer } from "../data/servers";
 import { servers } from "../data/servers";
+import type { Lang } from "../i18n/config";
 import { ui } from "../i18n/ui";
+import { internals } from "../i18n/ui/internals";
+import { serversPage } from "../i18n/ui/servers-page";
 import {
   claudeCodeCommand,
   cursorJson,
   vscodeJson,
 } from "../lib/client-config";
-import { LANGS, pageUrl, SITE_NAME, SITE_ORIGIN } from "../lib/seo";
+import { LANGS, pageUrl, serverPageUrl, SITE_NAME, SITE_ORIGIN } from "../lib/seo";
 
 /** Nombre humano de cada idioma, para los enlaces del índice. */
 const LANG_NAMES: Record<string, string> = { en: "English", es: "Spanish" };
+
+/**
+ * Title and one-line description of one page, in one language.
+ *
+ * Returns each entry's own absolute URL rather than a `PageId`: the two
+ * server detail pages (`/servers/<id>/`) have no fixed `PageId` of their
+ * own — see the comment on `PAGE_PATHS` in `src/lib/seo.ts` for why — so
+ * `pageUrl` alone cannot address them. Fixed pages resolve theirs via
+ * `pageUrl`, server pages via `serverPageUrl`.
+ *
+ * `internals` bypasses the merged `ui` object on purpose — see the header
+ * comment on `src/i18n/ui.ts` for why — so its title and lede are read from
+ * `internals[lang]` directly, exactly like `InternalsPage.astro` does.
+ *
+ * @param lang Language of the strings.
+ * @returns One entry per page: the fixed pages in `PAGE_PATHS` order, then
+ *   one per MCP server with a committed Server Card.
+ */
+function pageEntries(
+  lang: Lang,
+): { url: string; title: string; description: string }[] {
+  const fixed = [
+    { url: pageUrl(lang, "home"), title: ui[lang].title, description: ui[lang].subtitle },
+    {
+      url: pageUrl(lang, "inspector"),
+      title: ui[lang].inspectorTitle,
+      description: ui[lang].inspectorIntro,
+    },
+    {
+      url: pageUrl(lang, "internals"),
+      title: internals[lang].title,
+      description: internals[lang].lede,
+    },
+    {
+      url: pageUrl(lang, "policies"),
+      title: ui[lang].policiesTitle,
+      description: ui[lang].policiesIntro,
+    },
+    {
+      url: pageUrl(lang, "servers"),
+      title: serversPage[lang].titleIndex,
+      description: serversPage[lang].ledeIndex,
+    },
+  ];
+
+  // One entry per MCP server with a committed Server Card — the same set
+  // `getStaticPaths` in `src/pages/servers/[server].astro` builds pages
+  // for. `serverCards[server.id]` is checked rather than assumed present:
+  // a server can be listed in `src/data/servers.ts` before its Server Card
+  // snapshot lands (see the "ADDING A THIRD MCP" note on
+  // `src/data/server-cards.ts`), and this file should not crash the build
+  // over that gap. The title carries the Server Card's OWN identity
+  // (`serverInfo.name` and version, e.g. "gitlab-mcp-server v2.6.6") next to
+  // the site's short server id, since that identity is what a client
+  // matches against the live `initialize` response; the description reuses
+  // the same bilingual copy as the "MCP servers" section below.
+  const serverEntries = servers
+    .filter((server) => serverCards[server.id])
+    .map((server) => {
+      const card = serverCards[server.id];
+      return {
+        url: serverPageUrl(lang, server.id),
+        title: `${server.name} — ${card.serverInfo.name} v${card.serverInfo.version}`,
+        description: server.description[lang],
+      };
+    });
+
+  return [...fixed, ...serverEntries];
+}
 
 /**
  * Índice corto: qué es esto, dónde está cada cosa.
@@ -34,9 +107,16 @@ const LANG_NAMES: Record<string, string> = { en: "English", es: "Spanish" };
  * @returns El cuerpo de `/llms.txt`.
  */
 export function buildLlmsTxt(): string {
-  const pages = LANGS.map(
-    (lang) =>
-      `- [${ui[lang].title} (${LANG_NAMES[lang] ?? lang})](${pageUrl(lang)}): ${ui[lang].subtitle}`,
+  // Seven page groups × two languages: every page an assistant can land on
+  // gets its own line, not just the home page — the `/servers/` index and
+  // every server's own detail page included. Grouped by language rather
+  // than by page, same as before this task — adding a page only means
+  // growing `pageEntries`, never touching this loop.
+  const pages = LANGS.flatMap((lang) =>
+    pageEntries(lang).map(
+      ({ url, title, description }) =>
+        `- [${title} (${LANG_NAMES[lang] ?? lang})](${url}): ${description}`,
+    ),
   ).join("\n");
 
   const list = servers

@@ -1,0 +1,19 @@
+---
+/**
+ * Internals route. Delegates to the shared page component; the language
+ * comes from the URL.
+ *
+ * Reads `internals` directly, not the merged `ui` object — see the header
+ * comment on `src/i18n/ui.ts` for why.
+ */
+import InternalsPage from "../../components/pages/InternalsPage.astro";
+import { internals } from "../../i18n/ui/internals.ts";
+import { getLangFromUrl } from "../../i18n/utils";
+import Base from "../../layouts/Base.astro";
+
+const t = internals[getLangFromUrl(Astro.url)];
+---
+
+<Base title={t.metaTitle} description={t.lede} page="internals">
+  <InternalsPage />
+</Base>

@@ -1,0 +1,86 @@
+---
+/**
+ * The table of contents for one server's detail page — rendered TWICE by
+ * `ServerPage.astro`: once inside the sticky desktop rail, once inside the
+ * mobile FAB panel. CSS shows exactly one of the two at a time (see that
+ * component's `.toc-rail`/`.toc-panel` media queries); there is no way to
+ * move a single DOM node between two containers without JavaScript, so the
+ * two copies are the price of a zero-JS TOC.
+ *
+ * Only two levels deep on purpose: this list is the section names (Overview,
+ * Tools, Prompts, Resources, Resource templates), never the up-to-37
+ * individual entries inside one of them — a rail that long is exactly the
+ * unnavigable wall of text this component exists to prevent. The compact
+ * per-entry index for a long family lives INSIDE that family's own section
+ * instead (`ServerEntryChips.astro`), not here.
+ */
+export interface TocFamily {
+  /** Anchor id, without the leading `#`. */
+  id: string;
+  label: string;
+  count: number;
+}
+
+interface Props {
+  overviewLabel: string;
+  families: TocFamily[];
+  ariaLabel: string;
+}
+
+const { overviewLabel, families, ariaLabel } = Astro.props;
+---
+
+<nav class="toc-nav" aria-label={ariaLabel}>
+  <ul class="toc-list">
+    <li><a href="#top">{overviewLabel}</a></li>
+    {
+      families.map((family) => (
+        <li>
+          <a href={`#${family.id}`}>
+            {family.label} <span class="toc-count">({family.count})</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  .toc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .toc-list a {
+    display: block;
+    padding: 0.4rem 0.65rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    transition:
+      color var(--dur-2) var(--ease-out),
+      background-color var(--dur-2) var(--ease-out);
+  }
+
+  .toc-list a:hover,
+  .toc-list a:focus-visible {
+    color: var(--color-text-heading);
+    background-color: var(--color-surface-2);
+  }
+
+  .toc-list a:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  .toc-count {
+    color: var(--color-text-faint-alt);
+    font-size: var(--text-xs);
+  }
+</style>

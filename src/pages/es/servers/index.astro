@@ -1,0 +1,17 @@
+---
+/**
+ * `/servers/` index route. Delegates to the shared page component; the
+ * language comes from the URL, exactly like the other mirrored routes (see
+ * ../../policies.astro).
+ */
+import ServersIndexPage from "../../../components/pages/ServersIndexPage.astro";
+import { serversPage } from "../../../i18n/ui/servers-page";
+import { getLangFromUrl } from "../../../i18n/utils";
+import Base from "../../../layouts/Base.astro";
+
+const t = serversPage[getLangFromUrl(Astro.url)];
+---
+
+<Base title={t.metaTitleIndex} description={t.ledeIndex} page="servers">
+  <ServersIndexPage />
+</Base>

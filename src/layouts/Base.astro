@@ -14,23 +14,56 @@ import "../styles/global.css";
 
 import { Font } from "astro:assets";
 
-import { contentDate } from "../lib/build-date";
+import { type Lang, ui } from "../i18n/ui";
+import { getLangFromUrl } from "../i18n/utils";
+import { buildDate } from "../lib/build-date";
 import { humanDate } from "../lib/format";
 import { buildSiteGraph, safeJsonLd } from "../lib/jsonld";
 import {
+  type Alternate,
   alternates,
   OG_IMAGE_SIZE,
   OG_LOCALES,
   ogImageAlt,
   ogImageUrl,
+  PAGE_PATHS,
+  type PageId,
   pageUrl,
   SITE_NAME,
 } from "../lib/seo";
 
-interface Props {
+/**
+ * `canonicalOverride` and `alternatesOverride` are required together: setting
+ * one without the other would canonicalize a page to one URL while announcing
+ * a different hreflang cluster for it. A union of "both" and "neither" makes
+ * the invalid "just one" combination unrepresentable, instead of relying on a
+ * doc comment a caller can silently violate.
+ */
+type CanonicalOverride =
+  | { canonicalOverride: string; alternatesOverride: Alternate[] }
+  | { canonicalOverride?: undefined; alternatesOverride?: undefined };
+
+type Props = {
   title: string;
   description: string;
-  lang: "en" | "es";
+  /** Which page this is, for the canonical URL and the hreflang cluster. */
+  page?: PageId;
+  /**
+   * Server id for a per-server detail page (`/servers/<id>/`).
+   *
+   * `buildSiteGraph()` derives its `WebPage` `@id` from `pageUrl(lang, page)`
+   * by default — one fixed URL per `PageId`. Every server's detail page
+   * shares the same `page` value (`"servers"`, the index's), so without this
+   * prop each one would assert the SAME `@id` (the `/servers/` index's) with
+   * a DIFFERENT name/description — precisely the entity split `jsonld.ts`'s
+   * own comments (see its `#source-code` node) exist to avoid elsewhere.
+   * Passing `serverId` makes `buildSiteGraph` derive `url`/`@id` from
+   * `serverPageUrl(lang, serverId)` instead, and — since this page IS where
+   * that entity lives — emit its full `WebAPI`/`SoftwareApplication` and
+   * `SoftwareSourceCode` nodes rather than the bare references every other
+   * page uses. See `jsonld.ts`'s `PageMeta.serverId` doc for the rest.
+   */
+  serverId?: string;
   /**
    * This page is an error body (the 404), not a real address.
    *
@@ -47,18 +80,61 @@ interface Props {
    * calling the home page "Page not found".
    */
   errorPage?: boolean;
-}
+} & CanonicalOverride;
 
-const { title, description, lang, errorPage = false } = Astro.props;
+const {
+  title,
+  description,
+  page = "home",
+  canonicalOverride,
+  alternatesOverride,
+  serverId,
+  errorPage = false,
+} = Astro.props;
+// The language comes from the URL, never from a prop: that is what lets the
+// mirrored route files under `src/pages/es/` be identical to their English
+// counterparts, and therefore impossible to drift apart.
+const lang = getLangFromUrl(Astro.url);
+// Moved up from further down the file (right before the old `t = ui[lang]`
+// line) so `alternate` below can use it — nothing depended on the old order,
+// it was just write-as-you-go.
+const otherLang: Lang = lang === "en" ? "es" : "en";
 
 // La misma fecha que dateModified y el lastmod del sitemap: una sola verdad.
-const updated = contentDate() ?? new Date().toISOString();
+// Shared, memoized build timestamp — the same value the JSON-LD and
+// <UpdatedLine> use. Calling `contentDate() ?? new Date()` here again
+// re-read the clock on a dirty tree, so the footer could disagree with
+// the date printed inside <main> by a few milliseconds.
+const updated = buildDate();
 const updatedHuman = humanDate(updated, lang);
-const alternate = lang === "en" ? "/es/" : "/";
+// hreflang cluster for THIS page: `alternatesOverride` for a per-server
+// detail page (see the prop doc above), `alternates(page)` for everything
+// else. The <head> loop further down reads this SAME value, so the two can
+// never drift apart.
+const hreflangCluster = alternatesOverride ?? alternates(page);
+// The visible language switch stays a site-relative path. It still derives
+// from `hreflangCluster` (built from `pageUrl()`/`serverPageUrl()`, never a
+// literal) so it can never drift from the canonical, but an absolute URL
+// here would jump a dev or preview server straight to production.
+const alternate = new URL(
+  hreflangCluster.find((entry) => entry.hreflang === otherLang)?.href ??
+    pageUrl(otherLang, page),
+).pathname;
 // Canonical, og:url y twitter:url son el MISMO valor a propósito: tres
 // declaraciones distintas de dónde vive esta página son tres oportunidades de
-// contradecirse. Todas salen de `pageUrl()`.
-const canonical = pageUrl(lang);
+// contradecirse. `canonicalOverride` for a per-server detail page (see the
+// prop doc above); `pageUrl()` for everything else.
+const canonical = canonicalOverride ?? pageUrl(lang, page);
+// Footer link to `/policies/`, site-relative for the same reason `alternate`
+// is above. It is in the shared footer, not just on the home page, so every
+// page — this one included — stays able to reach it.
+const policiesHref = new URL(pageUrl(lang, "policies")).pathname;
+const homeHref = new URL(pageUrl(lang, "home")).pathname;
+// First-level path only, like jmrp.io: `~` on the home page, `~/inspector`
+// elsewhere. `/servers/<id>/` pages ARE a real deeper slug now, but `page` is
+// `"servers"` for those too (see ServerPage.astro), so the breadcrumb still
+// reads `~/servers` on them — deliberately coarse, not a bug.
+const breadcrumb = page === "home" ? "~" : `~/${page}`;
 const ogImage = ogImageUrl(lang);
 const imageAlt = ogImageAlt(lang);
 const otherLocales = Object.entries(OG_LOCALES)
@@ -69,25 +145,38 @@ const otherLocales = Object.entries(OG_LOCALES)
 // jmrp.io de GitHub, con el snapshot commiteado como respaldo (ver identity.ts).
 // An error body describes no entity, so it builds no graph. Emitting one made
 // the 404 redefine the home page's `@id` with a different name.
-const jsonLd = errorPage
-  ? undefined
-  : safeJsonLd(await buildSiteGraph({ lang, title, description }));
-const t = {
-  en: {
-    skip: "Skip to content",
-    source: "Source",
-    other: "Español",
-    footerBy: "Servers and site by",
-    footerUpdated: "Updated",
-  },
-  es: {
-    skip: "Saltar al contenido",
-    source: "Código",
-    other: "English",
-    footerBy: "Servidores y sitio de",
-    footerUpdated: "Actualizado",
-  },
-}[lang];
+// `serverId` is passed straight through — see the prop doc above for why a
+// per-server detail page cannot just be handed a different `page` value
+// instead.
+const jsonLd =
+  errorPage
+    ? undefined
+    : safeJsonLd(
+        await buildSiteGraph({ lang, title, description, page, serverId }),
+      );
+const t = ui[lang];
+
+// One nav item per page, in the CURRENT language, for both the desktop nav
+// and the mobile drawer (they render from the same array, no JS involved).
+// Reading the ids from `PAGE_PATHS` — instead of a hand-written list — means
+// a future fifth page shows up here automatically instead of silently
+// missing from navigation. Every href is `pageUrl()` reduced to its
+// pathname, the same site-relative pattern `alternate` and `policiesHref`
+// already use above: an absolute URL here would send a dev/preview build
+// straight to production.
+const NAV_LABELS: Record<PageId, string> = {
+  home: t.navHome,
+  inspector: t.navInspector,
+  internals: t.navInternals,
+  policies: t.navPolicies,
+  servers: t.navServers,
+};
+const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
+  id,
+  href: new URL(pageUrl(lang, id)).pathname,
+  label: NAV_LABELS[id],
+  current: id === page,
+}));
 ---
 
 <!doctype html>
@@ -95,6 +184,53 @@ const t = {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    {/* Applies the forced theme override BEFORE first paint, so a visitor who
+        picked "light" never sees a flash of the dark-first default while the
+        rest of the document loads. `is:inline` is required, not stylistic:
+        without it Vite pulls the block into a bundled module chunk, and the
+        post-build's nonce injection (see the JSON-LD comment below) only
+        patches `<script>` tags that are still literally inline in the HTML.
+        `window.toggleTheme()` is the single source of truth the theme button
+        script (end of <body>) calls into — kept this small on purpose, since
+        this site has exactly one theme button and does not need the
+        multi-instance class-based wiring jmrp.io's version carries for its
+        header+drawer pair. No `astro:after-swap` handling either: this site
+        has no ClientRouter, so every navigation is a fresh document load and
+        this script simply runs again from scratch. */}
+    <script is:inline>
+      (function () {
+        var KEY = "theme";
+        function resolveTheme() {
+          try {
+            var saved = localStorage.getItem(KEY);
+            if (saved === "light" || saved === "dark") return saved;
+          } catch (e) {
+            /* Storage disabled or unavailable: fall through to the OS preference. */
+          }
+          return window.matchMedia("(prefers-color-scheme: light)").matches
+            ? "light"
+            : "dark";
+        }
+        document.documentElement.dataset.theme = resolveTheme();
+        window.toggleTheme = function () {
+          var next =
+            document.documentElement.dataset.theme === "dark"
+              ? "light"
+              : "dark";
+          try {
+            localStorage.setItem(KEY, next);
+          } catch (e) {
+            /* No persistence available: the choice still applies this load. */
+          }
+          document.documentElement.dataset.theme = next;
+          window.dispatchEvent(
+            new CustomEvent("theme-changed", { detail: { theme: next } }),
+          );
+        };
+      })();
+    </script>
+
     <title>{title}</title>
     <meta name="description" content={description} />
     {!errorPage && <link rel="canonical" href={canonical} />}
@@ -124,7 +260,7 @@ const t = {
         alta un idioma nuevo no pueda volver a dejar la lista coja. */}
     {
       !errorPage &&
-        alternates().map((alt) => (
+        hreflangCluster.map((alt) => (
           <link rel="alternate" hreflang={alt.hreflang} href={alt.href} />
         ))
     }
@@ -137,6 +273,16 @@ const t = {
       type="application/json"
       href="/servers.json"
       title="MCP server index"
+    />
+
+    {/* Mismo motivo que el `<link>` de arriba, para `/llms.txt`: el diseño ya
+        daba por hecho que la portada apuntaba a los dos, pero este nunca se
+        había llegado a añadir. */}
+    <link
+      rel="alternate"
+      type="text/plain"
+      href="/llms.txt"
+      title="llms.txt index"
     />
 
     <meta name="color-scheme" content="light dark" />
@@ -215,18 +361,220 @@ const t = {
     />
   </head>
   <body>
+    {/* jmrp.io's ambient hairline grid (utilities.css, imported here already
+        but never rendered until now), full-page: `position:absolute; inset:0`
+        inside body's `position:relative`, sitting behind everything via
+        `z-index:-1` in body's own stacking context (`isolation:isolate`,
+        base.css). Same markup and placement as jmrp.io's BaseLayout.astro —
+        first child of <body>, aria-hidden since it is purely decorative. */}
+    <div class="lab-grid lab-grid--page" aria-hidden="true"></div>
+
     <a class="skip" href="#main">{t.skip}</a>
 
     <header class="site-header">
-      <a class="brand" href="https://jmrp.io" rel="home">
-        <span class="brand-sigil">~ &rsaquo;</span><span class="brand-name"
-          >mcp</span
-        >
-      </a>
-      <nav class="site-nav" aria-label={lang === "es" ? "Idioma" : "Language"}>
-        <a href={alternate} lang={lang === "en" ? "es" : "en"}>{t.other}</a>
-        <a href="https://github.com/jmrplens/mcp.jmrp.io">{t.source}</a>
-      </nav>
+      {/* Checkbox-hack drawer toggle: the ONLY thing that opens/closes the
+          mobile drawer is this checkbox's `:checked` state via `html:has()`
+          in the <style> block below. Both the burger (`.menu-toggle`) and
+          the scrim (`.menu-backdrop`) are plain `<label for="nav-open">`
+          elements, so the drawer works with JavaScript fully disabled — the
+          inline script at the end of <body> only layers on Escape-to-close,
+          moving focus, and `inert` on the background. */}
+      <input
+        type="checkbox"
+        id="nav-open"
+        class="nav-open-cb sr-only"
+        aria-controls="nav-drawer"
+        aria-expanded="false"
+      />
+
+      <div class="header-bar">
+        {/* Terminal-prompt mark, same anatomy as jmrp.io's Logo.astro:
+            breadcrumb path + teal chevron + command + blinking cursor. It
+            links to THIS site's home in the current language — it used to
+            point at https://jmrp.io, which sent visitors off the site from
+            every page. The visible wordmark is the accessible name, so no
+            aria-label (it would not contain the visible breadcrumb text). */}
+        <a class="brand" href={homeHref} rel="home">
+          <span class="brand-path">{breadcrumb}</span>
+          <span class="brand-prompt">&#10095;</span>
+          <span class="brand-name">mcp</span>
+          <span class="brand-cursor" aria-hidden="true"></span>
+        </a>
+
+        <nav class="site-nav" aria-label={t.mainNavLabel}>
+          <ul class="nav-links">
+            {
+              navItems.map((item) => (
+                <li>
+                  <a
+                    href={item.href}
+                    aria-current={item.current ? "page" : undefined}
+                  >
+                    {/* jmrp.io's breadcrumb cue on the active section: a
+                        decorative "/" ahead of the label, hidden from AT
+                        since aria-current already announces the state. */}
+                    {item.current && (
+                      <span class="nav-prefix" aria-hidden="true">
+                        /
+                      </span>
+                    )}
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+
+        <div class="header-controls">
+          {/* Two-segment `EN | ES` pill, jmrp.io's LanguageSwitcher.astro
+              design (`.lang-pill`/`.lang-seg`): the current locale is a
+              non-interactive active segment, the other is a link. Unlike
+              jmrp.io's version, `alternate` is NOT a naive locale-prefix
+              swap — it already comes from `pageUrl(otherLang, page)`, so
+              from `/es/internals/` this goes to `/internals/`, never to the
+              home page.
+
+              No `hreflang` on the link on purpose: that annotation belongs
+              to the `<link rel="alternate">` cluster in <head> (built from
+              `alternates()`), which is already correct and complete. A
+              second, body-level `hreflang=` would also leak onto the 404
+              body — the one page that must emit no identity signals at all,
+              since its `<head>` block is suppressed by `errorPage`. */}
+          <div
+            class="lang-switch"
+            role="group"
+            aria-label={t.langSwitchLabel}
+          >
+            <span class="lang-seg lang-seg--active" aria-current="true">
+              {lang.toUpperCase()}
+            </span>
+            <a
+              class="lang-seg"
+              href={alternate}
+              lang={otherLang}
+              aria-label={`${t.switchTo} ${t.other}`}
+            >
+              {otherLang.toUpperCase()}
+            </a>
+          </div>
+
+          <button
+            type="button"
+            id="theme-toggle"
+            class="theme-toggle"
+            aria-label={t.themeToggle}
+            data-label-light={t.themeToLight}
+            data-label-dark={t.themeToDark}
+          >
+            <span
+              class="i-mdi:white-balance-sunny icon-sun"
+              aria-hidden="true"
+            />
+            <span
+              class="i-mdi:moon-waning-crescent icon-moon"
+              aria-hidden="true"
+            />
+          </button>
+
+          <a
+            class="gh-link"
+            href="https://github.com/jmrplens/mcp.jmrp.io"
+            aria-label={t.source}
+          >
+            <span class="i-simple-icons:github" aria-hidden="true" />
+          </a>
+
+          <label for="nav-open" id="menu-toggle" class="menu-toggle">
+            <span class="sr-only">{t.menuOpen}</span>
+            <span class="i-mdi:menu icon-menu-open" aria-hidden="true" />
+            <span class="i-mdi:close icon-menu-close" aria-hidden="true" />
+          </label>
+        </div>
+      </div>
+
+      <label for="nav-open" class="menu-backdrop" aria-hidden="true">
+        <span class="sr-only">{t.menuClose}</span>
+      </label>
+
+      <div
+        id="nav-drawer"
+        class="nav-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t.menuDialogLabel}
+        tabindex="-1"
+      >
+        <div class="drawer-head">
+          {/* A `<label>` cannot take keyboard focus on its own, so it gets
+              `tabindex` and a `button` role, and the script below makes Enter
+              and Space activate it. Without a reachable close control inside
+              an `aria-modal` dialog, a screen reader user on a phone — where
+              there is no Escape key — has no announced way out. Clicking it
+              still works with JavaScript disabled: it is a label, and the
+              scrim behind it is another one. */}
+          <label
+            for="nav-open"
+            class="drawer-close"
+            role="button"
+            tabindex="0"
+          >
+            <span class="sr-only">{t.menuClose}</span>
+            <span class="i-mdi:close" aria-hidden="true" />
+          </label>
+        </div>
+
+        <ul class="drawer-links">
+          {
+            navItems.map((item) => (
+              <li>
+                <a
+                  href={item.href}
+                  aria-current={item.current ? "page" : undefined}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+          <li>
+            <a
+              class="drawer-gh"
+              href="https://github.com/jmrplens/mcp.jmrp.io"
+            >
+              {t.source}
+            </a>
+          </li>
+        </ul>
+
+        {/* The language pill also lives in the drawer panel, like jmrp.io's
+            `.drawer__foot` (NavDrawer.astro) — requested explicitly: the
+            header-bar pill stays visible on mobile too (same call jmrp.io
+            makes for its own header + drawer pair), so this is a deliberate
+            duplicate, not a replacement. Only the language pill is
+            duplicated here, not the theme toggle: that one only asked for
+            the language switcher, and the theme button already works fine
+            from the bar behind the drawer. */}
+        <div class="drawer-foot">
+          <div
+            class="lang-switch"
+            role="group"
+            aria-label={t.langSwitchLabel}
+          >
+            <span class="lang-seg lang-seg--active" aria-current="true">
+              {lang.toUpperCase()}
+            </span>
+            <a
+              class="lang-seg"
+              href={alternate}
+              lang={otherLang}
+              aria-label={`${t.switchTo} ${t.other}`}
+            >
+              {otherLang.toUpperCase()}
+            </a>
+          </div>
+        </div>
+      </div>
     </header>
 
     <main id="main"><slot /></main>
@@ -235,7 +583,9 @@ const t = {
         ausentes para una persona: la auditoría lo llamó "autoridad regalada",
         y las respuestas de IA que citan texto visible no tenían a quién
         atribuir. El mailto también resuelve que security.txt existiera sin
-        estar enlazado desde ninguna parte. */}
+        estar enlazado desde ninguna parte — mismo motivo por el que
+        `/policies/` va aquí y no solo en la portada: cualquier página tiene
+        que poder llegar a ella. */}
     <footer class="site-footer">
       <p class="footer-id">
         {t.footerBy}
@@ -247,15 +597,149 @@ const t = {
       <p class="footer-links">
         <a href="https://jmrp.io">jmrp.io</a>
         <a href="mailto:mail@jmrp.io">mail@jmrp.io</a>
+        <a href={policiesHref}>{t.footerPolicies}</a>
         <a href="/.well-known/security.txt">security.txt</a>
       </p>
     </footer>
+
+    {/* Progressive enhancement only — see the two comments in the <header>
+        above. `is:inline` for the same nonce reason as the theme-detection
+        script in <head>: without it Vite would bundle this into an external
+        module and the post-build's nonce patch would not apply to it. */}
+    <script is:inline>
+      (function () {
+        // Theme button: reflect the live theme in aria-label and dispatch
+        // the toggle. One instance on this site, so plain `getElementById`
+        // is enough — no need for jmrp.io's class-based multi-instance sync.
+        var themeBtn = document.getElementById("theme-toggle");
+        if (themeBtn) {
+          var updateThemeLabel = function () {
+            var isDark = document.documentElement.dataset.theme !== "light";
+            var label = themeBtn.getAttribute(
+              isDark ? "data-label-light" : "data-label-dark",
+            );
+            if (label) themeBtn.setAttribute("aria-label", label);
+          };
+          updateThemeLabel();
+          themeBtn.addEventListener("click", function () {
+            if (typeof window.toggleTheme === "function") {
+              window.toggleTheme();
+            }
+          });
+          window.addEventListener("theme-changed", updateThemeLabel);
+        }
+
+        // Mobile drawer a11y: the #nav-open checkbox already opens and
+        // closes the drawer with zero JS (see the <style> block's
+        // `html:has(#nav-open:checked)` rules). Everything here only adds
+        // what CSS cannot do on its own: Escape-to-close, moving focus in
+        // and out, and taking the background out of the tab order while
+        // the drawer is open.
+        var checkbox = document.getElementById("nav-open");
+        var drawer = document.getElementById("nav-drawer");
+        var main = document.getElementById("main");
+        var footer = document.querySelector(".site-footer");
+        // `.header-bar` holds the brand link, language pill, theme button
+        // and the burger itself — all still tabbable and outside the
+        // `aria-modal="true"` dialog. Without this, a keyboard user could
+        // tab from inside the open drawer straight into those controls,
+        // behind the scrim. `.menu-backdrop` (the scrim) and `#nav-drawer`
+        // itself are siblings of `.header-bar`, not inside it, so they stay
+        // interactive — that is how the scrim, the drawer's own close
+        // control, and Escape keep working while the bar is inert.
+        var headerBar = document.querySelector(".header-bar");
+        if (!checkbox || !drawer) return;
+
+        var setBackgroundInert = function (on) {
+          if (main) main.inert = on;
+          if (footer) footer.inert = on;
+          if (headerBar) headerBar.inert = on;
+        };
+
+        checkbox.addEventListener("change", function () {
+          checkbox.setAttribute(
+            "aria-expanded",
+            checkbox.checked ? "true" : "false",
+          );
+          setBackgroundInert(checkbox.checked);
+          // Deferred two animation frames: activating a <label> also runs
+          // the browser's OWN default action of focusing its associated
+          // control (the checkbox), and on the very first interaction of
+          // the page that default action is still in flight when a single
+          // queued callback (a plain "change" listener, a setTimeout(0), or
+          // one requestAnimationFrame) runs — so calling drawer.focus()
+          // there gets silently overridden back to the checkbox a moment
+          // later. Verified by hand with Playwright: 0 or 1 deferred frames
+          // reproduce it on a fresh page load (a SECOND open/close cycle on
+          // the same page does not, because by then a frame has already
+          // rendered) — 2 frames closes the gap either way. This does not
+          // affect the CSS itself: the drawer is already visually open by
+          // the time this runs, `:has()` applied its style the instant the
+          // checkbox's state changed.
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              if (checkbox.checked) {
+                drawer.focus({ preventScroll: true });
+              } else {
+                checkbox.focus({ preventScroll: true });
+              }
+            });
+          });
+        });
+
+        // Enter/Space on the close label. A <label> with role="button" is
+        // announced as a button, so it has to behave like one; the browser
+        // only gives it the click behaviour, not the keyboard one.
+        var closeLabel = drawer.querySelector(".drawer-close");
+        if (closeLabel) {
+          closeLabel.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              checkbox.checked = false;
+              checkbox.dispatchEvent(new Event("change"));
+            }
+          });
+        }
+
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" && checkbox.checked) {
+            checkbox.checked = false;
+            // Firing "change" manually: setting `.checked` from script does
+            // NOT dispatch the event on its own, and the listener above is
+            // what runs the focus/inert cleanup.
+            checkbox.dispatchEvent(new Event("change"));
+          }
+        });
+      })();
+    </script>
   </body>
 </html>
 
 <style>
-  /* Franja superior e inferior en mono, como la navegación de jmrp.io. */
-  .site-header,
+  /* Franja superior e inferior en mono, como la navegación de jmrp.io.
+
+     Sticky with the blur on ::before, NOT on .site-header directly: a
+     `backdrop-filter` set on the header itself would make it the containing
+     block for the drawer's `position: fixed`, breaking its off-screen
+     `transform` and pulling it into the document's scroll width. */
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header);
+    border-bottom: 1px solid var(--color-hair);
+  }
+
+  .site-header::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    content: "";
+    background: var(--color-bg-header);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .header-bar,
   .site-footer {
     display: flex;
     flex-wrap: wrap;
@@ -264,42 +748,479 @@ const t = {
     gap: var(--space-4, 1rem);
     /* width: 100% es obligatorio: body es un flex en columna y `margin-inline:
        auto` sobre un hijo flex ANULA el stretch del eje cruzado, encogiendo la
-       franja al ancho de su contenido en vez de llegar a los 72rem. */
+       franja al ancho de su contenido en vez de llegar a --max-width-container. */
     width: 100%;
-    max-width: 72rem;
+    max-width: var(--max-width-container);
     margin-inline: auto;
     padding: 1rem var(--pad, 1.5rem);
     font-family: var(--font-mono);
     font-size: 0.8125rem;
   }
 
-  .site-header {
-    border-bottom: 1px solid var(--color-hair);
+  /* Fixed height like jmrp.io's header (--header-height/-mobile), instead of
+     the shared rule's vertical padding: with the 44px icon controls below
+     centered by `align-items: center`, this leaves ~10px of breathing room
+     above/below on desktop (7px on the ≤40rem row) with no overflow. */
+  .header-bar {
+    height: var(--header-height);
+    padding-block: 0;
   }
 
+  @media (width <= 40rem) {
+    .header-bar {
+      height: var(--header-height-mobile);
+    }
+  }
+
+  /* Ported from jmrp.io's Logo.astro. The old rule declared neither family
+     nor size, so the mark inherited them and rendered at the wrong scale. */
   .brand {
     display: inline-flex;
-    gap: 0.4rem;
-    align-items: baseline;
+    align-items: center;
     color: var(--color-text-heading);
-    font-weight: 600;
+    font-family: var(--font-mono);
+    font-size: var(--text-md);
+    font-weight: var(--fw-semibold);
+    line-height: 1;
+    letter-spacing: -0.01em;
     text-decoration: none;
   }
 
-  .brand-sigil {
-    color: var(--color-accent);
+  .brand-path {
+    color: var(--color-text-muted);
+  }
+
+  /* The collapsed bar drops the breadcrumb: a long segment (`~/internals`)
+     would push the right-hand cluster off a 360px viewport. */
+  @media (width <= 40rem) {
+    .brand-path {
+      display: none;
+    }
+  }
+
+  .brand-prompt {
+    margin-left: 0.5em;
+    color: var(--teal);
+  }
+
+  .brand-name {
+    margin-left: 0.5em;
+    color: var(--color-text-heading);
+  }
+
+  .brand-cursor {
+    align-self: flex-end;
+    width: 0.6em;
+    height: 0.12em;
+    margin-bottom: 0.16em;
+    margin-left: 0.12em;
+    background: var(--color-accent);
+    border-radius: 1px;
+    animation: brand-blink 1.15s steps(1) infinite;
+  }
+
+  @keyframes brand-blink {
+    0%,
+    46% {
+      opacity: 100%;
+    }
+
+    54%,
+    100% {
+      opacity: 0%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .brand-cursor {
+      animation: none;
+    }
   }
 
   .brand:hover .brand-name {
     color: var(--color-accent);
   }
 
-  .site-nav {
+  /* ===== Desktop page nav — hidden below 40rem, replaced by the drawer === */
+  .nav-links {
     display: flex;
-    gap: 1.25rem;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
-  .site-nav a,
+  .nav-links a {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 8px 12px;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    transition:
+      background-color var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out);
+  }
+
+  .nav-links a:hover {
+    color: var(--color-text-heading);
+    background-color: var(--color-surface-2);
+  }
+
+  .nav-links a:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  /* Active section: accent text, a "/" prefix, and a 2px amber underline —
+     same treatment as jmrp.io's Header.astro. */
+  .nav-links a[aria-current="page"] {
+    color: var(--color-accent);
+  }
+
+  .nav-prefix {
+    margin-right: 0.3em;
+    color: var(--color-accent);
+  }
+
+  .nav-links a[aria-current="page"]::after {
+    position: absolute;
+    right: 12px;
+    bottom: 2px;
+    left: 12px;
+    height: 2px;
+    content: "";
+    background: var(--color-accent);
+    border-radius: 2px;
+  }
+
+  /* ===== Controls cluster: language, theme, GitHub, burger =============== */
+  .header-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  /* Two-segment `EN | ES` pill — same design as jmrp.io's LanguageSwitcher
+     component (`.lang-pill`/`.lang-seg`), ported verbatim. The pill itself
+     is the chip chrome (surface + border); each segment is a flat inset
+     button, with the active one picking up the accent-dim fill. */
+  .lang-switch {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px;
+    font-family: var(--font-mono);
+    font-size: var(--text-micro);
+    font-weight: var(--fw-medium);
+    letter-spacing: 0.04em;
+    background-color: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  .lang-seg {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+    min-height: 40px;
+    padding: 0.25rem 0.5rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    border-radius: calc(var(--radius-md) - 3px);
+    transition:
+      color var(--dur-1) var(--ease-out),
+      background-color var(--dur-1) var(--ease-out);
+  }
+
+  a.lang-seg:hover,
+  a.lang-seg:focus-visible {
+    color: var(--color-text-heading);
+    background-color: var(--color-bg-subtle);
+  }
+
+  a.lang-seg:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  /* The active segment is a non-interactive <span>: accent text on an
+     accent-dim fill, same as jmrp.io's `.lang-seg--active`. */
+  .lang-seg--active {
+    color: var(--color-accent);
+    background-color: var(--accent-dim);
+  }
+
+  /* 44px is the project's minimum tap target for icon-only controls (see
+     ThemeToggle/gh-link/menu-toggle below, and .drawer-close/.drawer-links a
+     further down). */
+  .theme-toggle,
+  .gh-link,
+  .menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    font-size: var(--text-xl);
+    color: var(--color-text);
+    cursor: pointer;
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
+    transition:
+      color var(--dur-2) var(--ease-out),
+      background-color var(--dur-2) var(--ease-out);
+  }
+
+  .theme-toggle:hover {
+    color: var(--color-accent);
+  }
+
+  /* GitHub link and burger get jmrp.io's `.gh-link`/`.drawer__close` hover:
+     a filled chip (heading color + surface background) instead of a bare
+     color swap. */
+  .gh-link:hover,
+  .gh-link:focus-visible,
+  .menu-toggle:hover {
+    color: var(--color-text-heading);
+    background: var(--color-surface-2);
+  }
+
+  .theme-toggle:focus-visible,
+  .gh-link:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  /* The burger toggle is a <label>, which cannot itself receive focus — the
+     real focusable control is the sr-only checkbox it targets. Without this,
+     a keyboard user tabbing to #nav-open gets no visible focus indicator at
+     all (the default outline would land on a 1px clipped element). Same
+     pattern as jmrp.io's `.nav-open-cb:focus-visible + nav .menu-toggle`,
+     adapted to this site's `.header-bar` wrapper instead of a bare `<nav>`. */
+  .nav-open-cb:focus-visible + .header-bar .menu-toggle {
+    box-shadow: var(--focus-ring);
+  }
+
+  /* Sun/moon swap by data-theme. Dark is the default (no attribute), so the
+     sun shows first — clicking it switches TO light. */
+  .icon-moon {
+    display: none;
+  }
+
+  :global(html[data-theme="light"]) .icon-sun {
+    display: none;
+  }
+
+  :global(html[data-theme="light"]) .icon-moon {
+    display: block;
+  }
+
+  /* Burger: hidden here, shown only inside the ≤40rem query below. Icon swap
+     (bars/close) follows the checkbox via :has() — zero JS. */
+  .menu-toggle {
+    display: none;
+  }
+
+  .icon-menu-close {
+    display: none;
+  }
+
+  :global(html:has(#nav-open:checked)) .icon-menu-open {
+    display: none;
+  }
+
+  :global(html:has(#nav-open:checked)) .icon-menu-close {
+    display: block;
+  }
+
+  /* ===== Mobile drawer + scrim ============================================
+     Open/close is the CSS checkbox hack: #nav-open is a hidden checkbox, the
+     burger and the scrim are <label for="nav-open">, and every rule below
+     that keys off `html:has(#nav-open:checked)` only takes effect inside the
+     ≤40rem query — so the drawer cannot render "open" above that width even
+     if the checkbox were somehow left checked (e.g. resizing the window
+     past the breakpoint while it was open on a phone). `.nav-open-cb` is
+     also hidden outright above 40rem, on top of that, matching jmrp.io's own
+     defense against the same edge case. All of this works with JavaScript
+     fully disabled; see the inline script at the end of <body> for the small
+     amount of progressive enhancement layered on top (Escape, focus
+     movement, `inert` on the background) and the report for what jmrp.io
+     additionally does that this site deliberately leaves out (the Tab
+     focus-trap, and the label→button swap for the close control). */
+  .menu-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-backdrop);
+    display: block;
+    background: var(--scrim);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--dur-3) var(--ease-out),
+      visibility var(--dur-3) var(--ease-out);
+  }
+
+  /* Frosted panel: translucent surface + blur + a soft cast shadow toward
+     the content, like jmrp.io's NavDrawer.astro (`--nd-shadow`) instead of a
+     flat opaque fill. */
+  .nav-drawer {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-end: 0;
+    z-index: var(--z-drawer);
+    display: flex;
+    flex-direction: column;
+    width: var(--drawer-w);
+    background: color-mix(in srgb, var(--color-bg-secondary) 88%, transparent);
+    border-inline-start: 1px solid var(--color-border);
+    box-shadow: -30px 0 60px -30px rgb(0 0 0 / 55%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    visibility: hidden;
+    transition:
+      transform var(--dur-3) var(--ease-out),
+      visibility var(--dur-3) var(--ease-out);
+    transform: translateX(110%);
+  }
+
+  .nav-drawer:focus {
+    outline: none;
+  }
+
+  /* Edge-to-edge head with its own hairline, matching jmrp.io's
+     `.drawer__head` — the close control stays pinned above the scrollable
+     link list below instead of scrolling away with it. */
+  .drawer-head {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    height: var(--header-height-mobile);
+    padding: 0 14px;
+    border-bottom: 1px solid var(--color-hair);
+  }
+
+  .drawer-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    font-size: var(--text-xl);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition:
+      color var(--dur-2) var(--ease-out),
+      background-color var(--dur-2) var(--ease-out);
+  }
+
+  .drawer-close:hover {
+    color: var(--color-text-heading);
+    background: var(--color-surface-2);
+  }
+
+  /* Only this list scrolls if content ever outgrows the viewport — the head
+     above stays fixed in place. */
+  .drawer-links {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    padding: 12px 14px;
+    overflow-y: auto;
+    list-style: none;
+  }
+
+  /* Larger, heading-weight rows (jmrp.io's `.tree__row` sizing) — this is a
+     page list, not the terminal command tree, so no glyphs/paths, just a
+     bigger, more legible tap target. */
+  .drawer-links a {
+    display: flex;
+    align-items: center;
+    min-height: 54px;
+    padding: 10px 12px;
+    font-size: var(--text-base);
+    font-weight: var(--fw-semibold);
+    color: var(--color-text-heading);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition:
+      background-color var(--dur-2) var(--ease-out),
+      box-shadow var(--dur-2) var(--ease-out);
+  }
+
+  .drawer-links a:hover,
+  .drawer-links a:focus-visible {
+    outline: none;
+    background: var(--color-surface-2);
+    box-shadow: inset 0 0 0 2px var(--accent-line);
+  }
+
+  /* Current section: persistent accent-dim fill + left accent bar, like
+     jmrp.io's `.tree__row[aria-current="page"]`. */
+  .drawer-links a[aria-current="page"] {
+    color: var(--color-accent);
+    background: var(--accent-dim);
+    box-shadow: inset 3px 0 0 var(--color-accent);
+  }
+
+  .drawer-gh {
+    margin-top: var(--space-sm);
+    border-top: var(--border-hair);
+  }
+
+  /* Footer row holding the language pill, pinned below the (flex: 1) link
+     list — same edge-to-edge hairline treatment as `.drawer-head` above,
+     and the same spot jmrp.io's `.drawer__foot` occupies in NavDrawer.astro. */
+  .drawer-foot {
+    display: flex;
+    justify-content: flex-end;
+    padding: 11px 14px;
+    border-top: 1px solid var(--color-hair);
+  }
+
+  @media (width > 40rem) {
+    .nav-open-cb {
+      display: none;
+    }
+
+    .menu-backdrop,
+    .nav-drawer {
+      display: none;
+    }
+  }
+
+  @media (width <= 40rem) {
+    .nav-links,
+    .gh-link {
+      display: none;
+    }
+
+    .menu-toggle {
+      display: flex;
+    }
+
+    :global(html:has(#nav-open:checked)) .menu-backdrop {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    :global(html:has(#nav-open:checked)) .nav-drawer {
+      visibility: visible;
+      transform: translateX(0);
+    }
+
+    /* CSS-only scroll lock — the inline script does not reimplement this. */
+    :global(html:has(#nav-open:checked)) body {
+      overflow: hidden;
+    }
+  }
+
   .site-footer p {
     display: flex;
     flex-wrap: wrap;
@@ -313,7 +1234,6 @@ const t = {
     text-decoration: none;
   }
 
-  .site-nav a:hover,
   .site-footer a:hover {
     color: var(--color-accent);
     text-decoration: underline;
@@ -327,9 +1247,19 @@ const t = {
     color: var(--color-text-muted);
   }
 
+  /* Content width: was a hardcoded 72rem (1152px), measured against jmrp.io
+     at 1265px-wide `<main>` (typography-report-2). jmrp.io's `<main>` is
+     itself unconstrained — that 1265px is just the 1280px viewport minus the
+     scrollbar — but its actual reading-width constraint, applied to every
+     header/content/footer container via `.container` (utilities.css), is
+     `--max-width-container` (1200px). That token already exists here,
+     byte-for-byte identical (tokens.css), just unused by `main`. Switching to
+     it (from the header/footer band above too, so all three stay
+     edge-aligned) replaces a magic number with the shared token instead of
+     hand-copying jmrp.io's incidental 1265px. */
   main {
     width: 100%;
-    max-width: 72rem;
+    max-width: var(--max-width-container);
     margin-inline: auto;
     padding: 0 var(--pad, 1.5rem);
   }

@@ -3,8 +3,10 @@
  * Ficha de un servidor MCP. Se alimenta de `src/data/servers.ts`, que es la
  * única fuente de verdad: dar de alta un MCP nuevo no debe tocar markup.
  */
+import { getServerCard } from "../data/server-cards";
 import type { McpServer } from "../data/servers";
 import { ui } from "../i18n/ui";
+import { pageUrl, serverPageUrl } from "../lib/seo";
 import ClientSetup from "./ClientSetup.astro";
 import Notice from "./Notice.astro";
 
@@ -16,6 +18,18 @@ interface Props {
 const { server, lang } = Astro.props;
 const t = ui[lang];
 const needsAuth = server.requiredHeaders.length > 0;
+// Site-relative, like every other cross-page link on this site: an absolute
+// URL here would jump a dev or preview server straight to production.
+const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h`;
+// Counts come from the FULL SEP-1649 card, not `server.tools`/`server.prompts`
+// above: those are the curated, hand-translated subset this card already
+// shows inline, and gitlab's card alone has 37 prompts that never made it
+// into that curated list (see `/servers/<id>/`'s own header comment). `card`
+// can be absent for a server with no committed snapshot yet — the link below
+// only renders when it exists, since `/servers/<id>/` itself would 404
+// otherwise.
+const card = getServerCard(server.id);
+const serverPageHref = new URL(serverPageUrl(lang, server.id)).pathname;
 ---
 
 {/* El `id` es el ÚNICO destino enlazable por servidor que tiene el sitio: sin
@@ -25,7 +39,7 @@ const needsAuth = server.requiredHeaders.length > 0;
     inspector. */}
 <article class="card" id={server.id}>
   <header class="card-head">
-    <h2>{server.name}</h2>
+    <h3>{server.name}</h3>
     <span class={needsAuth ? "badge badge-auth" : "badge"}>
       {needsAuth ? t.credentialsRequired : t.noCredentials}
     </span>
@@ -83,68 +97,32 @@ const needsAuth = server.requiredHeaders.length > 0;
     )
   }
 
-  <details class="fold fold-tools">
-    <summary>
-      <h3 class="fold-label">{t.toolsHead} — {server.name}</h3>
-      <span class="fold-peek">
-        {server.tools.map((tool, i) => (
-          <>
-            {i > 0 && " "}
-            <code>{tool.name}</code>
-          </>
-        ))}
-      </span>
-    </summary>
-    <dl>
-      {
-        server.tools.map((tool) => (
-          <>
-            <dt><code>{tool.name}</code></dt>
-            <dd>{tool.what[lang]}</dd>
-          </>
-        ))
-      }
-    </dl>
-  </details>
-
   {
-    /* Prompts: a protocol capability the card never mentioned. The inspector
-       lists them live, but no crawler runs the inspector, so for anything that
-       reads the page they did not exist. Only rendered when a server has
-       them. */
-    server.prompts?.length ? (
-      <details class="fold fold-prompts">
-        <summary>
-          <h3 class="fold-label">{t.promptsHead} — {server.name}</h3>
-          <span class="fold-peek">
-            {server.prompts.map((prompt, i) => (
-              <>
-                {i > 0 && " "}
-                <code>{prompt.name}</code>
-              </>
-            ))}
-          </span>
-        </summary>
-        <p class="fold-intro">{t.promptsIntro}</p>
-        <dl>
-          {server.prompts.map((prompt) => (
-            <>
-              <dt><code>{prompt.name}</code></dt>
-              <dd>{prompt.what[lang]}</dd>
-            </>
-          ))}
-        </dl>
-      </details>
-    ) : null
+    /* Replaces the old tools/prompts `<details>` folds: that content moved to
+       its own page, `/servers/<id>/`, with a Server Card nearly complete
+       (every tool, prompt, resource and resource template, each linking
+       straight into the inspector) instead of a curated, sometimes-partial
+       subset hidden behind a click with no URL of its own — see
+       `.superpowers/sdd/servers-section-spec.md`. This card keeps only a
+       pointer and the headline counts. */
+    card && (
+      <p class="server-card-link">
+        <a href={serverPageHref}>{t.viewServerCard}</a>{" "}
+        <span class="server-card-counts">
+          ({card.tools.length} {t.toolsHead}
+          {card.prompts.length > 0 && `, ${card.prompts.length} ${t.promptsHead}`})
+        </span>
+      </p>
+    )
   }
 
   {/* La configuración por cliente, plegada como las tools: la pregunta que
       trae a la gente a un endpoint alojado, contestada en el dominio y no en
-      el sitio de documentación de cada servidor. El título es un <h3> en
+      el sitio de documentación de cada servidor. El título es un <h4> en
       forma de pregunta, como los avisos: es un ancla de extracción más. */}
   <details class="fold fold-client">
     <summary>
-      <h3 class="fold-label">{t.clientHead.replace("{server}", () => server.name)}</h3>
+      <h4 class="fold-label">{t.clientHead.replace("{server}", () => server.name)}</h4>
     </summary>
     <ClientSetup server={server} lang={lang} />
   </details>
@@ -157,7 +135,7 @@ const needsAuth = server.requiredHeaders.length > 0;
        el problema de scroll que motivó los plegables era real, solo estaba
        resuelto sobre el aviso equivocado.
 
-       El título va en un <h3> DENTRO del summary (válido en HTML): sin él la
+       El título va en un <h4> DENTRO del summary (válido en HTML): sin él la
        página tenía 734 palabras colgando de dos H2, y los recuperadores
        trocean por encabezados — cada aviso pasa a ser un pasaje con ancla
        propia. */
@@ -168,15 +146,31 @@ const needsAuth = server.requiredHeaders.length > 0;
          mid-answer, and `speakable` in the JSON-LD points at these same ids —
          with the id on the inner div, a read-aloud got the answer with no
          question attached. */
+      /* Every notice starts collapsed, security ones included. They used to
+         open by default so the caution sat next to the reassurance; the
+         author asked for it closed. The content is unchanged and the anchor
+         still lands on the question, so a link to `#gitlab-security` opens
+         it. */
       <details
         class={`fold fold-${notice.kind}`}
         id={`${server.id}-${notice.kind}`}
-        open={notice.kind === "security"}
       >
         <summary>
-          <h3 class="fold-label">{notice.title[lang]}</h3>
+          <h4 class="fold-label">{notice.title[lang]}</h4>
         </summary>
         <Notice notice={notice} lang={lang} />
+        {
+          /* Only gitlab's security notice qualifies: it is the one that
+             raises the token question, and `/internals/#affinity-h` is
+             where the hashing it describes is shown in full, code included.
+             libgen's affinity key is the IP address — no token, nothing to
+             point at here. */
+          server.id === "gitlab" && notice.kind === "security" && (
+            <p class="notice-link">
+              <a href={affinityHref}>{t.affinityLink}</a>
+            </p>
+          )
+        }
       </details>
     ))
   }
@@ -206,12 +200,22 @@ const needsAuth = server.requiredHeaders.length > 0;
     justify-content: space-between;
   }
 
-  h2 {
+  /* Was an `<h2>` sitting right under the section's own `<h2 class="eyebrow">`
+     (HomePage.astro's "servers-h") — two h2s in a row, with the card title
+     never nested under the section heading it belongs to. Demoted to `<h3>`
+     (the fold labels below move from h3 to h4 to stay one level under this),
+     which also makes it the site's one real, visible sub-heading — matching
+     jmrp.io's own h2(eyebrow)-then-h3(real title) pattern for its featured
+     project cards (`.proj-card__title`, HomePage.astro there): `--text-xl`
+     (20px, not 24px) and `--fw-medium` (500, not 700) — jmrp's card titles
+     are not bold, only the eyebrow-vs-title SIZE contrast carries the
+     hierarchy. */
+  h3 {
     margin: 0;
     color: var(--color-text-heading);
     font-family: var(--font-display);
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: var(--text-xl);
+    font-weight: var(--fw-medium);
     letter-spacing: -0.01em;
   }
 
@@ -280,6 +284,31 @@ const needsAuth = server.requiredHeaders.length > 0;
     color: var(--color-text-muted);
     font-size: 0.85rem;
     text-wrap: pretty;
+  }
+
+  /* Pointer to `/servers/<id>/`, replacing the old tools/prompts folds. Same
+     hairline-topped rhythm as those folds had, so removing them does not
+     leave an odd gap in the card's vertical spacing. */
+  .server-card-link {
+    padding-top: 0.9rem;
+    margin: 0;
+    border-top: 1px solid var(--color-hair);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .server-card-link a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .server-card-link a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .server-card-counts {
+    color: var(--color-text-muted);
   }
 
   .endpoint code {
@@ -370,9 +399,11 @@ const needsAuth = server.requiredHeaders.length > 0;
     outline-offset: 2px;
   }
 
-  /* Vale para el <span> antiguo y para el <h3> actual: el heading llega con
-     márgenes y tamaño de título de base.css y aquí se le da aspecto de
-     etiqueta. Sigue siendo un encabezado para el outline y los extractores. */
+  /* Vale para el <span> antiguo y para el <h4> actual (antes <h3>, movido un
+     nivel abajo cuando el nombre del servidor pasó de <h2> a <h3> — ver la
+     regla `h3` arriba): el heading llega con márgenes y tamaño de título de
+     base.css y aquí se le da aspecto de etiqueta. Sigue siendo un encabezado
+     para el outline y los extractores. */
   .fold-label {
     /* flex:1 con basis 0: el summary tiene flex-wrap, y el salto de línea se
        decide por la BASE del ítem (su max-content), no por el shrink — así
@@ -384,27 +415,13 @@ const needsAuth = server.requiredHeaders.length > 0;
     margin: 0;
     color: var(--color-text-muted);
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    /* Was 0.7rem, which left the question smaller than the answer under it —
+       the heading of a passage cannot be the quietest thing in it. Matched to
+       the notice body it opens (--text-md), not one step below. */
+    font-size: var(--text-md);
     font-weight: 500;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
-  }
-
-  /* Los nombres de las tools se ven SIN abrir: son lo que responde "¿sirve
-     para esto?" y lo que un LLM cita. Solo se pliega qué hace cada una. */
-  .fold-peek {
-    display: flex;
-    /* Siempre en su propia línea, bajo el título: si compartieran fila, los
-       chips estrujaban el rótulo y lo partían en dos líneas. */
-    flex-basis: 100%;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-
-  .fold-peek code {
-    color: var(--color-accent);
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -425,6 +442,23 @@ const needsAuth = server.requiredHeaders.length > 0;
     color: var(--color-accent);
     font-family: var(--font-mono);
     font-size: 0.8rem;
+  }
+
+  /* Trailing link inside the security notice, pointing at `/internals/`. */
+  .notice-link {
+    margin: 0.6rem 0 0;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .notice-link a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .notice-link a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .links {

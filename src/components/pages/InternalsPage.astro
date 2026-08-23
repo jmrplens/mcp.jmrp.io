@@ -1,0 +1,1385 @@
+---
+/**
+ * Internals page — how a request is actually routed, end to end.
+ *
+ * Written because nothing on the site said any of this: not that there are
+ * three instances per server, not that each one exits through a different
+ * country, and not what changed on 2026-08-22 when the balancer switched
+ * from round-robin to consistent-hash affinity. See `internals.ts` for the
+ * full content; this component is layout only.
+ *
+ * Uses `internals` directly, NOT the merged `ui` object: `src/i18n/ui.ts`'s
+ * header comment explains why `internals.ts` is kept out of that merge (its
+ * `metaTitle`/`title`/`lede` would silently mask `common`'s keys of the same
+ * name under a flat spread).
+ *
+ * REQUEST-PATH DIAGRAM — REPLACED, not tweaked, twice over. Attempt 1 drew a
+ * shared trunk forking into a libgen branch and a gitlab branch, as if nginx
+ * chose the destination server per request. It does not: a client points
+ * its MCP client at mcp.jmrp.io/libgen OR at mcp.jmrp.io/gitlab, and that
+ * choice — made on the client, before the request exists on the wire — is
+ * what selects the server (two separate `location` blocks in the vhost,
+ * each with its own `upstream`; see `docs/nginx-vhost-reference.conf`).
+ * Drawing that as a fork taught content-based routing, which is exactly the
+ * one thing that is not happening. Attempt 2 fixed that (one chain, played
+ * twice in a loop to contrast the IP-keyed and token-keyed passes) but was
+ * still, in the author's words, "an animation of dots travelling" rather
+ * than an infographic, and did not read well on narrow screens.
+ *
+ * This build is neither: a compact horizontal strip (client → Cloudflare →
+ * nginx → one of N nodes → egress → destination) with a set of six
+ * numbered annotation bubbles below it, one at a time, each pointing at the
+ * strip piece it describes (see the approved spec at
+ * `.superpowers/sdd/internals-diagram-spec.md` for the exact bubble
+ * sequence and the non-negotiables). The bubble area reserves a FIXED
+ * height (the tallest bubble's) so the page never jumps as they cycle —
+ * that fixed reservation is the whole point: it is what "an infographic",
+ * not "an animation", means in CSS terms here.
+ *
+ * UPDATE 2026-08-23, after the author's live review of the first cut: the
+ * strip itself now carries ONE highlight indicator (`.mcp-box-fill` /
+ * `.mcp-box-border`, see the "Traveling highlight box" section of the
+ * <style> block) that glides continuously along it, dwelling at whichever
+ * stage the current bubble narrates and travelling to the next with an
+ * accelerate/cruise/decelerate profile — never appearing or disappearing.
+ * The first cut instead highlighted each stage with its own opacity-only
+ * `::after` overlay, which the author read as "tosco" (choppy): the
+ * highlight popped in at one stage and popped out at the next instead of
+ * being seen to move. This is NOT a reversion to the "dots travelling"
+ * design rejected in Attempt 2 above — there is still exactly one
+ * indicator, not a race of particles, and the bubbles below (not the
+ * indicator) still carry the reading order. Both new elements share the
+ * exact same `box-travel` animation and the bubbles' `phase-N` keyframes
+ * share its timeline, so the indicator always arrives exactly when its
+ * bubble's text appears.
+ *
+ * UPDATE 2026-08-23 (destination hop): the strip always had six stages
+ * (client → Cloudflare → nginx → nodes → egress → destination — see "The
+ * strip" section of the <style> block), but only the first five had a
+ * bubble/timeline step/box dwell, so the traveling box jumped straight from
+ * "egress" back to "client" and the caption never mentioned that egress
+ * hands off to an actual destination. The author: "añade punto 6 que es la
+ * salida, indicando que la petición sale hacia el objetivo que se le ha
+ * indicado al mcp... así la caja pasa por el último punto." Bubble 6 /
+ * `diagramTimelineStep6` narrate that hand-off (a Library Genesis mirror
+ * for libgen, or the GitLab instance the client pointed gitlab at — the
+ * same wording `pathBody` already used), `box-travel` gained a sixth dwell
+ * plus a fifth short forward hop (egress → destination), and the closing
+ * RETURN hop now runs destination → client instead of egress → client. The
+ * three-segment ease-in/linear/ease-out shape of every hop, and the "box
+ * never disappears" invariant, are unchanged — see "Bubble cycle" and
+ * "box-travel" below for the new timing table.
+ *
+ * The bubbles describe the mechanism in general terms (with a token, or
+ * without one) rather than singling out libgen vs gitlab or which specific
+ * node a given request lands on — see `topology.ts`'s header comment for
+ * why the node pool this diagram draws is `topology.libgen` alone, and the
+ * numbered prose timeline right below the figure for the full detail, in
+ * real HTML, that the bubbles deliberately keep short.
+ */
+import type { McpInstance } from "../../data/topology";
+import { topology } from "../../data/topology";
+import { ui } from "../../i18n/ui";
+import { internals } from "../../i18n/ui/internals.ts";
+import { getLangFromUrl } from "../../i18n/utils";
+import { pageUrl } from "../../lib/seo";
+import UpdatedLine from "../UpdatedLine.astro";
+
+const lang = getLangFromUrl(Astro.url);
+const t = internals[lang];
+// `backToHome` is shared chrome, so it lives in `common` and reaches this
+// page through `ui` — `internals` is deliberately outside that merge.
+const shared = ui[lang];
+// Site-relative, like every other cross-page link on this site: an absolute
+// URL here would jump a dev or preview server straight to production.
+const homeHref = new URL(pageUrl(lang, "home")).pathname;
+const policiesHref = new URL(pageUrl(lang, "policies")).pathname;
+
+// The nginx directive that actually runs in production, quoted whole so a
+// visitor can check the claims in the surrounding prose against real code —
+// EXCEPT the salt itself, which is not a value this page can show.
+//
+// SECURITY: `"…"` stands in for the salt (48 hex characters), which lives
+// only in `secrets/affinity-salt.env` on the server and is never checked
+// into this repo or built into this site. Do not replace this placeholder
+// with a real value, here or anywhere else.
+//
+// SYNTAX HIGHLIGHTING: hand-marked tokens, not a highlighter. `astro:
+// components`'s `<Code />` (Shiki) was tried first, as the Restriction
+// asked — it is zero client JS (Shiki runs at build time) and ships with
+// Astro already, so it adds no dependency. It was rejected on two counts,
+// both checked against this exact snippet rather than assumed: (1) every
+// bundled Shiki theme carries its OWN fixed palette (arbitrary hex, e.g. a
+// VS-Code-style blue/orange/green set) with no supported way to route
+// token colors through this site's existing `--color-*` tokens, which the
+// Restriction requires; dual light/dark theming would additionally need
+// its own `--astro-code-light`/`--astro-code-dark` CSS-variable switching
+// convention, parallel to and disconnected from `tokens.css`'s established
+// `:root`/`prefers-color-scheme`/`[data-theme]` one. (2) Shiki's stock
+// "nginx" grammar does not tokenize the embedded Lua body of
+// `set_by_lua_block { ... }` as Lua — the one block that most needs
+// contrast (the hash computation this whole section is about) would
+// render as one flat, unhighlighted span of "other" text. A 9-line
+// snippet that is fixed content (never user input, never changes without
+// a code edit) does not need a general-purpose grammar: hand-marking the
+// dozen tokens that matter is less machinery, not more, and every color
+// below is an EXISTING token already relied on elsewhere for AA text
+// contrast in both themes (`--color-accent`, `--teal-text`,
+// `--color-success`, `--color-info`, `--color-text-muted` — see
+// Inspector.css for other consumers of the last four as text). Each line
+// is an array of `{ text, cls? }` tokens rendered through Astro's normal
+// `{expression}` escaping below — no `set:html`, no manual HTML-escaping.
+type SnippetToken = { text: string; cls?: "kw" | "var" | "str" | "com" };
+const affinityTokens: SnippetToken[] = [
+  { text: "set", cls: "kw" },
+  { text: " " },
+  { text: "$mcp_affinity_salt", cls: "var" },
+  { text: " " },
+  { text: '"…"', cls: "str" },
+  { text: ";   " },
+  { text: t.affinityCodeComment, cls: "com" },
+  { text: "\n\n" },
+  { text: "set_by_lua_block", cls: "kw" },
+  { text: " " },
+  { text: "$mcp_affinity", cls: "var" },
+  { text: " {\n    " },
+  { text: "local", cls: "kw" },
+  { text: " token = " },
+  { text: "ngx.var.http_private_token", cls: "var" },
+  { text: "\n    " },
+  { text: "if", cls: "kw" },
+  { text: " token " },
+  { text: "and", cls: "kw" },
+  { text: " token ~= " },
+  { text: '""', cls: "str" },
+  { text: " " },
+  { text: "then", cls: "kw" },
+  { text: "\n        " },
+  { text: "return", cls: "kw" },
+  { text: " ngx.md5(" },
+  { text: "ngx.var.mcp_affinity_salt", cls: "var" },
+  { text: " .. token)\n    " },
+  { text: "end", cls: "kw" },
+  { text: "\n    " },
+  { text: "return", cls: "kw" },
+  { text: " " },
+  { text: "ngx.var.remote_addr", cls: "var" },
+  { text: " " },
+  { text: "or", cls: "kw" },
+  { text: " " },
+  { text: '""', cls: "str" },
+  { text: "\n}" },
+];
+
+// ===== Request-path diagram — build-time data, no runtime JS ===============
+//
+// Everything below runs once, on the server, while Astro renders this page's
+// HTML. None of it ships to the browser: the diagram that reaches the client
+// is a static strip (plain HTML/CSS, no SVG) plus six annotation bubbles and
+// one traveling highlight indicator, all cycled by CSS animations alone (see
+// the <style> block). This is what "no JavaScript on this page" (Restriction)
+// means in practice — the computation happens, just not where a crawler or
+// an assistant would have to run it.
+
+// "How many badges fit legibly", not an infrastructure fact — capped so the
+// diagram folds anything beyond it into the dim "+" ghost node instead of
+// needing a redraw if the real pool grows.
+const MAX_DRAWN_NODES = 3;
+
+// The pool of real nodes this diagram draws — see this file's header
+// comment and `topology.ts`'s for why reusing one server's real, verified
+// pool here is deliberate: the diagram no longer claims to show which
+// server, only the mechanism every server uses. `overflowCount` is 0 with
+// the pool at its current size (3), so the ghost node renders a bare "+";
+// if a future instance count exceeds `MAX_DRAWN_NODES`, it renders "+N"
+// instead — see the markup below.
+const nodes: McpInstance[] = topology.libgen.slice(0, MAX_DRAWN_NODES);
+const overflowCount = topology.libgen.length - nodes.length;
+
+// The node the reduced-motion frozen frame rings as "the chosen one" (see
+// the `prefers-reduced-motion` rules in the <style> block). ILLUSTRATIVE,
+// not the real affinity outcome for any actual client — computing that
+// needs `$mcp_affinity_salt`, the secret this page never has (see
+// `affinityTokens` above). Any index works; the point the ring makes is
+// "always this same one", not "specifically this one".
+const MATCHED_NODE_INDEX = 0;
+
+/** "GB", the ISO code `topology.ts` stores, is spelled "UK" here — the form
+ * the prose above already uses. "ES" reads the same either way. */
+function countryTag(country: McpInstance["egressCountry"]): string {
+  return country === "ES" ? "ES" : "UK";
+}
+---
+
+<p class="back-link">
+  <a href={homeHref}>{shared.backToHome}</a>
+</p>
+
+<h1 class="subpage-title">{t.title}</h1>
+
+<p class="internals-intro">{t.lede}</p>
+
+<section aria-labelledby="path-h">
+  <h2 class="eyebrow" id="path-h">{t.pathEyebrow}</h2>
+  {t.pathBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+</section>
+
+<section aria-labelledby="instances-h">
+  <h2 class="eyebrow" id="instances-h">{t.instancesEyebrow}</h2>
+  {t.instancesBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+</section>
+
+<section aria-labelledby="affinity-h">
+  <h2 class="eyebrow" id="affinity-h">{t.affinityEyebrow}</h2>
+  <p class="prose-text">{t.affinityIntro}</p>
+  <p class="prose-text">{t.affinityLibgen}</p>
+  <p class="prose-text">{t.affinityGitlab}</p>
+  {t.affinityCodeIntro.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+  <pre><code>{affinityTokens.map((tok) =>
+    tok.cls ? <span class={`snippet-${tok.cls}`}>{tok.text}</span> : tok.text,
+  )}</code></pre>
+  <p class="prose-text">{t.affinityConsequence}</p>
+
+  {/* Request-path figure: a strip of six fixed stages (the "aria-hidden"
+      icons are pure decoration, the stage names and node numbers/countries
+      are real HTML, not SVG text) plus a single highlight indicator that
+      glides between all six stages the bubbles narrate, and six
+      annotation bubbles that cycle one at a time via CSS animation alone.
+      The bubble area's height is reserved by `.mcp-bubbles`'s fixed
+      `height` (see the <style> block) — that is what keeps the page from
+      jumping as they cycle. `MATCHED_NODE_INDEX` only matters for the
+      reduced-motion frozen frame, defined entirely inside that media query
+      below. */}
+  <figure class="mcp-flow-figure">
+    <div class="mcp-strip">
+      {/* Traveling highlight box — see the <style> block's "Traveling
+          highlight box" section. Two elements sharing one animation: the
+          fill goes FIRST in the DOM (paints behind the stages below, via
+          `isolation: isolate` on `.mcp-strip` plus its own negative
+          `z-index`) and the border goes LAST (paints above everything, via
+          a positive `z-index`) — that split is what keeps the highlight's
+          background from ever covering a stage's icon or label text. Both
+          `aria-hidden`: purely decorative, like every icon on this strip. */}
+      <span class="mcp-box-fill" aria-hidden="true"></span>
+
+      <div class="stage stage--client">
+        <span class="stage-icon stage-icon--client" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+        <span class="stage-label">{t.diagramStageClient}</span>
+      </div>
+
+      <div class="stage stage--cloudflare">
+        <span class="stage-icon" aria-hidden="true"></span>
+        <span class="stage-label">Cloudflare</span>
+      </div>
+
+      <div class="stage stage--nginx">
+        <span class="stage-icon stage-icon--nginx" aria-hidden="true"></span>
+        <span class="stage-label">nginx</span>
+      </div>
+
+      <div class="stage stage--nodes">
+        <div class="node-cluster">
+          {
+            nodes.map((node, i) => (
+              <span class={`node-badge${i === MATCHED_NODE_INDEX ? " node-badge--matched" : ""}`}>
+                <span class="node-badge-num">{i + 1}</span>
+                <span class="node-badge-country">{countryTag(node.egressCountry)}</span>
+              </span>
+            ))
+          }
+          {/* Dim "+" ghost: however many more the pool grows to. Never the
+              reduced-motion match target — see `MATCHED_NODE_INDEX` above,
+              always an index into the real `nodes`, never this one. */}
+          <span class="node-badge node-badge--ghost">
+            <span class="node-badge-num">{overflowCount > 0 ? `+${overflowCount}` : "+"}</span>
+          </span>
+        </div>
+        <span class="stage-label">{t.diagramStageNodes}</span>
+      </div>
+
+      <div class="stage stage--egress">
+        <span class="stage-icon" aria-hidden="true"></span>
+        <span class="stage-label">{t.diagramStageEgress}</span>
+      </div>
+
+      <div class="stage stage--destination">
+        <span class="stage-icon" aria-hidden="true"></span>
+        <span class="stage-label">{t.diagramStageDestination}</span>
+      </div>
+
+      <span class="mcp-box-border" aria-hidden="true"></span>
+    </div>
+
+    {/* Fixed-height annotation zone: exactly one bubble opaque at a time,
+        via the `phase-N` keyframes shared with the highlight box's
+        `box-travel` animation above (see the <style> block's "Bubble
+        cycle" section for the timing table both share). `bubble-leader`'s
+        `left` and the highlight box's travel target both key off the same
+        six column positions, defined once as `--pos` per `.bubble--N` and
+        reused by its leader/tail — see the <style> block's "Shared column
+        positions" comment for why. */}
+    <div class="mcp-bubbles">
+      <div class="bubble bubble--1">
+        <span class="bubble-leader" aria-hidden="true"></span>
+        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">1</span><span class="bubble-text">{t.diagramBubble1}</span></p>
+      </div>
+      <div class="bubble bubble--2">
+        <span class="bubble-leader" aria-hidden="true"></span>
+        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">2</span><span class="bubble-text">{t.diagramBubble2}</span></p>
+      </div>
+      <div class="bubble bubble--3">
+        <span class="bubble-leader" aria-hidden="true"></span>
+        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">3</span><span class="bubble-text">{t.diagramBubble3}</span></p>
+      </div>
+      <div class="bubble bubble--4">
+        <span class="bubble-leader" aria-hidden="true"></span>
+        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">4</span><span class="bubble-text">{t.diagramBubble4}</span></p>
+      </div>
+      <div class="bubble bubble--5">
+        <span class="bubble-leader" aria-hidden="true"></span>
+        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">5</span><span class="bubble-text">{t.diagramBubble5}</span></p>
+      </div>
+      <div class="bubble bubble--6">
+        <span class="bubble-leader" aria-hidden="true"></span>
+        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">6</span><span class="bubble-text">{t.diagramBubble6}</span></p>
+      </div>
+    </div>
+
+    <figcaption class="mcp-flow-caption">{t.diagramCaption}</figcaption>
+  </figure>
+
+  {/* Prose timeline: same six numbers as the bubbles above, full detail,
+      real HTML — this, not the figure, is what a crawler, an assistant or a
+      `prefers-reduced-motion` visitor actually reads. See this file's
+      header comment for why the detail lives here and not in the figure. */}
+  <p class="prose-text">{t.diagramTimelineIntro}</p>
+  <ol class="mcp-timeline">
+    <li>
+      <span class="mcp-timeline-num" aria-hidden="true">1</span>
+      <p>{t.diagramTimelineStep1}</p>
+    </li>
+    <li>
+      <span class="mcp-timeline-num" aria-hidden="true">2</span>
+      <p>{t.diagramTimelineStep2}</p>
+    </li>
+    <li>
+      <span class="mcp-timeline-num" aria-hidden="true">3</span>
+      <p>{t.diagramTimelineStep3}</p>
+    </li>
+    <li>
+      <span class="mcp-timeline-num" aria-hidden="true">4</span>
+      <p>{t.diagramTimelineStep4}</p>
+    </li>
+    <li>
+      <span class="mcp-timeline-num" aria-hidden="true">5</span>
+      <p>{t.diagramTimelineStep5}</p>
+    </li>
+    <li>
+      <span class="mcp-timeline-num" aria-hidden="true">6</span>
+      <p>{t.diagramTimelineStep6}</p>
+    </li>
+  </ol>
+</section>
+
+<section aria-labelledby="egress-h">
+  <h2 class="eyebrow" id="egress-h">{t.egressEyebrow}</h2>
+  {t.egressBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+</section>
+
+<section aria-labelledby="personal-h">
+  <h2 class="eyebrow" id="personal-h">{t.personalEyebrow}</h2>
+  {t.personalBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+  {/* Points at the full statements (no-SLA, legal position) instead of
+      repeating them: this page's job is the mechanism, policies' job is the
+      commitment — or lack of one. */}
+  <p class="prose-text">
+    <a href={policiesHref}>{t.policiesLink}</a>
+  </p>
+</section>
+
+{/* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
+    cannot just live in the footer. */}
+<UpdatedLine lang={lang} />
+
+<style>
+
+  /* Heading size lives in base.css's `.subpage-title` now — Inspector and
+     Policies already used it; this page had its own hand-copied clamp
+     (2.25rem→3.25rem, not 2.125rem→3.25rem) left over from before this page
+     could be touched. Dropped in favor of the shared class so all three
+     subpages share one rule, per base.css's `.subpage-title` comment. */
+
+  /* Copied from PoliciesPage.astro / InspectorPage.astro's shared rules:
+     Astro scopes <style> per component, so a class used on more than one
+     page needs its own copy here. */
+  .back-link {
+    margin: 0 0 1.5rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .back-link a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .back-link a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .internals-intro {
+    max-width: 62ch;
+    margin: 0 0 2.5rem;
+    color: var(--color-text);
+    font-size: 1.0625rem;
+    text-wrap: pretty;
+  }
+
+  section {
+    padding-block-end: 2.75rem;
+  }
+
+  /* Eyebrow with `//`, painted from CSS so it does NOT exist in the DOM —
+     `textContent`-based extractors would otherwise read the heading as
+     "//The path of a request". See HomePage.astro for the full rationale,
+     and for the numbers matched against jmrp.io's `.section-title`: this
+     page's `.eyebrow` was the one copy left at the old bare 0.75rem/12px,
+     `font-weight: 600` and muted color from before this page could be
+     touched — HomePage.astro and PoliciesPage.astro already carry the fixed
+     `--text-label` (12.5px) / `--fw-medium` (500) / 0.16em / full accent
+     color version. */
+  .eyebrow {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin: 0 0 1.25rem;
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    font-weight: var(--fw-medium);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .eyebrow::before {
+    color: var(--color-accent);
+    content: "//";
+  }
+
+
+  .prose-text a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .prose-text a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* Same treatment as ClientSetup.astro's code blocks: overflow lives INSIDE
+     the <pre>, not the page, because main sits in a fixed-width column and a
+     long nginx line would otherwise widen it on mobile. */
+  pre {
+    max-width: 62ch;
+    margin: 0 0 1.25rem;
+    padding: 0.9rem 1rem;
+    overflow-x: auto;
+    border: 1px solid var(--color-hair);
+    border-radius: 6px;
+    background: var(--color-bg-subtle);
+  }
+
+  pre code {
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    white-space: pre;
+  }
+
+  /* ===== Snippet token colors ===================================================
+     Hand-marked highlighting for the nginx/Lua snippet above — see the
+     "SYNTAX HIGHLIGHTING" comment on `affinityTokens` in the frontmatter
+     for why this is spans + classes instead of a Shiki-powered `<Code />`.
+     Four categories, four EXISTING tokens, each already relied on
+     elsewhere for AA text contrast in both themes: directive keywords get
+     the same accent used on the nginx stage icon/label below (tying the
+     snippet back to "where the decision happens"), variables get the
+     teal already documented as AA text, strings get the success green,
+     and the one translated comment line gets the standard muted/secondary
+     text color. Unmarked tokens (braces, dots, the `ngx.md5(...)` call)
+     stay the plain `pre code` color above — not every token needs its own
+     hue to read clearly. */
+  .snippet-kw {
+    color: var(--color-accent);
+  }
+
+  .snippet-var {
+    color: var(--teal-text);
+  }
+
+  .snippet-str {
+    color: var(--color-success);
+  }
+
+  .snippet-com {
+    color: var(--color-text-muted);
+  }
+
+  /* ===== Request-path diagram =================================================
+     A compact horizontal strip (client → Cloudflare → nginx → one of N nodes
+     → egress → destination — the six stages themselves never move, resize,
+     or reorder) plus six numbered bubbles that cycle one at a time below
+     it. See this file's header comment for why: two earlier versions were
+     rejected, the second one specifically for still reading as "an
+     animation of dots travelling" instead of an infographic, and reserves a
+     fixed height for the bubble zone so the page never jumps.
+
+     ONE thing does move now, deliberately: a single highlight indicator
+     (`.mcp-box-fill`/`.mcp-box-border`, see the "Traveling highlight box"
+     section below) glides between all six stages the bubbles narrate. That
+     is not the same defect as "dots travelling" above — there is one
+     indicator, not several, it follows the bubbles' reading order rather
+     than inventing its own, and the stages/labels/nodes it glides past are
+     still fixed HTML in a fixed grid. See this file's header comment,
+     "UPDATE 2026-08-23" and "UPDATE 2026-08-23 (destination hop)", for why
+     this changed from the original highlight-only version and for why it
+     now reaches a sixth stage. */
+  .mcp-flow-figure {
+    max-width: 62ch;
+    margin: 1.75rem 0;
+    padding: 1rem;
+    border: 1px solid var(--color-hair);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+  }
+
+  /* ===== The strip =============================================================
+     Six stages on a shared 8-unit grid: client/Cloudflare/nginx/egress/
+     destination get 1 column each, nodes gets 3 (it holds a small cluster of
+     badges, not one icon). `min-width: 0` on `.stage` is load-bearing — a
+     CSS grid track otherwise refuses to shrink a cell below its content's
+     natural (unwrapped) width, which for a word like "Cloudflare" or
+     "destination" would force the whole strip wider than the viewport at
+     360px. With `min-width: 0` plus `overflow-wrap: anywhere` on the label
+     below, the grid track wins instead and the word wraps — this is what
+     keeps the strip horizontal with zero horizontal scroll at 360px, the
+     hard requirement that sank neither, but almost sank, both earlier
+     attempts. */
+  .mcp-strip {
+    position: relative;
+    display: grid;
+    /* Cloudflare/destination get a bit more than client/nginx/egress: they
+       are the longest words on the strip ("Cloudflare", "destination") and
+       would otherwise wrap ugly mid-word even with `overflow-wrap: anywhere`
+       below. Nodes still gets by far the most room — see this block's
+       header comment. */
+    grid-template-columns: 1fr 1.3fr 1fr 3fr 1fr 1.3fr;
+    align-items: start;
+    column-gap: 2px;
+    /* Gives `.mcp-box-fill`'s negative `z-index` (below) somewhere to land:
+       without this, a negative `z-index` on a descendant escapes past
+       `.mcp-strip` itself and paints behind `.mcp-flow-figure`'s own
+       background instead of just behind the stage icons/labels — see the
+       "Traveling highlight box" section below. */
+    isolation: isolate;
+  }
+
+  /* The connecting line, painted BEHIND every stage: a `::before` pseudo-
+     element is always painted before its element's real children, so the
+     opaque icon/badge circles sitting on top of it read as beads on a wire
+     with no z-index bookkeeping needed. */
+  .mcp-strip::before {
+    position: absolute;
+    top: 9px; /* half of the 18px icon/badge diameter used throughout */
+    left: 4%;
+    content: "";
+    right: 4%;
+    height: 1px;
+    background: var(--color-border);
+  }
+
+  .stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0; /* see this block's header comment */
+    gap: 0.2rem;
+    padding: 0.2rem;
+    border-radius: var(--radius-md);
+  }
+
+  /* ===== Traveling highlight box ===============================================
+     ONE indicator that glides continuously along the strip — always
+     visible, dwelling at whichever stage the current bubble narrates and
+     travelling to the next with an accelerate/cruise/decelerate profile
+     (`box-travel` below, shared with the bubbles' timeline — see "Bubble
+     cycle" further down). This replaced an earlier version that highlighted
+     each stage with its own opacity-only `::after`, popping in at one stage
+     and out at the next — the author read that as "tosco" (choppy) and
+     asked for the indicator to stay on screen at all times. See this file's
+     header comment for the fuller history.
+
+     Two elements, not one — `.mcp-box-fill` and `.mcp-box-border` — because
+     CSS cannot give `z-index` to only half of a single element's own box
+     (its background, specifically). Splitting it in two is the author's own
+     fix for that: a fill-only copy BEHIND the strip's real content (icons,
+     labels, node badges — via `isolation: isolate` on `.mcp-strip` above
+     plus this element's own negative `z-index`, so the fill can never sit
+     on top of a stage's text) and a border-only copy ABOVE everything (a
+     positive `z-index`). Both run the exact same `box-travel` animation, so
+     they move as a single object with no separate clock to drift out of
+     sync.
+
+     `left`/`width` are animated (see `box-travel`); `top`/`height` are NOT
+     — every stage's own content height differs ("nodes" is tallest at every
+     breakpoint: 52.77px measured at ≥901px, 49.39px at 481–900px, 45.84px
+     at ≤480px), and one element cannot re-measure six different DOM boxes
+     in pure CSS. Sized generously to the tallest stage at each breakpoint
+     instead, so the indicator reads as one consistent "spotlight" gliding
+     under icon+label alike rather than tracing each stage's exact outline. */
+  .mcp-box-fill,
+  .mcp-box-border {
+    position: absolute;
+    top: -4px;
+    height: 61px; /* tallest stage (52.77px, "nodes" at ≥901px) + 2×4px */
+    border-radius: var(--radius-md);
+    /* `linear` here is a harmless default: every dwell segment below holds
+       its value constant (no interpolation needed) and every travel segment
+       sets its OWN `animation-timing-function` per keyframe — see
+       `box-travel`'s header comment. */
+    animation: box-travel 30s linear infinite;
+    pointer-events: none;
+  }
+
+  .mcp-box-fill {
+    z-index: -1; /* behind every stage's static (non-positioned) content */
+    background: var(--accent-dim);
+  }
+
+  .mcp-box-border {
+    z-index: 2; /* above the connecting line and every stage/node badge */
+    border: 1px solid var(--color-accent);
+  }
+
+  .stage-icon {
+    box-sizing: border-box;
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--color-border);
+    border-radius: 50%;
+    background: var(--color-bg-secondary);
+  }
+
+  /* nginx: where the decision happens, drawn "in focus" even at rest — a
+     thicker accent ring and a tinted fill, not just a highlight during its
+     own bubble's window. */
+  .stage-icon--nginx {
+    border-width: 2.5px;
+    border-color: var(--color-accent);
+    background: var(--accent-dim);
+  }
+
+  /* Client: three small dots instead of a ring — "you", not a server. */
+  .stage-icon--client {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border: none;
+    background: none;
+  }
+
+  .stage-icon--client span {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--color-text-muted);
+  }
+
+  .stage-label {
+    overflow-wrap: anywhere; /* see this block's header comment */
+    hyphens: auto; /* "destination" breaks as "desti-nation", not "destinatio-n", if it still has to wrap at all */
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    line-height: 1.15;
+    text-align: center;
+  }
+
+  .stage--nginx .stage-label {
+    color: var(--color-text);
+    font-weight: var(--fw-semibold);
+  }
+
+  /* ===== Node cluster ==========================================================
+     The pool of available nodes, all of them, always visible, never colored
+     by which bubble is showing — bubble 4 has the traveling highlight box
+     grow to cover the whole cluster (see "Traveling highlight box" and
+     `box-travel` above), never a single badge. Numbers/countries are real
+     HTML text, not SVG: this is real data from `topology.ts`, not
+     decoration. */
+  .node-cluster {
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+  }
+
+  .node-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .node-badge-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--color-border);
+    border-radius: 50%;
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    font-weight: var(--fw-semibold);
+  }
+
+  .node-badge-country {
+    margin-top: 1px;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+  }
+
+  /* The dim "+" ghost badge: however many more the pool grows to. Always
+     present, never matched, never highlighted on its own — see
+     `overflowCount` above this component's frontmatter. */
+  .node-badge--ghost .node-badge-num {
+    border-color: var(--color-text-muted);
+    border-style: dashed;
+    background: none;
+    color: var(--color-text-muted);
+    opacity: 70%;
+  }
+
+  /* ===== Shared column positions ===============================================
+     The six bubble targets, as center-of-column percentages of the strip's
+     8.6-unit grid above (1fr client, 1.3fr Cloudflare, 1fr nginx, 3fr nodes,
+     1fr egress, 1.3fr destination — every stage now has a bubble). Column
+     gap is 2px, imperceptible next to the figure's own width, so ignoring
+     it here is fine. Each `--pos` positions that bubble's leader line and
+     its box's speech-bubble tail below — one shared value instead of
+     repeating the same percentage three times per bubble. */
+  .bubble--1 {
+    --pos: 5.81%;
+  }
+
+  .bubble--2 {
+    --pos: 19.19%;
+  }
+
+  .bubble--3 {
+    --pos: 32.56%;
+  }
+
+  .bubble--4 {
+    --pos: 55.81%;
+  }
+
+  .bubble--5 {
+    --pos: 79.07%;
+  }
+
+  .bubble--6 {
+    --pos: 92.44%;
+  }
+
+  /* ===== The fixed-height bubble zone ==========================================
+     `height`, not `min-height`: with every `.bubble` absolutely positioned
+     (below), the container has no in-flow content to size itself from, so it
+     would collapse to 0 without an explicit height. This value is tuned
+     against the longest bubble text in EITHER language at 360px wide, the
+     narrowest this site supports — see the SDD report for the rendered
+     measurements taken across the animation loop. A FIXED reservation,
+     never a per-bubble one, is what actually fixes the defect that sank the
+     previous attempt: the page must not move as the bubbles cycle. */
+  .mcp-bubbles {
+    position: relative;
+    height: 5rem;
+    margin-top: 0.9rem;
+  }
+
+  .bubble {
+    position: absolute;
+    inset: 0;
+    opacity: 0%;
+  }
+
+  .bubble--1 {
+    animation: phase-1 30s var(--ease-in-out) infinite;
+  }
+
+  .bubble--2 {
+    animation: phase-2 30s var(--ease-in-out) infinite;
+  }
+
+  .bubble--3 {
+    animation: phase-3 30s var(--ease-in-out) infinite;
+  }
+
+  .bubble--4 {
+    animation: phase-4 30s var(--ease-in-out) infinite;
+  }
+
+  .bubble--5 {
+    animation: phase-5 30s var(--ease-in-out) infinite;
+  }
+
+  .bubble--6 {
+    animation: phase-6 30s var(--ease-in-out) infinite;
+  }
+
+  /* The thin line that "points at the piece it describes" — from the top of
+     this fixed zone (where the strip ends) down to the bubble's tail. */
+  .bubble-leader {
+    position: absolute;
+    top: 0;
+    left: var(--pos);
+    width: 1px;
+    height: 0.9rem;
+    background: var(--color-border);
+  }
+
+  /* `display: flex` is the vertical-centering fix: the number badge is
+     `1.1rem` tall, which happens to be close to ONE line of the 0.8125rem/
+     1.35 body text — so a one-line bubble already looked fine, but a
+     two-line bubble did not. Without flex, `.bubble-num` is an inline box
+     that sits next to the FIRST line only; the second line wraps back to
+     the box's left edge underneath it, reading as the number pinned to the
+     top of a taller block instead of centered against it. `align-items:
+     center` on the row centers the badge against the text's full height
+     (one line or two, EN or ES — see `.bubble-num`/`.bubble-text` below)
+     instead of just its first line. */
+  .bubble-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0.9rem 0 0;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    text-wrap: pretty;
+  }
+
+  /* Speech-bubble tail: two stacked triangles (border color, then background
+     color one pixel smaller) fake a 1px outline where the tail meets the
+     leader line above. */
+  .bubble-box::before,
+  .bubble-box::after {
+    position: absolute;
+    top: -7px;
+    left: var(--pos);
+    content: "";
+    border-right: 7px solid transparent;
+    border-left: 7px solid transparent;
+    transform: translateX(-50%);
+  }
+
+  .bubble-box::before {
+    border-bottom: 7px solid var(--color-border);
+  }
+
+  .bubble-box::after {
+    top: -6px;
+    border-right-width: 6px;
+    border-bottom: 6px solid var(--color-bg-secondary);
+    border-left-width: 6px;
+  }
+
+  .bubble-num {
+    display: flex;
+    flex: none; /* fixed circle, never shrunk to make room for the text */
+    align-items: center;
+    justify-content: center;
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 50%;
+    background: var(--color-accent);
+    color: var(--color-bg);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: var(--fw-semibold);
+  }
+
+  /* The text half of the same flex row — `min-width: 0` is the standard
+     flexbox fix that lets a text item shrink below its own unbroken content
+     width and actually wrap, instead of overflowing `.bubble-box`. */
+  .bubble-text {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* ===== Bubble cycle ===========================================================
+     A 30s loop, shaped by six DWELLS (11% each, 3.3s — one per bubble/
+     stage, including "destination" since the 2026-08-23 destination-hop
+     update) separated by six TRAVEL windows: five short 3%-wide hops
+     between adjacent stages (11–14%, 25–28%, 39–42%, 53–56%, 67–70%) and
+     one long 19%-wide RETURN hop (81–100%) that carries the highlight box
+     back from "destination" to "client" to restart the loop. These are the
+     exact same breakpoints `box-travel` below uses for the highlight box's
+     `left`/`width` — this is what keeps a bubble's text and the box
+     arriving at its stage in lockstep, with one shared timeline (30s, same
+     start, same `infinite`) instead of two clocks that could drift. Adding
+     the sixth dwell+hop shrank the other five dwells (14%→11%) and short
+     hops (3% stayed 3%, unchanged) to keep the loop at 30s rather than
+     stretching it — see this file's header comment, "UPDATE 2026-08-23
+     (destination hop)".
+
+     Each bubble fades in/out over a 3%-wide window (matching the short
+     forward hops) positioned at the edges of its own dwell — bubble 1 both
+     opens the loop (0–11%) AND closes it (fading in over the last 3% of the
+     long return hop, 97–100%, so its 100% value already equals its 0%
+     value: a genuinely seamless loop, not a hard cut). Bubble 6 mirrors
+     that at the other end: it fades out over the FIRST 3% of the return
+     hop (81–84%) and then stays invisible for the rest of that long hop —
+     the box is still visibly travelling during that stretch, just with no
+     bubble narrating it, which reads as a brief beat before the loop
+     restarts rather than a jump cut. (This "fade early, stay dark through
+     the long hop" role moved from bubble 5 to bubble 6 with the
+     destination-hop update — bubble 5 is now a normal middle-of-the-loop
+     bubble like 2/3/4, fading in and out over its own two adjacent short
+     hops.) */
+  @keyframes phase-1 {
+    0%,
+    11% {
+      opacity: 100%;
+    }
+
+    14%,
+    97% {
+      opacity: 0%;
+    }
+
+    100% {
+      opacity: 100%;
+    }
+  }
+
+  @keyframes phase-2 {
+    0%,
+    11%,
+    100% {
+      opacity: 0%;
+    }
+
+    14%,
+    25% {
+      opacity: 100%;
+    }
+
+    28% {
+      opacity: 0%;
+    }
+  }
+
+  @keyframes phase-3 {
+    0%,
+    25%,
+    100% {
+      opacity: 0%;
+    }
+
+    28%,
+    39% {
+      opacity: 100%;
+    }
+
+    42% {
+      opacity: 0%;
+    }
+  }
+
+  @keyframes phase-4 {
+    0%,
+    39%,
+    100% {
+      opacity: 0%;
+    }
+
+    42%,
+    53% {
+      opacity: 100%;
+    }
+
+    56% {
+      opacity: 0%;
+    }
+  }
+
+  @keyframes phase-5 {
+    0%,
+    53%,
+    100% {
+      opacity: 0%;
+    }
+
+    56%,
+    67% {
+      opacity: 100%;
+    }
+
+    70% {
+      opacity: 0%;
+    }
+  }
+
+  @keyframes phase-6 {
+    0%,
+    67%,
+    100% {
+      opacity: 0%;
+    }
+
+    70%,
+    81% {
+      opacity: 100%;
+    }
+
+    84% {
+      opacity: 0%;
+    }
+  }
+
+  /* ===== Traveling highlight box: the `box-travel` animation ===================
+     Drives `.mcp-box-fill`/`.mcp-box-border`'s `left`/`width` (see the
+     "Traveling highlight box" section above) across the SAME six dwells
+     and six travel windows as the bubble cycle's `phase-N` keyframes
+     above — same percentages, same 30s duration, so the box is always
+     parked exactly under the stage whose bubble is currently showing.
+
+     Each of the six DWELLS holds `left`/`width` constant at that stage's
+     column bounds (center-of-column values match the `--pos` custom
+     properties above: e.g. client is 5.81% center → 0%–11.628% bounds;
+     destination is 92.44% center → 84.884%–100% bounds). Each TRAVEL
+     window is split into three equal-length sub-segments with
+     `animation-timing-function` set per keyframe — `ease-in`, then
+     `linear`, then `ease-out` — because a single `cubic-bezier` cannot
+     produce a genuine constant-speed middle: easing curves are smooth
+     start-to-end, they don't have a truly linear plateau. Three keyframes
+     per hop (built at the hop's own 1/3 and 2/3 points, in both `left` and
+     `width`) is the standard way around that: accelerate through the first
+     third, cruise at constant speed through the middle third, decelerate
+     through the last third. Verified on screen (not just computed on
+     paper) — see the SDD report for the rendered check.
+
+     Hop 5 (egress → destination, 67–70%) mirrors hop 1's shape exactly:
+     egress and client are both 1fr columns (11.628% wide) and Cloudflare
+     and destination are both 1.3fr (15.116% wide), so the two hops share
+     the same left/width deltas, just shifted along the strip.
+
+     The long RETURN hop (81–100%, destination → client) uses the same
+     three-segment shape over a much longer window: it covers roughly 7.3×
+     the distance of a short forward hop (destination at 84.884% back to
+     client at 0%, versus e.g. client→Cloudflare's 11.628 points), so it
+     also gets roughly 7.3× a forward hop's travel time (19% vs. 3%,
+     minus rounding) — the box crosses it at a comparable, not wildly
+     different, apparent speed. Unlike the pre-destination-hop version,
+     `width` DOES change here (15.116% → 11.628%, destination's column is
+     wider than client's): still a straight interpolation split into the
+     same three sub-segments, not a special case. Sub-segment marks land
+     at 87.333%/93.667% (exact thirds of the 19%-wide window) rather than
+     whole numbers — the window is not evenly divisible by 3 in whole
+     percent, and an exact third is more correct than a rounded one for an
+     accelerate/cruise/decelerate split. */
+  @keyframes box-travel {
+    0% {
+      left: 0%;
+      width: 11.628%;
+    }
+
+    11% {
+      left: 0%;
+      width: 11.628%;
+      animation-timing-function: ease-in;
+    }
+
+    12% {
+      left: 3.876%;
+      width: 12.791%;
+      animation-timing-function: linear;
+    }
+
+    13% {
+      left: 7.752%;
+      width: 13.953%;
+      animation-timing-function: ease-out;
+    }
+
+    14% {
+      left: 11.628%;
+      width: 15.116%;
+    }
+
+    25% {
+      left: 11.628%;
+      width: 15.116%;
+      animation-timing-function: ease-in;
+    }
+
+    26% {
+      left: 16.667%;
+      width: 13.953%;
+      animation-timing-function: linear;
+    }
+
+    27% {
+      left: 21.706%;
+      width: 12.791%;
+      animation-timing-function: ease-out;
+    }
+
+    28% {
+      left: 26.744%;
+      width: 11.628%;
+    }
+
+    39% {
+      left: 26.744%;
+      width: 11.628%;
+      animation-timing-function: ease-in;
+    }
+
+    40% {
+      left: 30.62%;
+      width: 19.38%;
+      animation-timing-function: linear;
+    }
+
+    41% {
+      left: 34.496%;
+      width: 27.132%;
+      animation-timing-function: ease-out;
+    }
+
+    42% {
+      left: 38.372%;
+      width: 34.884%;
+    }
+
+    53% {
+      left: 38.372%;
+      width: 34.884%;
+      animation-timing-function: ease-in;
+    }
+
+    54% {
+      left: 50%;
+      width: 27.132%;
+      animation-timing-function: linear;
+    }
+
+    55% {
+      left: 61.628%;
+      width: 19.38%;
+      animation-timing-function: ease-out;
+    }
+
+    56% {
+      left: 73.256%;
+      width: 11.628%;
+    }
+
+    67% {
+      left: 73.256%;
+      width: 11.628%;
+      animation-timing-function: ease-in;
+    }
+
+    68% {
+      left: 77.132%;
+      width: 12.791%;
+      animation-timing-function: linear;
+    }
+
+    69% {
+      left: 81.008%;
+      width: 13.953%;
+      animation-timing-function: ease-out;
+    }
+
+    70% {
+      left: 84.884%;
+      width: 15.116%;
+    }
+
+    81% {
+      left: 84.884%;
+      width: 15.116%;
+      animation-timing-function: ease-in;
+    }
+
+    87.333% {
+      left: 56.589%;
+      width: 13.953%;
+      animation-timing-function: linear;
+    }
+
+    93.667% {
+      left: 28.295%;
+      width: 12.791%;
+      animation-timing-function: ease-out;
+    }
+
+    100% {
+      left: 0%;
+      width: 11.628%;
+    }
+  }
+
+  /* ===== prefers-reduced-motion =================================================
+     `base.css` already forces `animation-duration: 0.001ms !important`
+     globally, but that alone would freeze every bubble and the highlight
+     box on whatever frame the style recalculation happened to land on —
+     not necessarily a coherent one. The rules below follow the same
+     pattern as `.realtime-pill__dot` in utilities.css: turn the animations
+     off explicitly, so a single coherent base state wins for all of them
+     at once — no bubbles at all, no highlight box travelling. In their
+     place, ONE static ring appears around the illustrative "always this
+     node" match (`MATCHED_NODE_INDEX` in the frontmatter above): the
+     frozen frame the spec asks for. The prose timeline right below the
+     figure already carries every word the bubbles would have. */
+  @media (prefers-reduced-motion: reduce) {
+    .bubble {
+      display: none;
+    }
+
+    .mcp-box-fill,
+    .mcp-box-border {
+      display: none;
+    }
+
+    .node-badge--matched .node-badge-num {
+      border-width: 2.5px;
+      border-color: var(--color-accent);
+      background: var(--accent-dim);
+      box-shadow: 0 0 0 2px var(--accent-dim);
+    }
+  }
+
+  /* ===== Responsive =============================================================
+     The strip stays on the same 8-column grid at every width — see this
+     block's header comment for why that alone keeps it horizontal with no
+     reflow. Below 480px, labels and badges shrink a little further and the
+     bubble zone grows a little taller, both because the narrower columns
+     wrap short labels ("Cloudflare", "destination") onto more lines than at
+     rest — verified rendered at 360px, see the SDD report. */
+  @media (width <= 480px) {
+    .stage-label {
+      font-size: 0.58rem;
+    }
+
+    .node-badge-num {
+      width: 16px;
+      height: 16px;
+      font-size: 0.5rem;
+    }
+
+    .node-badge-country {
+      font-size: 0.46rem;
+    }
+
+    .mcp-bubbles {
+      height: 5.75rem;
+    }
+
+    .bubble-box {
+      font-size: 0.78rem;
+    }
+
+    /* Shorter tallest-stage content at this width (45.84px measured, vs.
+       52.77px at ≥901px — see the "Traveling highlight box" comment above)
+       means the highlight box needs less headroom here too. */
+    .mcp-box-fill,
+    .mcp-box-border {
+      top: -4px;
+      height: 54px;
+    }
+  }
+
+  /* ===== Caption ================================================================
+     `margin-top` only, not `.mcp-bubbles`'s own reserved height (see "The
+     fixed-height bubble zone" comment above — that height stays fixed on
+     purpose, it is what keeps the page from jumping). The author: "no sé
+     si en escritorio hay demasiado espacio vacío entre el globo de
+     información y el 'footer' de la caja de animación" — measured before
+     this change, the gap between `.mcp-bubbles`'s bottom edge and this
+     caption's top edge was exactly this margin (0.85rem = 13.6px at
+     1280px, 12.24px at 360px, since nothing else sits between them).
+     Halved to 0.4rem: still a visible break between the figure and its
+     caption, but not the fixed zone's own reserved whitespace below a
+     short bubble, which this rule cannot and should not touch. */
+  .mcp-flow-caption {
+    max-width: 62ch;
+    margin: 0.4rem 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+    text-wrap: pretty;
+  }
+
+  /* ===== Prose timeline =========================================================
+     Real HTML, same six numbers as the bubbles above — this is what a
+     crawler, an assistant reading this page, or a `prefers-reduced-motion`
+     visitor actually reads; see this file's header comment for why the
+     detail lives here and not in the figure. Numbers are visual only
+     (`.mcp-timeline-num`, `aria-hidden`) — the native `<ol>` already gives
+     assistive tech "item N of 6" for free, which is why `list-style` is
+     suppressed instead of layering a redundant visible one on top of it. */
+  .mcp-timeline {
+    max-width: 62ch;
+    margin: 0 0 1rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mcp-timeline li {
+    position: relative;
+    display: flex;
+    margin: 0 0 0.85rem;
+    gap: 0.7rem;
+  }
+
+  .mcp-timeline-num {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background: var(--accent-dim);
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: var(--fw-semibold);
+  }
+
+  .mcp-timeline li p {
+    margin: 0;
+    padding-top: 0.15rem;
+    color: var(--color-text);
+    font-size: 0.875rem;
+    text-wrap: pretty;
+  }
+</style>

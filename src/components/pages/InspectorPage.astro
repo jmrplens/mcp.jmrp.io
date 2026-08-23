@@ -1,0 +1,107 @@
+---
+/**
+ * Inspector page — the interactive island that talks to the MCP servers from
+ * the visitor's browser.
+ *
+ * Split out of the home page so the home page ships zero JavaScript: the URL
+ * search engines crawl and assistants cite must not depend on a client-side
+ * island being hydrated. See `home.tryInBrowser` for the link that sends
+ * visitors here from the hero, and `common.lede` (Ruling R6) for why the
+ * home page's promise stayed true without embedding this page in it.
+ */
+import { servers } from "../../data/servers";
+import { ui } from "../../i18n/ui";
+import { getLangFromUrl } from "../../i18n/utils";
+import { pageUrl } from "../../lib/seo";
+import Inspector from "../Inspector";
+import UpdatedLine from "../UpdatedLine.astro";
+
+const lang = getLangFromUrl(Astro.url);
+const t = ui[lang];
+// Site-relative, like the language switch in Base.astro: an absolute URL
+// here would jump a dev or preview server straight to production.
+const homeHref = new URL(pageUrl(lang, "home")).pathname;
+// The token notice lives on the gitlab card, on the home page.
+const gitlabNoticeHref = `${homeHref}#gitlab-security`;
+---
+
+<div class="inspector">
+  <p class="back-link">
+    <a href={homeHref}>{t.backToHome}</a>
+  </p>
+
+  {/* Kicker + h1 + intro + hairline, matching jmrp.io's PrivacyPage.astro
+      `.privacy-header` — see the `.subpage-header` comment in base.css. */}
+  <header class="subpage-header">
+    <p class="section-title">{t.inspectorEyebrow}</p>
+    <h1 id="inspector-h" class="subpage-title">{t.inspectorTitle}</h1>
+    <p class="subpage-intro">{t.inspectorIntro}</p>
+  </header>
+
+  <section class="inspector-section" aria-labelledby="inspector-h">
+    <Inspector client:load servers={servers} lang={lang} />
+    <p class="notice-pointer">
+      {t.noticePointer}{" "}
+      <a href={gitlabNoticeHref}>{t.noticePointerLink}</a>
+    </p>
+  </section>
+
+  {/* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
+      cannot just live in the footer. */}
+  <UpdatedLine lang={lang} />
+</div>
+
+<style>
+
+  /* Heading size and the kicker+h1+intro shell now live in base.css's
+     `.subpage-title`/`.subpage-header`/`.subpage-intro` — Policies and
+     Internals need the exact same shapes, so they stopped being per-page
+     rules to copy. */
+
+  /* Vertical rhythm for the page as a whole — see the same rule on
+     PoliciesPage.astro's `.policies` for the full rationale (jmrp.io's
+     `.privacy`/`.about`: `<main>` itself carries no vertical padding, each
+     page supplies its own). */
+  .inspector {
+    padding-top: var(--space-xl);
+    padding-bottom: var(--space-xl);
+  }
+
+  /* Copied from HomePage.astro's shared rules: Astro scopes <style> per
+     component, so a class used on both pages needs its own copy here. */
+  .back-link {
+    margin: 0 0 1.5rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .back-link a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .back-link a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* Same leading-margin rhythm as PoliciesPage.astro's `.policies-section`.
+     No `max-width` here on purpose, unlike that page's prose sections: the
+     Inspector island is a form/response tool, not running text, and wants
+     the full column width `<main>` already gives it. */
+  .inspector-section {
+    margin-top: var(--space-lg-xl);
+  }
+
+  /* Reading text, so it takes the shared prose measure. The island above it
+     keeps the full column on purpose — it is a form, not running text. */
+  .notice-pointer {
+    max-width: var(--max-width-prose);
+    margin: 1rem 0 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-base);
+    line-height: 1.7;
+    text-wrap: pretty;
+  }
+</style>

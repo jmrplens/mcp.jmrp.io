@@ -72,6 +72,15 @@
   --teal: #46b8a6; /* soporte / prompt del logo · 8.2 sobre bg */
   --teal-text: #46b8a6; /* teal como texto — AA en ambos temas */
   --violet: #b389f5; /* acento terciario (highlight) */
+  /* Fondos tenues de teal/violet (chips, pills) — mismo patrón que
+     --success-dim/--warning-dim/--danger-dim/--info-dim: una sola
+     declaración aquí basta para los dos temas, porque color-mix() resuelve
+     var(--teal)/var(--violet) en el momento de uso, así que ya recoge el
+     valor de cada bloque KEEP-IN-SYNC sin necesidad de repetirse en los
+     overrides claro/oscuro. Añadido para /internals/ (diagrama de afinidad
+     de sesión), primer consumidor de un fondo tenue para estos dos colores. */
+  --teal-dim: color-mix(in srgb, var(--teal) 14%, transparent);
+  --violet-dim: color-mix(in srgb, var(--violet) 14%, transparent);
 
   /* ===== SEMÁNTICOS FORMALES (dark) — avisos / callouts ==================
      Paleta de estado del mockup (Lab): tip=verde · warn=oro · caut=rojo ·

@@ -35,6 +35,28 @@ export function contentDate(): string | undefined {
   }
 }
 
+// Memoized: set on the first call, reused by every later one for the rest of
+// the process. `contentDate()` itself returns a freshly-read `new Date()` on
+// a dirty tree or on any call after `catch` falls through below — call it
+// more than once per build and each caller can get a different instant a few
+// milliseconds apart. `buildDate()` exists so the footer, the JSON-LD
+// `dateModified` and `<UpdatedLine>` all read the SAME resolved value instead
+// of each computing their own fallback.
+let resolvedBuildDate: string | undefined;
+
+/**
+ * `contentDate()` with the "no git" fallback applied, memoized for the whole
+ * process so every consumer shares one instant.
+ *
+ * See the module doc for the underlying rule (HEAD's date on a clean tree,
+ * "now" on a dirty one); this only adds the shared "now" when git itself is
+ * unavailable, which `contentDate()` alone leaves as `undefined`.
+ */
+export function buildDate(): string {
+  resolvedBuildDate ??= contentDate() ?? new Date().toISOString();
+  return resolvedBuildDate;
+}
+
 /**
  * Fecha de publicación del sitio, para `datePublished`: el primer commit.
  *

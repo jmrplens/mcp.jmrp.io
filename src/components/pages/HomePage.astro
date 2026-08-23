@@ -1,39 +1,48 @@
 ---
 /**
- * Cuerpo de la página, compartido por las dos versiones de idioma.
+ * Home page — the canonical entry point.
  *
- * Vive aquí y no duplicado en cada `index.astro` porque la única diferencia
- * entre EN y ES son las cadenas: duplicar el markup garantizaba que las dos
- * versiones se desincronizaran a la primera (ya pasó una vez con la línea de
- * cabeceras obligatorias, que faltaba en español).
+ * Keeps what makes the site citable: the MCP definition with the brand in the
+ * first extractable sentence, the comparison table, and both server cards WITH
+ * their notices (the FAQPage and speakable nodes hang off these). The
+ * inspector and the policies page live on their own pages now.
+ *
+ * Used to delegate to `PageBody.astro`, kept as a separate file because the
+ * mirrored `src/pages/es/` route needed the SAME markup with different
+ * strings. That reason no longer applies: the language now comes from the
+ * URL (`getLangFromUrl`), not a prop, so the split bought nothing but an extra
+ * file to open — this component was one `<PageBody lang={lang} />` line.
+ * Content absorbed here in its own commit, separate from Task 6's actual
+ * content change, so that diff reads as what it is.
  */
-import { servers } from "../data/servers";
-import { ui } from "../i18n/ui";
-import { contentDate } from "../lib/build-date";
-import { humanDate } from "../lib/format";
-import Inspector from "./Inspector";
-import ServerCard from "./ServerCard.astro";
+import { servers } from "../../data/servers";
+import { ui } from "../../i18n/ui";
+import { getLangFromUrl } from "../../i18n/utils";
+import { pageUrl } from "../../lib/seo";
+import ServerCard from "../ServerCard.astro";
+import UpdatedLine from "../UpdatedLine.astro";
 
-interface Props {
-  lang: "en" | "es";
-}
-
-const { lang } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
 const t = ui[lang];
-// Same date as the footer, dateModified and sitemap lastmod, through the
-// shared helper. It is repeated here INSIDE <main> on purpose: readability
-// prunes <footer>, so to an extractor the page came out undated.
-const updated = contentDate() ?? new Date().toISOString();
+// Site-relative, like the language switch in Base.astro: an absolute URL
+// here would jump a dev or preview server straight to production.
+const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
 ---
 
 <section class="hero">
   <p class="pill"><span class="dot" aria-hidden="true"></span>{servers.length} {t.pill}</p>
-  <h1>{t.title}</h1>
+  <h1 class="hero-title">{t.title}</h1>
   <p class="lede">{t.lede}</p>
   {/* La definición de MCP con la marca: el único bloque autocontenido para
       quien no sabe qué es esto, y el ancla de entidad que los titulares
       genéricos no dan. Ver `whatIsMcp` en ui.ts. */}
   <p class="what-is">{t.whatIsMcp}</p>
+  {/* The old lede promised trying the servers "right here"; now that the
+      inspector lives on its own page, that promise is a real link instead
+      (Ruling R6 — see the comment on `home.tryInBrowser`). */}
+  <p class="try-inspector">
+    <a href={inspectorHref}>{t.tryInBrowser}</a>
+  </p>
 </section>
 
 <section aria-labelledby="servers-h">
@@ -105,36 +114,20 @@ const updated = contentDate() ?? new Date().toISOString();
     <a href="/servers.json"><code>/servers.json</code></a>
     <span>— {t.machineIndex}</span>
   </p>
-</section>
-
-<section aria-labelledby="inspector-h">
-  <h2 class="eyebrow" id="inspector-h">
-    {t.inspectorEyebrow}
-  </h2>
-  <p class="section-intro">{t.inspectorIntro}</p>
-  <Inspector client:load servers={servers} lang={lang} />
-  <p class="notice-pointer">
-    {t.noticePointer}
+  {/* Same pointer pattern as `/servers.json` above, for the llmstxt.org
+      index — see the `<link>` of the same name in Base.astro's <head>. */}
+  <p class="machine">
+    <a href="/llms.txt"><code>/llms.txt</code></a>
+    <span>— {t.machineLlms}</span>
   </p>
 </section>
 
-<section aria-labelledby="privacy-h">
-  {/* Corta y sin plegar a propósito: un sitio que acepta credenciales debe
-      decir qué registra sin pedir un clic. Cada afirmación es verificable:
-      la CSP la aplica el navegador, la retención de logs es la de logrotate
-      y las métricas se construyeron para descartar los argumentos. */}
-  <h2 class="eyebrow" id="privacy-h">
-    {t.privacyEyebrow}
-  </h2>
-  {t.privacyBody.map((paragraph) => <p class="privacy-text">{paragraph}</p>)}
-  {/* Visible freshness INSIDE <main>. The footer carries the same date, but
-      readability prunes <footer> and extraction pipelines saw an undated page
-      (`byline: null`). Here it survives. */}
-  <p class="updated-line">
-    {t.updatedIn}{" "}
-    <time datetime={updated}>{humanDate(updated, lang)}</time>
-  </p>
-</section>
+{/* Visible freshness INSIDE <main>. It used to close the "Privacy & data"
+    section that lived here; that section moved to its own page
+    (`PoliciesPage.astro`), but the home page still needs its own dated line —
+    see `UpdatedLine.astro` for why an undated page is a real problem, not a
+    cosmetic one. */}
+<UpdatedLine lang={lang} />
 
 <style>
   .hero {
@@ -143,7 +136,11 @@ const updated = contentDate() ?? new Date().toISOString();
 
   /* Píldora de estado con punto, igual que la de jmrp.io. Aquí dice algo
      verificable —cuántos servidores hay y qué transporte hablan— en vez de
-     ser un adorno. */
+     ser un adorno.
+     Measured against jmrp.io's `.hero__status` (HomePage.astro there): 13px
+     (`--text-xs`, not a bare 0.75rem/12px — that size sits between two
+     tokens and matches neither) and `--color-text` (full strength), not the
+     muted color this had before. */
   .pill {
     display: inline-flex;
     gap: 0.5rem;
@@ -152,9 +149,9 @@ const updated = contentDate() ?? new Date().toISOString();
     padding: 0.35rem 0.8rem;
     border: 1px solid var(--color-border);
     border-radius: 999px;
-    color: var(--color-text-muted);
+    color: var(--color-text);
     font-family: var(--font-mono);
-    font-size: 0.75rem;
+    font-size: var(--text-xs);
   }
 
   .dot {
@@ -164,30 +161,31 @@ const updated = contentDate() ?? new Date().toISOString();
     background: var(--color-success);
   }
 
-  h1 {
-    max-width: 18ch;
-    margin: 0 0 1.25rem;
-    color: var(--color-text-heading);
-    font-family: var(--font-display);
-    font-size: clamp(2.5rem, 7vw, 3.75rem);
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1.05;
-  }
+  /* Size lives in base.css's `.hero-title` now (shared with the other
+     pages' `.subpage-title`); nothing page-specific left to override here. */
 
+  /* Same role as jmrp.io's `.hero__subtitle` (HomePage.astro there): the one
+     line right under the h1. Same scale — 20px / 1.4 — so it reads with the
+     same weight. */
   .lede {
     max-width: 58ch;
     margin: 0;
     color: var(--color-text);
-    font-size: 1.0625rem;
+    font-size: var(--text-xl);
+    line-height: 1.4;
     text-wrap: pretty;
   }
 
+  /* Same role as jmrp.io's `.hero__bio` first paragraph: real body copy, not
+     a caption, so it gets `--color-text` (not muted) at the 16px/1.65 body
+     scale — this sentence is the citability anchor (see `whatIsMcp` in
+     ui.ts), not a footnote. */
   .what-is {
     max-width: 62ch;
     margin: 0.9rem 0 0;
-    color: var(--color-text-muted);
-    font-size: 0.875rem;
+    color: var(--color-text);
+    font-size: var(--text-md);
+    line-height: 1.65;
     text-wrap: pretty;
   }
 
@@ -195,19 +193,25 @@ const updated = contentDate() ?? new Date().toISOString();
      The `//` is painted from CSS and does NOT exist in the DOM. It used to be
      a <span aria-hidden>, which handled screen readers but not extractors:
      `aria-hidden` has no effect on `textContent`, which is what readability
-     and friends read, so headings came out as "//Servers", "//Inspector" and
-     "//Privacy & data". With ::before the ornament leaves the extracted text
-     and looks exactly the same. */
+     and friends read, so headings came out as "//Servers" and "//Privacy &
+     data". With ::before the ornament leaves the extracted text and looks
+     exactly the same.
+     Numbers matched against jmrp.io's own `.section-title` (utilities.css,
+     shared by both repos byte-for-byte): `--text-label` (12.5px, not the
+     bare 0.75rem/12px this had), `--fw-medium` (500, not 600 — jmrp's
+     eyebrows are not bold), 0.16em tracking (not 0.12em), and full
+     `--color-accent` on the whole label — jmrp doesn't mute the text and
+     accent only the "//"; the whole line is accent-colored. */
   .eyebrow {
     display: flex;
     gap: 0.6rem;
     align-items: center;
     margin: 0 0 1.25rem;
-    color: var(--color-text-muted);
+    color: var(--color-accent);
     font-family: var(--font-mono);
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.12em;
+    font-size: var(--text-label);
+    font-weight: var(--fw-medium);
+    letter-spacing: 0.16em;
     text-transform: uppercase;
   }
 
@@ -219,6 +223,9 @@ const updated = contentDate() ?? new Date().toISOString();
   section {
     padding-block-end: 3.5rem;
   }
+
+  /* `.section-intro` now lives in base.css — Inspector had the exact same
+     rule under its own copy. */
 
   .grid {
     display: grid;
@@ -243,35 +250,23 @@ const updated = contentDate() ?? new Date().toISOString();
     text-underline-offset: 3px;
   }
 
-  /* El inspector es donde se pega el token, pero la política de ese token
-     pertenece a gitlab y vive en su ficha. Este puntero une las dos cosas sin
-     duplicar el texto ni mezclar los avisos de los dos servidores. */
-  .privacy-text {
-    max-width: 62ch;
-    margin: 0 0 0.7rem;
-    color: var(--color-text);
-    font-size: 0.875rem;
-    text-wrap: pretty;
-  }
-
-  .notice-pointer {
-    margin: 1rem 0 0;
-    color: var(--color-text-muted);
-    font-size: 0.875rem;
-    text-wrap: pretty;
-  }
-
-  .section-intro {
-    max-width: 62ch;
-    margin: 0 0 1.5rem;
-    color: var(--color-text);
-    text-wrap: pretty;
-  }
-
-  .updated-line {
-    margin: 1.25rem 0 0;
+  /* Same look as `.machine`: a small mono pointer out of the hero, this one
+     to the inspector's own page instead of a machine-readable file. */
+  .try-inspector {
+    margin: 0.9rem 0 0;
     color: var(--color-text-muted);
     font-size: 0.8125rem;
+  }
+
+  .try-inspector a {
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    text-decoration: none;
+  }
+
+  .try-inspector a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   /* Wide content scrolls inside its own container: the page body must never

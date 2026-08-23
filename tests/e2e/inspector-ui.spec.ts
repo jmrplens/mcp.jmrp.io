@@ -33,7 +33,7 @@ test("tras tools/list la tool se elige de una lista, no se teclea", async ({
   page,
 }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
-  await page.goto("/");
+  await page.goto("/inspector/");
   const mcp = inspector(page);
 
   // Antes de cargar no hay catálogo ni forma de elegir: solo la invitación.
@@ -57,7 +57,7 @@ test("elegir una tool enseña su inputSchema y prerrellena lo obligatorio", asyn
   page,
 }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
-  await page.goto("/");
+  await page.goto("/inspector/");
   const mcp = inspector(page);
   await loadButton(page).click();
   await expect(status(page)).toContainText("2 tools");
@@ -82,7 +82,7 @@ test("cambiar de servidor no deja ofreciendo las tools del anterior", async ({
   page,
 }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
-  await page.goto("/");
+  await page.goto("/inspector/");
   await loadButton(page).click();
   await expect(toolSelect(page)).toHaveRole("combobox");
 
@@ -96,7 +96,7 @@ test("un acierto y un isError:true NO se ven igual", async ({ page }) => {
   await stubMcp(page, (method) => ({
     json: method === "tools/call" ? TOOL_OK : TOOLS_LIST,
   }));
-  await page.goto("/");
+  await page.goto("/inspector/");
   const out = page.getByTestId("inspector-output");
 
   await loadButton(page).click();
@@ -116,7 +116,7 @@ test("un tools/call con isError:true se pinta como fallo aunque sea HTTP 200", a
     status: 200,
     json: method === "tools/call" ? TOOL_ERROR : TOOLS_LIST,
   }));
-  await page.goto("/");
+  await page.goto("/inspector/");
 
   await loadButton(page).click();
   await expect(status(page)).toContainText("2 tools");
@@ -130,7 +130,7 @@ test("un tools/call con isError:true se pinta como fallo aunque sea HTTP 200", a
 
 test("un error de transporte dice su código HTTP", async ({ page }) => {
   await stubMcp(page, () => ({ status: 400, body: "no server available" }));
-  await page.goto("/");
+  await page.goto("/inspector/");
   await loadButton(page).click();
 
   await expect(status(page)).toContainText("transport error");
@@ -146,7 +146,7 @@ test("un error JSON-RPC lleva su código, no el HTTP", async ({ page }) => {
       error: { code: -32_602, message: "unexpected additional properties" },
     },
   }));
-  await page.goto("/");
+  await page.goto("/inspector/");
   await loadButton(page).click();
 
   await expect(status(page)).toContainText("JSON-RPC error");
@@ -156,7 +156,7 @@ test("un error JSON-RPC lleva su código, no el HTTP", async ({ page }) => {
 
 test("la línea de estado da método, código, tiempo y tamaño", async ({ page }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
-  await page.goto("/");
+  await page.goto("/inspector/");
   await loadButton(page).click();
 
   const line = status(page);
@@ -171,7 +171,7 @@ test("el lector de pantalla oye el resumen, no el volcado entero", async ({
   page,
 }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
-  await page.goto("/");
+  await page.goto("/inspector/");
   const out = page.getByTestId("inspector-output");
 
   // El aria-live colgaba del <pre>: 43.260 caracteres anunciados de una tacada.
@@ -184,7 +184,7 @@ test("el lector de pantalla oye el resumen, no el volcado entero", async ({
 test("la respuesta se puede copiar", async ({ page, context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
-  await page.goto("/");
+  await page.goto("/inspector/");
   const mcp = inspector(page);
   await loadButton(page).click();
   await expect(status(page)).toContainText("2 tools");
@@ -198,7 +198,7 @@ test("la respuesta se puede copiar", async ({ page, context }) => {
 
 test("una petición en vuelo se puede cancelar", async ({ page }) => {
   await stubMcp(page, () => ({ hang: true }));
-  await page.goto("/");
+  await page.goto("/inspector/");
   await loadButton(page).click();
 
   const cancel = page.getByTestId("inspector-cancel");
@@ -216,7 +216,7 @@ test("una cabecera obligatoria vacía bloquea el envío y dice por qué", async 
   page,
 }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
-  await page.goto("/");
+  await page.goto("/inspector/");
   const mcp = inspector(page);
   await serverSelect(page).selectOption("gitlab");
 
@@ -238,7 +238,7 @@ test("una cabecera obligatoria vacía bloquea el envío y dice por qué", async 
 
 test("la isla habla español en /es/", async ({ page }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
-  await page.goto("/es/");
+  await page.goto("/es/inspector/");
   const mcp = inspector(page);
 
   await expect(mcp.getByLabel("Servidor")).toBeVisible();
@@ -256,7 +256,7 @@ test("Enter en el formulario lanza la llamada", async ({ page }) => {
   const sent = await stubMcp(page, (method) =>
     method === "tools/call" ? { json: TOOL_OK } : { json: TOOLS_LIST },
   );
-  await page.goto("/");
+  await page.goto("/inspector/");
 
   await pickTool(page, "search");
   // Enter en un control de una línea envía: bajar al botón con el formulario

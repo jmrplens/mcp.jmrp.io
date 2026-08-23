@@ -1,0 +1,115 @@
+---
+/**
+ * Policies page — privacy, logging, availability, egress and the legal
+ * position, all in one place.
+ *
+ * Split out of the home page for the same reason the inspector was (see
+ * `InspectorPage.astro`): the home page's job is to say what these servers do
+ * and let a visitor act on it cheaply, and a growing block of policy prose
+ * was dead weight on the page search engines and assistants quote most. Only
+ * "Privacy & data" used to live there; the rest of what is here (logging,
+ * availability, egress, the legal position) had never been written down
+ * anywhere on the site.
+ */
+import { ui } from "../../i18n/ui";
+import { getLangFromUrl } from "../../i18n/utils";
+import { pageUrl } from "../../lib/seo";
+import UpdatedLine from "../UpdatedLine.astro";
+
+const lang = getLangFromUrl(Astro.url);
+const t = ui[lang];
+// Site-relative, like every other cross-page link on this site: an absolute
+// URL here would jump a dev or preview server straight to production.
+const homeHref = new URL(pageUrl(lang, "home")).pathname;
+---
+
+<div class="policies">
+  <p class="back-link">
+    <a href={homeHref}>{t.backToHome}</a>
+  </p>
+
+  {/* Kicker + h1 + intro + hairline, matching jmrp.io's PrivacyPage.astro
+      `.privacy-header` — see the `.subpage-header` comment in base.css for
+      why this page had none of it before. */}
+  <header class="subpage-header">
+    <p class="section-title">{t.policiesEyebrow}</p>
+    <h1 class="subpage-title">{t.policiesTitle}</h1>
+    <p class="subpage-intro">{t.policiesIntro}</p>
+  </header>
+
+  <section class="policies-section" aria-labelledby="privacy-h">
+    <h2 class="subsection-title" id="privacy-h">{t.privacyEyebrow}</h2>
+    {t.privacyBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+  </section>
+
+  <section class="policies-section" aria-labelledby="logs-h">
+    <h2 class="subsection-title" id="logs-h">{t.logsEyebrow}</h2>
+    {t.logsBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+  </section>
+
+  <section class="policies-section" aria-labelledby="sla-h">
+    <h2 class="subsection-title" id="sla-h">{t.slaEyebrow}</h2>
+    {t.slaBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+  </section>
+
+  <section class="policies-section" aria-labelledby="egress-h">
+    <h2 class="subsection-title" id="egress-h">{t.egressEyebrow}</h2>
+    {t.egressBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+  </section>
+
+  <section class="policies-section" aria-labelledby="legal-h">
+    <h2 class="subsection-title" id="legal-h">{t.legalEyebrow}</h2>
+    {t.legalBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+  </section>
+
+  {/* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
+      cannot just live in the footer. */}
+  <UpdatedLine lang={lang} />
+</div>
+
+<style>
+
+  /* Heading size and the kicker+h1+intro shell now live in base.css's
+     `.subpage-title`/`.subpage-header`/`.subpage-intro` — Inspector and
+     Internals need the exact same shapes, so they stopped being per-page
+     rules to copy. */
+
+  /* Vertical rhythm for the page as a whole: jmrp.io's PrivacyPage.astro
+     wraps its entire body in `.privacy { padding-top/-bottom: var(--space-xl) }`
+     — `<main>` itself carries no vertical padding there, each page supplies
+     its own. This page had none: content started flush against the header's
+     bottom border. */
+  .policies {
+    padding-top: var(--space-xl);
+    padding-bottom: var(--space-xl);
+  }
+
+  /* Copied from InspectorPage.astro's / HomePage.astro's shared rules: Astro
+     scopes <style> per component, so a class used on more than one page needs
+     its own copy here. */
+  .back-link {
+    margin: 0 0 1.5rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .back-link a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .back-link a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* Same spacing jmrp.io's `.privacy-section` uses: a LEADING margin on each
+     section (not trailing padding on the section before it), so it compounds
+     with `.subpage-header`'s own bottom margin/border instead of doubling up
+     awkwardly with it. */
+  .policies-section {
+    max-width: var(--max-width-prose);
+    margin-top: var(--space-lg-xl);
+  }
+</style>

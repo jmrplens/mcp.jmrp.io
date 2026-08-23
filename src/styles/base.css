@@ -144,6 +144,149 @@ h4 {
   font-size: 1.1em;
 }
 
+/* ===== Títulos de página (variantes fluidas de h1) =========================
+   jmrp.io no fuerza una única talla de h1 en todo el sitio: cada tipo de
+   página hereda el `h1` de arriba (familia, peso, color, balance, ancla de
+   scroll) y solo redefine tamaño/medida/entrelínea vía una clase — el hero
+   de la portada (`.hero__title`) usa un clamp; los encabezados de sección
+   (`.page-header h1`, `.cat-title`, `.tools-title`…) usan otro, cada uno
+   ajustado a su página. Este sitio tenía el equivalente, pero mal resuelto:
+   HomePage, InspectorPage, PoliciesPage e InternalsPage definían un h1 a
+   mano CADA UNA, con InspectorPage/PoliciesPage/InternalsPage repitiendo la
+   MISMA regla letra por letra ("Astro escopa los estilos, así que hace
+   falta una copia" — no, un selector global como este ya alcanza a
+   cualquier h1 del documento independientemente del componente que lo
+   renderice; la copia nunca hizo falta).
+   Las dos variantes de abajo son esa unificación: `.hero-title` para el
+   titular grande de la portada, `.subpage-title` para el título compartido
+   de Inspector/Policies/Internals. (Se llama `.subpage-title`, no
+   `.page-title`, porque esa clase ya existe en utilities.css con otro
+   diseño —breadcrumb con borde inferior— y no está en uso; reutilizar el
+   nombre la habría pisado.) */
+.hero-title,
+.subpage-title {
+  margin: 0 0 1.25rem;
+  line-height: 1.05;
+}
+
+/* letter-spacing: matches jmrp.io's actual `.hero__title` (HomePage.astro
+   there) at its rendered size — -1.8px at 60px is exactly -0.03em. */
+.hero-title {
+  max-width: 18ch;
+  font-size: clamp(2.5rem, 7vw, 3.75rem);
+  letter-spacing: -0.03em;
+}
+
+/* clamp and letter-spacing: matches jmrp.io's ACTUAL sibling for this slot —
+   `.privacy-header__title`/`.about-hero__title` (PrivacyPage.astro/
+   AboutPage.astro there), not a blog post h1. Inspector/Policies/Internals
+   are utility/legal subpages under a `<header>` kicker block, exactly what
+   Privacy and About are on jmrp.io; a blog post h1 is a different kind of
+   page (no kicker above it, sits inside `.prose`) and was the wrong sibling
+   to copy — its clamp tops out 8px larger (52px vs 44px) than the page type
+   this class is actually used for. `letter-spacing` here is jmrp.io's own
+   `.page-title` value (utilities.css): `.privacy-header__title` overrides
+   the clamp/margins/border but never redeclares it, so -0.02em is what
+   actually renders, not the -0.03em the hero title uses nor the -0.025em
+   this rule had before. */
+.subpage-title {
+  max-width: 22ch;
+  font-size: clamp(1.9rem, 4.5vw, 2.75rem);
+  letter-spacing: -0.02em;
+}
+
+/* ===== Párrafo introductorio compartido =====================================
+   Misma regla que HomePage.astro y InspectorPage.astro tenían cada una por
+   separado bajo el nombre `.section-intro` (la intro corta que sigue a un
+   h1/h2 de sección). `font-size` se deja explícito en vez de heredarlo de
+   `html` — mismo valor (16px), pero documentado, como hace `.subtitle` en
+   jmrp.io (BlogIndex.astro). */
+.section-intro {
+  max-width: 62ch;
+  margin: 0 0 1.5rem;
+  color: var(--color-text);
+  font-size: var(--text-md);
+  text-wrap: pretty;
+}
+
+/* ===== Prosa de página de contenido ========================================
+   Medido contra jmrp.io: sus páginas de contenido (`/privacy/`, `/about/`,
+   `/homelab/`) sirven la prosa a `--text-base` con 1.7 de interlineado y la
+   dejan alcanzar los ~700px que da el contenedor. `/policies/` ya lo hacía
+   por su cuenta bajo el nombre `.policy-text`; `/internals/` iba a 0.875rem
+   con `max-width: 62ch` (14px sobre 496px) y la prosa del inspector no tenía
+   medida ninguna y llegaba a 1152px, que es ilegible. Una sola regla para las
+   tres, en vez de tres copias que ya habían divergido. */
+.prose-text {
+  max-width: var(--max-width-prose);
+  margin: 0 0 var(--space-md);
+  color: var(--color-text);
+  font-size: var(--text-base);
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+/* ===== Cabecera de subpágina (kicker + h1 + intro + separador) =============
+   jmrp.io never puts a bare h1 at the top of a content page: PrivacyPage.astro
+   and AboutPage.astro there both wrap the title zone in a
+   `<header class="X-header">` holding, in order, a `.section-title` kicker
+   ("// PRIVACY"), the page's own h1, and one intro paragraph — closed off by
+   a hairline (`border-bottom`) that separates the title zone from the body
+   below it. This site's Inspector/Policies/Internals pages had none of that:
+   h1 sat directly under the back-link with no kicker above it and no seam
+   before the first section, so the whole page read as one undifferentiated
+   column instead of "title block, then body". This is the shared shell for
+   that pattern; each page supplies its own `.section-title` kicker text and
+   `.subpage-intro` paragraph inside it. */
+.subpage-header {
+  padding-bottom: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--color-hair);
+}
+
+.subpage-header .section-title {
+  margin-bottom: var(--space-sm);
+}
+
+.subpage-header .subpage-title {
+  margin-bottom: var(--space-md);
+}
+
+/* Same numbers as jmrp.io's `.privacy-header__intro`: 70ch reading width
+   (`--max-width-prose`, wider than `.section-intro`'s 62ch — this sits right
+   under the h1, not mid-section) and an explicit 1.6 line-height instead of
+   the body default. */
+.subpage-intro {
+  max-width: var(--max-width-prose);
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--text-md);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* ===== Etiqueta de subsección, en voz baja ==================================
+   jmrp.io's PrivacyPage.astro uses TWO different heading treatments, not one:
+   the loud accent `.section-title` kicker ("// PRIVACY") appears ONCE, above
+   the page's h1, while every subsection heading INSIDE the body
+   (`.privacy-section__title`: "Analytics", "Cookies", "Third-party"…) is a
+   quiet muted-gray uppercase mono label with no "//" prefix and no accent
+   color. This site's Policies/Internals pages reused the loud kicker style
+   (`.eyebrow`, accent + "//") for every one of those subsection headings
+   instead, so a five-section page repeated the same shouting label five
+   times down the column — the one visual accent a reader should be able to
+   use to find "the current page's topic" was spent five times over on
+   "here is another paragraph". */
+.subsection-title {
+  margin: 0 0 var(--space-md);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
 /* ===== Contenido largo (.prose) ============================================
    Escala tipográfica del contenido según el mockup ("Post completo"):
    cuerpo 17px / interlineado 1.78 (IBM Plex Sans); h2 26px y h3 19px en

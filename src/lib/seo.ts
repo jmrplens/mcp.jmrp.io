@@ -13,8 +13,14 @@
  * idioma nuevo no puede volver a dejar el clúster cojo.
  */
 
-import type { Lang } from "../i18n/ui";
-import { ui } from "../i18n/ui";
+import { DEFAULT_LANG, type Lang, LANGS } from "../i18n/config.ts";
+import { ui } from "../i18n/ui.ts";
+
+// Language identity (`Lang`, `LANGS`, `DEFAULT_LANG`) lives in
+// `src/i18n/config.ts` now; re-exported here so existing imports of this
+// module (`og-[lang].png.ts`, `llms.ts`, `jsonld.ts`) keep working, without
+// this file holding a second, driftable copy of the same values.
+export { DEFAULT_LANG, LANGS } from "../i18n/config.ts";
 
 /** Origen del sitio. Las URL absolutas se construyen a partir de él. */
 export const SITE_ORIGIN = "https://mcp.jmrp.io";
@@ -32,8 +38,8 @@ export const INDEXNOW_KEY = "8b3b0f3c6a883bd7d274f2cf7645921a";
  * Ruta de cada idioma. El inglés vive en la raíz
  * (`i18n.routing.prefixDefaultLocale: false`).
  *
- * El tipo es `Record<Lang, …>` a propósito: `Lang` sale de `src/i18n/ui.ts`, así
- * que añadir un idioma allí sin darle ruta aquí no compila.
+ * El tipo es `Record<Lang, …>` a propósito: `Lang` sale de `src/i18n/config.ts`,
+ * así que añadir un idioma allí sin darle ruta aquí no compila.
  */
 export const LOCALE_PATHS: Record<Lang, string> = {
   en: "/",
@@ -46,26 +52,46 @@ export const OG_LOCALES: Record<Lang, string> = {
   es: "es_ES",
 };
 
-/** Idioma cuya versión sirve de `x-default`: la raíz del sitio. */
-export const DEFAULT_LANG: Lang = "en";
-
 /** Dimensiones de la tarjeta social. Van también en `og:image:width/height`. */
 export const OG_IMAGE_SIZE = { width: 1200, height: 630 } as const;
 
 /** Nombre del sitio en `og:site_name` y en el `WebSite` del grafo JSON-LD. */
 export const SITE_NAME = "mcp.jmrp.io";
 
-/** Todos los idiomas, en orden estable. */
-export const LANGS: Lang[] = Object.keys(LOCALE_PATHS) as Lang[];
+/** Every page of the site. The key is what routes and the graph refer to. */
+export type PageId = "home" | "inspector" | "internals" | "policies" | "servers";
 
 /**
- * URL absoluta y canónica de la página de un idioma.
+ * Path of each page, relative to its language root.
  *
- * @param lang Idioma de la página.
- * @returns URL con barra final, tal cual la emite `build.format: "directory"`.
+ * Empty for the home page: `pageUrl` concatenates it to `LOCALE_PATHS`, which
+ * already carries the trailing slash. Renaming a route means changing it here
+ * and nowhere else — but only before it is published, since a live URL costs a
+ * 301 and a reindexing cycle.
+ *
+ * `servers` is the `/servers/` INDEX only — one fixed URL, like every other
+ * entry here. Each server's OWN detail page (`/servers/<id>/`) has a variable
+ * segment this map cannot express without one static entry per server id,
+ * which would turn "add a third MCP" back into a code change. See
+ * `serverPageUrl`/`serverPageAlternates` below for that page's URLs instead.
  */
-export function pageUrl(lang: Lang): string {
-  return `${SITE_ORIGIN}${LOCALE_PATHS[lang]}`;
+export const PAGE_PATHS: Record<PageId, string> = {
+  home: "",
+  inspector: "inspector/",
+  internals: "internals/",
+  policies: "policies/",
+  servers: "servers/",
+};
+
+/**
+ * Absolute canonical URL of a page in one language.
+ *
+ * @param lang Language of the page.
+ * @param page Which page; defaults to the home page.
+ * @returns URL with a trailing slash, as `build.format: "directory"` emits it.
+ */
+export function pageUrl(lang: Lang, page: PageId = "home"): string {
+  return `${SITE_ORIGIN}${LOCALE_PATHS[lang]}${PAGE_PATHS[page]}`;
 }
 
 /**
@@ -113,17 +139,61 @@ export interface Alternate {
 }
 
 /**
- * Las anotaciones hreflang que TODA página debe emitir.
+ * hreflang cluster of ONE page: every language plus `x-default`.
  *
- * La lista es la misma en las dos páginas —incluida la autorreferencia— porque
- * eso es justo lo que exige Google: cada versión lista todas las versiones,
- * ella incluida, o las anotaciones se consideran inválidas y se descartan.
+ * Per page and not per site: pointing `/es/internals/` at the English home
+ * page would be a false claim, and Google discards a cluster whose members do
+ * not agree.
  *
- * @returns Un alternate por idioma más el `x-default`.
+ * @param page Which page; defaults to the home page.
+ * @returns One entry per language plus `x-default`, self-reference included.
  */
-export function alternates(): Alternate[] {
+export function alternates(page: PageId = "home"): Alternate[] {
   return [
-    ...LANGS.map((lang) => ({ hreflang: lang, href: pageUrl(lang) })),
-    { hreflang: "x-default", href: pageUrl(DEFAULT_LANG) },
+    ...LANGS.map((lang) => ({ hreflang: lang, href: pageUrl(lang, page) })),
+    { hreflang: "x-default", href: pageUrl(DEFAULT_LANG, page) },
+  ];
+}
+
+/**
+ * Path of ONE server's detail page (`/servers/<id>/`), relative to its
+ * language root.
+ *
+ * Not built from a `PageId`: see the comment on `PAGE_PATHS` above for why a
+ * per-server route cannot be one of its fixed entries. Built from
+ * `PAGE_PATHS.servers` rather than the literal `"servers/"` so the two can
+ * never drift apart.
+ *
+ * @param id Server id, matching `McpServer.id` in `src/data/servers.ts`.
+ * @returns Path with a trailing slash, e.g. `servers/gitlab/`.
+ */
+export function serverPagePath(id: string): string {
+  return `${PAGE_PATHS.servers}${id}/`;
+}
+
+/**
+ * Absolute canonical URL of one server's detail page in one language.
+ *
+ * @param lang Language of the page.
+ * @param id Server id.
+ * @returns URL with a trailing slash, mirroring what `pageUrl` does for
+ *   fixed-path pages.
+ */
+export function serverPageUrl(lang: Lang, id: string): string {
+  return `${SITE_ORIGIN}${LOCALE_PATHS[lang]}${serverPagePath(id)}`;
+}
+
+/**
+ * hreflang cluster of ONE server's detail page: every language plus
+ * `x-default`, self-reference included — the per-server equivalent of
+ * {@link alternates}.
+ *
+ * @param id Server id.
+ * @returns One entry per language plus `x-default`.
+ */
+export function serverPageAlternates(id: string): Alternate[] {
+  return [
+    ...LANGS.map((lang) => ({ hreflang: lang, href: serverPageUrl(lang, id) })),
+    { hreflang: "x-default", href: serverPageUrl(DEFAULT_LANG, id) },
   ];
 }
