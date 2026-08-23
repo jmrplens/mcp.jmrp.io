@@ -32,23 +32,22 @@ import {
   SITE_NAME,
 } from "../lib/seo";
 
-interface Props {
+/**
+ * `canonicalOverride` and `alternatesOverride` are required together: setting
+ * one without the other would canonicalize a page to one URL while announcing
+ * a different hreflang cluster for it. A union of "both" and "neither" makes
+ * the invalid "just one" combination unrepresentable, instead of relying on a
+ * doc comment a caller can silently violate.
+ */
+type CanonicalOverride =
+  | { canonicalOverride: string; alternatesOverride: Alternate[] }
+  | { canonicalOverride?: undefined; alternatesOverride?: undefined };
+
+type Props = {
   title: string;
   description: string;
   /** Which page this is, for the canonical URL and the hreflang cluster. */
   page?: PageId;
-  /**
-   * Canonical URL for THIS page, overriding `pageUrl(lang, page)`.
-   *
-   * `PAGE_PATHS` holds one fixed path per `PageId`, which a per-server detail
-   * page (`/servers/<id>/`) cannot express — see `serverPageUrl` in
-   * `lib/seo.ts`. Required together with `alternatesOverride`; setting one
-   * without the other would canonicalize this page to one URL while
-   * announcing a different hreflang cluster for it.
-   */
-  canonicalOverride?: string;
-  /** hreflang cluster to pair with {@link canonicalOverride}. */
-  alternatesOverride?: Alternate[];
   /**
    * Server id for a per-server detail page (`/servers/<id>/`).
    *
@@ -81,7 +80,7 @@ interface Props {
    * calling the home page "Page not found".
    */
   errorPage?: boolean;
-}
+} & CanonicalOverride;
 
 const {
   title,
@@ -636,11 +635,21 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
         var drawer = document.getElementById("nav-drawer");
         var main = document.getElementById("main");
         var footer = document.querySelector(".site-footer");
+        // `.header-bar` holds the brand link, language pill, theme button
+        // and the burger itself — all still tabbable and outside the
+        // `aria-modal="true"` dialog. Without this, a keyboard user could
+        // tab from inside the open drawer straight into those controls,
+        // behind the scrim. `.menu-backdrop` (the scrim) and `#nav-drawer`
+        // itself are siblings of `.header-bar`, not inside it, so they stay
+        // interactive — that is how the scrim, the drawer's own close
+        // control, and Escape keep working while the bar is inert.
+        var headerBar = document.querySelector(".header-bar");
         if (!checkbox || !drawer) return;
 
         var setBackgroundInert = function (on) {
           if (main) main.inert = on;
           if (footer) footer.inert = on;
+          if (headerBar) headerBar.inert = on;
         };
 
         checkbox.addEventListener("change", function () {

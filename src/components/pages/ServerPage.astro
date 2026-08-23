@@ -174,8 +174,8 @@ function isRequired(arg: CardPromptArgument): boolean {
     />
 
     <div class="server-content">
-      <section class="server-family" aria-labelledby="overview-h" id="overview-h">
-        <h2 class="subsection-title">{sp.overviewHead}</h2>
+      <section class="server-family" aria-labelledby="overview-title" id="overview-h">
+        <h2 class="subsection-title" id="overview-title">{sp.overviewHead}</h2>
         <dl class="meta-grid">
           <div>
             <dt>{sp.serverInfoLabel}</dt>
@@ -204,8 +204,8 @@ function isRequired(arg: CardPromptArgument): boolean {
         </p>
       </section>
 
-      <section class="server-family" aria-labelledby="tools-h" id="tools-h">
-        <h2 class="subsection-title">
+      <section class="server-family" aria-labelledby="tools-title" id="tools-h">
+        <h2 class="subsection-title" id="tools-title">
           {t.toolsHead} <span class="count">({toolEntries.length})</span>
         </h2>
         {
@@ -236,8 +236,8 @@ function isRequired(arg: CardPromptArgument): boolean {
 
       {
         hasPrompts && (
-          <section class="server-family" aria-labelledby="prompts-h" id="prompts-h">
-            <h2 class="subsection-title">
+          <section class="server-family" aria-labelledby="prompts-title" id="prompts-h">
+            <h2 class="subsection-title" id="prompts-title">
               {t.promptsHead} <span class="count">({promptEntries.length})</span>
             </h2>
             <p class="fold-intro">{t.promptsIntro}</p>
@@ -282,8 +282,8 @@ function isRequired(arg: CardPromptArgument): boolean {
 
       {
         hasResources && (
-          <section class="server-family" aria-labelledby="resources-h" id="resources-h">
-            <h2 class="subsection-title">
+          <section class="server-family" aria-labelledby="resources-title" id="resources-h">
+            <h2 class="subsection-title" id="resources-title">
               {sp.resourcesHead} <span class="count">({resourceEntries.length})</span>
             </h2>
             <div class="entry-list">
@@ -313,8 +313,8 @@ function isRequired(arg: CardPromptArgument): boolean {
 
       {
         hasTemplates && (
-          <section class="server-family" aria-labelledby="templates-h" id="templates-h">
-            <h2 class="subsection-title">
+          <section class="server-family" aria-labelledby="templates-title" id="templates-h">
+            <h2 class="subsection-title" id="templates-title">
               {sp.templatesHead} <span class="count">({templateEntries.length})</span>
             </h2>
             <p class="fold-intro">{sp.templatesIntro}</p>

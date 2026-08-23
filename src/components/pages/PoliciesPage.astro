@@ -112,12 +112,4 @@ const homeHref = new URL(pageUrl(lang, "home")).pathname;
     max-width: var(--max-width-prose);
     margin-top: var(--space-lg-xl);
   }
-
-  /* Body copy for this page's five real prose sections. Corrected from the
-     17px/1.78 this had before (`.prose p`'s numbers, a blog post's body
-     copy) to jmrp.io's ACTUAL `.privacy-section__body`: `--text-base` is
-     15px, not `.prose`'s 17px — a policy page's running paragraphs are
-     smaller and tighter than a blog post's, and PrivacyPage.astro is the
-     real sibling to measure against, not the closest thing that happened to
-     already have a `.prose` class nearby. */
 </style>

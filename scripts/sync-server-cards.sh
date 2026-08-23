@@ -23,8 +23,8 @@
 # release y no hay motivo para que uno bloquee al otro.
 #
 # Uso:
-#   bash ops/scripts/mcp_server_cards_sync.sh           # todos los cards
-#   bash ops/scripts/mcp_server_cards_sync.sh libgen    # solo uno
+#   bash scripts/sync-server-cards.sh           # todos los cards
+#   bash scripts/sync-server-cards.sh libgen    # solo uno
 #
 # Lo llama ops/scripts/mcp_update.sh tras un despliegue que sí cambió alguna
 # versión — nunca en un ciclo horario sin novedad ("Nada que hacer").
@@ -95,7 +95,11 @@ sync_one() {
   fi
 
   chmod 644 "$tmp"
-  mv -f "$tmp" "$target"
+  if ! mv -f "$tmp" "$target"; then
+    log "  ERROR $id: no se pudo sustituir $target"
+    rm -f "$tmp"
+    return 1
+  fi
   log "  OK $id: $(jq -r '.serverInfo.version' "$target") -> ${target#"$REPO_ROOT"/}"
 }
 

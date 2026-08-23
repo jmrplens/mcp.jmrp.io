@@ -17,5 +17,5 @@ export function anchorSlug(value: string): string {
   return value
     .toLowerCase()
     .replaceAll(/[^a-z0-9]+/g, "-")
-    .replaceAll(/^-+|-+$/g, "");
+    .replaceAll(/^-|-$/g, "");
 }
