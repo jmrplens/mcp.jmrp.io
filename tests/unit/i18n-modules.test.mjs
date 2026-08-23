@@ -7,6 +7,7 @@ import { home } from "../../src/i18n/ui/home.ts";
 import { inspector } from "../../src/i18n/ui/inspector.ts";
 import { internals } from "../../src/i18n/ui/internals.ts";
 import { policies } from "../../src/i18n/ui/policies.ts";
+import { serversPage } from "../../src/i18n/ui/servers-page.ts";
 
 // `ui` merges these four with a flat spread, so two modules sharing a key
 // would silently drop one of them AND disable the missing-key type check that
@@ -35,11 +36,12 @@ test("ningún par de módulos mezclados comparte una clave", () => {
   }
 });
 
-// `internals` queda fuera de MERGED a propósito (sus claves chocan con las de
-// `common`), así que la paridad de idiomas del resto no lo cubría: era el
-// único módulo cuyo español podía quedarse corto sin que nada se quejara.
+// `internals` y `serversPage` quedan fuera de MERGED a propósito (sus claves
+// chocan con las de `common`), así que la paridad de idiomas del resto no los
+// cubría: eran los únicos módulos cuyo español podía quedarse corto sin que
+// nada se quejara.
 test("los dos idiomas exponen exactamente las mismas claves", () => {
-  for (const [name, mod] of Object.entries({ ...MERGED, internals })) {
+  for (const [name, mod] of Object.entries({ ...MERGED, internals, serversPage })) {
     assert.deepEqual(
       sorted(Object.keys(mod.en)),
       sorted(Object.keys(mod.es)),

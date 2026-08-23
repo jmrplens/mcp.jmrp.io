@@ -36,11 +36,31 @@ const PERSON_ID = "https://jmrp.io/#person";
  * `name: "Page not found"`, exactly the entity split the rest of the code
  * avoids. Pinned by `el 404 no declara identidad`.
  */
+/**
+ * Server DETAIL pages (`/servers/<id>/`, either language) — excluded below,
+ * same treatment as `404.html` but for a different reason.
+ *
+ * Every one of them shares `page: "servers"` with the `/servers/` INDEX (see
+ * Base.astro's `skipGraph` prop doc and `src/pages/servers/[server].astro`):
+ * `buildSiteGraph()` derives its `WebPage` `@id` from `pageUrl(lang, page)`,
+ * one fixed URL per `PageId`, so calling it unmodified for a detail page
+ * would make it assert the SAME `@id` as the index with a DIFFERENT
+ * name/description — the entity split this file's other tests exist to
+ * catch. Moving the WebAPI/SoftwareApplication nodes onto their own server's
+ * page is follow-up work (`servers-section-spec.md`, "Lo que arrastra");
+ * until then these pages carry NO graph at all, so they are excluded here
+ * rather than tested against a wrong one. The `/servers/` index itself is
+ * NOT excluded — its URL fits `PAGE_PATHS.servers` exactly, so its graph is
+ * complete and correct like any other page's.
+ */
+const SERVER_DETAIL_PAGE = /^(es\/)?servers\/[^/]+\/index\.html$/;
+
 function htmlPages() {
   const pages = fs
     .readdirSync(DIST, { recursive: true })
     .map(String)
-    .filter((f) => f.endsWith(".html") && f !== "404.html");
+    .filter((f) => f.endsWith(".html") && f !== "404.html")
+    .filter((f) => !SERVER_DETAIL_PAGE.test(f));
   assert.ok(pages.length > 1, "el sitio tiene al menos la raíz y /es/");
   return pages;
 }
