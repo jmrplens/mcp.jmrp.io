@@ -14,8 +14,9 @@
  * still passed as `"servers"` so the site nav highlights the right section
  * and the breadcrumb reads `~/servers` — see Base.astro's prop docs.
  *
- * `skipGraph`: see Base.astro's `skipGraph` prop doc for why this page emits
- * no JSON-LD graph yet.
+ * `serverId`: see Base.astro's `serverId` prop doc — it is what makes this
+ * page emit its OWN WebAPI/SoftwareApplication and SoftwareSourceCode nodes,
+ * instead of the `/servers/` index's identity under a different name.
  */
 import type { GetStaticPaths } from "astro";
 
@@ -53,7 +54,7 @@ const description = serverMeta.description[lang];
   page="servers"
   canonicalOverride={serverPageUrl(lang, id)}
   alternatesOverride={serverPageAlternates(id)}
-  skipGraph
+  serverId={id}
 >
   <ServerPage id={id} />
 </Base>
