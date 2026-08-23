@@ -1,9 +1,10 @@
 import "./Inspector.css";
 
-import { useState } from "preact/hooks";
+import { useLayoutEffect, useRef, useState } from "preact/hooks";
 
 import type { McpServer } from "../data/servers";
 import { type Lang, ui } from "../i18n/ui";
+import { parseDeepLink, type Tab, TABS } from "../lib/inspector-deeplink";
 import {
   type McpPrompt,
   type McpResource,
@@ -37,10 +38,6 @@ import { useMcpCall } from "./use-mcp-call";
  * localStorage, sessionStorage, cookies, query string ni console.log: al
  * recargar tienen que desaparecer.
  */
-
-/** Las tres cosas que un servidor MCP puede ofrecer, más el saludo. */
-type Tab = "tools" | "prompts" | "resources";
-const TABS: Tab[] = ["tools", "prompts", "resources"];
 
 /**
  * `initialize` es el único método que necesita parámetros: sin ellos el
@@ -78,6 +75,7 @@ export default function Inspector({
     cancelled: t.cancelled,
   });
   const { output, status, busy, elapsed, lastCmd } = call;
+
   const [serverId, setServerId] = useState(servers[0]?.id ?? "");
   /**
    * Valores de las cabeceras, en memoria y nada más. La clave lleva el id del
@@ -93,6 +91,46 @@ export default function Inspector({
   const [toolName, setToolName] = useState("");
   const [promptName, setPromptName] = useState("");
   const [resourceUri, setResourceUri] = useState("");
+  /**
+   * The deep-link `name`, waiting for the tab it targets to load its
+   * catalog. Seeded by the effect below, not here — see there for why.
+   * Cleared by `applyPendingName` the first time that catalog loads WITH a
+   * match — see there for why a miss leaves it in place instead.
+   */
+  const pendingNameRef = useRef<{ tab: Tab; name: string } | null>(null);
+
+  /**
+   * Deep link: `?server=&tab=&name=`, applied once after mount.
+   *
+   * This is a `useLayoutEffect`, not read straight into the `useState`s
+   * above, for a Preact-specific reason: `location` doesn't exist during
+   * this island's server-rendered pass, but even gating that read behind an
+   * `import.meta.env.SSR` check wouldn't work — Preact's hydration
+   * deliberately skips patching DOM attributes/properties on the very first
+   * client render (it trusts the server output already matches), so seeding
+   * `useState`'s initial value straight from the URL computes the right
+   * component STATE but that state never reaches the DOM: the `<select>`
+   * and the tab buttons stay showing the server-rendered defaults. Verified
+   * against this exact bundle by logging state inside the render (correct)
+   * versus the DOM right after (still the SSR defaults).
+   *
+   * A `useLayoutEffect` runs after that initial hydrate commit, so its
+   * `setServerId`/`setTab` calls trigger a normal (non-hydrating) re-render,
+   * which Preact DOES apply — synchronously, before the browser paints, so
+   * there is no visible flash of the wrong server or tab.
+   *
+   * Runs once: the URL never changes underneath this island (selecting from
+   * the UI never writes back to it, see the module doc), so `servers` is the
+   * only real dependency, and it never changes for a mounted island either.
+   */
+  useLayoutEffect(() => {
+    const deepLink = parseDeepLink(location.search, servers);
+    if (deepLink.serverId) setServerId(deepLink.serverId);
+    if (deepLink.tab) setTab(deepLink.tab);
+    if (deepLink.name) {
+      pendingNameRef.current = { tab: deepLink.tab ?? "tools", name: deepLink.name };
+    }
+  }, [servers]);
   /** Lo tecleado en el formulario, por nombre de argumento. */
   const [argValues, setArgValues] = useState<Record<string, string>>({});
   /** Escape para esquemas que ningún formulario representa con honestidad. */
@@ -175,16 +213,82 @@ export default function Inspector({
     setArgValues((prev) => ({ ...prev, [name]: value }));
   }
 
+  /**
+   * Applies the deep-link `name` to a catalog that just finished loading, if
+   * that catalog is the one the URL targeted.
+   *
+   * Only consumes `pendingNameRef` on an actual match. Leaving it in place on
+   * a miss — rather than clearing it unconditionally — means a transient
+   * failure (missing token, dropped request) doesn't cost the deep link its
+   * one shot: reloading the same tab tries again. A name that is genuinely
+   * not in the catalog just keeps missing harmlessly on every reload, which
+   * costs nothing more than one `Array#find` over a short list.
+   *
+   * Applies the match with the SAME state updates the manual pickers use
+   * (`chooseTool`/`choosePrompt`/`onPickResource`), but against the freshly
+   * fetched `list` rather than the `tools`/`prompts` state variables: those
+   * haven't re-rendered yet at this point in `loadCatalog`, so reading them
+   * here would see the stale (pre-load) value instead of what just arrived.
+   *
+   * @param kind Which catalog just came back.
+   * @param list The catalog, as just normalised from the server's response.
+   * @param keyOf Reads the identifier to match the pending name against —
+   *   the tool/prompt `name`, or the resource `uri` (its actual selection
+   *   key; a resource's display `name` is optional and not unique).
+   * @param select Applies the match, once found.
+   */
+  function applyPendingName<T>(
+    kind: Tab,
+    list: T[],
+    keyOf: (item: T) => string,
+    select: (item: T) => void,
+  ) {
+    const pending = pendingNameRef.current;
+    if (!pending || pending.tab !== kind) return;
+    const match = list.find((item) => keyOf(item) === pending.name);
+    if (!match) return;
+    pendingNameRef.current = null;
+    select(match);
+  }
+
   /** Los tres catálogos se piden igual; solo cambia dónde se guardan. */
   async function loadCatalog(kind: Tab) {
     const method = `${kind}/list`;
     const body = await sendRaw(method, {});
     if (kind === "tools") {
-      setTools(toolsFrom(body));
+      const list = toolsFrom(body);
+      setTools(list);
+      applyPendingName(
+        kind,
+        list,
+        (tool) => tool.name,
+        (tool) => {
+          setToolName(tool.name);
+          setArgValues({});
+          setToolArgs(skeletonFor(tool.inputSchema));
+        },
+      );
     } else if (kind === "prompts") {
-      setPrompts(promptsFrom(body));
+      const list = promptsFrom(body);
+      setPrompts(list);
+      applyPendingName(
+        kind,
+        list,
+        (prompt) => prompt.name,
+        (prompt) => {
+          setPromptName(prompt.name);
+          setArgValues({});
+        },
+      );
     } else {
-      setResources(resourcesFrom(body));
+      const list = resourcesFrom(body);
+      setResources(list);
+      applyPendingName(
+        kind,
+        list,
+        (resource) => resource.uri,
+        (resource) => setResourceUri(resource.uri),
+      );
     }
   }
 
