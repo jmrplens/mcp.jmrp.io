@@ -67,7 +67,7 @@ async function stubMcp(page: Page): Promise<Sent[]> {
 }
 
 test("el campo de token es password y no se persiste", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/inspector/");
   // Acotado a la isla: la sección de servidores es una región llamada
   // "Servers", así que un getByLabel a nivel de página es ambiguo.
   const mcp = inspector(page);
@@ -99,7 +99,7 @@ test("el campo de token es password y no se persiste", async ({ page }) => {
 test("gitlab expone su cabecera opcional y libgen no pide nada", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/inspector/");
   const mcp = inspector(page);
   await serverSelect(page).selectOption("gitlab");
   // GITLAB-URL es opcional pero no es un secreto: campo de texto normal.
@@ -115,7 +115,7 @@ test("el token del visitante viaja como cabecera PRIVATE-TOKEN", async ({
   page,
 }) => {
   const sent = await stubMcp(page);
-  await page.goto("/");
+  await page.goto("/inspector/");
   const mcp = inspector(page);
   await serverSelect(page).selectOption("gitlab");
   await mcp.getByLabel("PRIVATE-TOKEN").fill(TOKEN);
@@ -132,7 +132,7 @@ test("el token no se filtra al servidor que no lo declara", async ({
   page,
 }) => {
   const sent = await stubMcp(page);
-  await page.goto("/");
+  await page.goto("/inspector/");
   const mcp = inspector(page);
   await serverSelect(page).selectOption("gitlab");
   await mcp.getByLabel("PRIVATE-TOKEN").fill(TOKEN);
@@ -155,7 +155,7 @@ test("los argumentos del formulario viajan con su tipo, no como texto", async ({
   const sent = await stubMcpByMethod(page, (method: string) =>
     method === "tools/call" ? { json: TOOL_OK } : { json: TOOLS_LIST },
   );
-  await page.goto("/");
+  await page.goto("/inspector/");
 
   await pickTool(page, "search");
   // Se teclea en los campos del formulario, no en un JSON que haya que

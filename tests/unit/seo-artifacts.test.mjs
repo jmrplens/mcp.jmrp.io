@@ -17,6 +17,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { test } from "node:test";
 
+import { DEFAULT_LANG, LANGS, PAGE_PATHS, pageUrl } from "../../src/lib/seo.ts";
+
 // `dist` es un SYMLINK al color activo del blue/green, así que apunta a lo
 // PUBLICADO, no a lo recién construido. `DIST_DIR` permite validar un build
 // que aún no se ha desplegado (p. ej. `pnpm build:only && DIST_DIR=builds/green
@@ -269,15 +271,27 @@ test("cada entrada del sitemap declara SU x-default, no el de la portada", () =>
 });
 
 /**
- * Contenido de cada página HTML generada, indexado por ruta.
+ * Content of every generated HTML page, indexed by route.
  *
- * TODO(task-10): hoy solo cubre las dos portadas, así que canonical, hreflang,
- * OG y `<title>` de las tres páginas nuevas no se comprueban sobre el HTML
- * construido. Ampliarlo exige hacer conscientes de la página a cinco tests que
- * dan por hecha la portada, y excluir del token `MCPSSR_*` a las que no lo son.
+ * Derived from `PAGE_PATHS` — the same map the site itself builds URLs
+ * from — instead of a literal two-item list, so a page added there is
+ * automatically covered here too. Used to only cover the two home pages
+ * (`index.html`, `es/index.html`); the five tests below that consume it now
+ * get `lang` and `page` alongside the HTML, so each assertion compares
+ * against the URL of the page it is actually looking at instead of assuming
+ * the home page.
+ *
+ * @returns One entry per page/language combination the build emits.
  */
 function pages() {
-  return ["index.html", "es/index.html"].map((name) => [name, read(name)]);
+  const found = [];
+  for (const [page, dir] of Object.entries(PAGE_PATHS)) {
+    for (const lang of LANGS) {
+      const name = `${lang === "es" ? "es/" : ""}${dir}index.html`;
+      found.push({ name, html: read(name), lang, page });
+    }
+  }
+  return found;
 }
 
 /** Todos los atributos de una etiqueta, como objeto. */
@@ -318,9 +332,8 @@ function meta(html, attribute, key) {
 }
 
 test("cada página emite Open Graph y Twitter Card completos", () => {
-  for (const [name, html] of pages()) {
-    const lang = name.startsWith("es/") ? "es" : "en";
-    const url = lang === "en" ? `${ORIGIN}/` : `${ORIGIN}/es/`;
+  for (const { name, html, lang, page } of pages()) {
+    const url = pageUrl(lang, page);
 
     assert.equal(meta(html, "property", "og:type"), "website", name);
     assert.equal(meta(html, "property", "og:url"), url, `${name}: og:url`);
@@ -353,8 +366,7 @@ test("cada página emite Open Graph y Twitter Card completos", () => {
 });
 
 test("cada página se autorreferencia en hreflang", () => {
-  for (const [name, html] of pages()) {
-    const lang = name.startsWith("es/") ? "es" : "en";
+  for (const { name, html, lang, page } of pages()) {
     const byLang = new Map(
       linkTags(html)
         .filter((link) => link.hreflang)
@@ -367,16 +379,22 @@ test("cada página se autorreferencia en hreflang", () => {
       byLang.has(lang),
       `${name}: no se autorreferencia (hreflang="${lang}")`,
     );
-    assert.equal(byLang.get("en"), `${ORIGIN}/`, `${name}: hreflang en`);
-    assert.equal(byLang.get("es"), `${ORIGIN}/es/`, `${name}: hreflang es`);
-    assert.equal(byLang.get("x-default"), `${ORIGIN}/`, `${name}: x-default`);
+    assert.equal(byLang.get("en"), pageUrl("en", page), `${name}: hreflang en`);
+    assert.equal(byLang.get("es"), pageUrl("es", page), `${name}: hreflang es`);
+    // x-default points at THIS page's English version, not the home page's —
+    // same rule the "cada entrada del sitemap declara SU x-default" test
+    // above checks for the sitemap's own hreflang annotations.
+    assert.equal(
+      byLang.get("x-default"),
+      pageUrl(DEFAULT_LANG, page),
+      `${name}: x-default`,
+    );
     assert.equal(byLang.size, 3, `${name}: sobran o faltan anotaciones`);
   }
 });
 
 test("cada página declara favicon, canonical y el índice JSON", () => {
-  for (const [name, html] of pages()) {
-    const lang = name.startsWith("es/") ? "es" : "en";
+  for (const { name, html, lang, page } of pages()) {
     const links = linkTags(html);
     const has = (predicate) => links.some((link) => predicate(link));
 
@@ -385,11 +403,7 @@ test("cada página declara favicon, canonical y el índice JSON", () => {
       `${name}: sin favicon declarado no sale icono en los resultados`,
     );
     assert.ok(
-      has(
-        (l) =>
-          l.rel === "canonical" &&
-          l.href === `${ORIGIN}/${lang === "es" ? "es/" : ""}`,
-      ),
+      has((l) => l.rel === "canonical" && l.href === pageUrl(lang, page)),
       `${name}: canonical ausente o apuntando a otra URL`,
     );
     assert.ok(
@@ -400,13 +414,25 @@ test("cada página declara favicon, canonical y el índice JSON", () => {
 });
 
 test("el <title> deja sitio a la expresión por la que se busca esto", () => {
-  for (const [name, html] of pages()) {
+  for (const { name, html, page } of pages()) {
     const title = /<title>([^<]*)<\/title>/.exec(html)?.[1];
     assert.ok(title, `${name}: sin <title>`);
-    assert.ok(
-      title.includes("Model Context Protocol"),
-      `${name}: el título no contiene la keyword — solo estaba en la description`,
-    );
+
+    // Only the home page is written to rank for the broad "Model Context
+    // Protocol" query — it is the only entry point someone searching that
+    // exact phrase would land on. The inner pages target their own, narrower
+    // intent instead (trying the servers, how routing works, the legal
+    // position), and repeating the same phrase in every title would not help
+    // any of them rank for anything. Compare `common.en.metaTitle` against
+    // `inspector.en.inspectorMetaTitle` / `internals.en.metaTitle` /
+    // `policies.en.policiesMetaTitle` in `src/i18n/ui/`: only the home page's
+    // carries it, by design.
+    if (page === "home") {
+      assert.ok(
+        title.includes("Model Context Protocol"),
+        `${name}: el título no contiene la keyword — solo estaba en la description`,
+      );
+    }
     // Separadas: un `&&` en el assert no dice cuál de los dos límites se pasó.
     assert.ok(
       title.length >= 40,
@@ -476,7 +502,14 @@ test("las páginas llevan los tokens que nginx sustituye por el estado en vivo",
   //
   // En `astro preview` (los e2e) los tokens NO se sustituyen, porque los hooks
   // lua solo existen en el vhost de producción. Eso es lo esperado.
-  for (const [name, html] of pages()) {
+  //
+  // Scoped to the home pages ON PURPOSE: the live-status badge is rendered by
+  // ServerCard.astro, which only the home page includes, and nginx itself
+  // only rewrites these tokens on `location = /` and `location = /es/` (see
+  // the vhost). `/inspector/`, `/internals/` and `/policies/` never emit
+  // these tokens and are not supposed to.
+  const homePages = pages().filter((p) => p.page === "home");
+  for (const { name, html } of homePages) {
     for (const token of ["MCPSSR_LIBGEN_STATUS", "MCPSSR_GITLAB_STATUS"]) {
       assert.ok(
         html.includes(token),
