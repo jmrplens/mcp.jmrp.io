@@ -138,7 +138,13 @@ export const servers: McpServer[] = [
     id: "libgen",
     name: "libgen",
     registryName: "io.github.jmrplens/libgen-mcp",
-    version: "1.6.2",
+    // libgen-mcp 1.6.3 (2026-08-22) started serving its own SEP-1649 Server
+    // Card at `<endpoint>/.well-known/mcp/server-card.json`, same as gitlab —
+    // verified live: 200, application/json, ~33 KB, serverInfo
+    // {"name":"libgen-mcp","version":"1.6.3"}. See `nativeCard` on `McpServer`
+    // for what that flag actually does (announces it in the RFC 9727 catalog).
+    nativeCard: true,
+    version: "1.6.3",
     endpoint: "https://mcp.jmrp.io/libgen",
     repo: "https://github.com/jmrplens/libgen-mcp",
     docs: "https://github.com/jmrplens/libgen-mcp#readme",
