@@ -36,6 +36,24 @@ test("ningún par de módulos mezclados comparte una clave", () => {
   }
 });
 
+/**
+ * Leaf paths of a value, not just its top-level keys: `Object.keys` is
+ * shallow, so `insp` (53 labels nested under one key) and the `*Body` arrays
+ * in `policies` (a shorter Spanish array is still valid `Object.keys` output)
+ * both escaped this guard before. Walking the structure closes that gap.
+ */
+const leafPaths = (value, prefix = "") => {
+  if (Array.isArray(value)) {
+    return value.flatMap((item, i) => leafPaths(item, `${prefix}[${i}]`));
+  }
+  if (value && typeof value === "object") {
+    return Object.keys(value).flatMap((key) =>
+      leafPaths(value[key], prefix ? `${prefix}.${key}` : key),
+    );
+  }
+  return [prefix];
+};
+
 // `internals` y `serversPage` quedan fuera de MERGED a propósito (sus claves
 // chocan con las de `common`), así que la paridad de idiomas del resto no los
 // cubría: eran los únicos módulos cuyo español podía quedarse corto sin que
@@ -43,10 +61,10 @@ test("ningún par de módulos mezclados comparte una clave", () => {
 test("los dos idiomas exponen exactamente las mismas claves", () => {
   for (const [name, mod] of Object.entries({ ...MERGED, internals, serversPage })) {
     assert.deepEqual(
-      sorted(Object.keys(mod.en)),
-      sorted(Object.keys(mod.es)),
+      sorted(leafPaths(mod.en)),
+      sorted(leafPaths(mod.es)),
       `${name}: en y es no tienen las mismas claves`,
     );
   }
-  assert.deepEqual(sorted(Object.keys(ui.en)), sorted(Object.keys(ui.es)));
+  assert.deepEqual(sorted(leafPaths(ui.en)), sorted(leafPaths(ui.es)));
 });

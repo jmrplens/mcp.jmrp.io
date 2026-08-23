@@ -76,10 +76,15 @@ test("cada ficha de servidor define SU endpoint, y solo el suyo", async ({
     ["libgen", "https://mcp.jmrp.io/libgen"],
     ["gitlab", "https://mcp.jmrp.io/gitlab"],
   ]) {
-    await page.goto(`/servers/${id}/`);
-    const graph = await readGraph(page);
-    const apis = graph.filter((n) => hasType(n, "WebAPI"));
-    expect(apis.map((n) => n.url)).toEqual([url]);
+    // The endpoint is the SAME in both languages: the ES detail page
+    // describes the same entity, so its WebAPI carries the same `url`. What
+    // changes is the WebPage's `@id`, derived from `serverPageUrl(lang, id)`.
+    for (const prefix of ["", "/es"]) {
+      await page.goto(`${prefix}/servers/${id}/`);
+      const graph = await readGraph(page);
+      const apis = graph.filter((n) => hasType(n, "WebAPI"));
+      expect(apis.map((n) => n.url)).toEqual([url]);
+    }
   }
 });
 

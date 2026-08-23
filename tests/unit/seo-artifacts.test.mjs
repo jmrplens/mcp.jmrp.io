@@ -218,8 +218,13 @@ test("llms.txt lista las catorce páginas en los dos idiomas", () => {
     "/servers/gitlab/",
     "/es/servers/gitlab/",
   ]) {
+    // The Markdown link form `](<url>)`, not a bare substring: every URL in
+    // this file is a prefix of some other entry (`/` of everything, `/servers/`
+    // of `/servers/libgen/`…), so a bare `includes` passes even when that
+    // entry's own line is missing. `buildLlmsTxt` always emits this exact
+    // `](url)` shape (`src/lib/llms.ts`).
     assert.ok(
-      short.includes(`https://mcp.jmrp.io${path}`),
+      short.includes(`](https://mcp.jmrp.io${path})`),
       `llms.txt no menciona ${path}`,
     );
   }

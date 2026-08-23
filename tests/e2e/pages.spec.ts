@@ -15,6 +15,22 @@ import { expect, test } from "@playwright/test";
 
 const ORIGIN = "https://mcp.jmrp.io";
 
+/**
+ * The English (unprefixed) path for a page, given its OWN path and language.
+ *
+ * English lives at the root (`DEFAULT_LANG`), so a Spanish path's English
+ * counterpart is itself minus the `/es` prefix; an English path already IS
+ * that path. Pulled out to a plain function — not a ternary inline in the
+ * test body — per `playwright/no-conditional-in-test`.
+ *
+ * @param lang Language of `path` ("en" or "es", per {@link PAGES}).
+ * @param path The page's own path, as listed in {@link PAGES}.
+ * @returns The English path.
+ */
+function enPathOf(lang: string, path: string): string {
+  return lang === "es" ? path.replace(/^\/es/, "") : path;
+}
+
 const PAGES = [
   { path: "/inspector/", lang: "en", canonical: `${ORIGIN}/inspector/` },
   { path: "/es/inspector/", lang: "es", canonical: `${ORIGIN}/es/inspector/` },
@@ -73,15 +89,27 @@ for (const { path, lang, canonical } of PAGES) {
           ],
         ),
       );
-    const byLang = new Map(hreflangs);
+    // Length FIRST: `new Map(hreflangs)` silently overwrites duplicate
+    // language entries, so four links (two of them `en`) would still leave
+    // `byLang.size === 3` and pass the size check below without this.
     expect(
-      byLang.size,
+      hreflangs,
       `${path}: sobran o faltan anotaciones hreflang`,
-    ).toBe(3);
+    ).toHaveLength(3);
+    const byLang = new Map(hreflangs);
+    expect(byLang.size, `${path}: hay hreflangs duplicados`).toBe(3);
+
+    // x-default points at the default language's URL, same as `en` here.
+    const basePath = enPathOf(lang, path);
+    const enUrl = `${ORIGIN}${basePath}`;
+    const esUrl = `${ORIGIN}/es${basePath}`;
+
     expect(byLang.get(lang), `${path}: no se autorreferencia`).toBe(canonical);
-    expect(byLang.get("en"), `${path}: sin hreflang en`).toBeTruthy();
-    expect(byLang.get("es"), `${path}: sin hreflang es`).toBeTruthy();
-    expect(byLang.get("x-default"), `${path}: sin x-default`).toBeTruthy();
+    expect(byLang.get("en"), `${path}: hreflang en incorrecto`).toBe(enUrl);
+    expect(byLang.get("es"), `${path}: hreflang es incorrecto`).toBe(esUrl);
+    expect(byLang.get("x-default"), `${path}: x-default incorrecto`).toBe(
+      enUrl,
+    );
   });
 }
 

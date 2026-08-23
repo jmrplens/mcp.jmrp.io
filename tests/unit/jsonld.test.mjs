@@ -13,8 +13,17 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { test } from "node:test";
 
+import { serverCards } from "../../src/data/server-cards.ts";
 import { servers } from "../../src/data/servers.ts";
 import { PAGE_PATHS, pageUrl, serverPageUrl } from "../../src/lib/seo.ts";
+
+// The build only creates a detail page for a server with a committed card
+// (`servers.filter((server) => serverCards[server.id])` in `src/lib/llms.ts`
+// — a server can be listed in `servers.ts` before its snapshot lands). Every
+// loop below that reads a `servers/<id>/index.html` file has to walk THIS
+// set, not `servers` itself, or a card-less server makes `graphOf()` fail on
+// a missing file instead of reporting an actual graph problem.
+const cardServers = servers.filter((server) => serverCards[server.id]);
 
 // `dist` es un SYMLINK al color activo del blue/green, así que apunta a lo
 // PUBLICADO, no a lo recién construido. `DIST_DIR` permite validar un build
@@ -115,7 +124,7 @@ test("el WebAPI y su SoftwareSourceCode viven SOLO en la ficha de su servidor (e
   // full on the home page AND on `/servers/`, and absent from the one page
   // that should carry them — the server's own detail page. Now exactly two
   // pages (en/es) define each pair, and every other page must not.
-  for (const server of servers) {
+  for (const server of cardServers) {
     const apiId = apiIdOf(server);
     const sourceId = sourceIdOf(server);
     const apiPages = [];
@@ -153,7 +162,7 @@ test("el WebAPI de un servidor declara los MISMOS datos en sus dos idiomas", () 
   // `/es/servers/<id>/`), so the two pages describing it must agree on every
   // field — this is the data-drift risk "reference, don't redefine" exists
   // to close off.
-  for (const server of servers) {
+  for (const server of cardServers) {
     const enApi = graphOf(`servers/${server.id}/index.html`).find(
       (n) => n["@id"] === apiIdOf(server),
     );
@@ -440,7 +449,7 @@ test("cada página se empareja con su traducción, no con la portada", () => {
 });
 
 test("cada ficha de servidor se empareja con SU traducción, no con la del índice", () => {
-  for (const server of servers) {
+  for (const server of cardServers) {
     const graph = graphOf(`servers/${server.id}/index.html`);
     const webpage = graph.find((n) => n["@type"] === "WebPage");
     assert.equal(

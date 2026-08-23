@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { serverCards } from "../../src/data/server-cards";
+
 /**
  * Los plegables de las fichas, y lo que las reemplazó.
  *
@@ -20,10 +22,14 @@ test("la ficha de un servidor enlaza a /servers/<id>/ con las cuentas reales, si
   const gitlabLink = page.locator("#gitlab .server-card-link a");
   await expect(gitlabLink).toBeVisible();
   await expect(gitlabLink).toHaveAttribute("href", "/servers/gitlab/");
-  // 37 prompts reales del card SEP-1649, no los 0 que tenía la lista curada
-  // de `servers.ts` — ver el comentario de `card` en ServerCard.astro.
+  // Derived from the committed card snapshot (`src/data/cards/gitlab.json`),
+  // not hardcoded: `scripts/sync-server-cards.sh` replaces that file on
+  // every GitLab release, so a fixed number would fail on an upstream prompt
+  // addition with no real site regression — see the `card` comment in
+  // ServerCard.astro for why this counts the FULL card, not the curated
+  // `servers.ts` list (which has 0).
   await expect(page.locator("#gitlab .server-card-counts")).toContainText(
-    "37",
+    String(serverCards.gitlab.prompts.length),
   );
 });
 
@@ -64,7 +70,7 @@ test("el resumen de un plegable que queda es alcanzable por teclado y tiene áre
   await expect(client).toHaveAttribute("open", /.*/);
 });
 
-test("el aviso del token llega ABIERTO; la tranquilización nunca sin las cautelas", async ({
+test("el aviso del token llega CERRADO pero abre; la tranquilización nunca sin las cautelas", async ({
   page,
 }) => {
   await page.goto("/");
