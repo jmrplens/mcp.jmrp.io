@@ -29,7 +29,7 @@ const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h
     inspector. */}
 <article class="card" id={server.id}>
   <header class="card-head">
-    <h2>{server.name}</h2>
+    <h3>{server.name}</h3>
     <span class={needsAuth ? "badge badge-auth" : "badge"}>
       {needsAuth ? t.credentialsRequired : t.noCredentials}
     </span>
@@ -89,7 +89,7 @@ const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h
 
   <details class="fold fold-tools">
     <summary>
-      <h3 class="fold-label">{t.toolsHead} — {server.name}</h3>
+      <h4 class="fold-label">{t.toolsHead} — {server.name}</h4>
       <span class="fold-peek">
         {server.tools.map((tool, i) => (
           <>
@@ -119,7 +119,7 @@ const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h
     server.prompts?.length ? (
       <details class="fold fold-prompts">
         <summary>
-          <h3 class="fold-label">{t.promptsHead} — {server.name}</h3>
+          <h4 class="fold-label">{t.promptsHead} — {server.name}</h4>
           <span class="fold-peek">
             {server.prompts.map((prompt, i) => (
               <>
@@ -144,11 +144,11 @@ const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h
 
   {/* La configuración por cliente, plegada como las tools: la pregunta que
       trae a la gente a un endpoint alojado, contestada en el dominio y no en
-      el sitio de documentación de cada servidor. El título es un <h3> en
+      el sitio de documentación de cada servidor. El título es un <h4> en
       forma de pregunta, como los avisos: es un ancla de extracción más. */}
   <details class="fold fold-client">
     <summary>
-      <h3 class="fold-label">{t.clientHead.replace("{server}", () => server.name)}</h3>
+      <h4 class="fold-label">{t.clientHead.replace("{server}", () => server.name)}</h4>
     </summary>
     <ClientSetup server={server} lang={lang} />
   </details>
@@ -161,7 +161,7 @@ const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h
        el problema de scroll que motivó los plegables era real, solo estaba
        resuelto sobre el aviso equivocado.
 
-       El título va en un <h3> DENTRO del summary (válido en HTML): sin él la
+       El título va en un <h4> DENTRO del summary (válido en HTML): sin él la
        página tenía 734 palabras colgando de dos H2, y los recuperadores
        trocean por encabezados — cada aviso pasa a ser un pasaje con ancla
        propia. */
@@ -178,7 +178,7 @@ const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h
         open={notice.kind === "security"}
       >
         <summary>
-          <h3 class="fold-label">{notice.title[lang]}</h3>
+          <h4 class="fold-label">{notice.title[lang]}</h4>
         </summary>
         <Notice notice={notice} lang={lang} />
         {
@@ -222,12 +222,22 @@ const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h
     justify-content: space-between;
   }
 
-  h2 {
+  /* Was an `<h2>` sitting right under the section's own `<h2 class="eyebrow">`
+     (HomePage.astro's "servers-h") — two h2s in a row, with the card title
+     never nested under the section heading it belongs to. Demoted to `<h3>`
+     (the fold labels below move from h3 to h4 to stay one level under this),
+     which also makes it the site's one real, visible sub-heading — matching
+     jmrp.io's own h2(eyebrow)-then-h3(real title) pattern for its featured
+     project cards (`.proj-card__title`, HomePage.astro there): `--text-xl`
+     (20px, not 24px) and `--fw-medium` (500, not 700) — jmrp's card titles
+     are not bold, only the eyebrow-vs-title SIZE contrast carries the
+     hierarchy. */
+  h3 {
     margin: 0;
     color: var(--color-text-heading);
     font-family: var(--font-display);
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: var(--text-xl);
+    font-weight: var(--fw-medium);
     letter-spacing: -0.01em;
   }
 
@@ -386,9 +396,11 @@ const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h
     outline-offset: 2px;
   }
 
-  /* Vale para el <span> antiguo y para el <h3> actual: el heading llega con
-     márgenes y tamaño de título de base.css y aquí se le da aspecto de
-     etiqueta. Sigue siendo un encabezado para el outline y los extractores. */
+  /* Vale para el <span> antiguo y para el <h4> actual (antes <h3>, movido un
+     nivel abajo cuando el nombre del servidor pasó de <h2> a <h3> — ver la
+     regla `h3` arriba): el heading llega con márgenes y tamaño de título de
+     base.css y aquí se le da aspecto de etiqueta. Sigue siendo un encabezado
+     para el outline y los extractores. */
   .fold-label {
     /* flex:1 con basis 0: el summary tiene flex-wrap, y el salto de línea se
        decide por la BASE del ítem (su max-content), no por el shrink — así

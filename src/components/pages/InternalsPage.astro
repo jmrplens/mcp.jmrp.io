@@ -154,7 +154,7 @@ const M = {
   <a href={homeHref}>{shared.backToHome}</a>
 </p>
 
-<h1>{t.title}</h1>
+<h1 class="subpage-title">{t.title}</h1>
 
 <p class="internals-intro">{t.lede}</p>
 
@@ -422,20 +422,12 @@ const M = {
 
 <style>
 
-  /* Same rule as HomePage's `h1`: Astro scopes <style> per component, so the
-     shared look needs its own copy here. Every page needs an <h1> — without
-     one the document has no top-level heading and html-validate rejects the
-     jump straight to <h2>. */
-  h1 {
-    max-width: 22ch;
-    margin: 0 0 1.25rem;
-    color: var(--color-text-heading);
-    font-family: var(--font-display);
-    font-size: clamp(2.25rem, 6vw, 3.25rem);
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1.05;
-  }
+  /* Heading size lives in base.css's `.subpage-title` now — Inspector and
+     Policies already used it; this page had its own hand-copied clamp
+     (2.25rem→3.25rem, not 2.125rem→3.25rem) left over from before this page
+     could be touched. Dropped in favor of the shared class so all three
+     subpages share one rule, per base.css's `.subpage-title` comment. */
+
   /* Copied from PoliciesPage.astro / InspectorPage.astro's shared rules:
      Astro scopes <style> per component, so a class used on more than one
      page needs its own copy here. */
@@ -470,17 +462,23 @@ const M = {
 
   /* Eyebrow with `//`, painted from CSS so it does NOT exist in the DOM —
      `textContent`-based extractors would otherwise read the heading as
-     "//The path of a request". See HomePage.astro for the full rationale. */
+     "//The path of a request". See HomePage.astro for the full rationale,
+     and for the numbers matched against jmrp.io's `.section-title`: this
+     page's `.eyebrow` was the one copy left at the old bare 0.75rem/12px,
+     `font-weight: 600` and muted color from before this page could be
+     touched — HomePage.astro and PoliciesPage.astro already carry the fixed
+     `--text-label` (12.5px) / `--fw-medium` (500) / 0.16em / full accent
+     color version. */
   .eyebrow {
     display: flex;
     gap: 0.6rem;
     align-items: center;
     margin: 0 0 1.25rem;
-    color: var(--color-text-muted);
+    color: var(--color-accent);
     font-family: var(--font-mono);
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.12em;
+    font-size: var(--text-label);
+    font-weight: var(--fw-medium);
+    letter-spacing: 0.16em;
     text-transform: uppercase;
   }
 

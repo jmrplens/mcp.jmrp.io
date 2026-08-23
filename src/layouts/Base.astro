@@ -665,9 +665,9 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
     gap: var(--space-4, 1rem);
     /* width: 100% es obligatorio: body es un flex en columna y `margin-inline:
        auto` sobre un hijo flex ANULA el stretch del eje cruzado, encogiendo la
-       franja al ancho de su contenido en vez de llegar a los 72rem. */
+       franja al ancho de su contenido en vez de llegar a --max-width-container. */
     width: 100%;
-    max-width: 72rem;
+    max-width: var(--max-width-container);
     margin-inline: auto;
     padding: 1rem var(--pad, 1.5rem);
     font-family: var(--font-mono);
@@ -1112,9 +1112,19 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
     color: var(--color-text-muted);
   }
 
+  /* Content width: was a hardcoded 72rem (1152px), measured against jmrp.io
+     at 1265px-wide `<main>` (typography-report-2). jmrp.io's `<main>` is
+     itself unconstrained — that 1265px is just the 1280px viewport minus the
+     scrollbar — but its actual reading-width constraint, applied to every
+     header/content/footer container via `.container` (utilities.css), is
+     `--max-width-container` (1200px). That token already exists here,
+     byte-for-byte identical (tokens.css), just unused by `main`. Switching to
+     it (from the header/footer band above too, so all three stay
+     edge-aligned) replaces a magic number with the shared token instead of
+     hand-copying jmrp.io's incidental 1265px. */
   main {
     width: 100%;
-    max-width: 72rem;
+    max-width: var(--max-width-container);
     margin-inline: auto;
     padding: 0 var(--pad, 1.5rem);
   }
