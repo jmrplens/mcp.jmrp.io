@@ -114,6 +114,12 @@ const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
     <a href="/servers.json"><code>/servers.json</code></a>
     <span>— {t.machineIndex}</span>
   </p>
+  {/* Same pointer pattern as `/servers.json` above, for the llmstxt.org
+      index — see the `<link>` of the same name in Base.astro's <head>. */}
+  <p class="machine">
+    <a href="/llms.txt"><code>/llms.txt</code></a>
+    <span>— {t.machineLlms}</span>
+  </p>
 </section>
 
 {/* Visible freshness INSIDE <main>. It used to close the "Privacy & data"

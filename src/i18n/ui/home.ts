@@ -33,6 +33,8 @@ export const home = {
     serversIntro:
       "Both servers speak streamable HTTP: one POST per JSON-RPC 2.0 call, stateless — no session header — answering JSON or an SSE stream depending on your Accept header (application/json, text/event-stream). A GET to an endpoint returns 405 by design.",
     machineIndex: "Machine-readable index",
+    /** Same idea as `machineIndex`, for the `/llms.txt` pointer below it. */
+    machineLlms: "Context index for AI assistants",
     // Comparison table strings. The table answers the question that actually
     // brings people to a hosted MCP endpoint — "which of these two do I
     // want?" — and it is a table on purpose: AI Overviews extracts tables
@@ -87,6 +89,8 @@ export const home = {
     serversIntro:
       "Ambos servidores hablan streamable HTTP: un POST por llamada JSON-RPC 2.0, sin estado — sin cabecera de sesión — respondiendo JSON o un stream SSE según tu cabecera Accept (application/json, text/event-stream). Un GET al endpoint devuelve 405 a propósito.",
     machineIndex: "Índice para máquinas",
+    /** Ver `en.machineLlms`: mismo patrón para el puntero a `/llms.txt`. */
+    machineLlms: "Índice de contexto para asistentes de IA",
     compareHead: "¿Cuál de los dos quiero?",
     compareIntro:
       "Los dos hablan el mismo protocolo sobre el mismo transporte. Lo que cambia es hasta dónde llegan y si te piden una credencial.",

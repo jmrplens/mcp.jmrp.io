@@ -139,6 +139,16 @@ const t = ui[lang];
       title="MCP server index"
     />
 
+    {/* Mismo motivo que el `<link>` de arriba, para `/llms.txt`: el diseño ya
+        daba por hecho que la portada apuntaba a los dos, pero este nunca se
+        había llegado a añadir. */}
+    <link
+      rel="alternate"
+      type="text/plain"
+      href="/llms.txt"
+      title="llms.txt index"
+    />
+
     <meta name="color-scheme" content="light dark" />
 
     {/* Icono en SVG, no .ico: el vhost contesta 204 a /favicon.ico (viene del
