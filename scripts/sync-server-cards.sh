@@ -128,6 +128,12 @@ main() {
     log "Server Cards con error: $failed(el resto sí se actualizó)"
     exit 1
   fi
+
+  # Explícito por claridad, no porque arreglara nada: comprobado que un `if`
+  # cuya condición no se cumple ya devuelve 0, así que el camino de éxito
+  # salía bien igualmente. Se deja escrito para que el contrato de la función
+  # se lea sin tener que recordar esa regla de bash.
+  return 0
 }
 
 main "$@"
