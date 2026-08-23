@@ -48,40 +48,48 @@ export const internals = {
     affinityCodeComment: "# the real value is never published",
     affinityConsequence:
       "The practical effect: because egress is also fixed per instance (next section), landing on the same node means your calls keep appearing to come from the same country — stable, not alternating request to request.",
-    /** Caption for the affinity diagram figure. The diagram's own text (SVG,
-     * `aria-hidden`) never carries meaning on its own — this caption plus the
-     * surrounding prose above are the accessible equivalent, and have to
-     * carry the full substance on their own for anyone who never sees the
-     * animation: a crawler, an assistant reading this page, or a visitor
-     * with `prefers-reduced-motion` on. Deliberately no branch by server
-     * here — see `InternalsPage.astro`'s header comment for why the
-     * previous version of this diagram drew one and got rejected. One
-     * client, one nginx, one pool of nodes: libgen and gitlab differ only in
-     * which key nginx computes, never in the shape of the pipeline. */
-    diagramCaption:
-      'The loop plays two passes. First, several requests with no token: nginx keys on your IP address, and every single one lands on the same node — so every one leaves through the same country. Then several requests with a token: nginx keys on an MD5 of a secret salt plus your PRIVATE-TOKEN, and again every one lands on one node — just not necessarily the same node as the first pass. The faint node marked "+", behind the real ones, stands for however many more the pool grows to: the diagram does not need to change shape if it does.',
-    /** Label for the client in the diagram, next to the repeated dots that
-     * stand for "several requests in a row" — see `diagramCaption`. */
-    diagramClientLabel: "you",
-    /** Sign under nginx, pass 1 (no token — libgen's real case): mode, the
-     * key nginx computes, the outcome. Kept separate from `affinityLibgen`'s
-     * full sentence above because a diagram label has no room for one.
-     * `diagramPass1Key`/`diagramPass2Key` are pre-wrapped by hand into the
-     * lines the sign actually draws — one line is plenty for pass 1's short
-     * formula, but pass 2's is long enough that it overflows the sign at any
-     * font size still legible on a 360px screen. Wrapping it here, once, in
-     * plain language, beats measuring text width in CSS. */
-    diagramPass1Mode: "no token",
-    diagramPass1Key: ["key = your IP address"],
-    /** Sign under nginx, pass 2 (with token — gitlab's real case). See
-     * `affinityCodeIntro`/`affinityCodeComment` for why the salt itself is
-     * never shown: this label names the formula, not the value. */
-    diagramPass2Mode: "with token",
-    diagramPass2Key: ["key = MD5(secret salt", "+ PRIVATE-TOKEN)"],
-    /** Third line of the sign, identical in both passes on purpose: the
-     * point is that the same client always gets the same answer, whichever
-     * key it was keyed on. */
-    diagramResultLine: "→ always the same node",
+    /** Caption for the request-path figure. The diagram itself is decorative
+     * (its shapes carry no text of their own); the strip's stage names and
+     * the node numbers/countries are real HTML, and the numbered timeline
+     * right below the figure carries the full detail — this caption is just
+     * a one-line frame for the figure, not the accessible equivalent on its
+     * own. Deliberately no branch by server here — see
+     * `InternalsPage.astro`'s header comment for why an earlier version of
+     * this diagram drew one and got rejected. One client, one nginx, one
+     * pool of nodes: libgen and gitlab differ only in which key nginx
+     * computes, never in the shape of the pipeline. */
+    diagramCaption: "The same five hops every request crosses, and why the same client always lands on the same node.",
+    /** Stage labels along the strip. `Cloudflare`/`nginx` are proper
+     * nouns/product names, identical in both languages — see how the rest
+     * of this file already treats them (e.g. `affinityIntro`). */
+    diagramStageClient: "you",
+    diagramStageNodes: "nodes",
+    diagramStageEgress: "egress",
+    diagramStageDestination: "destination",
+    /** The five annotation bubbles, cycled one at a time beside the strip —
+     * short by design, the full detail lives in `diagramTimelineStep1..5`
+     * below. Order and substance match the approved spec's bubble table
+     * exactly (`.superpowers/sdd/internals-diagram-spec.md`). */
+    diagramBubble1: "Your client opens the request, with a PRIVATE-TOKEN or without one",
+    diagramBubble2: "Cloudflare passes it through to the origin",
+    diagramBubble3: "Here the key gets computed: your IP, or the token's hash",
+    diagramBubble4: "The same key always picks the same node",
+    diagramBubble5: "That node exits through its fixed country",
+    /** Lead-in line for the prose timeline right below the figure — not a
+     * heading (this page's heading levels are already accounted for), just
+     * enough of a sentence for the numbered list to read naturally on its
+     * own, including for anyone who never saw the figure above it. */
+    diagramTimelineIntro: "The same five steps, in full:",
+    diagramTimelineStep1:
+      "It starts on your machine: your MCP client sends the request to whichever endpoint you pointed it at, /libgen or /gitlab, carrying a PRIVATE-TOKEN header if that server needs one — gitlab does, libgen does not.",
+    diagramTimelineStep2:
+      "Cloudflare receives it at the edge and forwards it, unchanged, to the home server that fronts both MCPs.",
+    diagramTimelineStep3:
+      "nginx turns the request into a routing key: your IP address if there is no token, or an MD5 of a secret salt plus your PRIVATE-TOKEN if there is — see the directive above for exactly how.",
+    diagramTimelineStep4:
+      "That key feeds a consistent-hash balancer, which is why it keeps choosing the same one of the three running instances for you — never a different one from one call to the next.",
+    diagramTimelineStep5:
+      "That instance always leaves through the same country — Spain or the United Kingdom, fixed per instance — so your calls keep appearing to come from the same place instead of alternating.",
 
     egressEyebrow: "Egress: which country a request leaves from",
     egressBody: [
@@ -129,19 +137,33 @@ export const internals = {
     affinityCodeComment: "# el valor real no se publica",
     affinityConsequence:
       "El efecto práctico: como el egreso también es fijo por instancia (siguiente sección), caer en el mismo nodo significa que tus llamadas siguen pareciendo venir del mismo país — estable, no alternando de una petición a la siguiente.",
-    /** Ver `en.diagramCaption`: leyenda de la figura del diagrama de afinidad. */
+    /** Ver `en.diagramCaption`: leyenda breve de la figura del camino de la petición. */
     diagramCaption:
-      'El bucle hace dos pasadas. Primero, varias peticiones sin token: nginx calcula la clave sobre tu dirección IP, y todas y cada una caen en el mismo nodo — así que todas salen por el mismo país. Luego, varias peticiones con token: nginx calcula la clave sobre un MD5 de una sal secreta más tu PRIVATE-TOKEN, y de nuevo todas caen en un mismo nodo — no necesariamente el mismo de la primera pasada. El nodo tenue marcado "+", detrás de los reales, representa cuantos más haga falta añadir al conjunto: el diagrama no necesita cambiar de forma si eso ocurre.',
-    /** Ver `en.diagramClientLabel`: etiqueta del cliente en el diagrama, junto a los puntos repetidos. */
-    diagramClientLabel: "tú",
-    /** Ver `en.diagramPass1Mode`/`diagramPass1Key`: cartel bajo nginx, pasada 1 (sin token — caso libgen). */
-    diagramPass1Mode: "sin token",
-    diagramPass1Key: ["clave = tu dirección IP"],
-    /** Ver `en.diagramPass2Mode`/`diagramPass2Key`: cartel bajo nginx, pasada 2 (con token — caso gitlab). */
-    diagramPass2Mode: "con token",
-    diagramPass2Key: ["clave = MD5(sal secreta", "+ PRIVATE-TOKEN)"],
-    /** Ver `en.diagramResultLine`: tercera línea del cartel, igual en las dos pasadas a propósito. */
-    diagramResultLine: "→ siempre el mismo nodo",
+      "Los mismos cinco saltos que cruza toda petición, y por qué el mismo cliente cae siempre en el mismo nodo.",
+    /** Ver `en.diagramStageClient` etc.: etiquetas de la tira. */
+    diagramStageClient: "tú",
+    diagramStageNodes: "nodos",
+    diagramStageEgress: "salida",
+    diagramStageDestination: "destino",
+    /** Ver `en.diagramBubble1..5`: los cinco globos, texto literal de la
+     * especificación aprobada (`.superpowers/sdd/internals-diagram-spec.md`). */
+    diagramBubble1: "Tu cliente abre la petición, con PRIVATE-TOKEN o sin él",
+    diagramBubble2: "Cloudflare la pasa al origen",
+    diagramBubble3: "Aquí se calcula la clave: tu IP, o el hash del token",
+    diagramBubble4: "La misma clave elige siempre el mismo nodo",
+    diagramBubble5: "Ese nodo sale por su país fijo",
+    /** Ver `en.diagramTimelineIntro`. */
+    diagramTimelineIntro: "Los mismos cinco pasos, completos:",
+    diagramTimelineStep1:
+      "Empieza en tu máquina: tu cliente MCP envía la petición al endpoint al que lo apuntaste, /libgen o /gitlab, con una cabecera PRIVATE-TOKEN si ese servidor la necesita — gitlab sí, libgen no.",
+    diagramTimelineStep2:
+      "Cloudflare la recibe en el borde y la reenvía, sin tocarla, al servidor de casa que da la cara por los dos MCP.",
+    diagramTimelineStep3:
+      "nginx convierte la petición en una clave de enrutado: tu dirección IP si no hay token, o un MD5 de una sal secreta más tu PRIVATE-TOKEN si lo hay — ver la directiva de arriba para el detalle exacto.",
+    diagramTimelineStep4:
+      "Esa clave alimenta un balanceador por hash consistente, por eso elige siempre la misma de las tres instancias en marcha para ti — nunca una distinta de una llamada a la siguiente.",
+    diagramTimelineStep5:
+      "Esa instancia sale siempre por el mismo país — España o Reino Unido, fijo por instancia — así que tus llamadas siguen pareciendo venir del mismo sitio en vez de alternar.",
 
     egressEyebrow: "Egreso: de qué país sale una petición",
     egressBody: [

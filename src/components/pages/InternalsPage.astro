@@ -13,7 +13,7 @@
  * `metaTitle`/`title`/`lede` would silently mask `common`'s keys of the same
  * name under a flat spread).
  *
- * AFFINITY DIAGRAM — REDESIGNED, not tweaked. The previous version drew a
+ * REQUEST-PATH DIAGRAM — REPLACED, not tweaked, twice over. Attempt 1 drew a
  * shared trunk forking into a libgen branch and a gitlab branch, as if nginx
  * chose the destination server per request. It does not: a client points
  * its MCP client at mcp.jmrp.io/libgen OR at mcp.jmrp.io/gitlab, and that
@@ -21,19 +21,29 @@
  * what selects the server (two separate `location` blocks in the vhost,
  * each with its own `upstream`; see `docs/nginx-vhost-reference.conf`).
  * Drawing that as a fork taught content-based routing, which is exactly the
- * one thing that is not happening. It also read badly on narrow screens,
- * partly for the same reason: half the drawing was a branch a mobile
- * visitor did not need.
+ * one thing that is not happening. Attempt 2 fixed that (one chain, played
+ * twice in a loop to contrast the IP-keyed and token-keyed passes) but was
+ * still, in the author's words, "an animation of dots travelling" rather
+ * than an infographic, and did not read well on narrow screens.
  *
- * The rebuild draws ONE chain — client → Cloudflare → nginx → one of N
- * nodes, each with its own fixed egress country — and plays it twice, in a
- * loop, instead of twice, side by side: pass 1 keys nginx's decision on the
- * client's IP (libgen's real case, no token to use), pass 2 keys it on a
- * salted token (gitlab's real case). Same nodes, same positions, only the
- * sign under nginx and which node lights up change between the two passes.
- * A fork in TIME, never in SPACE — see the "layout math" section below for
- * where that plays out in the markup, and `topology.ts`'s header comment for
- * why the node pool this diagram draws is `topology.libgen` for BOTH passes.
+ * This build is neither: a compact horizontal strip (client → Cloudflare →
+ * nginx → one of N nodes → egress → destination), ALWAYS static — nothing
+ * in the strip itself moves or travels. What plays, in a loop, is a set of
+ * five numbered annotation bubbles below it, one at a time, each pointing at
+ * the strip piece it describes and highlighting that piece for as long as
+ * it is shown (see the approved spec at
+ * `.superpowers/sdd/internals-diagram-spec.md` for the exact bubble
+ * sequence and the non-negotiables). The bubble area reserves a FIXED
+ * height (the tallest bubble's) so the page never jumps as they cycle —
+ * that fixed reservation is the whole point: it is what "an infographic",
+ * not "an animation", means in CSS terms here.
+ *
+ * The bubbles describe the mechanism in general terms (with a token, or
+ * without one) rather than singling out libgen vs gitlab or which specific
+ * node a given request lands on — see `topology.ts`'s header comment for
+ * why the node pool this diagram draws is `topology.libgen` alone, and the
+ * numbered prose timeline right below the figure for the full detail, in
+ * real HTML, that the bubbles deliberately keep short.
  */
 import type { McpInstance } from "../../data/topology";
 import { topology } from "../../data/topology";
@@ -71,83 +81,44 @@ set_by_lua_block $mcp_affinity {
     return ngx.var.remote_addr or ""
 }`;
 
-// ===== Affinity diagram — layout math (build-time, no runtime JS) ==========
+// ===== Request-path diagram — build-time data, no runtime JS ===============
 //
 // Everything below runs once, on the server, while Astro renders this page's
 // HTML. None of it ships to the browser: the diagram that reaches the client
-// is plain, static SVG plus CSS animations (see the <style> block). This is
-// what "no JavaScript on this page" (Restriction) means in practice — the
-// computation happens, just not where a crawler or an assistant would have
-// to run it.
+// is a static strip (plain HTML/CSS, no SVG, nothing draws or travels) plus
+// five annotation bubbles cycled by CSS animations alone (see the <style>
+// block). This is what "no JavaScript on this page" (Restriction) means in
+// practice — the computation happens, just not where a crawler or an
+// assistant would have to run it.
 
-// "How many circles fit legibly", not an infrastructure fact — capped so the
+// "How many badges fit legibly", not an infrastructure fact — capped so the
 // diagram folds anything beyond it into the dim "+" ghost node instead of
 // needing a redraw if the real pool grows.
 const MAX_DRAWN_NODES = 3;
 
-// The pool of real nodes this diagram draws, for BOTH passes of the
-// animation — see this file's header comment and `topology.ts`'s for why
-// reusing one server's real, verified pool here is deliberate: the diagram
-// no longer claims to show which server, only the mechanism every server
-// uses. `overflowCount` is 0 with the pool at its current size (3), so the
-// ghost node renders a bare "+"; if a future instance count exceeds
-// `MAX_DRAWN_NODES`, it renders "+N" instead — see the SVG below.
+// The pool of real nodes this diagram draws — see this file's header
+// comment and `topology.ts`'s for why reusing one server's real, verified
+// pool here is deliberate: the diagram no longer claims to show which
+// server, only the mechanism every server uses. `overflowCount` is 0 with
+// the pool at its current size (3), so the ghost node renders a bare "+";
+// if a future instance count exceeds `MAX_DRAWN_NODES`, it renders "+N"
+// instead — see the markup below.
 const nodes: McpInstance[] = topology.libgen.slice(0, MAX_DRAWN_NODES);
 const overflowCount = topology.libgen.length - nodes.length;
 
-// Which drawn node lights up in each pass. ILLUSTRATIVE, not the real
-// affinity algorithm — same caveat the previous version of this diagram
-// carried: computing the real result needs `$mcp_affinity_salt`, the secret
-// this page never has (see `affinitySnippet` above). The two indices only
-// need to differ, which is the entire point of the two-pass loop: a
-// different node the second time, but still exactly one either time.
-const PASS1_NODE_INDEX = 0; // "no token" pass — libgen's real algorithm (hash on IP)
-const PASS2_NODE_INDEX = Math.min(2, nodes.length - 1); // "with token" pass — gitlab's real algorithm
+// The node the reduced-motion frozen frame rings as "the chosen one" (see
+// the `prefers-reduced-motion` rules in the <style> block). ILLUSTRATIVE,
+// not the real affinity outcome for any actual client — computing that
+// needs `$mcp_affinity_salt`, the secret this page never has (see
+// `affinitySnippet` above). Any index works; the point the ring makes is
+// "always this same one", not "specifically this one".
+const MATCHED_NODE_INDEX = 0;
 
 /** "GB", the ISO code `topology.ts` stores, is spelled "UK" here — the form
  * the prose above already uses. "ES" reads the same either way. */
 function countryTag(country: McpInstance["egressCountry"]): string {
   return country === "ES" ? "ES" : "UK";
 }
-
-// Desktop coordinates — viewBox 0 0 410 180. Hand-placed, not derived from
-// `nodes.length`: with a hard cap at MAX_DRAWN_NODES there is no variable
-// count to lay out procedurally, and fixed numbers are what the CSS
-// keyframes below need to target anyway (see the <style> block, which
-// repeats these same numbers on purpose — the previous version of this file
-// used the same convention, for the same reason: SVG and animation have to
-// agree pixel-for-pixel, and a shared source of truth for "the numbers"
-// would still have to be copy-pasted into plain CSS keyframes either way).
-// `sign.width` stops at the spine (`spineX`) on purpose, so the sign never
-// paints over the branch lines to the node pool.
-const D = {
-  client: { x: 28, y: 40 },
-  cloudflare: { x: 110, y: 40 },
-  nginx: { x: 210, y: 40 },
-  spineX: 300,
-  nodeX: 360,
-  nodeY: [10, 50, 90],
-  ghostY: 130,
-  sign: { x: 120, y: 80, width: 180, height: 92 },
-};
-
-// Mobile coordinates — viewBox 0 0 240 316. One vertical column throughout:
-// client, Cloudflare and nginx stacked, then the sign, then the node row.
-// The node row is still a handful of small circles side by side, not a
-// second lane — see this file's header comment for why two parallel lanes
-// was part of what got rejected. Wider than the desktop trunk (240 vs 410
-// for a much shorter chain) because the sign has to fit pass 2's wrapped key
-// line — see `t.diagramPass2Key` — at a font size still legible at 360px.
-const M = {
-  client: { x: 120, y: 16 },
-  cloudflare: { x: 120, y: 54 },
-  nginx: { x: 120, y: 106 },
-  sign: { x: 30, y: 140, width: 180, height: 92 },
-  spineY: 250,
-  nodeY: 272,
-  nodeX: [55, 103, 151],
-  ghostX: 200,
-};
 ---
 
 <p class="back-link">
@@ -177,227 +148,124 @@ const M = {
   <pre><code>{affinitySnippet}</code></pre>
   <p class="internals-text">{t.affinityConsequence}</p>
 
-  {/* Decorative recap of the paragraphs above, nothing more: `aria-hidden`
-      on both <svg>s takes the whole figure out of the accessibility tree, so
-      the meaning lives entirely in `t.diagramCaption` plus the prose already
-      read above it — never only in the animation. ONE chain, drawn once,
-      played twice (see this file's header comment for why there is no
-      branch here): client → Cloudflare → nginx → one of the nodes in
-      `nodes`, each with its own fixed egress country. The sign under nginx
-      and the ring around the matched node are the only things that differ
-      between the two passes — see the "layout math" above this component's
-      frontmatter for `nodes`/`PASS1_NODE_INDEX`/`PASS2_NODE_INDEX`/`D`/`M`. */}
+  {/* Request-path figure: a static strip (nothing here moves — the
+      "aria-hidden" icons are pure decoration, the stage names and node
+      numbers/countries are real HTML, not SVG text) plus five annotation
+      bubbles that cycle one at a time via CSS animation alone. The bubble
+      area's height is reserved by `.mcp-bubbles`'s fixed `height` (see the
+      <style> block) — that is what keeps the page from jumping as they
+      cycle. `MATCHED_NODE_INDEX` only matters for the reduced-motion frozen
+      frame, defined entirely inside that media query below. */}
   <figure class="mcp-flow-figure">
-    <svg
-      class="mcp-flow mcp-flow--desktop"
-      viewBox="0 0 410 180"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <!-- Trunk: client (three dots = "several requests in a row"),
-           Cloudflare, nginx. Always visible — nothing here changes between
-           the two passes; only the sign below nginx does. -->
-      <circle cx={D.client.x - 8} cy={D.client.y} r="3" class="client-dot" />
-      <circle cx={D.client.x} cy={D.client.y} r="3" class="client-dot" />
-      <circle cx={D.client.x + 8} cy={D.client.y} r="3" class="client-dot" />
-      <text x={D.client.x} y={D.client.y + 18} text-anchor="middle" class="hop-label">
-        {t.diagramClientLabel}
-      </text>
+    <div class="mcp-strip">
+      <div class="stage stage--client">
+        <span class="stage-icon stage-icon--client" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+        <span class="stage-label">{t.diagramStageClient}</span>
+      </div>
 
-      <line x1={D.client.x + 16} y1={D.client.y} x2={D.cloudflare.x - 12} y2={D.cloudflare.y} class="spine" />
-      <circle cx={D.cloudflare.x} cy={D.cloudflare.y} r="12" class="node node--neutral" />
-      <text x={D.cloudflare.x} y={D.cloudflare.y + 18} text-anchor="middle" class="hop-label">
-        Cloudflare
-      </text>
+      <div class="stage stage--cloudflare">
+        <span class="stage-icon" aria-hidden="true"></span>
+        <span class="stage-label">Cloudflare</span>
+      </div>
 
-      <line x1={D.cloudflare.x + 12} y1={D.cloudflare.y} x2={D.nginx.x - 17} y2={D.nginx.y} class="spine" />
-      <!-- nginx: where the decision happens, drawn "in focus" — bigger,
-           accent-stroked, with a static halo behind it. -->
-      <circle cx={D.nginx.x} cy={D.nginx.y} r="24" class="nginx-glow" />
-      <circle cx={D.nginx.x} cy={D.nginx.y} r="17" class="node node--nginx" />
-      <text x={D.nginx.x} y={D.nginx.y + 24} text-anchor="middle" class="hop-label">
-        nginx
-      </text>
+      <div class="stage stage--nginx">
+        <span class="stage-icon stage-icon--nginx" aria-hidden="true"></span>
+        <span class="stage-label">nginx</span>
+      </div>
 
-      <!-- The pool of available nodes — always visible, all of them, not
-           just the matched one — plus the dim "+" ghost for however many
-           more the pool grows to. -->
-      <line x1={D.nginx.x + 17} y1={D.nginx.y} x2={D.spineX} y2={D.nginx.y} class="spine" />
-      <line x1={D.spineX} y1={D.nodeY[0]} x2={D.spineX} y2={D.ghostY} class="spine" />
-      {
-        nodes.map((node, i) => (
-          <>
-            <line x1={D.spineX} y1={D.nodeY[i]} x2={D.nodeX - 11} y2={D.nodeY[i]} class="spine" />
-            <circle cx={D.nodeX} cy={D.nodeY[i]} r="11" class="node node--pool" />
-            <text x={D.nodeX} y={D.nodeY[i] + 1} text-anchor="middle" class="node-index">
-              {i + 1}
-            </text>
-            <text x={D.nodeX + 18} y={D.nodeY[i]} text-anchor="start" class="node-country">
-              {countryTag(node.egressCountry)}
-            </text>
-          </>
-        ))
-      }
-      <line x1={D.spineX} y1={D.ghostY} x2={D.nodeX - 8} y2={D.ghostY} class="spine" />
-      <circle cx={D.nodeX} cy={D.ghostY} r="8" class="node node--ghost" />
-      <text x={D.nodeX} y={D.ghostY + 1} text-anchor="middle" class="node-ghost-label">
-        {overflowCount > 0 ? `+${overflowCount}` : "+"}
-      </text>
+      <div class="stage stage--nodes">
+        <div class="node-cluster">
+          {
+            nodes.map((node, i) => (
+              <span class={`node-badge${i === MATCHED_NODE_INDEX ? " node-badge--matched" : ""}`}>
+                <span class="node-badge-num">{i + 1}</span>
+                <span class="node-badge-country">{countryTag(node.egressCountry)}</span>
+              </span>
+            ))
+          }
+          {/* Dim "+" ghost: however many more the pool grows to. Never the
+              reduced-motion match target — see `MATCHED_NODE_INDEX` above,
+              always an index into the real `nodes`, never this one. */}
+          <span class="node-badge node-badge--ghost">
+            <span class="node-badge-num">{overflowCount > 0 ? `+${overflowCount}` : "+"}</span>
+          </span>
+        </div>
+        <span class="stage-label">{t.diagramStageNodes}</span>
+      </div>
 
-      <!-- Which node the current pass lands on — only one ring shows at a
-           time (see .scene-a / .scene-b in the <style> below). -->
-      <circle cx={D.nodeX} cy={D.nodeY[PASS1_NODE_INDEX]} r="15" class="match-ring match-ring--a scene-a" />
-      <circle cx={D.nodeX} cy={D.nodeY[PASS2_NODE_INDEX]} r="15" class="match-ring match-ring--b scene-b" />
+      <div class="stage stage--egress">
+        <span class="stage-icon" aria-hidden="true"></span>
+        <span class="stage-label">{t.diagramStageEgress}</span>
+      </div>
 
-      <!-- The sign: the key nginx is computing this pass, and the result.
-           Two stacked copies, crossfaded, never shown at once. Row math: the
-           box reserves two lines for the key (`t.diagramPass1Key`/
-           `diagramPass2Key`, both pre-wrapped in internals.ts) between a
-           fixed mode line and a fixed result line, so both never shift even
-           though pass 1's key is only one line. -->
-      <line x1={D.nginx.x} y1={D.nginx.y + 17} x2={D.nginx.x} y2={D.sign.y} class="spine" />
-      <rect {...D.sign} rx="8" class="sign sign--a scene-a" />
-      <rect {...D.sign} rx="8" class="sign sign--b scene-b" />
-      <g class="sign-text scene-a">
-        <text x={D.nginx.x} y={D.sign.y + 20} text-anchor="middle" class="sign-mode">
-          {t.diagramPass1Mode}
-        </text>
-        {
-          t.diagramPass1Key.map((line, i) => (
-            <text x={D.nginx.x} y={D.sign.y + 39 + i * 18} text-anchor="middle" class="sign-key">
-              {line}
-            </text>
-          ))
-        }
-        <text x={D.nginx.x} y={D.sign.y + 77} text-anchor="middle" class="sign-result">
-          {t.diagramResultLine}
-        </text>
-      </g>
-      <g class="sign-text scene-b">
-        <text x={D.nginx.x} y={D.sign.y + 20} text-anchor="middle" class="sign-mode">
-          {t.diagramPass2Mode}
-        </text>
-        {
-          t.diagramPass2Key.map((line, i) => (
-            <text x={D.nginx.x} y={D.sign.y + 39 + i * 18} text-anchor="middle" class="sign-key">
-              {line}
-            </text>
-          ))
-        }
-        <text x={D.nginx.x} y={D.sign.y + 77} text-anchor="middle" class="sign-result">
-          {t.diagramResultLine}
-        </text>
-      </g>
+      <div class="stage stage--destination">
+        <span class="stage-icon" aria-hidden="true"></span>
+        <span class="stage-label">{t.diagramStageDestination}</span>
+      </div>
+    </div>
 
-      <!-- Three traveling requests, staggered, all converging on the same
-           matched node within a pass — see .pulse in the <style> below. -->
-      <circle cx="0" cy="0" r="4" class="pulse pulse--desktop pulse--1" />
-      <circle cx="0" cy="0" r="4" class="pulse pulse--desktop pulse--2" />
-      <circle cx="0" cy="0" r="4" class="pulse pulse--desktop pulse--3" />
-    </svg>
-
-    <svg
-      class="mcp-flow mcp-flow--mobile"
-      viewBox="0 0 240 316"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <!-- Same chain, one vertical column: client, Cloudflare, nginx, the
-           sign, then the node row. The node row is a few small circles
-           side by side, not a second lane — see this file's header comment
-           for why two parallel lanes was part of what got rejected. -->
-      <circle cx={M.client.x - 8} cy={M.client.y} r="3" class="client-dot" />
-      <circle cx={M.client.x} cy={M.client.y} r="3" class="client-dot" />
-      <circle cx={M.client.x + 8} cy={M.client.y} r="3" class="client-dot" />
-      <text x={M.client.x + 22} y={M.client.y + 4} text-anchor="start" class="hop-label">
-        {t.diagramClientLabel}
-      </text>
-
-      <line x1={M.client.x} y1={M.client.y + 4} x2={M.cloudflare.x} y2={M.cloudflare.y - 12} class="spine" />
-      <circle cx={M.cloudflare.x} cy={M.cloudflare.y} r="11" class="node node--neutral" />
-      <text x={M.cloudflare.x + 20} y={M.cloudflare.y + 4} text-anchor="start" class="hop-label">
-        Cloudflare
-      </text>
-
-      <line x1={M.cloudflare.x} y1={M.cloudflare.y + 11} x2={M.nginx.x} y2={M.nginx.y - 15} class="spine" />
-      <circle cx={M.nginx.x} cy={M.nginx.y} r="21" class="nginx-glow" />
-      <circle cx={M.nginx.x} cy={M.nginx.y} r="15" class="node node--nginx" />
-      <text x={M.nginx.x + 24} y={M.nginx.y + 4} text-anchor="start" class="hop-label">
-        nginx
-      </text>
-
-      <!-- The sign, directly below nginx: the key it is computing, and the
-           result — two stacked copies, crossfaded. Same row math as the
-           desktop sign above: a fixed mode line, two reserved key-line
-           slots, a fixed result line. -->
-      <line x1={M.nginx.x} y1={M.nginx.y + 15} x2={M.nginx.x} y2={M.sign.y} class="spine" />
-      <rect {...M.sign} rx="8" class="sign sign--a scene-a" />
-      <rect {...M.sign} rx="8" class="sign sign--b scene-b" />
-      <g class="sign-text scene-a">
-        <text x={M.nginx.x} y={M.sign.y + 20} text-anchor="middle" class="sign-mode">
-          {t.diagramPass1Mode}
-        </text>
-        {
-          t.diagramPass1Key.map((line, i) => (
-            <text x={M.nginx.x} y={M.sign.y + 39 + i * 18} text-anchor="middle" class="sign-key">
-              {line}
-            </text>
-          ))
-        }
-        <text x={M.nginx.x} y={M.sign.y + 77} text-anchor="middle" class="sign-result">
-          {t.diagramResultLine}
-        </text>
-      </g>
-      <g class="sign-text scene-b">
-        <text x={M.nginx.x} y={M.sign.y + 20} text-anchor="middle" class="sign-mode">
-          {t.diagramPass2Mode}
-        </text>
-        {
-          t.diagramPass2Key.map((line, i) => (
-            <text x={M.nginx.x} y={M.sign.y + 39 + i * 18} text-anchor="middle" class="sign-key">
-              {line}
-            </text>
-          ))
-        }
-        <text x={M.nginx.x} y={M.sign.y + 77} text-anchor="middle" class="sign-result">
-          {t.diagramResultLine}
-        </text>
-      </g>
-
-      <!-- The node row: the pool of available nodes, all of them, plus the
-           dim "+" ghost. -->
-      <line x1={M.nginx.x} y1={M.sign.y + M.sign.height} x2={M.nginx.x} y2={M.spineY} class="spine" />
-      <line x1={M.nodeX[0]} y1={M.spineY} x2={M.ghostX} y2={M.spineY} class="spine" />
-      {
-        nodes.map((node, i) => (
-          <>
-            <line x1={M.nodeX[i]} y1={M.spineY} x2={M.nodeX[i]} y2={M.nodeY - 11} class="spine" />
-            <circle cx={M.nodeX[i]} cy={M.nodeY} r="11" class="node node--pool" />
-            <text x={M.nodeX[i]} y={M.nodeY + 1} text-anchor="middle" class="node-index">
-              {i + 1}
-            </text>
-            <text x={M.nodeX[i]} y={M.nodeY + 24} text-anchor="middle" class="node-country">
-              {countryTag(node.egressCountry)}
-            </text>
-          </>
-        ))
-      }
-      <line x1={M.ghostX} y1={M.spineY} x2={M.ghostX} y2={M.nodeY - 8} class="spine" />
-      <circle cx={M.ghostX} cy={M.nodeY} r="8" class="node node--ghost" />
-      <text x={M.ghostX} y={M.nodeY + 1} text-anchor="middle" class="node-ghost-label">
-        {overflowCount > 0 ? `+${overflowCount}` : "+"}
-      </text>
-
-      <circle cx={M.nodeX[PASS1_NODE_INDEX]} cy={M.nodeY} r="15" class="match-ring match-ring--a scene-a" />
-      <circle cx={M.nodeX[PASS2_NODE_INDEX]} cy={M.nodeY} r="15" class="match-ring match-ring--b scene-b" />
-
-      <circle cx="0" cy="0" r="4" class="pulse pulse--mobile pulse--1" />
-      <circle cx="0" cy="0" r="4" class="pulse pulse--mobile pulse--2" />
-      <circle cx="0" cy="0" r="4" class="pulse pulse--mobile pulse--3" />
-    </svg>
+    {/* Fixed-height annotation zone: exactly one bubble opaque at a time,
+        via the `phase-N` keyframes shared with each stage's highlight below
+        (see the <style> block's "Bubble cycle" section for the timing
+        table). `bubble-leader`'s `left` and each stage's highlight both key
+        off the same five column positions, defined once as `--pos` per
+        `.bubble--N` and reused by its leader/tail — see the <style> block's
+        "Shared column positions" comment for why. */}
+    <div class="mcp-bubbles">
+      <div class="bubble bubble--1">
+        <span class="bubble-leader" aria-hidden="true"></span>
+        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">1</span>{t.diagramBubble1}</p>
+      </div>
+      <div class="bubble bubble--2">
+        <span class="bubble-leader" aria-hidden="true"></span>
+        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">2</span>{t.diagramBubble2}</p>
+      </div>
+      <div class="bubble bubble--3">
+        <span class="bubble-leader" aria-hidden="true"></span>
+        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">3</span>{t.diagramBubble3}</p>
+      </div>
+      <div class="bubble bubble--4">
+        <span class="bubble-leader" aria-hidden="true"></span>
+        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">4</span>{t.diagramBubble4}</p>
+      </div>
+      <div class="bubble bubble--5">
+        <span class="bubble-leader" aria-hidden="true"></span>
+        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">5</span>{t.diagramBubble5}</p>
+      </div>
+    </div>
 
     <figcaption class="mcp-flow-caption">{t.diagramCaption}</figcaption>
   </figure>
+
+  {/* Prose timeline: same five numbers as the bubbles above, full detail,
+      real HTML — this, not the figure, is what a crawler, an assistant or a
+      `prefers-reduced-motion` visitor actually reads. See this file's
+      header comment for why the detail lives here and not in the figure. */}
+  <p class="internals-text">{t.diagramTimelineIntro}</p>
+  <ol class="mcp-timeline">
+    <li>
+      <span class="mcp-timeline-num" aria-hidden="true">1</span>
+      <p>{t.diagramTimelineStep1}</p>
+    </li>
+    <li>
+      <span class="mcp-timeline-num" aria-hidden="true">2</span>
+      <p>{t.diagramTimelineStep2}</p>
+    </li>
+    <li>
+      <span class="mcp-timeline-num" aria-hidden="true">3</span>
+      <p>{t.diagramTimelineStep3}</p>
+    </li>
+    <li>
+      <span class="mcp-timeline-num" aria-hidden="true">4</span>
+      <p>{t.diagramTimelineStep4}</p>
+    </li>
+    <li>
+      <span class="mcp-timeline-num" aria-hidden="true">5</span>
+      <p>{t.diagramTimelineStep5}</p>
+    </li>
+  </ol>
 </section>
 
 <section aria-labelledby="egress-h">
@@ -525,18 +393,15 @@ const M = {
     white-space: pre;
   }
 
-  /* ===== Affinity diagram ===================================================
-     ONE chain — client → Cloudflare → nginx → one of N nodes, each with its
-     own fixed egress country — drawn once and played twice in a loop, not
-     drawn twice side by side. See this file's header comment for why: the
-     previous version forked into a libgen branch and a gitlab branch, which
-     taught content-based routing that does not happen. Nothing here is
-     colored by server. Teal marks pass 1 (no token, keyed on IP — libgen's
-     real case) and violet marks pass 2 (with token, keyed on a salted hash —
-     gitlab's real case) as states IN TIME of the same pipeline, crossfaded
-     via `.scene-a`/`.scene-b` — never two colors on screen at once. See the
-     SVG markup above and `t.diagramCaption` for the accessible equivalent of
-     what this draws. */
+  /* ===== Request-path diagram =================================================
+     A compact, STATIC horizontal strip (client → Cloudflare → nginx → one of
+     N nodes → egress → destination — nothing here moves, ever) plus five
+     numbered bubbles that cycle one at a time below it. See this file's
+     header comment for why: two earlier versions were rejected, the second
+     one specifically for still reading as "an animation of dots travelling"
+     instead of an infographic. This one only animates a color highlight
+     (never position) on whichever strip piece the current bubble names, and
+     reserves a fixed height for the bubble zone so the page never jumps. */
   .mcp-flow-figure {
     max-width: 62ch;
     margin: 1.75rem 0;
@@ -546,466 +411,525 @@ const M = {
     background: var(--color-bg-subtle);
   }
 
-  .mcp-flow {
-    display: block;
-    width: 100%;
-    height: auto;
+  /* ===== The strip =============================================================
+     Six stages on a shared 8-unit grid: client/Cloudflare/nginx/egress/
+     destination get 1 column each, nodes gets 3 (it holds a small cluster of
+     badges, not one icon). `min-width: 0` on `.stage` is load-bearing — a
+     CSS grid track otherwise refuses to shrink a cell below its content's
+     natural (unwrapped) width, which for a word like "Cloudflare" or
+     "destination" would force the whole strip wider than the viewport at
+     360px. With `min-width: 0` plus `overflow-wrap: anywhere` on the label
+     below, the grid track wins instead and the word wraps — this is what
+     keeps the strip horizontal with zero horizontal scroll at 360px, the
+     hard requirement that sank neither, but almost sank, both earlier
+     attempts. */
+  .mcp-strip {
+    position: relative;
+    display: grid;
+    /* Cloudflare/destination get a bit more than client/nginx/egress: they
+       are the longest words on the strip ("Cloudflare", "destination") and
+       would otherwise wrap ugly mid-word even with `overflow-wrap: anywhere`
+       below. Nodes still gets by far the most room — see this block's
+       header comment. */
+    grid-template-columns: 1fr 1.3fr 1fr 3fr 1fr 1.3fr;
+    align-items: start;
+    column-gap: 2px;
   }
 
-  /* Desktop shown by default; swapped for mobile below (width <= 640px). */
-  .mcp-flow--mobile {
-    display: none;
+  /* The connecting line, painted BEHIND every stage: a `::before` pseudo-
+     element is always painted before its element's real children, so the
+     opaque icon/badge circles sitting on top of it read as beads on a wire
+     with no z-index bookkeeping needed. */
+  .mcp-strip::before {
+    position: absolute;
+    top: 9px; /* half of the 18px icon/badge diameter used throughout */
+    left: 4%;
+    content: "";
+    right: 4%;
+    height: 1px;
+    background: var(--color-border);
   }
 
-  /* ===== Trunk: client, Cloudflare, nginx — always visible, never
-     pass-colored. Only the sign below nginx and the matched-node ring
-     change between passes. ============================================== */
-  .client-dot {
-    fill: var(--color-text-muted);
+  .stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0; /* see this block's header comment */
+    gap: 0.2rem;
+    padding: 0.2rem;
+    border-radius: var(--radius-md);
   }
 
-  .hop-label {
-    fill: var(--color-text-muted);
-    font-family: var(--font-mono);
-    font-size: 9px;
-  }
-
-  .spine {
-    fill: none;
-    stroke: var(--color-border);
-    stroke-width: 1.5;
-  }
-
-  .node--neutral {
-    fill: var(--color-bg-secondary);
-    stroke: var(--color-text-muted);
-    stroke-width: 1.5;
-  }
-
-  /* nginx: the one node drawn "in focus" — bigger, accent-stroked, with a
-     static halo behind it (never animated: it marks WHERE the decision
-     happens, not WHEN, so it does not need to change with the loop). */
-  .nginx-glow {
-    fill: var(--accent-dim);
-  }
-
-  .node--nginx {
-    fill: var(--color-bg-secondary);
-    stroke: var(--color-accent);
-    stroke-width: 2.5;
-  }
-
-  /* ===== The node pool — the available nodes, all of them, always visible,
-     never colored by pass. Numbered, each with its own fixed country. ===== */
-  .node--pool {
-    fill: var(--color-bg-secondary);
-    stroke: var(--color-border);
-    stroke-width: 1.5;
-  }
-
-  .node-index {
-    fill: var(--color-text);
-    font-family: var(--font-mono);
-    font-size: 9px;
-    font-weight: var(--fw-semibold);
-    dominant-baseline: middle;
-  }
-
-  .node-country {
-    fill: var(--color-text-muted);
-    font-family: var(--font-mono);
-    font-size: 9px;
-    dominant-baseline: middle;
-  }
-
-  /* The dim "+" ghost node: however many more the pool grows to. Always
-     present, never matched, never pass-colored — see `overflowCount` above
-     this component's frontmatter. */
-  .node--ghost {
-    fill: none;
-    stroke: var(--color-text-muted);
-    stroke-width: 1.25;
-    stroke-dasharray: 3 3;
-    opacity: 55%;
-  }
-
-  .node-ghost-label {
-    fill: var(--color-text-muted);
-    font-family: var(--font-mono);
-    font-size: 9px;
-    font-weight: var(--fw-semibold);
-    opacity: 70%;
-    dominant-baseline: middle;
-  }
-
-  /* ===== The matched-node ring — which node the CURRENT pass lands on.
-     `.match-ring--a`/`--b` only set color; visibility is `.scene-a`/`.scene-b`
-     below, so exactly one ring shows at a time. ========================== */
-  .match-ring {
-    fill: none;
-    stroke-width: 2.5;
-    filter: drop-shadow(0 0 2px currentcolor);
-  }
-
-  .match-ring--a {
-    stroke: var(--teal);
-    color: var(--teal);
-  }
-
-  .match-ring--b {
-    stroke: var(--violet);
-    color: var(--violet);
-  }
-
-  /* ===== The sign — the key nginx is computing this pass, and the result.
-     Two stacked copies (`.sign--a`/`.sign--b`), crossfaded by `.scene-a`/
-     `.scene-b`, positioned identically so the swap reads as one sign
-     changing, not two signs taking turns. ================================ */
-  .sign {
-    stroke-width: 1.5;
-  }
-
-  .sign--a {
-    fill: var(--teal-dim);
-    stroke: color-mix(in srgb, var(--teal) 40%, transparent);
-  }
-
-  .sign--b {
-    fill: var(--violet-dim);
-    stroke: color-mix(in srgb, var(--violet) 40%, transparent);
-  }
-
-  .sign-mode,
-  .sign-key,
-  .sign-result {
-    font-family: var(--font-mono);
-    font-size: 9.5px;
-  }
-
-  .scene-a .sign-mode {
-    fill: var(--teal-text);
-    font-weight: var(--fw-semibold);
-  }
-
-  .scene-b .sign-mode {
-    fill: var(--violet);
-    font-weight: var(--fw-semibold);
-  }
-
-  .sign-key,
-  .sign-result {
-    fill: var(--color-text);
-  }
-
-  /* ===== Scene crossfade — drives BOTH the sign and the matched-node ring
-     for a given pass. Shared by desktop and mobile: it is pure opacity, no
-     coordinates, so one pair of keyframes covers both SVGs. The base
-     (pre-animation) `opacity` on each class is what wins once
-     prefers-reduced-motion turns the animation off below — pass 1 stays
-     visible, pass 2 stays hidden, a complete and self-explanatory frame on
-     its own. ============================================================= */
-  .scene-a {
-    opacity: 100%;
-    animation: scene-a 15s var(--ease-in-out) infinite;
-  }
-
-  .scene-b {
+  /* The highlight overlay — present on every stage, invisible until its own
+     `phase-N` animation (see "Bubble cycle" below) makes it opaque for that
+     bubble's window. `.stage--destination` never gets a `phase-N` animation
+     assigned, so it stays invisible forever — there is no sixth bubble. */
+  .stage::after {
+    position: absolute;
+    inset: -3px;
+    content: "";
+    border: 1px solid var(--color-accent);
+    border-radius: var(--radius-md);
+    background: var(--accent-dim);
     opacity: 0%;
-    animation: scene-b 15s var(--ease-in-out) infinite;
+    pointer-events: none;
   }
 
-  @keyframes scene-a {
+  .stage-icon {
+    box-sizing: border-box;
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--color-border);
+    border-radius: 50%;
+    background: var(--color-bg-secondary);
+  }
+
+  /* nginx: where the decision happens, drawn "in focus" even at rest — a
+     thicker accent ring and a tinted fill, not just a highlight during its
+     own bubble's window. */
+  .stage-icon--nginx {
+    border-width: 2.5px;
+    border-color: var(--color-accent);
+    background: var(--accent-dim);
+  }
+
+  /* Client: three small dots instead of a ring — "you", not a server. */
+  .stage-icon--client {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border: none;
+    background: none;
+  }
+
+  .stage-icon--client span {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--color-text-muted);
+  }
+
+  .stage-label {
+    overflow-wrap: anywhere; /* see this block's header comment */
+    hyphens: auto; /* "destination" breaks as "desti-nation", not "destinatio-n", if it still has to wrap at all */
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    line-height: 1.15;
+    text-align: center;
+  }
+
+  .stage--nginx .stage-label {
+    color: var(--color-text);
+    font-weight: var(--fw-semibold);
+  }
+
+  /* ===== Node cluster ==========================================================
+     The pool of available nodes, all of them, always visible, never colored
+     by which bubble is showing — bubble 4 highlights the whole cluster (via
+     `.stage--nodes::after` above), never a single badge. Numbers/countries
+     are real HTML text, not SVG: this is real data from `topology.ts`, not
+     decoration. */
+  .node-cluster {
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+  }
+
+  .node-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .node-badge-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--color-border);
+    border-radius: 50%;
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    font-weight: var(--fw-semibold);
+  }
+
+  .node-badge-country {
+    margin-top: 1px;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+  }
+
+  /* The dim "+" ghost badge: however many more the pool grows to. Always
+     present, never matched, never highlighted on its own — see
+     `overflowCount` above this component's frontmatter. */
+  .node-badge--ghost .node-badge-num {
+    border-color: var(--color-text-muted);
+    border-style: dashed;
+    background: none;
+    color: var(--color-text-muted);
+    opacity: 70%;
+  }
+
+  /* ===== Shared column positions ===============================================
+     The five bubble targets, as center-of-column percentages of the strip's
+     8.6-unit grid above (1fr client, 1.3fr Cloudflare, 1fr nginx, 3fr nodes,
+     1fr egress, 1.3fr destination — destination has no bubble, so no 6th
+     `--pos`). Column gap is 2px, imperceptible next to the figure's own
+     width, so ignoring it here is fine. Each `--pos` positions that bubble's
+     leader line and its box's speech-bubble tail below — one shared value
+     instead of repeating the same percentage three times per bubble. */
+  .bubble--1 {
+    --pos: 5.81%;
+  }
+
+  .bubble--2 {
+    --pos: 19.19%;
+  }
+
+  .bubble--3 {
+    --pos: 32.56%;
+  }
+
+  .bubble--4 {
+    --pos: 55.81%;
+  }
+
+  .bubble--5 {
+    --pos: 79.07%;
+  }
+
+  /* ===== The fixed-height bubble zone ==========================================
+     `height`, not `min-height`: with every `.bubble` absolutely positioned
+     (below), the container has no in-flow content to size itself from, so it
+     would collapse to 0 without an explicit height. This value is tuned
+     against the longest bubble text in EITHER language at 360px wide, the
+     narrowest this site supports — see the SDD report for the rendered
+     measurements taken across the animation loop. A FIXED reservation,
+     never a per-bubble one, is what actually fixes the defect that sank the
+     previous attempt: the page must not move as the bubbles cycle. */
+  .mcp-bubbles {
+    position: relative;
+    height: 5rem;
+    margin-top: 0.9rem;
+  }
+
+  .bubble {
+    position: absolute;
+    inset: 0;
+    opacity: 0%;
+  }
+
+  .bubble--1 {
+    animation: phase-1 24s var(--ease-in-out) infinite;
+  }
+
+  .bubble--2 {
+    animation: phase-2 24s var(--ease-in-out) infinite;
+  }
+
+  .bubble--3 {
+    animation: phase-3 24s var(--ease-in-out) infinite;
+  }
+
+  .bubble--4 {
+    animation: phase-4 24s var(--ease-in-out) infinite;
+  }
+
+  .bubble--5 {
+    animation: phase-5 24s var(--ease-in-out) infinite;
+  }
+
+  /* The thin line that "points at the piece it describes" — from the top of
+     this fixed zone (where the strip ends) down to the bubble's tail. */
+  .bubble-leader {
+    position: absolute;
+    top: 0;
+    left: var(--pos);
+    width: 1px;
+    height: 0.9rem;
+    background: var(--color-border);
+  }
+
+  .bubble-box {
+    position: relative;
+    margin: 0.9rem 0 0;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    text-wrap: pretty;
+  }
+
+  /* Speech-bubble tail: two stacked triangles (border color, then background
+     color one pixel smaller) fake a 1px outline where the tail meets the
+     leader line above. */
+  .bubble-box::before,
+  .bubble-box::after {
+    position: absolute;
+    top: -7px;
+    left: var(--pos);
+    content: "";
+    border-right: 7px solid transparent;
+    border-left: 7px solid transparent;
+    transform: translateX(-50%);
+  }
+
+  .bubble-box::before {
+    border-bottom: 7px solid var(--color-border);
+  }
+
+  .bubble-box::after {
+    top: -6px;
+    border-right-width: 6px;
+    border-bottom: 6px solid var(--color-bg-secondary);
+    border-left-width: 6px;
+  }
+
+  .bubble-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-right: 0.4rem;
+    border-radius: 50%;
+    background: var(--color-accent);
+    color: var(--color-bg);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: var(--fw-semibold);
+    vertical-align: -3px;
+  }
+
+  /* ===== Bubble cycle ===========================================================
+     Five phases, 20% of the 24s loop each, with a 4%-wide crossfade at every
+     INTERNAL boundary (18–22%, 38–42%, 58–62%, 78–82%) and a hard cut at the
+     loop point (98–100%/0%): bubble 5 is fully faded out by 100% and bubble
+     1 is already opaque at 0%, so the wrap reads as one clean cut, not a
+     flash. `phase-1`..`phase-5` drive BOTH a bubble's opacity (`.bubble--N`
+     above) and its target stage's highlight overlay (`.stage--*::after`
+     below) — same keyframes, same duration, same start (page load), so the
+     two stay in lockstep with no shared clock beyond that. */
+  @keyframes phase-1 {
     0%,
-    46% {
+    18% {
       opacity: 100%;
     }
 
-    50%,
-    96% {
-      opacity: 0%;
-    }
-
+    22%,
     100% {
-      opacity: 100%;
+      opacity: 0%;
     }
   }
 
-  @keyframes scene-b {
+  @keyframes phase-2 {
     0%,
-    46% {
-      opacity: 0%;
-    }
-
-    50%,
-    96% {
-      opacity: 100%;
-    }
-
+    18%,
     100% {
       opacity: 0%;
     }
-  }
 
-  /* ===== The traveling requests — three per SVG, staggered by
-     `animation-delay` so they read as "several requests in a row", all
-     converging on the same node within a pass (see this component's
-     frontmatter and `t.diagramCaption`). One shared keyframe shape per
-     viewport plays BOTH passes in a single 15s loop: 0-47% travels to pass
-     1's node and holds, 50-97% travels to pass 2's node and holds — the
-     dead space between (47-50%, 97-100%) is where each dot is invisible
-     (opacity 0), which is also where its `fill`/`color` switch color, so the
-     switch itself is never seen. Rest state (`.pulse--desktop`/`--mobile`'s
-     base `transform`/`opacity`, used when `prefers-reduced-motion` turns the
-     animation off) equals the pass-1 hold (40-47%): the point already
-     sitting on its matched node, teal, visible — the self-explanatory frozen
-     state this diagram needs under reduced motion. With three staggered
-     dots, that freeze shows all three resting together on the same node,
-     which if anything states the point more plainly than motion does. */
-  .pulse {
-    filter: drop-shadow(0 0 3px currentcolor);
-  }
-
-  .pulse--1 {
-    animation-delay: 0s;
-  }
-
-  .pulse--2 {
-    animation-delay: -5s;
-  }
-
-  .pulse--3 {
-    animation-delay: -10s;
-  }
-
-  /* Desktop path — EXACT coordinates from the desktop <svg> above: client
-     (28,40) → Cloudflare (110,40) → nginx (210,40) → spine junction (300,y)
-     → matched node (360,y). y=10 for pass 1's node, y=90 for pass 2's. */
-  .pulse--desktop {
-    transform: translate(360px, 10px);
-    opacity: 100%;
-    fill: var(--teal);
-    color: var(--teal);
-    animation: pulse-journey-desktop 15s var(--ease-in-out) infinite;
-  }
-
-  @keyframes pulse-journey-desktop {
-    0% {
-      transform: translate(28px, 40px);
-      opacity: 0%;
-      fill: var(--teal);
-      color: var(--teal);
-    }
-
-    3% {
-      transform: translate(28px, 40px);
+    22%,
+    38% {
       opacity: 100%;
     }
 
-    15% {
-      transform: translate(110px, 40px);
-    }
-
-    27% {
-      transform: translate(210px, 40px);
-    }
-
-    34% {
-      transform: translate(300px, 10px);
-    }
-
-    40%,
-    47% {
-      transform: translate(360px, 10px);
-      opacity: 100%;
-    }
-
-    48% {
-      transform: translate(360px, 10px);
+    42% {
       opacity: 0%;
-      fill: var(--violet);
-      color: var(--violet);
     }
+  }
 
-    50% {
-      transform: translate(28px, 40px);
+  @keyframes phase-3 {
+    0%,
+    38%,
+    100% {
       opacity: 0%;
     }
 
-    53% {
-      transform: translate(28px, 40px);
+    42%,
+    58% {
       opacity: 100%;
     }
 
-    65% {
-      transform: translate(110px, 40px);
+    62% {
+      opacity: 0%;
+    }
+  }
+
+  @keyframes phase-4 {
+    0%,
+    58%,
+    100% {
+      opacity: 0%;
     }
 
-    77% {
-      transform: translate(210px, 40px);
-    }
-
-    84% {
-      transform: translate(300px, 90px);
-    }
-
-    90%,
-    97% {
-      transform: translate(360px, 90px);
+    62%,
+    78% {
       opacity: 100%;
     }
 
+    82% {
+      opacity: 0%;
+    }
+  }
+
+  @keyframes phase-5 {
+    0%,
+    78% {
+      opacity: 0%;
+    }
+
+    82%,
     98% {
-      transform: translate(360px, 90px);
-      opacity: 0%;
-      fill: var(--teal);
-      color: var(--teal);
+      opacity: 100%;
     }
 
     100% {
-      transform: translate(28px, 40px);
       opacity: 0%;
     }
   }
 
-  /* Mobile path — EXACT coordinates from the mobile <svg> above: client
-     (120,16) → Cloudflare (120,54) → nginx (120,106) → spine junction
-     (120,250) → matched node (x,272). x=55 for pass 1's node, x=151 for pass
-     2's — same percentages as the desktop keyframes above, on purpose: the
-     two viewports stay in sync even though only one is ever displayed. */
-  .pulse--mobile {
-    transform: translate(55px, 272px);
-    opacity: 100%;
-    fill: var(--teal);
-    color: var(--teal);
-    animation: pulse-journey-mobile 15s var(--ease-in-out) infinite;
+  .stage--client::after {
+    animation: phase-1 24s var(--ease-in-out) infinite;
   }
 
-  @keyframes pulse-journey-mobile {
-    0% {
-      transform: translate(120px, 16px);
-      opacity: 0%;
-      fill: var(--teal);
-      color: var(--teal);
-    }
-
-    3% {
-      transform: translate(120px, 16px);
-      opacity: 100%;
-    }
-
-    15% {
-      transform: translate(120px, 54px);
-    }
-
-    27% {
-      transform: translate(120px, 106px);
-    }
-
-    34% {
-      transform: translate(120px, 250px);
-    }
-
-    40%,
-    47% {
-      transform: translate(55px, 272px);
-      opacity: 100%;
-    }
-
-    48% {
-      transform: translate(55px, 272px);
-      opacity: 0%;
-      fill: var(--violet);
-      color: var(--violet);
-    }
-
-    50% {
-      transform: translate(120px, 16px);
-      opacity: 0%;
-    }
-
-    53% {
-      transform: translate(120px, 16px);
-      opacity: 100%;
-    }
-
-    65% {
-      transform: translate(120px, 54px);
-    }
-
-    77% {
-      transform: translate(120px, 106px);
-    }
-
-    84% {
-      transform: translate(120px, 250px);
-    }
-
-    90%,
-    97% {
-      transform: translate(151px, 272px);
-      opacity: 100%;
-    }
-
-    98% {
-      transform: translate(151px, 272px);
-      opacity: 0%;
-      fill: var(--teal);
-      color: var(--teal);
-    }
-
-    100% {
-      transform: translate(120px, 16px);
-      opacity: 0%;
-    }
+  .stage--cloudflare::after {
+    animation: phase-2 24s var(--ease-in-out) infinite;
   }
 
-  /* ===== prefers-reduced-motion ==============================================
+  .stage--nginx::after {
+    animation: phase-3 24s var(--ease-in-out) infinite;
+  }
+
+  .stage--nodes::after {
+    animation: phase-4 24s var(--ease-in-out) infinite;
+  }
+
+  .stage--egress::after {
+    animation: phase-5 24s var(--ease-in-out) infinite;
+  }
+
+  /* ===== prefers-reduced-motion =================================================
      `base.css` already forces `animation-duration: 0.001ms !important`
-     globally, but that alone would freeze each element on whatever frame the
-     style recalculation happened to land on — not necessarily a coherent
-     one. The rule below follows the same pattern as `.realtime-pill__dot` in
-     utilities.css and `.fold summary::before` in ServerCard.astro: turn the
-     animations off explicitly, so the base (non-keyframe) values declared
-     above win for all of them at once — pass 1's sign, pass 1's ring, and
-     all three dots resting on pass 1's node. Together that is a complete,
-     self-explanatory static picture: the paths are all drawn already (see
-     the "always visible" trunk/pool rules above), and the one thing motion
-     would have added — that pass 2 exists and lands somewhere else — is
-     already stated in `t.diagramCaption`, in words, not just in pixels. */
+     globally, but that alone would freeze every bubble and highlight on
+     whatever frame the style recalculation happened to land on — not
+     necessarily a coherent one. The rules below follow the same pattern as
+     `.realtime-pill__dot` in utilities.css: turn the animations off
+     explicitly, so a single coherent base state wins for all of them at
+     once — no bubbles at all, no stage highlighted from the normal cycle.
+     In their place, ONE static ring appears around the illustrative "always
+     this node" match (`MATCHED_NODE_INDEX` in the frontmatter above): the
+     frozen frame the spec asks for. The prose timeline right below the
+     figure already carries every word the bubbles would have. */
   @media (prefers-reduced-motion: reduce) {
-    .scene-a,
-    .scene-b,
-    .pulse--desktop,
-    .pulse--mobile {
-      animation: none;
-    }
-  }
-
-  /* ===== Responsive: swap SVG, not reflow the same one =======================
-     The site's global mobile breakpoint is `(width <= 900px)` (base.css),
-     used to rescale spacing; this diagram uses its own breakpoint because
-     the desktop layout (a horizontal trunk with the node pool fanned out to
-     its right) stops being legible before the rest of the page does. Below
-     640px it swaps for the single-column `mcp-flow--mobile` SVG instead of
-     reflowing the same markup — same technique the previous version of this
-     file used, still the right one: verified rendered at 360px wide, see
-     the SDD report. */
-  @media (width <= 640px) {
-    .mcp-flow--desktop {
+    .bubble {
       display: none;
     }
 
-    .mcp-flow--mobile {
-      display: block;
+    .stage::after {
+      animation: none;
+    }
+
+    .node-badge--matched .node-badge-num {
+      border-width: 2.5px;
+      border-color: var(--color-accent);
+      background: var(--accent-dim);
+      box-shadow: 0 0 0 2px var(--accent-dim);
     }
   }
 
-  /* ===== Caption ============================================================= */
+  /* ===== Responsive =============================================================
+     The strip stays on the same 8-column grid at every width — see this
+     block's header comment for why that alone keeps it horizontal with no
+     reflow. Below 480px, labels and badges shrink a little further and the
+     bubble zone grows a little taller, both because the narrower columns
+     wrap short labels ("Cloudflare", "destination") onto more lines than at
+     rest — verified rendered at 360px, see the SDD report. */
+  @media (width <= 480px) {
+    .stage-label {
+      font-size: 0.58rem;
+    }
+
+    .node-badge-num {
+      width: 16px;
+      height: 16px;
+      font-size: 0.5rem;
+    }
+
+    .node-badge-country {
+      font-size: 0.46rem;
+    }
+
+    .mcp-bubbles {
+      height: 5.75rem;
+    }
+
+    .bubble-box {
+      font-size: 0.78rem;
+    }
+  }
+
+  /* ===== Caption ================================================================ */
   .mcp-flow-caption {
     max-width: 62ch;
     margin: 0.85rem 0 0;
     color: var(--color-text-muted);
     font-size: 0.8125rem;
+    text-wrap: pretty;
+  }
+
+  /* ===== Prose timeline =========================================================
+     Real HTML, same five numbers as the bubbles above — this is what a
+     crawler, an assistant reading this page, or a `prefers-reduced-motion`
+     visitor actually reads; see this file's header comment for why the
+     detail lives here and not in the figure. Numbers are visual only
+     (`.mcp-timeline-num`, `aria-hidden`) — the native `<ol>` already gives
+     assistive tech "item N of 5" for free, which is why `list-style` is
+     suppressed instead of layering a redundant visible one on top of it. */
+  .mcp-timeline {
+    max-width: 62ch;
+    margin: 0 0 1rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mcp-timeline li {
+    position: relative;
+    display: flex;
+    margin: 0 0 0.85rem;
+    gap: 0.7rem;
+  }
+
+  .mcp-timeline-num {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background: var(--accent-dim);
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: var(--fw-semibold);
+  }
+
+  .mcp-timeline li p {
+    margin: 0;
+    padding-top: 0.15rem;
+    color: var(--color-text);
+    font-size: 0.875rem;
     text-wrap: pretty;
   }
 </style>
