@@ -136,7 +136,11 @@ const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
 
   /* Píldora de estado con punto, igual que la de jmrp.io. Aquí dice algo
      verificable —cuántos servidores hay y qué transporte hablan— en vez de
-     ser un adorno. */
+     ser un adorno.
+     Measured against jmrp.io's `.hero__status` (HomePage.astro there): 13px
+     (`--text-xs`, not a bare 0.75rem/12px — that size sits between two
+     tokens and matches neither) and `--color-text` (full strength), not the
+     muted color this had before. */
   .pill {
     display: inline-flex;
     gap: 0.5rem;
@@ -145,9 +149,9 @@ const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
     padding: 0.35rem 0.8rem;
     border: 1px solid var(--color-border);
     border-radius: 999px;
-    color: var(--color-text-muted);
+    color: var(--color-text);
     font-family: var(--font-mono);
-    font-size: 0.75rem;
+    font-size: var(--text-xs);
   }
 
   .dot {
@@ -191,17 +195,23 @@ const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
      `aria-hidden` has no effect on `textContent`, which is what readability
      and friends read, so headings came out as "//Servers" and "//Privacy &
      data". With ::before the ornament leaves the extracted text and looks
-     exactly the same. */
+     exactly the same.
+     Numbers matched against jmrp.io's own `.section-title` (utilities.css,
+     shared by both repos byte-for-byte): `--text-label` (12.5px, not the
+     bare 0.75rem/12px this had), `--fw-medium` (500, not 600 — jmrp's
+     eyebrows are not bold), 0.16em tracking (not 0.12em), and full
+     `--color-accent` on the whole label — jmrp doesn't mute the text and
+     accent only the "//"; the whole line is accent-colored. */
   .eyebrow {
     display: flex;
     gap: 0.6rem;
     align-items: center;
     margin: 0 0 1.25rem;
-    color: var(--color-text-muted);
+    color: var(--color-accent);
     font-family: var(--font-mono);
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.12em;
+    font-size: var(--text-label);
+    font-weight: var(--fw-medium);
+    letter-spacing: 0.16em;
     text-transform: uppercase;
   }
 

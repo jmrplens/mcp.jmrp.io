@@ -43,11 +43,17 @@ export default defineConfig({
     },
     {
       // Cuerpo: párrafos y texto de interfaz.
+      // `styles` incluye "italic" para que coincida con jmrp.io
+      // (BaseHead.astro allí): sin la cara itálica real, cualquier <em> o
+      // font-style:italic futuro caería en la itálica SINTÉTICA del
+      // navegador (oblicua, no la fuente de verdad) en vez de silenciarse —
+      // hoy no hay ningún <em> en el contenido, pero declarar la familia
+      // completa deja el hueco cerrado antes de que haga falta.
       name: "IBM Plex Sans",
       provider: fontProviders.fontsource(),
       cssVariable: "--font-ibm-plex-sans",
       weights: [400, 500],
-      styles: ["normal"],
+      styles: ["normal", "italic"],
       subsets: ["latin"],
       display: "swap",
       fallbacks: ["sans-serif"],

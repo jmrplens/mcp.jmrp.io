@@ -166,18 +166,25 @@ h4 {
 .hero-title,
 .subpage-title {
   margin: 0 0 1.25rem;
-  letter-spacing: -0.03em;
   line-height: 1.05;
 }
 
+/* letter-spacing: matches jmrp.io's actual `.hero__title` (HomePage.astro
+   there) at its rendered size — -1.8px at 60px is exactly -0.03em. */
 .hero-title {
   max-width: 18ch;
   font-size: clamp(2.5rem, 7vw, 3.75rem);
+  letter-spacing: -0.03em;
 }
 
+/* clamp and letter-spacing: matches jmrp.io's blog post h1 (BlogPost.astro
+   there), the closest sibling this site has for a page-level (non-hero) h1
+   — same min/preferred/max shape (34px → 52px) and the same -0.025em, not
+   the -0.03em the hero title uses. */
 .subpage-title {
   max-width: 22ch;
-  font-size: clamp(2.25rem, 6vw, 3.25rem);
+  font-size: clamp(2.125rem, 4.8vw, 3.25rem);
+  letter-spacing: -0.025em;
 }
 
 /* ===== Párrafo introductorio compartido =====================================
