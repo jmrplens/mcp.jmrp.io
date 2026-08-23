@@ -244,7 +244,9 @@ export default function Inspector({
     select: (item: T) => void,
   ) {
     const pending = pendingNameRef.current;
-    if (!pending || pending.tab !== kind) return;
+    // `pending?.tab` covers the null case on its own: it yields undefined,
+    // which never equals a tab name, so the early return still fires.
+    if (pending?.tab !== kind) return;
     const match = list.find((item) => keyOf(item) === pending.name);
     if (!match) return;
     pendingNameRef.current = null;

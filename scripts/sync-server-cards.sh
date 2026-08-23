@@ -45,7 +45,10 @@ CARDS=(
   "gitlab|https://mcp.jmrp.io/gitlab/.well-known/mcp/server-card.json"
 )
 
-log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
+# `return 0` explícito: sin él la función devuelve el estado de `echo`, que
+# falla si su salida está cerrada (por ejemplo con el log redirigido a una
+# tubería cortada), y `sync_one` lo interpretaría como card fallida.
+log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; return 0; }
 
 # Descarga y valida UN card; solo si todo sale bien sustituye el publicado.
 #
@@ -64,12 +67,12 @@ sync_one() {
   http_code=$(curl -sS --max-time 30 -o "$raw" -w '%{http_code}' "$url")
   local curl_status=$?
 
-  if [ "$curl_status" -ne 0 ]; then
+  if [[ "$curl_status" -ne 0 ]]; then
     log "  ERROR $id: curl falló (código $curl_status) contra $url"
     rm -f "$tmp" "$raw"
     return 1
   fi
-  if [ "$http_code" != "200" ]; then
+  if [[ "$http_code" != "200" ]]; then
     log "  ERROR $id: HTTP $http_code en $url"
     rm -f "$tmp" "$raw"
     return 1
@@ -101,6 +104,7 @@ sync_one() {
     return 1
   fi
   log "  OK $id: $(jq -r '.serverInfo.version' "$target") -> ${target#"$REPO_ROOT"/}"
+  return 0
 }
 
 main() {
@@ -110,17 +114,17 @@ main() {
 
   for entry in "${CARDS[@]}"; do
     IFS='|' read -r id url <<<"$entry"
-    if [ -n "$only" ] && [ "$only" != "$id" ]; then continue; fi
+    if [[ -n "$only" && "$only" != "$id" ]]; then continue; fi
     matched=$((matched + 1))
     sync_one "$id" "$url" || failed+="$id "
   done
 
-  if [ "$matched" -eq 0 ]; then
+  if [[ "$matched" -eq 0 ]]; then
     log "ERROR: '$only' no es un id de card conocido (ver CARDS en este script)"
     exit 2
   fi
 
-  if [ -n "$failed" ]; then
+  if [[ -n "$failed" ]]; then
     log "Server Cards con error: $failed(el resto sí se actualizó)"
     exit 1
   fi
