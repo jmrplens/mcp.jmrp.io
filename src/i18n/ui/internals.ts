@@ -49,12 +49,39 @@ export const internals = {
     affinityConsequence:
       "The practical effect: because egress is also fixed per instance (next section), landing on the same node means your calls keep appearing to come from the same country — stable, not alternating request to request.",
     /** Caption for the affinity diagram figure. The diagram's own text (SVG,
-     * `aria-hidden`) never carries meaning on its own — the caption and the
-     * surrounding prose above are the accessible equivalent. Deliberately
-     * short: it does not restate `affinityConsequence`, same anti-duplication
-     * rule this file already follows for `affinityLibgen`/`affinityGitlab`. */
+     * `aria-hidden`) never carries meaning on its own — this caption plus the
+     * surrounding prose above are the accessible equivalent, and have to
+     * carry the full substance on their own for anyone who never sees the
+     * animation: a crawler, an assistant reading this page, or a visitor
+     * with `prefers-reduced-motion` on. Deliberately no branch by server
+     * here — see `InternalsPage.astro`'s header comment for why the
+     * previous version of this diagram drew one and got rejected. One
+     * client, one nginx, one pool of nodes: libgen and gitlab differ only in
+     * which key nginx computes, never in the shape of the pipeline. */
     diagramCaption:
-      "Same client, same node, same exit country — every time. Teal follows libgen's IP-based hash; violet follows gitlab's token-based hash. Both start at the same nginx and split where the affinity decision happens.",
+      'The loop plays two passes. First, several requests with no token: nginx keys on your IP address, and every single one lands on the same node — so every one leaves through the same country. Then several requests with a token: nginx keys on an MD5 of a secret salt plus your PRIVATE-TOKEN, and again every one lands on one node — just not necessarily the same node as the first pass. The faint node marked "+", behind the real ones, stands for however many more the pool grows to: the diagram does not need to change shape if it does.',
+    /** Label for the client in the diagram, next to the repeated dots that
+     * stand for "several requests in a row" — see `diagramCaption`. */
+    diagramClientLabel: "you",
+    /** Sign under nginx, pass 1 (no token — libgen's real case): mode, the
+     * key nginx computes, the outcome. Kept separate from `affinityLibgen`'s
+     * full sentence above because a diagram label has no room for one.
+     * `diagramPass1Key`/`diagramPass2Key` are pre-wrapped by hand into the
+     * lines the sign actually draws — one line is plenty for pass 1's short
+     * formula, but pass 2's is long enough that it overflows the sign at any
+     * font size still legible on a 360px screen. Wrapping it here, once, in
+     * plain language, beats measuring text width in CSS. */
+    diagramPass1Mode: "no token",
+    diagramPass1Key: ["key = your IP address"],
+    /** Sign under nginx, pass 2 (with token — gitlab's real case). See
+     * `affinityCodeIntro`/`affinityCodeComment` for why the salt itself is
+     * never shown: this label names the formula, not the value. */
+    diagramPass2Mode: "with token",
+    diagramPass2Key: ["key = MD5(secret salt", "+ PRIVATE-TOKEN)"],
+    /** Third line of the sign, identical in both passes on purpose: the
+     * point is that the same client always gets the same answer, whichever
+     * key it was keyed on. */
+    diagramResultLine: "→ always the same node",
 
     egressEyebrow: "Egress: which country a request leaves from",
     egressBody: [
@@ -104,7 +131,17 @@ export const internals = {
       "El efecto práctico: como el egreso también es fijo por instancia (siguiente sección), caer en el mismo nodo significa que tus llamadas siguen pareciendo venir del mismo país — estable, no alternando de una petición a la siguiente.",
     /** Ver `en.diagramCaption`: leyenda de la figura del diagrama de afinidad. */
     diagramCaption:
-      "Mismo cliente, mismo nodo, mismo país de salida — siempre. El trazo verde-azulado sigue el hash por IP de libgen; el violeta, el hash por token de gitlab. Los dos arrancan en el mismo nginx y se separan donde ocurre la decisión de afinidad.",
+      'El bucle hace dos pasadas. Primero, varias peticiones sin token: nginx calcula la clave sobre tu dirección IP, y todas y cada una caen en el mismo nodo — así que todas salen por el mismo país. Luego, varias peticiones con token: nginx calcula la clave sobre un MD5 de una sal secreta más tu PRIVATE-TOKEN, y de nuevo todas caen en un mismo nodo — no necesariamente el mismo de la primera pasada. El nodo tenue marcado "+", detrás de los reales, representa cuantos más haga falta añadir al conjunto: el diagrama no necesita cambiar de forma si eso ocurre.',
+    /** Ver `en.diagramClientLabel`: etiqueta del cliente en el diagrama, junto a los puntos repetidos. */
+    diagramClientLabel: "tú",
+    /** Ver `en.diagramPass1Mode`/`diagramPass1Key`: cartel bajo nginx, pasada 1 (sin token — caso libgen). */
+    diagramPass1Mode: "sin token",
+    diagramPass1Key: ["clave = tu dirección IP"],
+    /** Ver `en.diagramPass2Mode`/`diagramPass2Key`: cartel bajo nginx, pasada 2 (con token — caso gitlab). */
+    diagramPass2Mode: "con token",
+    diagramPass2Key: ["clave = MD5(sal secreta", "+ PRIVATE-TOKEN)"],
+    /** Ver `en.diagramResultLine`: tercera línea del cartel, igual en las dos pasadas a propósito. */
+    diagramResultLine: "→ siempre el mismo nodo",
 
     egressEyebrow: "Egreso: de qué país sale una petición",
     egressBody: [

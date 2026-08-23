@@ -2,8 +2,18 @@
  * Instance/egress topology for the two MCP servers — how many instances run
  * behind nginx for each one, in the same order as its real `upstream` block
  * (see `docs/nginx-vhost-reference.conf`), and which country each instance's
- * egress proxy exits through. Backs `/internals/`'s affinity diagram; the
- * prose it illustrates is `instancesBody`/`egressBody` in `internals.ts`.
+ * egress proxy exits through. The prose it backs is `instancesBody`/
+ * `egressBody` in `internals.ts` (three instances per server, egress split
+ * cross-wise between the two).
+ *
+ * `InternalsPage.astro`'s affinity diagram also draws from this: it uses
+ * `topology.libgen` as ITS illustrative pool of real nodes for BOTH passes
+ * of the animation. That is deliberate, not an oversight — the diagram was
+ * redesigned to stop drawing libgen and gitlab as two separate branches
+ * (see that component's header comment for why), so it no longer needs, or
+ * draws, two separate node pools side by side. `topology.gitlab` stays here,
+ * real and unused by the diagram, because the egress prose above still
+ * states its numbers precisely and this file is their one source of truth.
  *
  * Kept OUT of `servers.ts` on purpose, even though nothing there would leak
  * it today: `/servers.json` (`servers.json.ts`), the JSON-LD graph
