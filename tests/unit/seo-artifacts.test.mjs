@@ -17,7 +17,14 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { test } from "node:test";
 
-import { DEFAULT_LANG, LANGS, PAGE_PATHS, pageUrl } from "../../src/lib/seo.ts";
+import { serverCards } from "../../src/data/server-cards.ts";
+import {
+  DEFAULT_LANG,
+  LANGS,
+  PAGE_PATHS,
+  pageUrl,
+  serverPageUrl,
+} from "../../src/lib/seo.ts";
 
 // `dist` es un SYMLINK al color activo del blue/green, así que apunta a lo
 // PUBLICADO, no a lo recién construido. `DIST_DIR` permite validar un build
@@ -115,6 +122,12 @@ const SERVED_PAGES = [
   "es/internals/index.html",
   "policies/index.html",
   "es/policies/index.html",
+  "servers/index.html",
+  "es/servers/index.html",
+  "servers/libgen/index.html",
+  "es/servers/libgen/index.html",
+  "servers/gitlab/index.html",
+  "es/servers/gitlab/index.html",
 ];
 
 test("cada página generada tiene su location en el vhost", (t) => {
@@ -187,7 +200,7 @@ test("llms.txt y llms-full.txt describen los servidores de verdad", () => {
   assert.ok(full.length > short.length, "el documento largo no es más largo");
 });
 
-test("llms.txt lista las cuatro páginas en los dos idiomas", () => {
+test("llms.txt lista las catorce páginas en los dos idiomas", () => {
   const short = read("llms.txt");
   for (const path of [
     "/",
@@ -198,6 +211,12 @@ test("llms.txt lista las cuatro páginas en los dos idiomas", () => {
     "/es/internals/",
     "/policies/",
     "/es/policies/",
+    "/servers/",
+    "/es/servers/",
+    "/servers/libgen/",
+    "/es/servers/libgen/",
+    "/servers/gitlab/",
+    "/es/servers/gitlab/",
   ]) {
     assert.ok(
       short.includes(`https://mcp.jmrp.io${path}`),
@@ -261,7 +280,18 @@ test("cada entrada del sitemap declara SU x-default, no el de la portada", () =>
   // The serializer used to emit a hardcoded x-default pointing at the home
   // page for EVERY entry, contradicting the <head> each page emits. Nothing
   // pinned that value, so it was reintroducible without a single red test.
-  for (const path of ["", "inspector/", "internals/", "policies/"]) {
+  // `servers/`, `servers/libgen/` and `servers/gitlab/` joined this sweep
+  // with the `/servers/` section: each must self-reference, not fall back
+  // to the section index's x-default, let alone the site root's.
+  for (const path of [
+    "",
+    "inspector/",
+    "internals/",
+    "policies/",
+    "servers/",
+    "servers/libgen/",
+    "servers/gitlab/",
+  ]) {
     const self = `${ORIGIN}/${path}`;
     assert.ok(
       sitemap.includes(`hreflang="x-default" href="${self}"`),
@@ -273,22 +303,60 @@ test("cada entrada del sitemap declara SU x-default, no el de la portada", () =>
 /**
  * Content of every generated HTML page, indexed by route.
  *
- * Derived from `PAGE_PATHS` — the same map the site itself builds URLs
- * from — instead of a literal two-item list, so a page added there is
- * automatically covered here too. Used to only cover the two home pages
- * (`index.html`, `es/index.html`); the five tests below that consume it now
- * get `lang` and `page` alongside the HTML, so each assertion compares
- * against the URL of the page it is actually looking at instead of assuming
- * the home page.
+ * Fixed pages are derived from `PAGE_PATHS` — the same map the site itself
+ * builds URLs from — so a page added there is automatically covered here
+ * too. Per-server detail pages (`/servers/<id>/`) are NOT one of
+ * `PAGE_PATHS`'s fixed entries — see the comment on `PAGE_PATHS` in
+ * `src/lib/seo.ts` for why a per-server route cannot be expressed there —
+ * so they are appended separately, one per id in `serverCards` (the same
+ * set `getStaticPaths` in `src/pages/servers/[server].astro` builds pages
+ * for).
  *
- * @returns One entry per page/language combination the build emits.
+ * Every entry carries its OWN expected canonical/hreflang URLs
+ * pre-resolved (`url`, `enUrl`, `esUrl`, `xDefaultUrl`) rather than leaving
+ * each downstream test to call `pageUrl(lang, page)` itself: that call is
+ * only correct for `PAGE_PATHS`'s fixed entries — for a server detail page
+ * it would silently resolve back to the `/servers/` INDEX URL instead of
+ * that server's own page. `id` is `undefined` for fixed pages and the
+ * server id for detail pages, so a test can tell the two apart without
+ * comparing strings.
+ *
+ * @returns One entry per page/language combination the build emits — 14
+ *   today: the 5 fixed pages (home/inspector/internals/policies/servers
+ *   index) plus 2 server detail pages, each in both languages.
  */
 function pages() {
   const found = [];
   for (const [page, dir] of Object.entries(PAGE_PATHS)) {
     for (const lang of LANGS) {
       const name = `${lang === "es" ? "es/" : ""}${dir}index.html`;
-      found.push({ name, html: read(name), lang, page });
+      found.push({
+        name,
+        html: read(name),
+        lang,
+        page,
+        id: undefined,
+        url: pageUrl(lang, page),
+        enUrl: pageUrl("en", page),
+        esUrl: pageUrl("es", page),
+        xDefaultUrl: pageUrl(DEFAULT_LANG, page),
+      });
+    }
+  }
+  for (const id of Object.keys(serverCards)) {
+    for (const lang of LANGS) {
+      const name = `${lang === "es" ? "es/" : ""}servers/${id}/index.html`;
+      found.push({
+        name,
+        html: read(name),
+        lang,
+        page: "servers",
+        id,
+        url: serverPageUrl(lang, id),
+        enUrl: serverPageUrl("en", id),
+        esUrl: serverPageUrl("es", id),
+        xDefaultUrl: serverPageUrl(DEFAULT_LANG, id),
+      });
     }
   }
   return found;
@@ -332,9 +400,7 @@ function meta(html, attribute, key) {
 }
 
 test("cada página emite Open Graph y Twitter Card completos", () => {
-  for (const { name, html, lang, page } of pages()) {
-    const url = pageUrl(lang, page);
-
+  for (const { name, html, lang, url } of pages()) {
     assert.equal(meta(html, "property", "og:type"), "website", name);
     assert.equal(meta(html, "property", "og:url"), url, `${name}: og:url`);
     assert.equal(
@@ -366,7 +432,7 @@ test("cada página emite Open Graph y Twitter Card completos", () => {
 });
 
 test("cada página se autorreferencia en hreflang", () => {
-  for (const { name, html, lang, page } of pages()) {
+  for (const { name, html, lang, enUrl, esUrl, xDefaultUrl } of pages()) {
     const byLang = new Map(
       linkTags(html)
         .filter((link) => link.hreflang)
@@ -379,22 +445,19 @@ test("cada página se autorreferencia en hreflang", () => {
       byLang.has(lang),
       `${name}: no se autorreferencia (hreflang="${lang}")`,
     );
-    assert.equal(byLang.get("en"), pageUrl("en", page), `${name}: hreflang en`);
-    assert.equal(byLang.get("es"), pageUrl("es", page), `${name}: hreflang es`);
-    // x-default points at THIS page's English version, not the home page's —
-    // same rule the "cada entrada del sitemap declara SU x-default" test
-    // above checks for the sitemap's own hreflang annotations.
-    assert.equal(
-      byLang.get("x-default"),
-      pageUrl(DEFAULT_LANG, page),
-      `${name}: x-default`,
-    );
+    assert.equal(byLang.get("en"), enUrl, `${name}: hreflang en`);
+    assert.equal(byLang.get("es"), esUrl, `${name}: hreflang es`);
+    // x-default points at THIS page's English version, not the home page's
+    // nor (for a server detail page) the `/servers/` index's — same rule
+    // the "cada entrada del sitemap declara SU x-default" test above checks
+    // for the sitemap's own hreflang annotations.
+    assert.equal(byLang.get("x-default"), xDefaultUrl, `${name}: x-default`);
     assert.equal(byLang.size, 3, `${name}: sobran o faltan anotaciones`);
   }
 });
 
 test("cada página declara favicon, canonical y el índice JSON", () => {
-  for (const { name, html, lang, page } of pages()) {
+  for (const { name, html, url } of pages()) {
     const links = linkTags(html);
     const has = (predicate) => links.some((link) => predicate(link));
 
@@ -403,7 +466,7 @@ test("cada página declara favicon, canonical y el índice JSON", () => {
       `${name}: sin favicon declarado no sale icono en los resultados`,
     );
     assert.ok(
-      has((l) => l.rel === "canonical" && l.href === pageUrl(lang, page)),
+      has((l) => l.rel === "canonical" && l.href === url),
       `${name}: canonical ausente o apuntando a otra URL`,
     );
     assert.ok(
@@ -414,7 +477,7 @@ test("cada página declara favicon, canonical y el índice JSON", () => {
 });
 
 test("el <title> deja sitio a la expresión por la que se busca esto", () => {
-  for (const { name, html, page } of pages()) {
+  for (const { name, html, page, id } of pages()) {
     const title = /<title>([^<]*)<\/title>/.exec(html)?.[1];
     assert.ok(title, `${name}: sin <title>`);
 
@@ -433,11 +496,18 @@ test("el <title> deja sitio a la expresión por la que se busca esto", () => {
         `${name}: el título no contiene la keyword — solo estaba en la description`,
       );
     }
-    // Separadas: un `&&` en el assert no dice cuál de los dos límites se pasó.
-    assert.ok(
-      title.length >= 40,
-      `${name}: ${title.length} caracteres, se queda corto (mínimo 40)`,
-    );
+    // A server detail page's title is `<server id> <fixed suffix>` (e.g.
+    // "gitlab — MCP server card · mcp.jmrp.io", 38 chars in EN — see
+    // `metaTitleServerSuffix` in `src/i18n/ui/servers-page.ts`). It is
+    // legitimately short: the id is the whole differentiator, and it is
+    // exactly as short as the MCP server's own name. Exempted from the
+    // floor only, never from the ceiling.
+    if (!id) {
+      assert.ok(
+        title.length >= 40,
+        `${name}: ${title.length} caracteres, se queda corto (mínimo 40)`,
+      );
+    }
     assert.ok(
       title.length <= 65,
       `${name}: ${title.length} caracteres; Google recorta pasados ~60`,
