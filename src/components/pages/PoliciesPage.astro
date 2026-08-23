@@ -39,27 +39,27 @@ const homeHref = new URL(pageUrl(lang, "home")).pathname;
 
   <section class="policies-section" aria-labelledby="privacy-h">
     <h2 class="subsection-title" id="privacy-h">{t.privacyEyebrow}</h2>
-    {t.privacyBody.map((paragraph) => <p class="policy-text">{paragraph}</p>)}
+    {t.privacyBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
   </section>
 
   <section class="policies-section" aria-labelledby="logs-h">
     <h2 class="subsection-title" id="logs-h">{t.logsEyebrow}</h2>
-    {t.logsBody.map((paragraph) => <p class="policy-text">{paragraph}</p>)}
+    {t.logsBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
   </section>
 
   <section class="policies-section" aria-labelledby="sla-h">
     <h2 class="subsection-title" id="sla-h">{t.slaEyebrow}</h2>
-    {t.slaBody.map((paragraph) => <p class="policy-text">{paragraph}</p>)}
+    {t.slaBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
   </section>
 
   <section class="policies-section" aria-labelledby="egress-h">
     <h2 class="subsection-title" id="egress-h">{t.egressEyebrow}</h2>
-    {t.egressBody.map((paragraph) => <p class="policy-text">{paragraph}</p>)}
+    {t.egressBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
   </section>
 
   <section class="policies-section" aria-labelledby="legal-h">
     <h2 class="subsection-title" id="legal-h">{t.legalEyebrow}</h2>
-    {t.legalBody.map((paragraph) => <p class="policy-text">{paragraph}</p>)}
+    {t.legalBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
   </section>
 
   {/* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
@@ -120,11 +120,4 @@ const homeHref = new URL(pageUrl(lang, "home")).pathname;
      smaller and tighter than a blog post's, and PrivacyPage.astro is the
      real sibling to measure against, not the closest thing that happened to
      already have a `.prose` class nearby. */
-  .policy-text {
-    margin: 0 0 var(--space-md);
-    color: var(--color-text);
-    font-size: var(--text-base);
-    line-height: 1.7;
-    text-wrap: pretty;
-  }
 </style>

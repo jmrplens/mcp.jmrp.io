@@ -75,6 +75,10 @@ const canonical = pageUrl(lang, page);
 // is above. It is in the shared footer, not just on the home page, so every
 // page — this one included — stays able to reach it.
 const policiesHref = new URL(pageUrl(lang, "policies")).pathname;
+const homeHref = new URL(pageUrl(lang, "home")).pathname;
+// First-level path only, like jmrp.io: `~` on the home page, `~/inspector`
+// elsewhere. Never a deeper slug — this site has none.
+const breadcrumb = page === "home" ? "~" : `~/${page}`;
 const ogImage = ogImageUrl(lang);
 const imageAlt = ogImageAlt(lang);
 const otherLocales = Object.entries(OG_LOCALES)
@@ -322,10 +326,17 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
       />
 
       <div class="header-bar">
-        <a class="brand" href="https://jmrp.io" rel="home">
-          <span class="brand-sigil">~ &rsaquo;</span><span class="brand-name"
-            >mcp</span
-          >
+        {/* Terminal-prompt mark, same anatomy as jmrp.io's Logo.astro:
+            breadcrumb path + teal chevron + command + blinking cursor. It
+            links to THIS site's home in the current language — it used to
+            point at https://jmrp.io, which sent visitors off the site from
+            every page. The visible wordmark is the accessible name, so no
+            aria-label (it would not contain the visible breadcrumb text). */}
+        <a class="brand" href={homeHref} rel="home">
+          <span class="brand-path">{breadcrumb}</span>
+          <span class="brand-prompt">&#10095;</span>
+          <span class="brand-name">mcp</span>
+          <span class="brand-cursor" aria-hidden="true"></span>
         </a>
 
         <nav class="site-nav" aria-label={t.mainNavLabel}>
@@ -689,17 +700,69 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
     }
   }
 
+  /* Ported from jmrp.io's Logo.astro. The old rule declared neither family
+     nor size, so the mark inherited them and rendered at the wrong scale. */
   .brand {
     display: inline-flex;
-    gap: 0.4rem;
-    align-items: baseline;
+    align-items: center;
     color: var(--color-text-heading);
-    font-weight: 600;
+    font-family: var(--font-mono);
+    font-size: var(--text-md);
+    font-weight: var(--fw-semibold);
+    line-height: 1;
+    letter-spacing: -0.01em;
     text-decoration: none;
   }
 
-  .brand-sigil {
-    color: var(--color-accent);
+  .brand-path {
+    color: var(--color-text-muted);
+  }
+
+  /* The collapsed bar drops the breadcrumb: a long segment (`~/internals`)
+     would push the right-hand cluster off a 360px viewport. */
+  @media (width <= 40rem) {
+    .brand-path {
+      display: none;
+    }
+  }
+
+  .brand-prompt {
+    margin-left: 0.5em;
+    color: var(--teal);
+  }
+
+  .brand-name {
+    margin-left: 0.5em;
+    color: var(--color-text-heading);
+  }
+
+  .brand-cursor {
+    align-self: flex-end;
+    width: 0.6em;
+    height: 0.12em;
+    margin-bottom: 0.16em;
+    margin-left: 0.12em;
+    background: var(--color-accent);
+    border-radius: 1px;
+    animation: brand-blink 1.15s steps(1) infinite;
+  }
+
+  @keyframes brand-blink {
+    0%,
+    46% {
+      opacity: 100%;
+    }
+
+    54%,
+    100% {
+      opacity: 0%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .brand-cursor {
+      animation: none;
+    }
   }
 
   .brand:hover .brand-name {

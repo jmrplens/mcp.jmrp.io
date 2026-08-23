@@ -209,6 +209,23 @@ h4 {
   text-wrap: pretty;
 }
 
+/* ===== Prosa de página de contenido ========================================
+   Medido contra jmrp.io: sus páginas de contenido (`/privacy/`, `/about/`,
+   `/homelab/`) sirven la prosa a `--text-base` con 1.7 de interlineado y la
+   dejan alcanzar los ~700px que da el contenedor. `/policies/` ya lo hacía
+   por su cuenta bajo el nombre `.policy-text`; `/internals/` iba a 0.875rem
+   con `max-width: 62ch` (14px sobre 496px) y la prosa del inspector no tenía
+   medida ninguna y llegaba a 1152px, que es ilegible. Una sola regla para las
+   tres, en vez de tres copias que ya habían divergido. */
+.prose-text {
+  max-width: var(--max-width-prose);
+  margin: 0 0 var(--space-md);
+  color: var(--color-text);
+  font-size: var(--text-base);
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
 /* ===== Cabecera de subpágina (kicker + h1 + intro + separador) =============
    jmrp.io never puts a bare h1 at the top of a content page: PrivacyPage.astro
    and AboutPage.astro there both wrap the title zone in a

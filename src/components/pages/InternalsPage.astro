@@ -131,22 +131,22 @@ function countryTag(country: McpInstance["egressCountry"]): string {
 
 <section aria-labelledby="path-h">
   <h2 class="eyebrow" id="path-h">{t.pathEyebrow}</h2>
-  {t.pathBody.map((paragraph) => <p class="internals-text">{paragraph}</p>)}
+  {t.pathBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
 </section>
 
 <section aria-labelledby="instances-h">
   <h2 class="eyebrow" id="instances-h">{t.instancesEyebrow}</h2>
-  {t.instancesBody.map((paragraph) => <p class="internals-text">{paragraph}</p>)}
+  {t.instancesBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
 </section>
 
 <section aria-labelledby="affinity-h">
   <h2 class="eyebrow" id="affinity-h">{t.affinityEyebrow}</h2>
-  <p class="internals-text">{t.affinityIntro}</p>
-  <p class="internals-text">{t.affinityLibgen}</p>
-  <p class="internals-text">{t.affinityGitlab}</p>
-  {t.affinityCodeIntro.map((paragraph) => <p class="internals-text">{paragraph}</p>)}
+  <p class="prose-text">{t.affinityIntro}</p>
+  <p class="prose-text">{t.affinityLibgen}</p>
+  <p class="prose-text">{t.affinityGitlab}</p>
+  {t.affinityCodeIntro.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
   <pre><code>{affinitySnippet}</code></pre>
-  <p class="internals-text">{t.affinityConsequence}</p>
+  <p class="prose-text">{t.affinityConsequence}</p>
 
   {/* Request-path figure: a static strip (nothing here moves — the
       "aria-hidden" icons are pure decoration, the stage names and node
@@ -243,7 +243,7 @@ function countryTag(country: McpInstance["egressCountry"]): string {
       real HTML — this, not the figure, is what a crawler, an assistant or a
       `prefers-reduced-motion` visitor actually reads. See this file's
       header comment for why the detail lives here and not in the figure. */}
-  <p class="internals-text">{t.diagramTimelineIntro}</p>
+  <p class="prose-text">{t.diagramTimelineIntro}</p>
   <ol class="mcp-timeline">
     <li>
       <span class="mcp-timeline-num" aria-hidden="true">1</span>
@@ -270,16 +270,16 @@ function countryTag(country: McpInstance["egressCountry"]): string {
 
 <section aria-labelledby="egress-h">
   <h2 class="eyebrow" id="egress-h">{t.egressEyebrow}</h2>
-  {t.egressBody.map((paragraph) => <p class="internals-text">{paragraph}</p>)}
+  {t.egressBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
 </section>
 
 <section aria-labelledby="personal-h">
   <h2 class="eyebrow" id="personal-h">{t.personalEyebrow}</h2>
-  {t.personalBody.map((paragraph) => <p class="internals-text">{paragraph}</p>)}
+  {t.personalBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
   {/* Points at the full statements (no-SLA, legal position) instead of
       repeating them: this page's job is the mechanism, policies' job is the
       commitment — or lack of one. */}
-  <p class="internals-text">
+  <p class="prose-text">
     <a href={policiesHref}>{t.policiesLink}</a>
   </p>
 </section>
@@ -355,20 +355,13 @@ function countryTag(country: McpInstance["egressCountry"]): string {
     content: "//";
   }
 
-  .internals-text {
-    max-width: 62ch;
-    margin: 0 0 0.7rem;
-    color: var(--color-text);
-    font-size: 0.875rem;
-    text-wrap: pretty;
-  }
 
-  .internals-text a {
+  .prose-text a {
     color: var(--color-accent);
     text-decoration: none;
   }
 
-  .internals-text a:hover {
+  .prose-text a:hover {
     text-decoration: underline;
     text-underline-offset: 3px;
   }

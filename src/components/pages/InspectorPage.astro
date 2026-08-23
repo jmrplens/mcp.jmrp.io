@@ -94,10 +94,14 @@ const gitlabNoticeHref = `${homeHref}#gitlab`;
     margin-top: var(--space-lg-xl);
   }
 
+  /* Reading text, so it takes the shared prose measure. The island above it
+     keeps the full column on purpose — it is a form, not running text. */
   .notice-pointer {
+    max-width: var(--max-width-prose);
     margin: 1rem 0 0;
     color: var(--color-text-muted);
-    font-size: 0.875rem;
+    font-size: var(--text-base);
+    line-height: 1.7;
     text-wrap: pretty;
   }
 </style>
