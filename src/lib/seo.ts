@@ -59,7 +59,7 @@ export const OG_IMAGE_SIZE = { width: 1200, height: 630 } as const;
 export const SITE_NAME = "mcp.jmrp.io";
 
 /** Every page of the site. The key is what routes and the graph refer to. */
-export type PageId = "home" | "inspector" | "internals" | "policies";
+export type PageId = "home" | "inspector" | "internals" | "policies" | "servers";
 
 /**
  * Path of each page, relative to its language root.
@@ -68,12 +68,19 @@ export type PageId = "home" | "inspector" | "internals" | "policies";
  * already carries the trailing slash. Renaming a route means changing it here
  * and nowhere else — but only before it is published, since a live URL costs a
  * 301 and a reindexing cycle.
+ *
+ * `servers` is the `/servers/` INDEX only — one fixed URL, like every other
+ * entry here. Each server's OWN detail page (`/servers/<id>/`) has a variable
+ * segment this map cannot express without one static entry per server id,
+ * which would turn "add a third MCP" back into a code change. See
+ * `serverPageUrl`/`serverPageAlternates` below for that page's URLs instead.
  */
 export const PAGE_PATHS: Record<PageId, string> = {
   home: "",
   inspector: "inspector/",
   internals: "internals/",
   policies: "policies/",
+  servers: "servers/",
 };
 
 /**
@@ -145,5 +152,48 @@ export function alternates(page: PageId = "home"): Alternate[] {
   return [
     ...LANGS.map((lang) => ({ hreflang: lang, href: pageUrl(lang, page) })),
     { hreflang: "x-default", href: pageUrl(DEFAULT_LANG, page) },
+  ];
+}
+
+/**
+ * Path of ONE server's detail page (`/servers/<id>/`), relative to its
+ * language root.
+ *
+ * Not built from a `PageId`: see the comment on `PAGE_PATHS` above for why a
+ * per-server route cannot be one of its fixed entries. Built from
+ * `PAGE_PATHS.servers` rather than the literal `"servers/"` so the two can
+ * never drift apart.
+ *
+ * @param id Server id, matching `McpServer.id` in `src/data/servers.ts`.
+ * @returns Path with a trailing slash, e.g. `servers/gitlab/`.
+ */
+export function serverPagePath(id: string): string {
+  return `${PAGE_PATHS.servers}${id}/`;
+}
+
+/**
+ * Absolute canonical URL of one server's detail page in one language.
+ *
+ * @param lang Language of the page.
+ * @param id Server id.
+ * @returns URL with a trailing slash, mirroring what `pageUrl` does for
+ *   fixed-path pages.
+ */
+export function serverPageUrl(lang: Lang, id: string): string {
+  return `${SITE_ORIGIN}${LOCALE_PATHS[lang]}${serverPagePath(id)}`;
+}
+
+/**
+ * hreflang cluster of ONE server's detail page: every language plus
+ * `x-default`, self-reference included — the per-server equivalent of
+ * {@link alternates}.
+ *
+ * @param id Server id.
+ * @returns One entry per language plus `x-default`.
+ */
+export function serverPageAlternates(id: string): Alternate[] {
+  return [
+    ...LANGS.map((lang) => ({ hreflang: lang, href: serverPageUrl(lang, id) })),
+    { hreflang: "x-default", href: serverPageUrl(DEFAULT_LANG, id) },
   ];
 }

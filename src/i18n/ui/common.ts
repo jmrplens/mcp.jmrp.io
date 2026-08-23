@@ -66,6 +66,7 @@ export const common = {
     navInspector: "Inspector",
     navInternals: "Internals",
     navPolicies: "Policies",
+    navServers: "Servers",
     /** `aria-label` of the `<nav>` landmark that holds the four page links. */
     mainNavLabel: "Main navigation",
     /** `aria-label` of the language-switch `<nav>` group. */
@@ -110,6 +111,7 @@ export const common = {
     navInspector: "Inspector",
     navInternals: "Funcionamiento interno",
     navPolicies: "Políticas",
+    navServers: "Servidores",
     /** Ver `en.mainNavLabel`. */
     mainNavLabel: "Navegación principal",
     /** Ver `en.langSwitchLabel`. */

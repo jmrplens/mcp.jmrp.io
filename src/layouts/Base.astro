@@ -14,12 +14,13 @@ import "../styles/global.css";
 
 import { Font } from "astro:assets";
 
-import { ui } from "../i18n/ui";
+import { type Lang, ui } from "../i18n/ui";
 import { getLangFromUrl } from "../i18n/utils";
 import { contentDate } from "../lib/build-date";
 import { humanDate } from "../lib/format";
 import { buildSiteGraph, safeJsonLd } from "../lib/jsonld";
 import {
+  type Alternate,
   alternates,
   OG_IMAGE_SIZE,
   OG_LOCALES,
@@ -36,6 +37,33 @@ interface Props {
   description: string;
   /** Which page this is, for the canonical URL and the hreflang cluster. */
   page?: PageId;
+  /**
+   * Canonical URL for THIS page, overriding `pageUrl(lang, page)`.
+   *
+   * `PAGE_PATHS` holds one fixed path per `PageId`, which a per-server detail
+   * page (`/servers/<id>/`) cannot express — see `serverPageUrl` in
+   * `lib/seo.ts`. Required together with `alternatesOverride`; setting one
+   * without the other would canonicalize this page to one URL while
+   * announcing a different hreflang cluster for it.
+   */
+  canonicalOverride?: string;
+  /** hreflang cluster to pair with {@link canonicalOverride}. */
+  alternatesOverride?: Alternate[];
+  /**
+   * Suppress the site JSON-LD graph for this page.
+   *
+   * `buildSiteGraph()` derives its `WebPage` `@id` from `pageUrl(lang, page)`
+   * — one fixed URL per `PageId`. Every server's detail page shares the same
+   * `page` value (`"servers"`, the index's), so calling it unmodified would
+   * make each one assert the SAME `@id` (the `/servers/` index's) with a
+   * DIFFERENT name/description — precisely the entity split `jsonld.ts`'s own
+   * comments (see its `#source-code` node) exist to avoid elsewhere. Moving
+   * the WebAPI/SoftwareApplication nodes onto their own server's page is
+   * follow-up work (`servers-section-spec.md`, "Lo que arrastra"); until then
+   * these pages carry no graph at all rather than a wrong one — see the
+   * matching exclusion in `jsonld.test.mjs`'s `htmlPages()`.
+   */
+  skipGraph?: boolean;
   /**
    * This page is an error body (the 404), not a real address.
    *
@@ -54,30 +82,54 @@ interface Props {
   errorPage?: boolean;
 }
 
-const { title, description, page = "home", errorPage = false } = Astro.props;
+const {
+  title,
+  description,
+  page = "home",
+  canonicalOverride,
+  alternatesOverride,
+  skipGraph = false,
+  errorPage = false,
+} = Astro.props;
 // The language comes from the URL, never from a prop: that is what lets the
 // mirrored route files under `src/pages/es/` be identical to their English
 // counterparts, and therefore impossible to drift apart.
 const lang = getLangFromUrl(Astro.url);
+// Moved up from further down the file (right before the old `t = ui[lang]`
+// line) so `alternate` below can use it — nothing depended on the old order,
+// it was just write-as-you-go.
+const otherLang: Lang = lang === "en" ? "es" : "en";
 
 // La misma fecha que dateModified y el lastmod del sitemap: una sola verdad.
 const updated = contentDate() ?? new Date().toISOString();
 const updatedHuman = humanDate(updated, lang);
+// hreflang cluster for THIS page: `alternatesOverride` for a per-server
+// detail page (see the prop doc above), `alternates(page)` for everything
+// else. The <head> loop further down reads this SAME value, so the two can
+// never drift apart.
+const hreflangCluster = alternatesOverride ?? alternates(page);
 // The visible language switch stays a site-relative path. It still derives
-// from `pageUrl()` so it can never drift from the canonical, but an absolute
-// URL here would jump a dev or preview server straight to production.
-const alternate = new URL(pageUrl(lang === "en" ? "es" : "en", page)).pathname;
+// from `hreflangCluster` (built from `pageUrl()`/`serverPageUrl()`, never a
+// literal) so it can never drift from the canonical, but an absolute URL
+// here would jump a dev or preview server straight to production.
+const alternate = new URL(
+  hreflangCluster.find((entry) => entry.hreflang === otherLang)?.href ??
+    pageUrl(otherLang, page),
+).pathname;
 // Canonical, og:url y twitter:url son el MISMO valor a propósito: tres
 // declaraciones distintas de dónde vive esta página son tres oportunidades de
-// contradecirse. Todas salen de `pageUrl()`.
-const canonical = pageUrl(lang, page);
+// contradecirse. `canonicalOverride` for a per-server detail page (see the
+// prop doc above); `pageUrl()` for everything else.
+const canonical = canonicalOverride ?? pageUrl(lang, page);
 // Footer link to `/policies/`, site-relative for the same reason `alternate`
 // is above. It is in the shared footer, not just on the home page, so every
 // page — this one included — stays able to reach it.
 const policiesHref = new URL(pageUrl(lang, "policies")).pathname;
 const homeHref = new URL(pageUrl(lang, "home")).pathname;
 // First-level path only, like jmrp.io: `~` on the home page, `~/inspector`
-// elsewhere. Never a deeper slug — this site has none.
+// elsewhere. `/servers/<id>/` pages ARE a real deeper slug now, but `page` is
+// `"servers"` for those too (see ServerPage.astro), so the breadcrumb still
+// reads `~/servers` on them — deliberately coarse, not a bug.
 const breadcrumb = page === "home" ? "~" : `~/${page}`;
 const ogImage = ogImageUrl(lang);
 const imageAlt = ogImageAlt(lang);
@@ -89,11 +141,14 @@ const otherLocales = Object.entries(OG_LOCALES)
 // jmrp.io de GitHub, con el snapshot commiteado como respaldo (ver identity.ts).
 // An error body describes no entity, so it builds no graph. Emitting one made
 // the 404 redefine the home page's `@id` with a different name.
-const jsonLd = errorPage
-  ? undefined
-  : safeJsonLd(await buildSiteGraph({ lang, title, description, page }));
+// `skipGraph` short-circuits the call entirely — see the prop doc above for
+// why a per-server detail page cannot just be handed a different `page`
+// value instead.
+const jsonLd =
+  errorPage || skipGraph
+    ? undefined
+    : safeJsonLd(await buildSiteGraph({ lang, title, description, page }));
 const t = ui[lang];
-const otherLang = lang === "en" ? "es" : "en";
 
 // One nav item per page, in the CURRENT language, for both the desktop nav
 // and the mobile drawer (they render from the same array, no JS involved).
@@ -108,6 +163,7 @@ const NAV_LABELS: Record<PageId, string> = {
   inspector: t.navInspector,
   internals: t.navInternals,
   policies: t.navPolicies,
+  servers: t.navServers,
 };
 const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
   id,
@@ -198,7 +254,7 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
         alta un idioma nuevo no pueda volver a dejar la lista coja. */}
     {
       !errorPage &&
-        alternates(page).map((alt) => (
+        hreflangCluster.map((alt) => (
           <link rel="alternate" hreflang={alt.hreflang} href={alt.href} />
         ))
     }
