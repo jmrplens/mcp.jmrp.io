@@ -1,0 +1,184 @@
+---
+/**
+ * Internals page — how a request is actually routed, end to end.
+ *
+ * Written because nothing on the site said any of this: not that there are
+ * three instances per server, not that each one exits through a different
+ * country, and not what changed on 2026-08-22 when the balancer switched
+ * from round-robin to consistent-hash affinity. See `internals.ts` for the
+ * full content; this component is layout only.
+ *
+ * Uses `internals` directly, NOT the merged `ui` object: `src/i18n/ui.ts`'s
+ * header comment explains why `internals.ts` is kept out of that merge (its
+ * `metaTitle`/`title`/`lede` would silently mask `common`'s keys of the same
+ * name under a flat spread).
+ */
+import { internals } from "../../i18n/ui/internals.ts";
+import { getLangFromUrl } from "../../i18n/utils";
+import { pageUrl } from "../../lib/seo";
+import UpdatedLine from "../UpdatedLine.astro";
+
+const lang = getLangFromUrl(Astro.url);
+const t = internals[lang];
+// Site-relative, like every other cross-page link on this site: an absolute
+// URL here would jump a dev or preview server straight to production.
+const homeHref = new URL(pageUrl(lang, "home")).pathname;
+const policiesHref = new URL(pageUrl(lang, "policies")).pathname;
+
+// The nginx directive that actually runs in production, quoted whole so a
+// visitor can check the claims in the surrounding prose against real code —
+// EXCEPT the salt itself, which is not a value this page can show.
+//
+// SECURITY: `"…"` stands in for the salt (48 hex characters), which lives
+// only in `secrets/affinity-salt.env` on the server and is never checked
+// into this repo or built into this site. Do not replace this placeholder
+// with a real value, here or anywhere else.
+const affinitySnippet = `set $mcp_affinity_salt "…";   ${t.affinityCodeComment}
+
+set_by_lua_block $mcp_affinity {
+    local token = ngx.var.http_private_token
+    if token and token ~= "" then
+        return ngx.md5(ngx.var.mcp_affinity_salt .. token)
+    end
+    return ngx.var.remote_addr or ""
+}`;
+---
+
+<p class="back-link">
+  <a href={homeHref}>{t.backToHome}</a>
+</p>
+
+<p class="internals-intro">{t.lede}</p>
+
+<section aria-labelledby="path-h">
+  <h2 class="eyebrow" id="path-h">{t.pathEyebrow}</h2>
+  {t.pathBody.map((paragraph) => <p class="internals-text">{paragraph}</p>)}
+</section>
+
+<section aria-labelledby="instances-h">
+  <h2 class="eyebrow" id="instances-h">{t.instancesEyebrow}</h2>
+  {t.instancesBody.map((paragraph) => <p class="internals-text">{paragraph}</p>)}
+</section>
+
+<section aria-labelledby="affinity-h">
+  <h2 class="eyebrow" id="affinity-h">{t.affinityEyebrow}</h2>
+  <p class="internals-text">{t.affinityIntro}</p>
+  <p class="internals-text">{t.affinityLibgen}</p>
+  <p class="internals-text">{t.affinityGitlab}</p>
+  {t.affinityCodeIntro.map((paragraph) => <p class="internals-text">{paragraph}</p>)}
+  <pre><code>{affinitySnippet}</code></pre>
+  <p class="internals-text">{t.affinityConsequence}</p>
+</section>
+
+<section aria-labelledby="egress-h">
+  <h2 class="eyebrow" id="egress-h">{t.egressEyebrow}</h2>
+  {t.egressBody.map((paragraph) => <p class="internals-text">{paragraph}</p>)}
+</section>
+
+<section aria-labelledby="personal-h">
+  <h2 class="eyebrow" id="personal-h">{t.personalEyebrow}</h2>
+  {t.personalBody.map((paragraph) => <p class="internals-text">{paragraph}</p>)}
+  {/* Points at the full statements (no-SLA, legal position) instead of
+      repeating them: this page's job is the mechanism, policies' job is the
+      commitment — or lack of one. */}
+  <p class="internals-text">
+    <a href={policiesHref}>{t.policiesLink}</a>
+  </p>
+</section>
+
+{/* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
+    cannot just live in the footer. */}
+<UpdatedLine lang={lang} />
+
+<style>
+  /* Copied from PoliciesPage.astro / InspectorPage.astro's shared rules:
+     Astro scopes <style> per component, so a class used on more than one
+     page needs its own copy here. */
+  .back-link {
+    margin: 0 0 1.5rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .back-link a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .back-link a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .internals-intro {
+    max-width: 62ch;
+    margin: 0 0 2.5rem;
+    color: var(--color-text);
+    font-size: 1.0625rem;
+    text-wrap: pretty;
+  }
+
+  section {
+    padding-block-end: 2.75rem;
+  }
+
+  /* Eyebrow with `//`, painted from CSS so it does NOT exist in the DOM —
+     `textContent`-based extractors would otherwise read the heading as
+     "//The path of a request". See HomePage.astro for the full rationale. */
+  .eyebrow {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin: 0 0 1.25rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .eyebrow::before {
+    color: var(--color-accent);
+    content: "//";
+  }
+
+  .internals-text {
+    max-width: 62ch;
+    margin: 0 0 0.7rem;
+    color: var(--color-text);
+    font-size: 0.875rem;
+    text-wrap: pretty;
+  }
+
+  .internals-text a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .internals-text a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* Same treatment as ClientSetup.astro's code blocks: overflow lives INSIDE
+     the <pre>, not the page, because main sits in a fixed-width column and a
+     long nginx line would otherwise widen it on mobile. */
+  pre {
+    max-width: 62ch;
+    margin: 0 0 1.25rem;
+    padding: 0.9rem 1rem;
+    overflow-x: auto;
+    border: 1px solid var(--color-hair);
+    border-radius: 6px;
+    background: var(--color-bg-subtle);
+  }
+
+  pre code {
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    white-space: pre;
+  }
+</style>
