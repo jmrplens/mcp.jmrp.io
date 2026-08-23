@@ -14,6 +14,13 @@ export const policies = {
      */
     policiesTitle: "Policies",
     /**
+     * Kicker above the h1 (`.section-title`, "// POLICIES"), like jmrp.io's
+     * PrivacyPage.astro/AboutPage.astro put one above every content page's
+     * h1. Inspector already had `inspectorEyebrow` for the same slot; this
+     * page had none, so its h1 sat with nothing above it.
+     */
+    policiesEyebrow: "Policies",
+    /**
      * Meta description AND the page's opening paragraph — same reasoning as
      * `inspector.inspectorIntro`: one string serving both roles can't drift
      * out of sync with itself.
@@ -50,6 +57,8 @@ export const policies = {
     policiesMetaTitle: "Políticas — privacidad, logs y postura legal · jmrp.io",
     /** Ver `en.policiesTitle`: el `<h1>` de la página. */
     policiesTitle: "Políticas",
+    /** Ver `en.policiesEyebrow`: kicker encima del h1. */
+    policiesEyebrow: "Políticas",
     /** Ver `en.policiesIntro`: sirve de meta description y de párrafo inicial. */
     policiesIntro:
       "Qué cubre esta página: qué datos ven y guardan estos servidores, qué pasa si el servicio se cae, de dónde parece venir una petición, y la base legal de todo ello.",

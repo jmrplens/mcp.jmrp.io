@@ -177,14 +177,22 @@ h4 {
   letter-spacing: -0.03em;
 }
 
-/* clamp and letter-spacing: matches jmrp.io's blog post h1 (BlogPost.astro
-   there), the closest sibling this site has for a page-level (non-hero) h1
-   — same min/preferred/max shape (34px → 52px) and the same -0.025em, not
-   the -0.03em the hero title uses. */
+/* clamp and letter-spacing: matches jmrp.io's ACTUAL sibling for this slot —
+   `.privacy-header__title`/`.about-hero__title` (PrivacyPage.astro/
+   AboutPage.astro there), not a blog post h1. Inspector/Policies/Internals
+   are utility/legal subpages under a `<header>` kicker block, exactly what
+   Privacy and About are on jmrp.io; a blog post h1 is a different kind of
+   page (no kicker above it, sits inside `.prose`) and was the wrong sibling
+   to copy — its clamp tops out 8px larger (52px vs 44px) than the page type
+   this class is actually used for. `letter-spacing` here is jmrp.io's own
+   `.page-title` value (utilities.css): `.privacy-header__title` overrides
+   the clamp/margins/border but never redeclares it, so -0.02em is what
+   actually renders, not the -0.03em the hero title uses nor the -0.025em
+   this rule had before. */
 .subpage-title {
   max-width: 22ch;
-  font-size: clamp(2.125rem, 4.8vw, 3.25rem);
-  letter-spacing: -0.025em;
+  font-size: clamp(1.9rem, 4.5vw, 2.75rem);
+  letter-spacing: -0.02em;
 }
 
 /* ===== Párrafo introductorio compartido =====================================
@@ -199,6 +207,67 @@ h4 {
   color: var(--color-text);
   font-size: var(--text-md);
   text-wrap: pretty;
+}
+
+/* ===== Cabecera de subpágina (kicker + h1 + intro + separador) =============
+   jmrp.io never puts a bare h1 at the top of a content page: PrivacyPage.astro
+   and AboutPage.astro there both wrap the title zone in a
+   `<header class="X-header">` holding, in order, a `.section-title` kicker
+   ("// PRIVACY"), the page's own h1, and one intro paragraph — closed off by
+   a hairline (`border-bottom`) that separates the title zone from the body
+   below it. This site's Inspector/Policies/Internals pages had none of that:
+   h1 sat directly under the back-link with no kicker above it and no seam
+   before the first section, so the whole page read as one undifferentiated
+   column instead of "title block, then body". This is the shared shell for
+   that pattern; each page supplies its own `.section-title` kicker text and
+   `.subpage-intro` paragraph inside it. */
+.subpage-header {
+  padding-bottom: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--color-hair);
+}
+
+.subpage-header .section-title {
+  margin-bottom: var(--space-sm);
+}
+
+.subpage-header .subpage-title {
+  margin-bottom: var(--space-md);
+}
+
+/* Same numbers as jmrp.io's `.privacy-header__intro`: 70ch reading width
+   (`--max-width-prose`, wider than `.section-intro`'s 62ch — this sits right
+   under the h1, not mid-section) and an explicit 1.6 line-height instead of
+   the body default. */
+.subpage-intro {
+  max-width: var(--max-width-prose);
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--text-md);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* ===== Etiqueta de subsección, en voz baja ==================================
+   jmrp.io's PrivacyPage.astro uses TWO different heading treatments, not one:
+   the loud accent `.section-title` kicker ("// PRIVACY") appears ONCE, above
+   the page's h1, while every subsection heading INSIDE the body
+   (`.privacy-section__title`: "Analytics", "Cookies", "Third-party"…) is a
+   quiet muted-gray uppercase mono label with no "//" prefix and no accent
+   color. This site's Policies/Internals pages reused the loud kicker style
+   (`.eyebrow`, accent + "//") for every one of those subsection headings
+   instead, so a five-section page repeated the same shouting label five
+   times down the column — the one visual accent a reader should be able to
+   use to find "the current page's topic" was spent five times over on
+   "here is another paragraph". */
+.subsection-title {
+  margin: 0 0 var(--space-md);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
 }
 
 /* ===== Contenido largo (.prose) ============================================

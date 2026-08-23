@@ -25,29 +25,47 @@ const homeHref = new URL(pageUrl(lang, "home")).pathname;
 const gitlabNoticeHref = `${homeHref}#gitlab`;
 ---
 
-<p class="back-link">
-  <a href={homeHref}>{t.backToHome}</a>
-</p>
-
-<section aria-labelledby="inspector-h">
-  <h1 id="inspector-h" class="subpage-title">{t.inspectorTitle}</h1>
-  <p class="section-intro">{t.inspectorIntro}</p>
-  <Inspector client:load servers={servers} lang={lang} />
-  <p class="notice-pointer">
-    {t.noticePointer}{" "}
-    <a href={gitlabNoticeHref}>{t.noticePointerLink}</a>
+<div class="inspector">
+  <p class="back-link">
+    <a href={homeHref}>{t.backToHome}</a>
   </p>
-</section>
 
-{/* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
-    cannot just live in the footer. */}
-<UpdatedLine lang={lang} />
+  {/* Kicker + h1 + intro + hairline, matching jmrp.io's PrivacyPage.astro
+      `.privacy-header` — see the `.subpage-header` comment in base.css. */}
+  <header class="subpage-header">
+    <p class="section-title">{t.inspectorEyebrow}</p>
+    <h1 id="inspector-h" class="subpage-title">{t.inspectorTitle}</h1>
+    <p class="subpage-intro">{t.inspectorIntro}</p>
+  </header>
+
+  <section class="inspector-section" aria-labelledby="inspector-h">
+    <Inspector client:load servers={servers} lang={lang} />
+    <p class="notice-pointer">
+      {t.noticePointer}{" "}
+      <a href={gitlabNoticeHref}>{t.noticePointerLink}</a>
+    </p>
+  </section>
+
+  {/* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
+      cannot just live in the footer. */}
+  <UpdatedLine lang={lang} />
+</div>
 
 <style>
 
-  /* Heading size lives in base.css's `.subpage-title` now — Policies and
-     Internals need the exact same clamp, so it stopped being a per-page
-     rule to copy. */
+  /* Heading size and the kicker+h1+intro shell now live in base.css's
+     `.subpage-title`/`.subpage-header`/`.subpage-intro` — Policies and
+     Internals need the exact same shapes, so they stopped being per-page
+     rules to copy. */
+
+  /* Vertical rhythm for the page as a whole — see the same rule on
+     PoliciesPage.astro's `.policies` for the full rationale (jmrp.io's
+     `.privacy`/`.about`: `<main>` itself carries no vertical padding, each
+     page supplies its own). */
+  .inspector {
+    padding-top: var(--space-xl);
+    padding-bottom: var(--space-xl);
+  }
 
   /* Copied from HomePage.astro's shared rules: Astro scopes <style> per
      component, so a class used on both pages needs its own copy here. */
@@ -68,12 +86,13 @@ const gitlabNoticeHref = `${homeHref}#gitlab`;
     text-underline-offset: 3px;
   }
 
-  section {
-    padding-block-end: 3.5rem;
+  /* Same leading-margin rhythm as PoliciesPage.astro's `.policies-section`.
+     No `max-width` here on purpose, unlike that page's prose sections: the
+     Inspector island is a form/response tool, not running text, and wants
+     the full column width `<main>` already gives it. */
+  .inspector-section {
+    margin-top: var(--space-lg-xl);
   }
-
-  /* `.section-intro` now lives in base.css — HomePage had the exact same
-     rule under its own copy. */
 
   .notice-pointer {
     margin: 1rem 0 0;

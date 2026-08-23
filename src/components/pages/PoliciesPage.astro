@@ -23,48 +23,66 @@ const t = ui[lang];
 const homeHref = new URL(pageUrl(lang, "home")).pathname;
 ---
 
-<p class="back-link">
-  <a href={homeHref}>{t.backToHome}</a>
-</p>
+<div class="policies">
+  <p class="back-link">
+    <a href={homeHref}>{t.backToHome}</a>
+  </p>
 
-<h1 class="subpage-title">{t.policiesTitle}</h1>
+  {/* Kicker + h1 + intro + hairline, matching jmrp.io's PrivacyPage.astro
+      `.privacy-header` — see the `.subpage-header` comment in base.css for
+      why this page had none of it before. */}
+  <header class="subpage-header">
+    <p class="section-title">{t.policiesEyebrow}</p>
+    <h1 class="subpage-title">{t.policiesTitle}</h1>
+    <p class="subpage-intro">{t.policiesIntro}</p>
+  </header>
 
-<p class="policies-intro">{t.policiesIntro}</p>
+  <section class="policies-section" aria-labelledby="privacy-h">
+    <h2 class="subsection-title" id="privacy-h">{t.privacyEyebrow}</h2>
+    {t.privacyBody.map((paragraph) => <p class="policy-text">{paragraph}</p>)}
+  </section>
 
-<section aria-labelledby="privacy-h">
-  <h2 class="eyebrow" id="privacy-h">{t.privacyEyebrow}</h2>
-  {t.privacyBody.map((paragraph) => <p class="policy-text">{paragraph}</p>)}
-</section>
+  <section class="policies-section" aria-labelledby="logs-h">
+    <h2 class="subsection-title" id="logs-h">{t.logsEyebrow}</h2>
+    {t.logsBody.map((paragraph) => <p class="policy-text">{paragraph}</p>)}
+  </section>
 
-<section aria-labelledby="logs-h">
-  <h2 class="eyebrow" id="logs-h">{t.logsEyebrow}</h2>
-  {t.logsBody.map((paragraph) => <p class="policy-text">{paragraph}</p>)}
-</section>
+  <section class="policies-section" aria-labelledby="sla-h">
+    <h2 class="subsection-title" id="sla-h">{t.slaEyebrow}</h2>
+    {t.slaBody.map((paragraph) => <p class="policy-text">{paragraph}</p>)}
+  </section>
 
-<section aria-labelledby="sla-h">
-  <h2 class="eyebrow" id="sla-h">{t.slaEyebrow}</h2>
-  {t.slaBody.map((paragraph) => <p class="policy-text">{paragraph}</p>)}
-</section>
+  <section class="policies-section" aria-labelledby="egress-h">
+    <h2 class="subsection-title" id="egress-h">{t.egressEyebrow}</h2>
+    {t.egressBody.map((paragraph) => <p class="policy-text">{paragraph}</p>)}
+  </section>
 
-<section aria-labelledby="egress-h">
-  <h2 class="eyebrow" id="egress-h">{t.egressEyebrow}</h2>
-  {t.egressBody.map((paragraph) => <p class="policy-text">{paragraph}</p>)}
-</section>
+  <section class="policies-section" aria-labelledby="legal-h">
+    <h2 class="subsection-title" id="legal-h">{t.legalEyebrow}</h2>
+    {t.legalBody.map((paragraph) => <p class="policy-text">{paragraph}</p>)}
+  </section>
 
-<section aria-labelledby="legal-h">
-  <h2 class="eyebrow" id="legal-h">{t.legalEyebrow}</h2>
-  {t.legalBody.map((paragraph) => <p class="policy-text">{paragraph}</p>)}
-</section>
-
-{/* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
-    cannot just live in the footer. */}
-<UpdatedLine lang={lang} />
+  {/* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
+      cannot just live in the footer. */}
+  <UpdatedLine lang={lang} />
+</div>
 
 <style>
 
-  /* Heading size lives in base.css's `.subpage-title` now — Inspector and
-     Internals need the exact same clamp, so it stopped being a per-page rule
-     to copy. */
+  /* Heading size and the kicker+h1+intro shell now live in base.css's
+     `.subpage-title`/`.subpage-header`/`.subpage-intro` — Inspector and
+     Internals need the exact same shapes, so they stopped being per-page
+     rules to copy. */
+
+  /* Vertical rhythm for the page as a whole: jmrp.io's PrivacyPage.astro
+     wraps its entire body in `.privacy { padding-top/-bottom: var(--space-xl) }`
+     — `<main>` itself carries no vertical padding there, each page supplies
+     its own. This page had none: content started flush against the header's
+     bottom border. */
+  .policies {
+    padding-top: var(--space-xl);
+    padding-bottom: var(--space-xl);
+  }
 
   /* Copied from InspectorPage.astro's / HomePage.astro's shared rules: Astro
      scopes <style> per component, so a class used on more than one page needs
@@ -86,54 +104,27 @@ const homeHref = new URL(pageUrl(lang, "home")).pathname;
     text-underline-offset: 3px;
   }
 
-  /* This page is the site's one piece of real long-form prose (five whole
-     sections of it), so its paragraphs get jmrp.io's actual `.prose`
-     numbers (base.css) instead of the smaller marketing-copy scale used
-     elsewhere on the site: 17px body text at 1.78 line-height. */
-  .policies-intro {
-    max-width: 62ch;
-    margin: 0 0 2.5rem;
-    color: var(--color-text);
-    font-size: 1.0625rem; /* 17px, matches .prose p in base.css */
-    line-height: 1.78;
-    text-wrap: pretty;
+  /* Same spacing jmrp.io's `.privacy-section` uses: a LEADING margin on each
+     section (not trailing padding on the section before it), so it compounds
+     with `.subpage-header`'s own bottom margin/border instead of doubling up
+     awkwardly with it. */
+  .policies-section {
+    max-width: var(--max-width-prose);
+    margin-top: var(--space-lg-xl);
   }
 
-  section {
-    padding-block-end: 2.75rem;
-  }
-
-  /* Eyebrow with `//`, painted from CSS so it does NOT exist in the DOM —
-     `textContent`-based extractors would otherwise read the heading as
-     "//Privacy & data". See HomePage.astro for the full rationale, and for
-     the numbers matched against jmrp.io's `.section-title`. */
-  .eyebrow {
-    display: flex;
-    gap: 0.6rem;
-    align-items: center;
-    margin: 0 0 1.25rem;
-    color: var(--color-accent);
-    font-family: var(--font-mono);
-    font-size: var(--text-label);
-    font-weight: var(--fw-medium);
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-  }
-
-  .eyebrow::before {
-    color: var(--color-accent);
-    content: "//";
-  }
-
-  /* Same `.prose p` numbers as `.policies-intro` above — these ARE the
-     policy text a visitor came here to read. They used to sit smaller
-     (14px, no line-height override) than the sentence right above them. */
+  /* Body copy for this page's five real prose sections. Corrected from the
+     17px/1.78 this had before (`.prose p`'s numbers, a blog post's body
+     copy) to jmrp.io's ACTUAL `.privacy-section__body`: `--text-base` is
+     15px, not `.prose`'s 17px — a policy page's running paragraphs are
+     smaller and tighter than a blog post's, and PrivacyPage.astro is the
+     real sibling to measure against, not the closest thing that happened to
+     already have a `.prose` class nearby. */
   .policy-text {
-    max-width: 62ch;
-    margin: 0 0 1.375rem; /* 22px, matches .prose p in base.css */
+    margin: 0 0 var(--space-md);
     color: var(--color-text);
-    font-size: 1.0625rem; /* 17px, matches .prose p in base.css */
-    line-height: 1.78;
+    font-size: var(--text-base);
+    line-height: 1.7;
     text-wrap: pretty;
   }
 </style>
