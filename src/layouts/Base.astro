@@ -86,7 +86,7 @@ const otherLocales = Object.entries(OG_LOCALES)
 // the 404 redefine the home page's `@id` with a different name.
 const jsonLd = errorPage
   ? undefined
-  : safeJsonLd(await buildSiteGraph({ lang, title, description }));
+  : safeJsonLd(await buildSiteGraph({ lang, title, description, page }));
 const t = ui[lang];
 ---
 

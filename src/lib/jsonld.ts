@@ -27,6 +27,7 @@ import {
   LANGS,
   OG_IMAGE_SIZE,
   ogImageUrl,
+  type PageId,
   pageUrl,
   SITE_NAME,
   SITE_ORIGIN,
@@ -71,19 +72,30 @@ export interface PageMeta {
   lang: Lang;
   title: string;
   description: string;
+  /**
+   * Which page this is. Defaults to `"home"` for callers that predate this
+   * field (there are none left in `src/`, but the test helpers construct
+   * `PageMeta` literals directly).
+   */
+  page?: PageId;
 }
 
 /**
  * Construye el grafo JSON-LD completo de una página.
  *
- * @param page Idioma, título y descripción de la página que se está pintando.
+ * @param meta Idioma, título, descripción y página que se está pintando.
  * @returns Objeto listo para serializar con {@link safeJsonLd}.
  */
 export async function buildSiteGraph(
-  page: PageMeta,
+  meta: PageMeta,
 ): Promise<Record<string, unknown>> {
-  const { lang, title, description } = page;
-  const url = pageUrl(lang);
+  const { lang, title, description, page = "home" } = meta;
+  const url = pageUrl(lang, page);
+  // The FAQ (and its speakable pointer) describes the notice cards, and those
+  // only render on the home page — see HomePage.astro / ServerCard. Emitting
+  // a FAQPage on /inspector/ or /policies/ would be structured data with no
+  // matching content on the page, which is the defect this task fixes.
+  const isHome = page === "home";
 
   // Un WebAPI por servidor. `provider` cierra el par recíproco con el `owns`
   // del documento de identidad, que ya declara los `#software` de estos dos
@@ -260,14 +272,18 @@ export async function buildSiteGraph(
     description,
     inLanguage: lang,
     isPartOf: ref(WEBSITE_ID),
-    // The FAQ is part of this page. Without it the link ran one way only:
-    // #faq declared its `isPartOf`, but nothing led from the page down to it.
-    hasPart: ref(`${url}#faq`),
+    // The FAQ is part of this page — but only for the home page, which is the
+    // only one with notice cards to describe. Without this the link ran one
+    // way only: #faq declared its `isPartOf`, but nothing led from the page
+    // down to it.
+    ...(isHome && { hasPart: ref(`${url}#faq`) }),
     // hreflang already says these two pages are translations of each other;
     // the graph did not. Same pairing jmrp.io/about/#profile already emits.
+    // The other language's `#webpage` for THIS SAME page, not the home
+    // page's — each page pairs with its own translation.
     ...(lang === "en"
-      ? { workTranslation: ref(`${pageUrl("es")}#webpage`) }
-      : { translationOfWork: ref(`${pageUrl("en")}#webpage`) }),
+      ? { workTranslation: ref(`${pageUrl("es", page)}#webpage`) }
+      : { translationOfWork: ref(`${pageUrl("en", page)}#webpage`) }),
     // The OG cards exist and return 200, and the page node carried no image
     // at all.
     primaryImageOfPage: {
@@ -289,17 +305,20 @@ export async function buildSiteGraph(
     // política del token, postura legal, límites — y sus `id` de DOM ya
     // existen (los pone ServerCard para poder enlazarlos). `speakable` los
     // señala como los pasajes que un asistente puede leer en voz alta o citar.
+    // Solo existen en la portada, así que `speakable` también.
     //
     // These ids now sit on the <details>, which wraps the question in its
     // <summary> together with the answer. They used to sit on the inner notice
     // div — the answer alone — so a read-aloud produced "libgen is a client of
     // third-party public indexes…" with no question attached to it.
-    speakable: {
-      "@type": "SpeakableSpecification",
-      cssSelector: servers.flatMap((server) =>
-        server.notices.map((notice) => `#${server.id}-${notice.kind}`),
-      ),
-    },
+    ...(isHome && {
+      speakable: {
+        "@type": "SpeakableSpecification",
+        cssSelector: servers.flatMap((server) =>
+          server.notices.map((notice) => `#${server.id}-${notice.kind}`),
+        ),
+      },
+    }),
   };
 
   // Los avisos de las fichas son literalmente preguntas con su respuesta
@@ -313,33 +332,45 @@ export async function buildSiteGraph(
   // be tied to a URL at all. The `hasPart` on the WebPage node below is the
   // matching inverse — the FAQ used to be reachable upward from itself but not
   // downward from the page.
-  const faq = {
-    "@type": "FAQPage",
-    "@id": `${url}#faq`,
-    url,
-    name: title,
-    inLanguage: lang,
-    isPartOf: ref(`${url}#webpage`),
-    about: apis.map((api) => ref(api["@id"])),
-    mainEntity: servers.flatMap((server) =>
-      server.notices.map((notice) => ({
-        "@type": "Question",
-        name: notice.title[lang],
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: noticeAnswer(notice, lang),
-        },
-      })),
-    ),
-  };
+  // Only built for the home page: it is the only page with notice cards to
+  // describe, and the `isHome` checks on `webpage` above already keep it
+  // undiscoverable (no `hasPart`) from every other page's node.
+  const faq = isHome
+    ? {
+        "@type": "FAQPage",
+        "@id": `${url}#faq`,
+        url,
+        name: title,
+        inLanguage: lang,
+        isPartOf: ref(`${url}#webpage`),
+        about: apis.map((api) => ref(api["@id"])),
+        mainEntity: servers.flatMap((server) =>
+          server.notices.map((notice) => ({
+            "@type": "Question",
+            name: notice.title[lang],
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: noticeAnswer(notice, lang),
+            },
+          })),
+        ),
+      }
+    : null;
 
   const person = await loadPersonNode();
 
+  const graph = [
+    website,
+    webpage,
+    ...(faq ? [faq] : []),
+    ...apis,
+    ...sources,
+    ...(person ? [person] : []),
+  ];
+
   return {
     "@context": "https://schema.org",
-    "@graph": person
-      ? [website, webpage, faq, ...apis, ...sources, person]
-      : [website, webpage, faq, ...apis, ...sources],
+    "@graph": graph,
   };
 }
 

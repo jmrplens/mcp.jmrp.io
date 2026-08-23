@@ -13,6 +13,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { test } from "node:test";
 
+import { PAGE_PATHS, pageUrl } from "../../src/lib/seo.ts";
+
 // `dist` es un SYMLINK al color activo del blue/green, así que apunta a lo
 // PUBLICADO, no a lo recién construido. `DIST_DIR` permite validar un build
 // que aún no se ha desplegado (p. ej. `pnpm build:only && DIST_DIR=builds/green
@@ -208,10 +210,16 @@ test("los nodos propios enlazan a la persona por @id, sin redeclararla", () => {
     // by which `#software` nodes are referenced but live on jmrp.io/projects:
     // referencing without redefining is correct linked data, and redefining is
     // precisely what splits the entity.
-    const crossLang = new Set([
-      "https://mcp.jmrp.io/#webpage",
-      "https://mcp.jmrp.io/es/#webpage",
-    ]);
+    //
+    // Built from PAGE_PATHS, not just the two home pages: every page pairs
+    // with ITS OWN translation now, not the home page's, so `/internals/`
+    // must be allowed to reference `/es/internals/#webpage` and vice versa.
+    const crossLang = new Set(
+      Object.values(PAGE_PATHS).flatMap((path) => [
+        `https://mcp.jmrp.io/${path}#webpage`,
+        `https://mcp.jmrp.io/es/${path}#webpage`,
+      ]),
+    );
     for (const node of own) {
       for (const ref of collectRefs(node)) {
         assert.ok(
@@ -250,6 +258,93 @@ function collectRefs(node) {
   walk(node, true);
   return found;
 }
+
+/**
+ * Deduces `{ lang, page }` from a dist HTML path, using `PAGE_PATHS` as the
+ * source of truth — the same map `pageUrl()` uses to build canonicals.
+ *
+ * @param {string} htmlPath Path relative to `dist/`, e.g. `"es/internals/index.html"`.
+ * @returns {{ lang: "en" | "es", page: string }}
+ */
+function pageInfoFor(htmlPath) {
+  const isEs = htmlPath.startsWith("es/");
+  const lang = isEs ? "es" : "en";
+  const rest = isEs ? htmlPath.slice("es/".length) : htmlPath;
+  const page = Object.entries(PAGE_PATHS).find(
+    ([, segment]) => `${segment}index.html` === rest,
+  )?.[0];
+  assert.ok(page, `${htmlPath}: no coincide con ningún PageId de PAGE_PATHS`);
+  return { lang, page };
+}
+
+test("cada WebPage lleva SU url y SU @id, no los de la portada", () => {
+  // Este es el defecto concreto de la auditoría del 2026-08-22:
+  // buildSiteGraph() nunca recibía qué página se estaba pintando, así que
+  // toda página que no fuera la portada emitía `url` y `@id` de "/" (o
+  // "/es/") mientras su <head> ya publicaba la canónica correcta. El nombre
+  // salía bien porque venía de `title`; la URL no, porque salía de
+  // `pageUrl(lang)` a secas.
+  for (const htmlPage of htmlPages()) {
+    const { lang, page } = pageInfoFor(htmlPage);
+    const graph = graphOf(htmlPage);
+    const webpage = graph.find((n) => n["@type"] === "WebPage");
+    const expectedUrl = pageUrl(lang, page);
+    assert.equal(
+      webpage.url,
+      expectedUrl,
+      `${htmlPage}: WebPage.url debería ser ${expectedUrl}`,
+    );
+    assert.equal(
+      webpage["@id"],
+      `${expectedUrl}#webpage`,
+      `${htmlPage}: WebPage.@id debería colgar de SU url, no de la portada`,
+    );
+  }
+});
+
+test("el FAQPage cuelga SOLO de la portada", () => {
+  // Los avisos son de las fichas, y las fichas están en la portada. Un
+  // FAQPage en /policies/ describiría preguntas que esa página no contiene.
+  const withFaq = [];
+  for (const page of htmlPages()) {
+    const graph = graphOf(page);
+    if (graph.some((n) => n["@type"] === "FAQPage")) withFaq.push(page);
+  }
+  assert.deepEqual(
+    withFaq.sort((a, b) => a.localeCompare(b)),
+    ["es/index.html", "index.html"],
+    "el FAQPage tiene que estar en las dos portadas y en ninguna otra página",
+  );
+});
+
+test("speakable cuelga SOLO del WebPage de la portada", () => {
+  // Mismo razonamiento que el FAQPage: los `id` de DOM que señala
+  // `speakable` los pone ServerCard, y ServerCard solo se pinta en la
+  // portada.
+  for (const htmlPage of htmlPages()) {
+    const { page } = pageInfoFor(htmlPage);
+    const graph = graphOf(htmlPage);
+    const webpage = graph.find((n) => n["@type"] === "WebPage");
+    if (page === "home") {
+      assert.ok(webpage.speakable, `${htmlPage}: la portada sin speakable`);
+    } else {
+      assert.equal(
+        webpage.speakable,
+        undefined,
+        `${htmlPage}: speakable fuera de la portada`,
+      );
+    }
+  }
+});
+
+test("cada página se empareja con su traducción, no con la portada", () => {
+  const graph = graphOf("internals/index.html");
+  const webpage = graph.find((n) => n["@type"] === "WebPage");
+  assert.equal(
+    webpage.workTranslation["@id"],
+    "https://mcp.jmrp.io/es/internals/#webpage",
+  );
+});
 
 test("el 404 no declara identidad ni pide indexación", () => {
   const html = fs.readFileSync(new URL("404.html", DIST), "utf8");
