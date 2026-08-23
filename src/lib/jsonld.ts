@@ -31,7 +31,7 @@ import type { McpNotice, McpServer } from "../data/servers";
 import { servers } from "../data/servers";
 import type { Lang } from "../i18n/ui";
 import { ui } from "../i18n/ui";
-import { contentDate, publishedDate } from "./build-date";
+import { buildDate, publishedDate } from "./build-date";
 import { loadPersonNode, PERSON_ID } from "./identity";
 import {
   LANGS,
@@ -45,8 +45,9 @@ import {
 } from "./seo";
 
 // Ver build-date.ts: HEAD si el árbol está limpio, ahora si está sucio. El
-// fallback a la hora actual solo aplica sin git, y ahí es lo único que queda.
-const BUILD_DATE = contentDate() ?? new Date().toISOString();
+// fallback a la hora actual solo aplica sin git, y `buildDate()` lo cachea
+// para que este valor coincida con el del pie y el de `<UpdatedLine>`.
+const BUILD_DATE = buildDate();
 
 // Primer commit del repo. Sin git no hay fecha y el campo se omite: ver
 // build-date.ts.
@@ -284,6 +285,86 @@ export interface PageMeta {
 }
 
 /**
+ * Server this page IS the ficha of — `undefined` for every page except
+ * `/servers/<id>/`. Throws rather than silently ignoring a mismatch: a
+ * `serverId` that does not match any entry in `servers.ts` is a caller bug (a
+ * stale id, a typo), and rendering the page as if it were a normal one would
+ * hide it behind a graph that quietly stopped matching the URL.
+ *
+ * @param serverId `PageMeta.serverId` — unset for every page but a server
+ *   ficha.
+ * @returns The matching server, or `undefined` when `serverId` is unset.
+ */
+function resolveTargetServer(
+  serverId: string | undefined,
+): McpServer | undefined {
+  if (!serverId) return undefined;
+  const server = servers.find((candidate) => candidate.id === serverId);
+  if (!server) {
+    throw new Error(`[jsonld] serverId "${serverId}" has no entry in servers.ts`);
+  }
+  return server;
+}
+
+/**
+ * This page's URL and its translation's.
+ *
+ * `pageUrl(lang, page)` only knows the FIXED path per `PageId` — for
+ * `page: "servers"` that is the `/servers/` INDEX, not any one server's
+ * ficha. `serverPageUrl` is the per-server equivalent every detail page needs
+ * instead. See the `serverId` doc on `PageMeta`.
+ *
+ * @param lang This page's language.
+ * @param page This page's `PageId`, used for the fixed-path case.
+ * @param targetServer The server this page is the ficha of, from
+ *   {@link resolveTargetServer}.
+ * @returns `url` for this page and `otherUrl` for its translation.
+ */
+function resolvePageUrls(
+  lang: Lang,
+  page: PageId,
+  targetServer: McpServer | undefined,
+): { url: string; otherUrl: string } {
+  const otherLang: Lang = lang === "en" ? "es" : "en";
+  if (targetServer) {
+    return {
+      url: serverPageUrl(lang, targetServer.id),
+      otherUrl: serverPageUrl(otherLang, targetServer.id),
+    };
+  }
+  return { url: pageUrl(lang, page), otherUrl: pageUrl(otherLang, page) };
+}
+
+/**
+ * What THIS page's `mainEntity` should reference.
+ *
+ * schema.org defines `mainEntity` as "the primary entity described in this
+ * page", so it can only point at server APIs on pages that actually describe
+ * one. A server ficha's primary entity is SOLELY its own server, never the
+ * other one. The home page and `/servers/` describe every server, so they
+ * keep the full list. Every other page — `/inspector/`, `/internals/`,
+ * `/policies/` — describes no server at all, so `mainEntity` is omitted
+ * rather than claim a false subject: those pages used to inherit `apiRefs`
+ * wholesale and claimed both server APIs as their primary entity despite
+ * rendering no server description.
+ *
+ * @param page This page's `PageId`.
+ * @param targetServer The server this page is the ficha of, from
+ *   {@link resolveTargetServer}.
+ * @param apiRefs References to every server's `WebAPI` node.
+ * @returns The refs for `mainEntity`, or `undefined` to omit the property.
+ */
+function selectMainEntityRefs(
+  page: PageId,
+  targetServer: McpServer | undefined,
+  apiRefs: { "@id": string }[],
+): { "@id": string }[] | undefined {
+  if (targetServer) return [ref(apiId(targetServer))];
+  const describesEveryServer = page === "home" || page === "servers";
+  return describesEveryServer ? apiRefs : undefined;
+}
+
+/**
  * Construye el grafo JSON-LD completo de una página.
  *
  * @param meta Idioma, título, descripción, página y —para una ficha de
@@ -295,27 +376,8 @@ export async function buildSiteGraph(
 ): Promise<Record<string, unknown>> {
   const { lang, title, description, page = "home", serverId } = meta;
 
-  // The server this page IS the ficha of — undefined for every page except
-  // `/servers/<id>/`. Thrown rather than silently ignored: a `serverId` that
-  // does not match any entry in `servers.ts` is a caller bug (a stale id, a
-  // typo), and rendering the page as if it were a normal one would hide it
-  // behind a graph that quietly stopped matching the URL.
-  const targetServer = serverId
-    ? servers.find((server) => server.id === serverId)
-    : undefined;
-  if (serverId && !targetServer) {
-    throw new Error(`[jsonld] serverId "${serverId}" has no entry in servers.ts`);
-  }
-
-  // `pageUrl(lang, page)` only knows the FIXED path per `PageId` — for
-  // `page: "servers"` that is the `/servers/` INDEX, not any one server's
-  // ficha. `serverPageUrl` is the per-server equivalent every detail page
-  // needs instead. See the `serverId` doc on `PageMeta`.
-  const url = targetServer ? serverPageUrl(lang, targetServer.id) : pageUrl(lang, page);
-  const otherLang: Lang = lang === "en" ? "es" : "en";
-  const otherUrl = targetServer
-    ? serverPageUrl(otherLang, targetServer.id)
-    : pageUrl(otherLang, page);
+  const targetServer = resolveTargetServer(serverId);
+  const { url, otherUrl } = resolvePageUrls(lang, page, targetServer);
 
   // The FAQ (and its speakable pointer) describes the notice cards, and those
   // only render on the home page — see HomePage.astro / ServerCard. Emitting
@@ -333,18 +395,13 @@ export async function buildSiteGraph(
   const sources = targetServer ? [buildSourceNode(targetServer)] : [];
 
   // References to EVERY server's WebAPI node, regardless of whether this
-  // page defines one — this is what `mainEntity` (on the index/home) and the
-  // FAQ's `about` (home only) point through. `provider` cierra el par
-  // recíproco con el `owns` del documento de identidad, que ya declara los
-  // `#software` de estos dos repos; `sameAs` lleva al repositorio, que es el
-  // sujeto de aquellos nodos.
+  // page defines one — this is what `mainEntity` (home and `/servers/`, via
+  // `selectMainEntityRefs`) and the FAQ's `about` (home only) point through.
+  // `provider` cierra el par recíproco con el `owns` del documento de
+  // identidad, que ya declara los `#software` de estos dos repos; `sameAs`
+  // lleva al repositorio, que es el sujeto de aquellos nodos.
   const apiRefs = servers.map((server) => ref(apiId(server)));
-  // `mainEntity` cuenta qué describe ESTA página: en la ficha de un servidor
-  // es SOLO el suyo, no los dos — listar el otro server ahí sería una
-  // afirmación falsa (schema.org define mainEntity como "the primary entity
-  // described in this page"). En cualquier otra página sigue siendo la lista
-  // completa, como antes.
-  const mainEntityRefs = targetServer ? [ref(apiId(targetServer))] : apiRefs;
+  const mainEntityRefs = selectMainEntityRefs(page, targetServer, apiRefs);
 
   const website = {
     "@type": "WebSite",
@@ -396,7 +453,10 @@ export async function buildSiteGraph(
     // como "the primary entity described in this page", que es el caso.
     // Siempre una REFERENCIA (`apiRefs`/`mainEntityRefs`), nunca el nodo
     // completo: el nodo entero solo se declara en la ficha de su servidor.
-    mainEntity: mainEntityRefs,
+    // Omitted entirely (see `selectMainEntityRefs`) on pages that describe no
+    // server at all — emitting it there claimed a primary entity the page
+    // never renders.
+    ...(mainEntityRefs && { mainEntity: mainEntityRefs }),
     // Los avisos son los pasajes concisos y autocontenidos de la página —
     // política del token, postura legal, límites — y sus `id` de DOM ya
     // existen (los pone ServerCard para poder enlazarlos). `speakable` los

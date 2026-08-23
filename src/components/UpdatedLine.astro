@@ -4,7 +4,7 @@
  *
  * Extracted out of the page that first carried it (the home page's privacy
  * section) because every page of the site ends up needing the same three
- * lines: the same date, computed by `contentDate()` and formatted through
+ * lines: the same date, computed by `buildDate()` and formatted through
  * `humanDate()`, next to the same `updatedIn` string. A page that goes out
  * without this line goes out undated to extractors — `readability`, the
  * library behind most RAG pipelines, prunes `<footer>`, where the identical
@@ -14,7 +14,7 @@
  */
 import type { Lang } from "../i18n/config.ts";
 import { ui } from "../i18n/ui";
-import { contentDate } from "../lib/build-date";
+import { buildDate } from "../lib/build-date";
 import { humanDate } from "../lib/format";
 
 interface Props {
@@ -23,9 +23,10 @@ interface Props {
 
 const { lang } = Astro.props;
 const t = ui[lang];
-// Same date as the footer, dateModified and the sitemap's lastmod, through
-// the shared helper.
-const updated = contentDate() ?? new Date().toISOString();
+// Same date as the footer, dateModified and the sitemap's lastmod. `buildDate()`
+// is memoized in the shared module, so this reads the exact same resolved
+// value as every other consumer instead of computing its own "now" fallback.
+const updated = buildDate();
 ---
 
 <p class="updated-line">
