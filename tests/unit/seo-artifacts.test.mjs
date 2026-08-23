@@ -254,7 +254,28 @@ test("el sitemap lleva lastmod y las anotaciones hreflang", () => {
   }
 });
 
-/** Contenido de cada página HTML generada, indexado por ruta. */
+test("cada entrada del sitemap declara SU x-default, no el de la portada", () => {
+  const sitemap = read("sitemap-0.xml");
+  // The serializer used to emit a hardcoded x-default pointing at the home
+  // page for EVERY entry, contradicting the <head> each page emits. Nothing
+  // pinned that value, so it was reintroducible without a single red test.
+  for (const path of ["", "inspector/", "internals/", "policies/"]) {
+    const self = `${ORIGIN}/${path}`;
+    assert.ok(
+      sitemap.includes(`hreflang="x-default" href="${self}"`),
+      `el sitemap no declara x-default -> ${self}`,
+    );
+  }
+});
+
+/**
+ * Contenido de cada página HTML generada, indexado por ruta.
+ *
+ * TODO(task-10): hoy solo cubre las dos portadas, así que canonical, hreflang,
+ * OG y `<title>` de las tres páginas nuevas no se comprueban sobre el HTML
+ * construido. Ampliarlo exige hacer conscientes de la página a cinco tests que
+ * dan por hecha la portada, y excluir del token `MCPSSR_*` a las que no lo son.
+ */
 function pages() {
   return ["index.html", "es/index.html"].map((name) => [name, read(name)]);
 }
