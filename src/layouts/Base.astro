@@ -16,7 +16,7 @@ import { Font } from "astro:assets";
 
 import { type Lang, ui } from "../i18n/ui";
 import { getLangFromUrl } from "../i18n/utils";
-import { contentDate } from "../lib/build-date";
+import { buildDate } from "../lib/build-date";
 import { humanDate } from "../lib/format";
 import { buildSiteGraph, safeJsonLd } from "../lib/jsonld";
 import {
@@ -101,7 +101,11 @@ const lang = getLangFromUrl(Astro.url);
 const otherLang: Lang = lang === "en" ? "es" : "en";
 
 // La misma fecha que dateModified y el lastmod del sitemap: una sola verdad.
-const updated = contentDate() ?? new Date().toISOString();
+// Shared, memoized build timestamp — the same value the JSON-LD and
+// <UpdatedLine> use. Calling `contentDate() ?? new Date()` here again
+// re-read the clock on a dirty tree, so the footer could disagree with
+// the date printed inside <main> by a few milliseconds.
+const updated = buildDate();
 const updatedHuman = humanDate(updated, lang);
 // hreflang cluster for THIS page: `alternatesOverride` for a per-server
 // detail page (see the prop doc above), `alternates(page)` for everything
