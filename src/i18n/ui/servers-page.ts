@@ -74,6 +74,29 @@ export const serversPage = {
     mimeTypeLabel: "Type",
     /** aria-label prefix for the compact chip index inside a long family. */
     chipIndexLabel: "Quick index",
+
+    /**
+     * Label introducing the card's own `serverInfo.description`, shown
+     * alongside — never replacing — this page's own bilingual intro
+     * (`serverMeta.description`, which also feeds the meta description and
+     * carries citable facts this site controls the wording of). The card's
+     * description is SEP-1649 data the server itself publishes, English
+     * only, so it is quoted as-is rather than translated.
+     */
+    cardDescriptionLabel: "In the server's own words",
+    /** Link label for `serverInfo.websiteUrl`, alongside Repository/Documentation. */
+    websiteLabel: "Official website",
+
+    /** aria-label on a tool's behavioural-hint chip row (see the four `annotation*` labels below). */
+    toolBehaviorLabel: "Behavior",
+    /** `annotations.readOnlyHint` — does not modify anything outside the call. */
+    annotationReadOnly: "read-only",
+    /** `annotations.destructiveHint` — may perform destructive changes. The one chip that must stand out. */
+    annotationDestructive: "destructive",
+    /** `annotations.idempotentHint` — repeat calls with the same input have no extra effect. */
+    annotationIdempotent: "idempotent",
+    /** `annotations.openWorldHint` — talks to something outside this server (the network, another API). */
+    annotationExternalNetwork: "external network",
   },
   es: {
     /** Ver `en.metaTitleIndex`. */
@@ -117,5 +140,21 @@ export const serversPage = {
     mimeTypeLabel: "Tipo",
     /** Ver `en.chipIndexLabel`. */
     chipIndexLabel: "Índice rápido",
+
+    /** Ver `en.cardDescriptionLabel`. Va "(en inglés)" porque la card no se traduce. */
+    cardDescriptionLabel: "En palabras del propio servidor (en inglés)",
+    /** Ver `en.websiteLabel`. */
+    websiteLabel: "Sitio web oficial",
+
+    /** Ver `en.toolBehaviorLabel`. */
+    toolBehaviorLabel: "Comportamiento",
+    /** Ver `en.annotationReadOnly`. */
+    annotationReadOnly: "solo lectura",
+    /** Ver `en.annotationDestructive`. */
+    annotationDestructive: "destructiva",
+    /** Ver `en.annotationIdempotent`. */
+    annotationIdempotent: "idempotente",
+    /** Ver `en.annotationExternalNetwork`. */
+    annotationExternalNetwork: "red externa",
   },
 } as const;

@@ -19,6 +19,7 @@ import type {
   CardResourceTemplate,
   PromptSummary,
   ResourceSummary,
+  ToolAnnotationsSummary,
   ToolSummary,
 } from "../../data/server-cards";
 import { getServerCard, getServerCardDocument } from "../../data/server-cards";
@@ -26,6 +27,7 @@ import { servers } from "../../data/servers";
 import { ui } from "../../i18n/ui";
 import { serversPage } from "../../i18n/ui/servers-page";
 import { getLangFromUrl } from "../../i18n/utils";
+import { safeIcon } from "../../lib/card-icons";
 import { pageUrl } from "../../lib/seo";
 import { anchorSlug } from "../../lib/slug";
 import ServerEntryChips from "../ServerEntryChips.astro";
@@ -143,6 +145,63 @@ const authSchemes = card.authentication.schemes;
 function isRequired(arg: CardPromptArgument): boolean {
   return arg.required === true;
 }
+
+// Everything below is OPTIONAL card data (libgen 1.6.4 publishes it, gitlab
+// 2.6.6 does not yet) — every one of these can be `undefined`, and the
+// markup below degrades to exactly today's page when it is. `card.serverInfo`
+// is used (not `doc.serverInfo`) for consistency with the rest of this
+// component, which already reads everything off the curated `card`: nothing
+// here strips a schema the way tools/prompts do, so the two are the same data.
+const serverIcon = safeIcon(card.serverInfo.icons);
+// The card's own title, shown as a caption under the `<h1>` — never a second
+// heading. Guards against a future card publishing a title identical to the
+// plain id, which would just repeat the name.
+const cardTitle =
+  card.serverInfo.title && card.serverInfo.title !== serverMeta.name
+    ? card.serverInfo.title
+    : undefined;
+const cardDescription = card.serverInfo.description;
+const websiteUrl = card.serverInfo.websiteUrl;
+
+/** One chip for one true behavioural hint, plus how it should be painted. */
+interface AnnotationChip {
+  label: string;
+  /** `destructive` is the one hint that must visually stand out — see
+   * `.a-chip--destructive` below. Every other hint is purely informative. */
+  variant: "info" | "destructive";
+}
+
+/**
+ * The behavioural chips for one tool, in the order the spec lists them:
+ * read-only, destructive, idempotent, external network.
+ *
+ * Only hints the card sets to `true` get a chip — SEP-1649 leaves every hint
+ * optional and non-`true` (absent or `false`) is "nothing declared", not
+ * "declared safe": there is nothing worth asserting about a tool either way.
+ * A tool whose card carries no `annotations` object at all gets no chips —
+ * the author's decision for a server that has not published any yet. Both of
+ * today's servers already do: gitlab's `gitlab_execute_action` is exactly
+ * the destructive+external-network case this exists for.
+ */
+function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): AnnotationChip[] {
+  if (!annotations) {
+    return [];
+  }
+  const chips: AnnotationChip[] = [];
+  if (annotations.readOnlyHint) {
+    chips.push({ label: sp.annotationReadOnly, variant: "info" });
+  }
+  if (annotations.destructiveHint) {
+    chips.push({ label: sp.annotationDestructive, variant: "destructive" });
+  }
+  if (annotations.idempotentHint) {
+    chips.push({ label: sp.annotationIdempotent, variant: "info" });
+  }
+  if (annotations.openWorldHint) {
+    chips.push({ label: sp.annotationExternalNetwork, variant: "info" });
+  }
+  return chips;
+}
 ---
 
 <div class="server-page">
@@ -152,7 +211,15 @@ function isRequired(arg: CardPromptArgument): boolean {
 
   <header class="subpage-header" id="top">
     <p class="section-title">{sp.eyebrowServer}</p>
-    <h1 class="subpage-title">{serverMeta.name}</h1>
+    <h1 class="subpage-title">
+      {
+        serverIcon && (
+          <img src={serverIcon.src} alt="" aria-hidden="true" class="server-icon" />
+        )
+      }
+      {serverMeta.name}
+    </h1>
+    {cardTitle && <p class="server-card-title">{cardTitle}</p>}
     <p class="subpage-intro">{serverMeta.description[lang]}</p>
   </header>
 
@@ -197,10 +264,26 @@ function isRequired(arg: CardPromptArgument): boolean {
             </dd>
           </div>
         </dl>
+        {
+          cardDescription && (
+            <p class="card-own-description">
+              <span class="card-own-description-label">{sp.cardDescriptionLabel}:</span>{" "}
+              {cardDescription}
+            </p>
+          )
+        }
         <p class="server-meta-links">
           <a href={inspectorOverviewHref}>{sp.tryInInspector}</a>{" "}
           <a href={serverMeta.repo}>{t.repository}</a>{" "}
           <a href={serverMeta.docsSite ?? serverMeta.docs}>{t.documentation}</a>
+          {
+            websiteUrl && (
+              <>
+                {" "}
+                <a href={websiteUrl}>{sp.websiteLabel}</a>
+              </>
+            )
+          }
         </p>
       </section>
 
@@ -218,18 +301,34 @@ function isRequired(arg: CardPromptArgument): boolean {
         }
         <div class="entry-list">
           {
-            toolEntries.map((entry) => (
-              <article class="entry" id={entry.id}>
-                <h3 class="entry-title">{entry.data.title}</h3>
-                <p class="entry-name">
-                  <code>{entry.data.name}</code>
-                </p>
-                <p class="entry-desc">{entry.data.description}</p>
-                <p class="entry-cta">
-                  <a href={inspectorHref("tools", entry.data.name)}>{sp.tryInInspector}</a>
-                </p>
-              </article>
-            ))
+            toolEntries.map((entry) => {
+              const icon = safeIcon(entry.data.icons);
+              const chips = toolAnnotationChips(entry.data.annotations);
+              return (
+                <article class="entry" id={entry.id}>
+                  <h3 class="entry-title">
+                    {icon && <img src={icon.src} alt="" aria-hidden="true" class="entry-icon" />}
+                    {entry.data.title}
+                  </h3>
+                  <p class="entry-name">
+                    <code>{entry.data.name}</code>
+                  </p>
+                  {
+                    chips.length > 0 && (
+                      <ul class="annotation-chips" aria-label={sp.toolBehaviorLabel}>
+                        {chips.map((chip) => (
+                          <li class={`chip a-chip--${chip.variant}`}>{chip.label}</li>
+                        ))}
+                      </ul>
+                    )
+                  }
+                  <p class="entry-desc">{entry.data.description}</p>
+                  <p class="entry-cta">
+                    <a href={inspectorHref("tools", entry.data.name)}>{sp.tryInInspector}</a>
+                  </p>
+                </article>
+              );
+            })
           }
         </div>
       </section>
@@ -248,9 +347,14 @@ function isRequired(arg: CardPromptArgument): boolean {
               />
             )}
             <div class="entry-list">
-              {promptEntries.map((entry) => (
+              {promptEntries.map((entry) => {
+                const icon = safeIcon(entry.data.icons);
+                return (
                 <article class="entry" id={entry.id}>
-                  <h3 class="entry-title">{entry.data.title}</h3>
+                  <h3 class="entry-title">
+                    {icon && <img src={icon.src} alt="" aria-hidden="true" class="entry-icon" />}
+                    {entry.data.title}
+                  </h3>
                   <p class="entry-name">
                     <code>{entry.data.name}</code>
                   </p>
@@ -274,7 +378,8 @@ function isRequired(arg: CardPromptArgument): boolean {
                     <a href={inspectorHref("prompts", entry.data.name)}>{sp.tryInInspector}</a>
                   </p>
                 </article>
-              ))}
+                );
+              })}
             </div>
           </section>
         )
@@ -396,6 +501,59 @@ function isRequired(arg: CardPromptArgument): boolean {
     text-underline-offset: 3px;
   }
 
+  /* Icon + name inline, scoped to just THIS page's `<h1>` — Astro's per-
+     component style scoping means this never touches `.subpage-title`'s
+     shared base rule in base.css, which Inspector/Policies/Internals still
+     use unmodified (none of them have a server icon to place). */
+  .subpage-title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .server-icon {
+    width: 1em;
+    height: 1em;
+    flex: none;
+  }
+
+  .server-card-title {
+    margin: 0 0 0.75rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+
+  /* Every icon on this page ships as a `currentColor` SVG, but `currentColor`
+     inside an image loaded via `<img>` resolves against THAT image's own
+     isolated rendering context, not this page's `--color-text-heading` — it
+     does not follow the surrounding cascade at all. That isolation is
+     exactly what makes `<img>` safe here (see `src/lib/card-icons.ts`), and
+     its cost is that every one of these icons renders as a fixed color
+     (in practice, black) no matter the site's theme.
+     A CSS `filter` recolors the rasterized image after the fact instead of
+     touching the SVG source, so the `<img>`-only rule stays intact. Dark is
+     this site's default (no `data-theme` attribute needed — see
+     tokens.css's header comment), so the un-inverted (light-theme) case is
+     the override, exactly mirroring tokens.css's own auto+manual dual-block
+     mechanism for theme switches. */
+  .server-icon,
+  .entry-icon {
+    filter: invert(1);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :global(html:not([data-theme="dark"])) .server-icon,
+    :global(html:not([data-theme="dark"])) .entry-icon {
+      filter: none;
+    }
+  }
+
+  :global(html[data-theme="light"]) .server-icon,
+  :global(html[data-theme="light"]) .entry-icon {
+    filter: none;
+  }
+
   /* ===== Two-column layout: content + sticky rail, desktop only ========== */
   .server-layout {
     display: grid;
@@ -467,6 +625,28 @@ function isRequired(arg: CardPromptArgument): boolean {
     text-underline-offset: 3px;
   }
 
+  /* The card's own `serverInfo.description` — quoted, not translated (it is
+     English-only SEP-1649 data), set off from `.subpage-intro` above (this
+     site's own bilingual copy) so the two are never mistaken for one text. */
+  .card-own-description {
+    padding: 0.75rem 0.9rem;
+    margin: 0 0 1rem;
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    line-height: 1.6;
+    text-wrap: pretty;
+    background: var(--color-bg-subtle);
+    border-radius: var(--radius-md);
+  }
+
+  .card-own-description-label {
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
   .fold-intro {
     margin: 0 0 1rem;
     color: var(--color-text-muted);
@@ -490,11 +670,20 @@ function isRequired(arg: CardPromptArgument): boolean {
   }
 
   .entry-title {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
     margin: 0;
     color: var(--color-text-heading);
     font-family: var(--font-display);
     font-size: var(--text-lg);
     font-weight: var(--fw-medium);
+  }
+
+  .entry-icon {
+    width: 1.05em;
+    height: 1.05em;
+    flex: none;
   }
 
   .entry-name {
@@ -506,6 +695,39 @@ function isRequired(arg: CardPromptArgument): boolean {
     font-family: var(--font-mono);
     font-size: 0.8rem;
     overflow-wrap: anywhere;
+  }
+
+  /* Behavioural hints (SEP-1649 tool annotations) — real security signal,
+     not decoration: knowing `gitlab_execute_action` is destructive matters
+     BEFORE connecting a client to it. Only tools carry these (gitlab has 2,
+     libgen 4), so even on gitlab's 84-entry card this list never grows past
+     a couple of chips per tool. */
+  .annotation-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0;
+    margin: 0.55rem 0 0;
+    list-style: none;
+  }
+
+  /* `.chip` (mono pill shape) comes from utilities.css; these two variants
+     only add color. `--info` covers read-only/idempotent/external-network —
+     purely informative, so it stays as quiet as the rest of the metadata. */
+  .a-chip--info {
+    color: var(--color-text-muted);
+    background: var(--color-bg-subtle);
+  }
+
+  /* The one chip that must stand out: it says a tool can change or delete
+     something. Meaning rides on the TEXT ("destructive"/"destructiva"), not
+     just the color, so this reads the same under a color-vision deficiency —
+     the color is emphasis on top of that, not the only signal. */
+  .a-chip--destructive {
+    color: var(--color-danger);
+    font-weight: var(--fw-medium);
+    background: var(--danger-dim);
+    border-color: var(--color-danger);
   }
 
   .entry-desc {
