@@ -315,6 +315,23 @@ test("los nodos propios enlazan a la persona por @id, sin redeclararla, y toda r
 
     for (const node of own) {
       for (const refId of collectRefs(node)) {
+        // Un ancla de vocabulario EXTERNO no es un nodo de este sitio y no
+        // puede estar declarado aquí: enlazar la entidad por su IRI es
+        // justamente lo correcto en datos enlazados —redeclarar en local lo
+        // que Wikidata ya define es el error opuesto, el mismo que este
+        // fichero persigue con #person—. La regla de arriba nació cuando
+        // TODA referencia era interna (#person, #software, workTranslation);
+        // el `about` de los WebAPI trajo la primera que no lo es.
+        //
+        // El filtro es un IRI de concepto de Wikidata y no «cualquier URL
+        // absoluta» a propósito: con la regla laxa, un @id interno mal
+        // escrito (`…/gitlab#ap`) también sería «externo» y pasaría de largo,
+        // que es el huérfano que este test existe para cazar. De regalo, deja
+        // fijado el esquema: `https://www.wikidata.org/entity/Q…` NO casa
+        // aquí y falla como huérfano, que es exactamente lo que hay que
+        // notar el día que `eslint --fix` vuelva a partir la entidad en dos.
+        if (isExternalEntity(refId)) continue;
+
         assert.ok(
           globalIds.has(refId),
           `${page}: ${node["@id"]} referencia ${refId}, que no existe en ningún grafo del sitio`,
@@ -333,6 +350,20 @@ test("los nodos propios enlazan a la persona por @id, sin redeclararla, y toda r
     }
   }
 });
+
+/**
+ * ¿Es `id` una entidad de un vocabulario externo, y no un nodo de este sitio?
+ *
+ * Solo Wikidata, y solo con el esquema `http://`, que es el IRI de concepto
+ * canónico que ya usan `knowsAbout` en jmrp.io y el `about` de cada WebAPI.
+ * Ver el uso, más arriba, para por qué la lista es cerrada.
+ *
+ * @param {string} id El `@id` referenciado.
+ * @returns {boolean} `true` si vive fuera del grafo del sitio.
+ */
+const isExternalEntity = (id) =>
+  // eslint-disable-next-line sonarjs/no-clear-text-protocols, unicorn/prefer-https -- Mismo motivo que en `src/lib/jsonld.ts`: es el IRI de CONCEPTO de Wikidata, que es http:// por definición. Con https se compararía contra un recurso RDF distinto y el test no reconocería el ancla que el sitio emite.
+  id.startsWith("http://www.wikidata.org/entity/Q");
 
 /** Todos los `{"@id": …}` que cuelgan de un nodo, a cualquier profundidad. */
 function collectRefs(node) {
