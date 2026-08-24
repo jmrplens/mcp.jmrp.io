@@ -404,6 +404,48 @@ function meta(html, attribute, key) {
   return tag?.content;
 }
 
+/**
+ * Decodifica las entidades de un valor de atributo.
+ *
+ * El valor sale del HTML ya escapado —el post-build reserializa con cheerio
+ * después de minificar—, así que un `&` viaja como `&amp;` y contaría cinco
+ * caracteres donde el buscador cuenta uno. Hoy ninguna description lleva
+ * entidades; esto es lo que mantiene honesto el recuento el día que una las
+ * lleve.
+ *
+ * @param value Valor crudo del atributo, tal cual está en `dist/`.
+ * @returns El texto que de verdad lee un buscador.
+ */
+function decodeEntities(value) {
+  return (
+    value
+      .replaceAll("&lt;", "<")
+      .replaceAll("&gt;", ">")
+      .replaceAll("&quot;", '"')
+      .replaceAll("&#39;", "'")
+      // `&amp;` el ÚLTIMO: antes convertiría `&amp;lt;` en `<`.
+      .replaceAll("&amp;", "&")
+  );
+}
+
+/**
+ * La description que un buscador leería de una página ya construida.
+ *
+ * Pasa por {@link meta} y no por un regex propio porque el minificador
+ * ALFABETIZA los atributos (`sortAttributes` en
+ * `src/integrations/post-build/html.ts`), así que en `dist/` sale
+ * `<meta content="…" name="description">`. Un patrón que dé por hecho `name`
+ * antes de `content` no encuentra NINGUNA de las catorce páginas, y medir lo
+ * que no se ha encontrado sale verde sobre un sitio entero sin descriptions.
+ *
+ * @param html HTML ya minificado de una página de `dist/`.
+ * @returns El texto decodificado, o `undefined` si la etiqueta no está.
+ */
+function descriptionOf(html) {
+  const raw = meta(html, "name", "description");
+  return raw === undefined ? undefined : decodeEntities(raw);
+}
+
 test("cada página emite Open Graph y Twitter Card completos", () => {
   for (const { name, html, lang, url } of pages()) {
     assert.equal(meta(html, "property", "og:type"), "website", name);
@@ -518,6 +560,56 @@ test("el <title> deja sitio a la expresión por la que se busca esto", () => {
       `${name}: ${title.length} caracteres; Google recorta pasados ~60`,
     );
   }
+});
+
+/**
+ * Presupuesto de la meta description, en caracteres.
+ *
+ * 155 es lo que Google muestra antes de recortar con «…». Pasarse no rompe
+ * nada visible —la página se sirve igual— así que solo se nota en el
+ * resultado de búsqueda, con la frase cortada a media palabra. El sitio
+ * hermano jmrp.io fija el mismo número (tests/content-integrity.spec.ts),
+ * para que dominio y subdominio no apliquen dos criterios distintos.
+ */
+const MAX_DESCRIPTION = 155;
+
+test("ninguna description pasa de lo que Google llega a enseñar", () => {
+  for (const { name, html } of pages()) {
+    const description = descriptionOf(html);
+
+    // La presencia se afirma primero: `undefined` tampoco es más largo que
+    // 155, así que sin esto una página que PIERDA la etiqueta pasaría.
+    assert.ok(description, `${name}: sin <meta name="description">`);
+
+    assert.ok(
+      description.length <= MAX_DESCRIPTION,
+      `${name}: ${description.length} caracteres; Google recorta pasados ` +
+        // La description entera, a propósito: quien lea el fallo tiene que
+        // poder reescribirla sin abrir `dist/`.
+        `${MAX_DESCRIPTION} — "${description}"`,
+    );
+  }
+});
+
+test("el medidor de descriptions ve la que se pasa de largo", () => {
+  // Recorrer solo páginas correctas no distingue «todas caben» de «no
+  // encuentro ninguna»: los dos casos salen en verde. Este caso fija lo que
+  // TIENE que salir largo, escrito como lo deja el minificador —`content`
+  // antes que `name`— y con una entidad por medio, para dejar probado que se
+  // mide el texto decodificado y no el escape.
+  const excess = `${"palabra ".repeat(20)}&amp; coletilla`;
+  const html = `<meta content="${excess}" name="description">`;
+
+  const measured = descriptionOf(html);
+  assert.ok(measured?.endsWith("& coletilla"), "no decodifica la entidad");
+  assert.ok(
+    measured.length > MAX_DESCRIPTION,
+    "el medidor no ve larga una description que se pasa del presupuesto",
+  );
+
+  // El otro falso verde: sin la etiqueta no hay longitud que medir, así que
+  // `undefined` no puede colarse como «cabe de sobra».
+  assert.equal(descriptionOf('<meta content="x" name="keywords">'), undefined);
 });
 
 test("el catálogo de descubrimiento y las server cards son coherentes", () => {
