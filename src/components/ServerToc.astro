@@ -18,7 +18,12 @@ export interface TocFamily {
   /** Anchor id, without the leading `#`. */
   id: string;
   label: string;
-  count: number;
+  /**
+   * How many entries the section holds. Optional because not every section in
+   * this list is a family of entries: the service-context block is prose, and
+   * "(4)" after its label would promise four of something that is not there.
+   */
+  count?: number;
 }
 
 interface Props {
@@ -37,7 +42,10 @@ const { overviewLabel, families, ariaLabel } = Astro.props;
       families.map((family) => (
         <li>
           <a href={`#${family.id}`}>
-            {family.label} <span class="toc-count">({family.count})</span>
+            {family.label}
+            {family.count !== undefined && (
+              <span class="toc-count"> ({family.count})</span>
+            )}
           </a>
         </li>
       ))

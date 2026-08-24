@@ -65,6 +65,11 @@ if (!serverMeta) {
 
 const serversHref = new URL(pageUrl(lang, "servers")).pathname;
 const inspectorBase = new URL(pageUrl(lang, "inspector")).pathname;
+// Targets of the service-context block below — site-relative, like every
+// cross-page link here (an absolute URL sends a dev or preview server
+// straight to production).
+const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
+const policiesHref = new URL(pageUrl(lang, "policies")).pathname;
 const inspectorOverviewHref = `${inspectorBase}?server=${id}`;
 
 /**
@@ -127,6 +132,8 @@ const hasTemplates = templateEntries.length > 0;
 const CHIP_THRESHOLD = 8;
 
 const tocFamilies = [
+  // No count: it is prose, not a family of entries — see `TocFamily.count`.
+  { id: "context-h", label: sp.contextHead },
   { id: "tools-h", label: t.toolsHead, count: toolEntries.length },
   ...(hasPrompts ? [{ id: "prompts-h", label: t.promptsHead, count: promptEntries.length }] : []),
   ...(hasResources
@@ -139,6 +146,32 @@ const tocFamilies = [
 
 const authText = card.authentication.required ? t.credentialsRequired : t.noCredentials;
 const authSchemes = card.authentication.schemes;
+
+/**
+ * One card description, split into the paragraphs its author actually wrote.
+ *
+ * SEP-1649 descriptions are plain text, and a server that structures a long
+ * one structures it with blank lines: libgen's `search` publishes four
+ * paragraphs. Rendered into a single `<p>`, HTML collapses those breaks and
+ * the whole thing arrives as one undifferentiated block — which is half of
+ * the "wall of text" the 2026-08-24 audit measured on this page.
+ *
+ * Splits on blank lines and NOTHING else. Not on sentences, not on the
+ * "x then y then z" fallback chains inside `download`'s 359-word paragraph:
+ * this text is a verbatim pass-through of what the server publishes (see this
+ * module's header comment), and choosing where a third party's prose breaks
+ * is authoring it, not rendering it. That paragraph is fixed where it is
+ * written — in `libgen-mcp` — not here; see `plan/PLAN-REMEDIACION-2026-08-24.md`.
+ *
+ * @param text The description exactly as the Server Card publishes it.
+ * @returns One entry per paragraph, blank ones dropped.
+ */
+function descriptionParagraphs(text: string): string[] {
+  return text
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+}
 
 /** True if an argument declares itself required — `arguments[].required` is
  * omitted (not sent as `false`) when optional, see `CardPromptArgument`. */
@@ -287,6 +320,30 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
         </p>
       </section>
 
+      {/* Service context, between the overview and the schemas — the four
+          things the home page treats as non-negotiable about these endpoints
+          (rate limit, no SLA, how many nodes, the legal position) and that
+          this page carried none of. It goes HERE and not at the foot of the
+          page because a card runs to 1,300 words of tools and prompts: after
+          them, the caveats are read by nobody who did not already go looking.
+          See `serversPage.contextHead` for why it links out instead of
+          repeating `/policies/`. */}
+      <section class="server-family" aria-labelledby="context-title" id="context-h">
+        <h2 class="subsection-title" id="context-title">{sp.contextHead}</h2>
+        <p class="prose-text">{sp.contextService}</p>
+        {/* The one sentence here that differs per server, so it comes from
+            `servers.ts` and not from the i18n module. */}
+        <p class="prose-text">{serverMeta.rateLimit[lang]}</p>
+        <p class="prose-text">
+          {sp.contextRouting}{" "}
+          <a href={internalsHref}>{sp.contextRoutingLink}</a>
+        </p>
+        <p class="prose-text">
+          {sp.contextPolicies}{" "}
+          <a href={policiesHref}>{sp.contextPoliciesLink}</a>
+        </p>
+      </section>
+
       <section class="server-family" aria-labelledby="tools-title" id="tools-h">
         <h2 class="subsection-title" id="tools-title">
           {t.toolsHead} <span class="count">({toolEntries.length})</span>
@@ -322,7 +379,9 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                       </ul>
                     )
                   }
-                  <p class="entry-desc">{entry.data.description}</p>
+                  {descriptionParagraphs(entry.data.description).map((paragraph) => (
+                    <p class="entry-desc">{paragraph}</p>
+                  ))}
                   <p class="entry-cta">
                     <a href={inspectorHref("tools", entry.data.name)}>{sp.tryInInspector}</a>
                   </p>
@@ -358,7 +417,9 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                   <p class="entry-name">
                     <code>{entry.data.name}</code>
                   </p>
-                  <p class="entry-desc">{entry.data.description}</p>
+                  {descriptionParagraphs(entry.data.description).map((paragraph) => (
+                    <p class="entry-desc">{paragraph}</p>
+                  ))}
                   {entry.data.arguments.length > 0 ? (
                     <dl class="args">
                       {entry.data.arguments.map((arg) => (
@@ -398,7 +459,9 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                   <p class="entry-name">
                     <code>{entry.data.uri}</code>
                   </p>
-                  <p class="entry-desc">{entry.data.description}</p>
+                  {descriptionParagraphs(entry.data.description).map((paragraph) => (
+                    <p class="entry-desc">{paragraph}</p>
+                  ))}
                   {entry.data.mimeType && (
                     <p class="entry-meta">
                       {sp.mimeTypeLabel}: <code>{entry.data.mimeType}</code>
@@ -436,7 +499,9 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                   <p class="entry-name">
                     <code>{entry.data.uriTemplate}</code>
                   </p>
-                  <p class="entry-desc">{entry.data.description}</p>
+                  {descriptionParagraphs(entry.data.description).map((paragraph) => (
+                    <p class="entry-desc">{paragraph}</p>
+                  ))}
                   {entry.data.mimeType && (
                     <p class="entry-meta">
                       {sp.mimeTypeLabel}: <code>{entry.data.mimeType}</code>
@@ -497,6 +562,19 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
   }
 
   .back-link a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* `.prose-text` is base.css's, but the links inside one are not: Astro
+     scopes <style> per component, so every page carrying prose links needs
+     its own copy (Internals and Policies have the same pair). */
+  .prose-text a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .prose-text a:hover {
     text-decoration: underline;
     text-underline-offset: 3px;
   }
