@@ -52,9 +52,16 @@ export type McpToolInfo = {
  *
  * Modelled separately from tools because it is a different capability of the
  * protocol. It is documented here because the inspector lists prompts live,
- * but no crawler runs the inspector — before this they appeared nowhere in the
- * static surface (card, /servers.json, llms-full.txt), which the 2026-08-22
- * audit flagged: they are a differentiator against other libgen MCP servers.
+ * but no crawler runs the inspector, and the 2026-08-22 audit found prompts
+ * reaching no static surface at all: they are a differentiator against other
+ * libgen MCP servers and nothing citable said so.
+ *
+ * They do reach that surface now, but by TWO routes and this type is only one
+ * of them — the bilingual copy written by hand below. The other is the
+ * committed Server Card snapshot (`src/data/cards/<id>.json`), which the
+ * machine emitters fall back to for a server with no `prompts` here. So the
+ * absence of this type on a server no longer means its prompts are invisible;
+ * see the field's own doc for what it does mean.
  */
 export type McpPromptInfo = {
   name: string;
@@ -88,8 +95,26 @@ export type McpServer = {
   version: string;
   endpoint: string;
   repo: string;
+  /**
+   * README del repositorio, y FALLBACK de `docsSite`.
+   *
+   * NO migrar a `https://jmrp.io/docs/<repo>` pese a la convención: esa URL
+   * redirige al SITIO de documentación, que es otro recurso. Colapsar los dos
+   * en una sola URL dejaría `docsSite` como campo muerto y el `??` sin
+   * sentido. Y como este es el fallback para un MCP que no tenga sitio de
+   * documentación, no debe depender del mapa de redirección de jmrp.io: una
+   * entrada rota allí se llevaría por delante las dos rutas a la vez.
+   */
   docs: string;
-  /** Sitio de documentación completo, si lo hay. */
+  /**
+   * Sitio de documentación completo, si lo hay.
+   *
+   * Se escribe con la forma de convención `https://jmrp.io/docs/<repo>`
+   * (decisión del autor, 2026-08-24) y no con la URL de GitHub Pages a la que
+   * ese mapa redirige. El card SEP-1649 que sirve el propio libgen ya publica
+   * esa forma en `websiteUrl`, así que mantener aquí la otra hacía que la
+   * ficha pintara dos enlaces con URLs distintas al mismo destino.
+   */
   docsSite?: string;
   /**
    * Fichas de directorios MCP que describen ESTE servidor (Glama,
@@ -111,7 +136,17 @@ export type McpServer = {
    * pero obliga a una llamada en vivo que ningún buscador hace.
    */
   tools: McpToolInfo[];
-  /** Prompts que expone, si los hay. */
+  /**
+   * Copia CURADA y bilingüe de los prompts, la que pinta la página.
+   *
+   * Que falte significa "nadie ha escrito esa copia aquí", NO "este servidor
+   * no tiene prompts". Leerlo del segundo modo es lo que dejó los 37 prompts
+   * de gitlab fuera de /servers.json y de llms-full.txt mientras su ficha HTML
+   * sí los listaba —esa los saca del Server Card, no de aquí—. Poblarlo para
+   * gitlab exigiría inventar 74 textos que no existen en ninguna fuente, así
+   * que quien emita prompts debe caer al Server Card guardado en
+   * `src/data/cards/<id>.json` cuando este campo falte.
+   */
   prompts?: McpPromptInfo[];
   /**
    * The server publishes its OWN Server Card at
@@ -131,6 +166,22 @@ export type McpServer = {
   nativeCard?: boolean;
   /** Avisos propios de este servidor. */
   notices: McpNotice[];
+  /**
+   * El límite de peticiones de ESTE servidor, en una frase.
+   *
+   * No sustituye al aviso `limits` de arriba: ese vive en la ficha de la
+   * portada, plegado y con el contexto entero. Esta es la versión corta que
+   * pinta `/servers/<id>/`, que es la página a la que se llega desde un
+   * resultado de búsqueda y donde no había ni una de las cuatro advertencias
+   * que la portada considera imprescindibles. Escrita aparte y no recortando
+   * el aviso: dos páginas con el mismo párrafo palabra por palabra le dan a
+   * un recuperador dos trozos casi idénticos entre los que elegir, y elige él.
+   *
+   * Obligatorio, no opcional: un MCP nuevo sin límite declarado es
+   * exactamente el que hay que declarar, aunque la respuesta sea "ninguno
+   * propio" — como la de gitlab.
+   */
+  rateLimit: Bilingual;
 };
 
 export const servers: McpServer[] = [
@@ -148,7 +199,7 @@ export const servers: McpServer[] = [
     endpoint: "https://mcp.jmrp.io/libgen",
     repo: "https://github.com/jmrplens/libgen-mcp",
     docs: "https://github.com/jmrplens/libgen-mcp#readme",
-    docsSite: "https://jmrplens.github.io/libgen-mcp/",
+    docsSite: "https://jmrp.io/docs/libgen-mcp",
     sameAs: [
       "https://glama.ai/mcp/servers/jmrplens/libgen-mcp",
       "https://cursor.directory/plugins/libgen-mcp",
@@ -259,15 +310,31 @@ export const servers: McpServer[] = [
         ],
       },
     ],
+    // Concuerda con el aviso `limits` de arriba (2/s por instancia, 3
+    // instancias): si cambia el techo, cambian los dos.
+    rateLimit: {
+      en: "Its calls out to the Library Genesis mirrors are capped at about 2 per second per instance, three instances in all. The ceiling is deliberately low: the capacity it spends there belongs to a third party, not to this site.",
+      es: "Sus llamadas hacia los mirrors de Library Genesis están limitadas a unas 2 por segundo por instancia, tres instancias en total. El techo es deliberadamente bajo: la capacidad que gasta ahí es de un tercero, no de este sitio.",
+    },
     requiredHeaders: [],
     optionalHeaders: [],
     // El acceso abierto va PRIMERO por decisión de posicionamiento
     // (2026-08-08): la mitad open-access es la que cualquier asistente puede
     // citar y recomendar sin reparos, y liderar con Library Genesis hacía que
     // esa cautela se contagiara al servidor entero.
+    //
+    // Este texto es además la META DESCRIPTION de la ficha, y de ahí pasa a la
+    // card, a /servers.json, al JSON-LD y a llms.txt: el techo duro son 155
+    // caracteres, porque por encima Google lo trunca y el recorte cae donde él
+    // decida. El ajuste de 2026-08-24 (219 → 153) sacrificó dblp, ERIC y los
+    // cómics —que siguen nombrados en el aviso legal y en el `what` de
+    // `search`— y subió "No account required" al frente, la única posición que
+    // ningún truncado alcanza. Library Genesis sigue detrás de las fuentes
+    // abiertas, que es lo que pide el párrafo de arriba. Al reescribirlo,
+    // vuelve a contar los caracteres.
     description: {
-      en: "Keyless discovery across open-access sources — arXiv, Crossref, OpenLibrary, Gutenberg, dblp, PubMed, ERIC — plus search, reading and download links for books, papers and comics via Library Genesis. No account required.",
-      es: "Descubrimiento sin claves en fuentes de acceso abierto — arXiv, Crossref, OpenLibrary, Gutenberg, dblp, PubMed, ERIC — más búsqueda, lectura y enlaces de descarga de libros, artículos y cómics vía Library Genesis. No requiere cuenta.",
+      en: "No account required. Search, read and get download links for books and papers across arXiv, Crossref, OpenLibrary, Gutenberg, PubMed and Library Genesis.",
+      es: "No requiere cuenta. Búsqueda, lectura y enlaces de descarga de libros y artículos en arXiv, Crossref, OpenLibrary, Gutenberg, PubMed y Library Genesis.",
     },
   },
   {
@@ -279,7 +346,7 @@ export const servers: McpServer[] = [
     endpoint: "https://mcp.jmrp.io/gitlab",
     repo: "https://github.com/jmrplens/gitlab-mcp-server",
     docs: "https://github.com/jmrplens/gitlab-mcp-server#readme",
-    docsSite: "https://jmrplens.github.io/gitlab-mcp-server/",
+    docsSite: "https://jmrp.io/docs/gitlab-mcp-server",
     sameAs: [
       "https://glama.ai/mcp/servers/jmrplens/gitlab-mcp-server",
       "https://mcpservers.org/servers/jmrplens/gitlab-mcp-server",
@@ -365,6 +432,12 @@ export const servers: McpServer[] = [
         ],
       },
     ],
+    // Concuerda con el aviso `limits` de arriba: el techo que aplica es el de
+    // la instancia de GitLab del propio visitante.
+    rateLimit: {
+      en: "It adds no quota of its own beyond the site-wide one: every call is spent against your own GitLab instance's limits, with your own token.",
+      es: "No añade cuota propia más allá de la general del sitio: cada llamada se gasta contra los límites de tu propia instancia de GitLab, con tu propio token.",
+    },
     requiredHeaders: [
       {
         name: "PRIVATE-TOKEN",
@@ -398,9 +471,16 @@ export const servers: McpServer[] = [
     // registry, which upstream no longer publishes — its README and docs site
     // now say "1000+". A wrong citable figure is worse than none, because it
     // is precisely the one assistants repeat.
+    //
+    // It is also the page's META DESCRIPTION, so the hard ceiling is 155
+    // characters — past that Google truncates and picks the cut itself. The
+    // 2026-08-24 trim (191 → 139) dropped "releases" and "and more" from the
+    // list of examples, releases being still named in `gitlab_execute_action`'s
+    // `what`, so that EN and ES could carry the SAME four. Re-count the
+    // characters on any rewrite: Spanish is the one that runs out of room.
     description: {
-      en: "A catalogue of over 1,000 GitLab operations — projects, merge requests, issues, pipelines, releases and more — against any GitLab instance. Your token travels per request and is never stored.",
-      es: "Un catálogo de más de 1.000 operaciones de GitLab — proyectos, merge requests, incidencias, pipelines, releases y más — contra cualquier instancia de GitLab. Tu token viaja en cada petición y nunca se guarda.",
+      en: "Over 1,000 GitLab operations — projects, merge requests, issues, pipelines — on any instance. Your token travels per request, never stored.",
+      es: "Más de 1.000 operaciones de GitLab — proyectos, merge requests, incidencias, pipelines — en cualquier instancia. Token por petición, nunca se guarda.",
     },
   },
 ];
