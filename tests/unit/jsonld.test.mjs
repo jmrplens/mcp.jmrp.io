@@ -358,12 +358,24 @@ test("los nodos propios enlazan a la persona por @id, sin redeclararla, y toda r
  * canónico que ya usan `knowsAbout` en jmrp.io y el `about` de cada WebAPI.
  * Ver el uso, más arriba, para por qué la lista es cerrada.
  *
+ * La coincidencia es EXACTA —anclada, y con el Q-id numérico completo— porque
+ * este predicado no describe: DECIDE qué referencias se saltan sin validar.
+ * Con un prefijo suelto, un `…/entity/Q133436854junk` seguía pareciendo
+ * Wikidata, salía del bucle antes de la aserción y un JSON-LD roto pasaba el
+ * test en silencio: un guardián que no guarda.
+ *
  * @param {string} id El `@id` referenciado.
  * @returns {boolean} `true` si vive fuera del grafo del sitio.
  */
 const isExternalEntity = (id) =>
-  // eslint-disable-next-line sonarjs/no-clear-text-protocols, unicorn/prefer-https -- Mismo motivo que en `src/lib/jsonld.ts`: es el IRI de CONCEPTO de Wikidata, que es http:// por definición. Con https se compararía contra un recurso RDF distinto y el test no reconocería el ancla que el sitio emite.
-  id.startsWith("http://www.wikidata.org/entity/Q");
+  // El `http://` es DELIBERADO, por el mismo motivo que en `src/lib/jsonld.ts`:
+  // es el IRI de CONCEPTO de Wikidata, que usa http:// por definición. Con
+  // https se compararía contra un recurso RDF distinto y el test dejaría de
+  // reconocer el ancla que el sitio emite. Como literal de regex no lo ven
+  // `sonarjs/no-clear-text-protocols` ni `unicorn/prefer-https`, así que aquí
+  // no hace falta el eslint-disable que sí lleva la versión en cadena — y
+  // ponerlo se reportaría como directiva sin usar.
+  /^http:\/\/www\.wikidata\.org\/entity\/Q\d+$/.test(id);
 
 /** Todos los `{"@id": …}` que cuelgan de un nodo, a cualquier profundidad. */
 function collectRefs(node) {
