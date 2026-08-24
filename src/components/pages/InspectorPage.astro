@@ -12,7 +12,7 @@
 import { servers } from "../../data/servers";
 import { ui } from "../../i18n/ui";
 import { getLangFromUrl } from "../../i18n/utils";
-import { pageUrl } from "../../lib/seo";
+import { pageUrl, serverPageUrl } from "../../lib/seo";
 import Inspector from "../Inspector";
 import UpdatedLine from "../UpdatedLine.astro";
 
@@ -23,6 +23,34 @@ const t = ui[lang];
 const homeHref = new URL(pageUrl(lang, "home")).pathname;
 // The token notice lives on the gitlab card, on the home page.
 const gitlabNoticeHref = `${homeHref}#gitlab-security`;
+
+// Looked up by id, not as "the one with no required headers": the copy in
+// both languages NAMES libgen. Tying the block to the id means that if libgen
+// ever leaves `servers.ts` the block leaves with it, instead of silently
+// retargeting at an endpoint that answers 401 to the very command a visitor
+// without JavaScript was told to run.
+const noscriptServer = servers.find((server) => server.id === "libgen");
+// Site-relative for the same reason as `homeHref` above.
+const noscriptServerHref = noscriptServer
+  ? new URL(serverPageUrl(lang, noscriptServer.id)).pathname
+  : "";
+// `-X POST` is deliberately absent: `-d` already makes this a POST, and adding
+// it is what breaks the command the day anything redirects the endpoint (curl
+// replays POST on a 301 only when -X forced it). The single quotes around the
+// body are load-bearing too — the JSON is full of double quotes, so shell
+// double quotes here would hand `$`/`!` to the shell instead of to curl.
+// What Astro puts in the HTML is NOT the raw byte: text expressions escape
+// `'` to `&#39;` and `"` to `&quot;` (check the built page — both are in
+// there). That costs nothing, and it is exactly why the quoting survives:
+// those are standard character references, so every HTML parser decodes them
+// before anyone reads or copies the block, and what comes out of the
+// clipboard is what a shell would accept.
+const noscriptCurl = noscriptServer
+  ? String.raw`curl -sS ${noscriptServer.endpoint} \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'`
+  : "";
 ---
 
 <div class="inspector">
@@ -40,6 +68,35 @@ const gitlabNoticeHref = `${homeHref}#gitlab-security`;
 
   <section class="inspector-section" aria-labelledby="inspector-h">
     <Inspector client:load servers={servers} lang={lang} />
+
+    {/* The only thing a crawler that runs no JavaScript can read on this page:
+        the island above arrives as an empty shell. It sits inside the section
+        it stands in for. Note for whoever styles it — Astro puts
+        `data-astro-cid-*` on the CHILDREN of <noscript> but not on <noscript>
+        itself, so a scoped `noscript { … }` rule matches nothing at all.
+        Style the classes instead. */}
+    {
+      noscriptServer && (
+        <noscript>
+          <div class="ns-fallback">
+            <h2 class="ns-title">{t.noscript.title}</h2>
+            <p class="ns-body">{t.noscript.lead}</p>
+            <figure class="ns-figure">
+              <figcaption class="ns-caption">
+                {t.noscript.requestLabel}
+              </figcaption>
+              <pre class="ns-pre"><code>{noscriptCurl}</code></pre>
+            </figure>
+            <p class="ns-body">{t.noscript.response}</p>
+            <p class="ns-body">
+              {t.noscript.more}{" "}
+              <a href={noscriptServerHref}>{t.noscript.moreLink}</a>.
+            </p>
+          </div>
+        </noscript>
+      )
+    }
+
     <p class="notice-pointer">
       {t.noticePointer}{" "}
       <a href={gitlabNoticeHref}>{t.noticePointerLink}</a>
@@ -103,5 +160,65 @@ const gitlabNoticeHref = `${homeHref}#gitlab-security`;
     font-size: var(--text-base);
     line-height: 1.7;
     text-wrap: pretty;
+  }
+
+  /* The <noscript> fallback. Copied shapes, not shared ones: Astro scopes
+     <style> per component, so ClientSetup.astro's code-block rules cannot be
+     reused here — the same reason `.back-link` above is a copy of the home
+     page's. */
+  .ns-fallback {
+    max-width: var(--max-width-prose);
+    margin-top: var(--space-lg-xl);
+  }
+
+  .ns-title {
+    margin: 0 0 0.75rem;
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+  }
+
+  .ns-body {
+    margin: 0 0 1rem;
+    color: var(--color-text-muted);
+    font-size: var(--text-base);
+    line-height: 1.7;
+    text-wrap: pretty;
+  }
+
+  .ns-body a {
+    color: var(--color-accent);
+  }
+
+  .ns-figure {
+    margin: 0 0 1rem;
+  }
+
+  .ns-caption {
+    margin-bottom: 0.3rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* Same reason as ClientSetup.astro's <pre>: without its own overflow the
+     block widens the whole column on a phone instead of scrolling inside
+     itself. No tabindex — post-build's `processCodeBlocks` runs on cheerio,
+     which cannot see in here, so a focusable <pre> would never get the
+     `<section aria-label>` wrapper that pass adds everywhere else. */
+  .ns-pre {
+    margin: 0;
+    padding: 0.6rem 0.75rem;
+    overflow-x: auto;
+    background: var(--color-bg-subtle);
+    border: var(--border-hair);
+    border-radius: var(--radius-sm);
+  }
+
+  .ns-pre code {
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
   }
 </style>
