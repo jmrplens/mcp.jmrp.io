@@ -17,7 +17,17 @@ export const internals = {
   en: {
     title: "Internals",
     metaTitle: "Internals — how a request reaches mcp.jmrp.io · jmrp.io",
-    lede: "How a request actually reaches these servers: from your browser, through Cloudflare, nginx, one of three running instances and an egress proxy, to the destination it asked for.",
+    /**
+     * Doubles as this page's meta description (`src/pages/internals.astro`
+     * passes it straight to `Base`), so it is written to the snippet ceiling
+     * rather than to taste: over ~155 characters a search engine cuts it and
+     * the last hop — the one that names what the request is actually for —
+     * is the half that disappears. Every hop of the six-step path survives
+     * the trim; only the connective tissue ("from", "through", "to") and
+     * "running" were dropped, the latter because `instancesEyebrow` below
+     * already establishes that the three instances are up.
+     */
+    lede: "How a request actually reaches these servers: your browser, Cloudflare, nginx, one of three instances, an egress proxy, and the destination it asked for.",
     /** Link from `/internals/` back to the home page. */
 
     pathEyebrow: "The path of a request",
@@ -114,7 +124,8 @@ export const internals = {
   es: {
     title: "Funcionamiento interno",
     metaTitle: "Funcionamiento interno — cómo enruta mcp.jmrp.io · jmrp.io",
-    lede: "Cómo llega de verdad una petición a estos servidores: desde tu navegador, pasando por Cloudflare, nginx, una de las tres instancias en marcha y un proxy de salida, hasta el destino que pedías.",
+    /** Ver `en.lede`: es también la meta description, de ahí la brevedad. */
+    lede: "Cómo llega de verdad una petición a estos servidores: tu navegador, Cloudflare, nginx, una de las tres instancias, un proxy de salida y el destino pedido.",
 
     pathEyebrow: "El camino de una petición",
     pathBody: [

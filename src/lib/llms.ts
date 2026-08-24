@@ -15,7 +15,7 @@
  * lo que espera la herramienta que lo consuma), pero enlazan y nombran la
  * versión española del sitio.
  */
-import { serverCards } from "../data/server-cards";
+import { serverCardDocuments, serverCards } from "../data/server-cards";
 import type { McpHeader, McpServer } from "../data/servers";
 import { servers } from "../data/servers";
 import type { Lang } from "../i18n/config";
@@ -27,7 +27,7 @@ import {
   cursorJson,
   vscodeJson,
 } from "../lib/client-config";
-import { LANGS, pageUrl, serverPageUrl, SITE_NAME, SITE_ORIGIN } from "../lib/seo";
+import { DEFAULT_LANG, LANGS, pageUrl, serverPageUrl, SITE_NAME, SITE_ORIGIN } from "../lib/seo";
 
 /** Nombre humano de cada idioma, para los enlaces del índice. */
 const LANG_NAMES: Record<string, string> = { en: "English", es: "Spanish" };
@@ -119,10 +119,21 @@ export function buildLlmsTxt(): string {
     ),
   ).join("\n");
 
+  // The link target is the JSON-RPC endpoint, not a page: a GET on it answers
+  // 405, so an agent walking this section — the first one in the file —
+  // collects one 405 per server before reading anything. The label goes in the
+  // description half of the item, which is free text inside llmstxt.org's
+  // `- [name](url): description` shape, so the file still parses as a link
+  // list; a bare prose line under the H2 would not, since an H2 section is a
+  // file list. The endpoint stays the target because it is what identifies the
+  // server (`/servers.json` keys on it, and `tests/unit/seo-artifacts.test.mjs`
+  // asserts it appears verbatim here). The detail page closes the gap the label
+  // only warns about: it answers 200 and carries the Server Card, so the agent
+  // has somewhere to go from the same line.
   const list = servers
     .map(
       (server) =>
-        `- [${server.name}](${server.endpoint}): ${server.description.en}`,
+        `- [${server.name}](${server.endpoint}): POST-only MCP endpoint; GET answers 405. ${server.description.en} Readable page: ${serverPageUrl(DEFAULT_LANG, server.id)}`,
     )
     .join("\n");
 
@@ -133,9 +144,10 @@ export function buildLlmsTxt(): string {
 Every server speaks the Model Context Protocol over streamable HTTP: a single
 POST endpoint that takes a JSON-RPC 2.0 request and answers with either
 \`application/json\` or an \`text/event-stream\` (SSE) frame. They run stateless,
-so each POST is self-contained and no session header is needed. Point an MCP
-client at the endpoint, or try the servers from the browser with the inspector
-on the site.
+so each POST is self-contained and no session header is needed. A GET on one
+answers 405 by design: the links under "MCP servers" below are call targets,
+not pages. Point an MCP client at the endpoint, or try the servers from the
+browser with the inspector on the site.
 
 ## MCP servers
 
@@ -176,6 +188,28 @@ function headerBlock(headers: McpHeader[], kind: string): string {
 }
 
 /**
+ * Renderiza un bloque de capacidades: prompts, recursos o plantillas.
+ *
+ * Existe por el mismo motivo que `headerBlock`: montar estas listas dentro de
+ * la plantilla de `serverSection` anidaría una template literal en otra, que
+ * es lo que sonarjs/no-nested-template-literals prohíbe en `src/lib`.
+ *
+ * @param lead Frase que encabeza el bloque.
+ * @param entries Clave con la que se invoca cada entrada, y su propósito.
+ * @returns El bloque en Markdown, o cadena vacía si no hay entradas.
+ */
+function capabilityBlock(
+  lead: string,
+  entries: { key: string; what: string }[],
+): string {
+  if (entries.length === 0) return "";
+  const lines = entries
+    .map((entry) => `- \`${entry.key}\` — ${entry.what}`)
+    .join("\n");
+  return `\n\n${lead}\n\n${lines}`;
+}
+
+/**
  * Ficha completa de un servidor: cómo se llama, qué pide y cómo se invoca.
  *
  * @param server Servidor de `src/data/servers.ts`.
@@ -187,15 +221,53 @@ function serverSection(server: McpServer): string {
       ? "\n- Authentication: none. The server is public and takes no credentials."
       : "";
 
-  // Built here rather than inline in the template below: nesting a template
-  // literal inside another trips sonarjs/no-nested-template-literals, and the
-  // same reason `headerBlock` exists.
-  const promptLines = (server.prompts ?? [])
-    .map((prompt) => `- \`${prompt.name}\` — ${prompt.what.en}`)
-    .join("\n");
-  const promptBlock = promptLines
-    ? `\n\nPrompts — canned plans a client can render, beyond the tools above:\n\n${promptLines}`
-    : "";
+  // El card committeado es la fuente de reserva de los tres bloques de abajo.
+  // `servers.ts` solo lleva copia escrita a mano, y para los 37 prompts de
+  // gitlab no la hay: ese campo ausente significa "nadie ha escrito esa copia",
+  // no "este servidor no tiene prompts" —leerlo del segundo modo es lo que los
+  // dejó fuera de esta superficie—. El card lo refresca
+  // `scripts/sync-server-cards.sh` en cada release, así que lo que se emite no
+  // puede desviarse de lo que responde el servidor. Se comprueba en vez de
+  // indexar a secas: un servidor puede estar dado de alta antes de que aterrice
+  // su snapshot (mismo motivo que el filtro de `pageEntries`).
+  const card = serverCardDocuments[server.id];
+
+  // `servers.ts` manda donde tiene copia propia —los cuatro prompts de libgen
+  // están traducidos a mano—; el card cubre el resto.
+  const prompts = server.prompts?.length
+    ? server.prompts.map((prompt) => ({
+        key: prompt.name,
+        what: prompt.what.en,
+      }))
+    : (card?.prompts ?? []).map((prompt) => ({
+        key: prompt.name,
+        what: prompt.description,
+      }));
+
+  // Recursos y plantillas se listan por URI, no por nombre: es la diferencia
+  // con una herramienta, que `resources/read` direcciona por URI y el nombre a
+  // solas no deja al cliente nada que llamar.
+  const resources = (card?.resources ?? []).map((resource) => ({
+    key: resource.uri,
+    what: resource.description,
+  }));
+  const templates = (card?.resourceTemplates ?? []).map((template) => ({
+    key: template.uriTemplate,
+    what: template.description,
+  }));
+
+  const promptBlock = capabilityBlock(
+    "Prompts — canned plans a client can render, beyond the tools above:",
+    prompts,
+  );
+  const resourceBlock = capabilityBlock(
+    "Resources — documents the server serves by URI, read with `resources/read`:",
+    resources,
+  );
+  const templateBlock = capabilityBlock(
+    "Resource templates — the same, parameterized; fill the `{…}` slots before reading:",
+    templates,
+  );
 
   return `## ${server.name}
 
@@ -209,7 +281,7 @@ ${server.description.en}
 
 Tools:
 
-${server.tools.map((tool) => `- \`${tool.name}\` — ${tool.what.en}`).join("\n")}${promptBlock}
+${server.tools.map((tool) => `- \`${tool.name}\` — ${tool.what.en}`).join("\n")}${promptBlock}${resourceBlock}${templateBlock}
 
 Verify the live list with:
 

@@ -33,6 +33,38 @@ export const inspector = {
     noticePointer:
       "Before pasting a credential, read the notice on that server's card: it says exactly where the value goes and what the browser itself prevents.",
     noticePointerLink: "Read the gitlab notice",
+    /**
+     * The `<noscript>` fallback on `/inspector/`.
+     *
+     * Its own key, not part of `insp`: `insp` is handed to the Preact island,
+     * and every string in there only ever reaches a browser that already ran
+     * the JavaScript this block exists to replace. Shipping these six strings
+     * inside the island's bundle would mean the one visitor who needs them is
+     * the one visitor who never receives them.
+     *
+     * The copy NAMES libgen on purpose — `InspectorPage.astro` looks the
+     * server up by that id, so the prose and the curl command below it cannot
+     * drift apart without the page dropping the block entirely.
+     */
+    noscript: {
+      title: "No JavaScript? Call a server directly",
+      lead:
+        "The inspector above needs JavaScript to talk to the servers. Without it, the same conversation fits in one command: this asks libgen — the server that requires no headers — for its catalogue of tools.",
+      requestLabel: "Request",
+      response:
+        "The server answers with a JSON-RPC result whose tools array holds every tool it exposes, each with its name, its description and the JSON Schema of the arguments it accepts.",
+      /**
+       * Names only what libgen actually publishes. Its Server Card carries 4
+       * tools and 4 prompts and ZERO resources or resource templates, and
+       * `ServerPage.astro` renders a family only when it has entries — so
+       * promising resources sent a visitor without JavaScript to a page that
+       * has no such section. If libgen ever publishes them, this sentence
+       * grows back.
+       */
+      more:
+        "The same tools and prompts are written out in prose, no request needed, on",
+      moreLink: "the libgen server page",
+    },
     insp: {
       server: "Endpoint",
       needHeader: "Fill in this header before calling the server:",
@@ -102,6 +134,19 @@ export const inspector = {
     noticePointer:
       "Antes de pegar una credencial, lee el aviso en la ficha de ese servidor: dice exactamente a dónde va el valor y qué impide el propio navegador.",
     noticePointerLink: "Leer el aviso de gitlab",
+    /** Ver `en.noscript`: el bloque que lee quien no ejecuta JavaScript. */
+    noscript: {
+      title: "¿Sin JavaScript? Llama al servidor directamente",
+      lead:
+        "El inspector de arriba necesita JavaScript para hablar con los servidores. Sin él, la misma conversación cabe en un solo comando: este le pide a libgen —el servidor que no exige cabeceras— su catálogo de tools.",
+      requestLabel: "Petición",
+      response:
+        "El servidor responde con un resultado JSON-RPC cuyo array tools contiene todas las tools que expone, cada una con su nombre, su descripción y el JSON Schema de los argumentos que acepta.",
+      /** Ver `en.noscript.more`: sin `resources`, que libgen no publica. */
+      more:
+        "Esas mismas tools y prompts están escritas en prosa, sin necesidad de lanzar ninguna petición, en",
+      moreLink: "la página del servidor libgen",
+    },
     /** Ver `en.insp`: los identificadores del protocolo se quedan en inglés. */
     insp: {
       server: "Servidor",

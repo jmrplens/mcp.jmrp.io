@@ -6,6 +6,7 @@
 import { getServerCard } from "../data/server-cards";
 import type { McpServer } from "../data/servers";
 import { ui } from "../i18n/ui";
+import { safeIcon } from "../lib/card-icons";
 import { pageUrl, serverPageUrl } from "../lib/seo";
 import ClientSetup from "./ClientSetup.astro";
 import Notice from "./Notice.astro";
@@ -30,6 +31,13 @@ const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h
 // otherwise.
 const card = getServerCard(server.id);
 const serverPageHref = new URL(serverPageUrl(lang, server.id)).pathname;
+
+// Optional, same as on `/servers/<id>/` (see that page's ServerPage.astro):
+// most servers have no committed card yet, and even libgen's did not carry
+// an icon before 1.6.4. The teaser repeats the SAME icon its own detail page
+// shows so the two read as the same server at a glance, at near-zero cost —
+// one tiny inlined `<img>` per card, not a new request (`data:` URI).
+const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
 ---
 
 {/* El `id` es el ÚNICO destino enlazable por servidor que tiene el sitio: sin
@@ -39,7 +47,10 @@ const serverPageHref = new URL(serverPageUrl(lang, server.id)).pathname;
     inspector. */}
 <article class="card" id={server.id}>
   <header class="card-head">
-    <h3>{server.name}</h3>
+    <h3>
+      {serverIcon && <img src={serverIcon.src} alt="" aria-hidden="true" class="card-icon" />}
+      {server.name}
+    </h3>
     <span class={needsAuth ? "badge badge-auth" : "badge"}>
       {needsAuth ? t.credentialsRequired : t.noCredentials}
     </span>
@@ -211,12 +222,38 @@ const serverPageHref = new URL(serverPageUrl(lang, server.id)).pathname;
      are not bold, only the eyebrow-vs-title SIZE contrast carries the
      hierarchy. */
   h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     margin: 0;
     color: var(--color-text-heading);
     font-family: var(--font-display);
     font-size: var(--text-xl);
     font-weight: var(--fw-medium);
     letter-spacing: -0.01em;
+  }
+
+  /* Same treatment as `/servers/<id>/`'s own icons (see ServerPage.astro's
+     `.server-icon` comment for the full rationale): these ship as
+     `currentColor` SVGs, but `currentColor` inside an `<img>`-loaded SVG
+     does not follow this page's cascade, so it renders as a fixed color
+     (black) regardless of theme. Dark is this site's default, so the
+     override lives on the light case, not the dark one. */
+  .card-icon {
+    width: 1em;
+    height: 1em;
+    flex: none;
+    filter: invert(1);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :global(html:not([data-theme="dark"])) .card-icon {
+      filter: none;
+    }
+  }
+
+  :global(html[data-theme="light"]) .card-icon {
+    filter: none;
   }
 
   /* Lo primero que alguien necesita saber de un endpoint público es si le va

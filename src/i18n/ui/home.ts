@@ -21,6 +21,25 @@ export const home = {
     whatIsMcp:
       "The Model Context Protocol (MCP) is an open standard that lets AI assistants use external tools and data sources; mcp.jmrp.io hosts two such servers, libgen and gitlab.",
     /**
+     * Anchor text for the one outbound citation on this site that is not the
+     * author's own. The sentence above calls MCP "an open standard" and
+     * never says whose, or where it is written down — every other outbound
+     * link on the home page points at jmrplens repositories.
+     *
+     * It renders INSIDE the same `<p>` as the definition (see
+     * `HomePage.astro`), not in a block of its own, so the claim and its
+     * source stay in one extractable chunk;
+     * split apart, a retriever can lift the definition without the citation
+     * and the citation stops doing its job. `whatIsMcp` itself is left
+     * whole — see its own comment for why breaking it into fragments to
+     * host an `<a>` would cost more than the link is worth.
+     *
+     * The href is the UNDATED `/specification`, which 307s to the current
+     * revision; a dated one (`/specification/2026-07-28`) rots at the next
+     * revision, and nothing in this repo checks outbound links.
+     */
+    specLink: "Read the specification at modelcontextprotocol.io",
+    /**
      * Hero link to `/inspector/`.
      *
      * `common.lede` used to promise "try them right here in the browser"; now
@@ -91,6 +110,11 @@ export const home = {
     /** Ver `en.whatIsMcp`: define MCP y ancla la marca al primer texto. */
     whatIsMcp:
       "El Model Context Protocol (MCP) es un estándar abierto que permite a los asistentes de IA usar herramientas y fuentes de datos externas; mcp.jmrp.io aloja dos de esos servidores, libgen y gitlab.",
+    /**
+     * Ver `en.specLink`: la cita de la especificación, dentro del mismo
+     * párrafo que la definición.
+     */
+    specLink: "Lee la especificación en modelcontextprotocol.io",
     /** See `en.tryInBrowser`: hero link to `/inspector/`. */
     tryInBrowser: "Pruébalos en el navegador",
     serversEyebrow: "Servidores",

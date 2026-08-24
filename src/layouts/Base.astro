@@ -317,9 +317,14 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
           <meta property="og:image:height" content={String(OG_IMAGE_SIZE.height)} />
           <meta property="og:image:alt" content={imageAlt} />
 
+          {/* No twitter:site / twitter:creator here, and none is coming back:
+              the author does not use the account (closed decision,
+              2026-08-24). The rest of the namespace stays because it is not X
+              that reads it — the block comment above names who does, and Slack
+              and Discord use twitter:card to pick the large-image layout.
+              site/creator are attribution-only: nothing renders worse without
+              them. */}
           <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:site" content="@jmrplens" />
-          <meta name="twitter:creator" content="@jmrplens" />
           <meta name="twitter:url" content={canonical} />
           <meta name="twitter:title" content={title} />
           <meta name="twitter:description" content={description} />
