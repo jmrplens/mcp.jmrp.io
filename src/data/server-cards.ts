@@ -32,7 +32,8 @@
  *     `annotations` hints, and (for prompts) `arguments`. This is what a
  *     page should render. Nothing here is invented — every field is a direct
  *     pass-through of what the card already contains, just without the
- *     schemas. Icons are filtered for safety first — see `filterIcons`.
+ *     schemas. Icons are filtered for safety first — see `filterIcons` — and
+ *     so is `serverInfo.websiteUrl` — see `filterWebsiteUrl`.
  *   - `serverCardDocuments` / `getServerCardDocument(id)` — the FULL parsed
  *     document, schemas and all, for the rare case something genuinely needs
  *     them (it is still sitting right there in the committed JSON either
@@ -253,6 +254,40 @@ export function filterIcons(icons: CardIcon[] | undefined): CardIcon[] | undefin
 }
 
 /**
+ * Keeps `serverInfo.websiteUrl` only when it is an `https:` URL, dropping it
+ * otherwise.
+ *
+ * Same reasoning as {@link filterIcons}, applied to the other card field that
+ * lands verbatim in an HTML attribute: a page paints it as
+ * `<a href={websiteUrl}>` labelled as that server's OFFICIAL site, and the
+ * value comes from the externally-published, script-refreshed snapshot. This
+ * is not the XSS gate — the deployed CSP already stops a `javascript:` href
+ * from executing — it is about never presenting an arbitrary scheme under
+ * that label.
+ *
+ * Dropping instead of throwing is the deliberate difference from
+ * `validateServerCardDocument`: an odd `websiteUrl` costs the card one
+ * optional link, which is not worth failing a build over, whereas a broken
+ * minimum shape is.
+ *
+ * @param websiteUrl `serverInfo.websiteUrl` as the card declares it, if any.
+ * @returns The URL when it is `https:`, `undefined` otherwise.
+ */
+export function filterWebsiteUrl(websiteUrl: string | undefined): string | undefined {
+  if (!websiteUrl) return undefined;
+  // Parsed rather than prefix-matched the way `filterIcons` matches
+  // `data:image/`: a URL scheme is case-insensitive, so a `startsWith` check
+  // would drop a perfectly valid `HTTPS://…`. The value itself is returned
+  // verbatim — this decides, it does not rewrite — and anything `URL` cannot
+  // parse at all (a relative path, say) is not a link to publish either.
+  try {
+    return new URL(websiteUrl).protocol === "https:" ? websiteUrl : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Reduces a tool's full `annotations` to the curated subset a page paints.
  *
  * @param annotations The tool's `annotations` object, if the card declares one.
@@ -271,15 +306,20 @@ function summarizeAnnotations(
  * Validates the MINIMUM shape this module depends on, and throws — failing
  * the build loudly — when a committed snapshot doesn't meet it.
  *
- * Deliberately narrow: `serverInfo.name`, `serverInfo.version`, and that
- * `tools`/`prompts`/`resources`/`resourceTemplates` are arrays wherever the
- * card includes them. Everything else this module reads — icons, titles,
- * descriptions, annotations, `websiteUrl` — is optional per the module doc
- * and simply omitted when absent; that's not a validation failure. The
- * snapshot is written by an external MCP server and refreshed by an
- * unattended script (`scripts/sync-server-cards.sh`) with no human review of
- * shape, so a release that breaks this minimum must fail here — in the
- * build — rather than surface as a silent `undefined` on a published page.
+ * Deliberately narrow: `serverInfo.name`, `serverInfo.version`,
+ * `authentication`, and that `tools`/`prompts`/`resources`/`resourceTemplates`
+ * are arrays wherever the card includes them. `authentication` is in that list
+ * — unlike every other object here — because it is the one non-optional
+ * object a page dereferences unguarded (`card.authentication.required` /
+ * `.schemes`): without the check a card that dropped it would fail the build
+ * with an anonymous `TypeError` from deep inside a template instead of the
+ * message below, which names the offending card. Everything else this module reads — icons,
+ * titles, descriptions, annotations, `websiteUrl` — is optional per the
+ * module doc and simply omitted when absent; that's not a validation
+ * failure. The snapshot is written by an external MCP server and refreshed
+ * by an unattended script (`scripts/sync-server-cards.sh`) with no human
+ * review of shape, so a release that breaks this minimum must fail here — in
+ * the build — rather than surface as a silent `undefined` on a published page.
  *
  * @param id Server id (matches the key in `rawDocuments`), for the error message.
  * @param raw Parsed JSON from `src/data/cards/<id>.json`, not yet trusted.
@@ -307,6 +347,29 @@ export function validateServerCardDocument(id: string, raw: unknown): ServerCard
   if (typeof info.version !== "string" || info.version.length === 0) {
     throw new Error(
       `Server Card "${id}" is invalid: serverInfo.version is missing or not a non-empty string`,
+    );
+  }
+
+  // `TypeError` rather than the plain `Error` the checks around it throw:
+  // these three test nothing but the type of a field, which is the case the
+  // subclass exists for (`src/lib/tool-schema.ts` uses it the same way for
+  // its own external input). The message keeps the shape of its neighbours',
+  // which is all a build failure ever shows.
+  const authentication = doc.authentication;
+  if (typeof authentication !== "object" || authentication === null) {
+    throw new TypeError(
+      `Server Card "${id}" is invalid: authentication is missing or not an object`,
+    );
+  }
+  const auth = authentication as Record<string, unknown>;
+  if (typeof auth.required !== "boolean") {
+    throw new TypeError(
+      `Server Card "${id}" is invalid: authentication.required is missing or not a boolean`,
+    );
+  }
+  if (!Array.isArray(auth.schemes)) {
+    throw new TypeError(
+      `Server Card "${id}" is invalid: authentication.schemes is missing or not an array`,
     );
   }
 
@@ -340,14 +403,30 @@ const rawDocuments: Record<string, unknown> = {
 /**
  * Strips one document down to the curated summary a page renders.
  *
+ * Exported so a test can reach the WIRING and not just the filters. While
+ * this was private, the only documents reachable from a test were the two
+ * committed cards, and neither carries a value that `filterWebsiteUrl` or
+ * `filterIcons` actually changes: libgen's `websiteUrl` is already `https:`
+ * and gitlab publishes none, so unhooking either filter from `serverInfo`
+ * below left the whole suite green while a page went back to painting an
+ * arbitrary scheme under the "official site" label. A caller that brings its
+ * own document can tell those two versions apart.
+ *
  * @param id Server id (matches `McpServer.id` in `src/data/servers.ts`).
  * @param doc Full parsed document for that server.
  * @returns The curated summary.
  */
-function summarize(id: string, doc: ServerCardDocument): ServerCardSummary {
+export function summarizeServerCardDocument(
+  id: string,
+  doc: ServerCardDocument,
+): ServerCardSummary {
   return {
     id,
-    serverInfo: { ...doc.serverInfo, icons: filterIcons(doc.serverInfo.icons) },
+    serverInfo: {
+      ...doc.serverInfo,
+      websiteUrl: filterWebsiteUrl(doc.serverInfo.websiteUrl),
+      icons: filterIcons(doc.serverInfo.icons),
+    },
     authentication: doc.authentication,
     tools: doc.tools.map(({ name, title, description, icons, annotations }) => ({
       name,
@@ -386,7 +465,7 @@ const documents: Record<string, ServerCardDocument> = Object.fromEntries(
 
 /** Curated summary for every server with a committed card, keyed by id. */
 export const serverCards: Record<string, ServerCardSummary> = Object.fromEntries(
-  Object.entries(documents).map(([id, doc]) => [id, summarize(id, doc)]),
+  Object.entries(documents).map(([id, doc]) => [id, summarizeServerCardDocument(id, doc)]),
 );
 
 /** Full parsed documents, keyed by id — schemas and `resourceTemplates` included. */

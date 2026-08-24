@@ -5,16 +5,19 @@
  * go wrong silently: a card that HAS the new SEP-1649 fields (libgen) must
  * expose them curated and filtered; a card that does NOT (gitlab) must keep
  * working exactly as before; an unsafe icon `src` must never survive into
- * the curated summary; and a card missing the minimum shape this module
- * depends on must fail loudly instead of producing `undefined` deep in a
- * page.
+ * the curated summary; a `websiteUrl` with an unexpected scheme must never be
+ * published as the server's official site; and a card missing the minimum
+ * shape this module depends on must fail loudly instead of producing
+ * `undefined` deep in a page.
  */
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
   filterIcons,
+  filterWebsiteUrl,
   getServerCard,
+  summarizeServerCardDocument,
   validateServerCardDocument,
 } from "../../src/data/server-cards.ts";
 
@@ -131,6 +134,7 @@ test("validateServerCardDocument: una familia que no es array falla ruidosamente
     () =>
       validateServerCardDocument("broken", {
         serverInfo: { name: "broken-mcp", version: "1.0.0" },
+        authentication: { required: false, schemes: [] },
         tools: "not-an-array",
       }),
     /tools is present but not an array/,
@@ -146,4 +150,132 @@ test("validateServerCardDocument: un card mínimo válido no falla, y las famili
   assert.deepEqual(doc.prompts, []);
   assert.deepEqual(doc.resources, []);
   assert.deepEqual(doc.resourceTemplates, []);
+});
+
+test("filterWebsiteUrl: conserva una URL https", () => {
+  assert.equal(
+    filterWebsiteUrl("https://jmrp.io/docs/libgen-mcp"),
+    "https://jmrp.io/docs/libgen-mcp",
+  );
+});
+
+test("filterWebsiteUrl: el esquema es insensible a mayúsculas, y el valor sale verbatim", () => {
+  assert.equal(filterWebsiteUrl("HTTPS://jmrp.io/docs"), "HTTPS://jmrp.io/docs");
+});
+
+test("filterWebsiteUrl: descarta cualquier esquema que no sea https, sin lanzar", () => {
+  // eslint-disable-next-line sonarjs/no-clear-text-protocols, unicorn/prefer-https -- El literal http:// ES el caso bajo prueba: que un card que publique su sitio en claro pierda el enlace en vez de publicarse como "sitio oficial". Sustituirlo por https vaciaría la aserción.
+  assert.equal(filterWebsiteUrl("http://jmrp.io/docs"), undefined);
+  assert.equal(filterWebsiteUrl("javascript:alert(1)"), undefined);
+  assert.equal(filterWebsiteUrl("data:text/html,<h1>hola</h1>"), undefined);
+  assert.equal(filterWebsiteUrl("file:///etc/passwd"), undefined);
+});
+
+test("filterWebsiteUrl: descarta lo que no es una URL, y el ausente sigue siendo undefined", () => {
+  assert.equal(filterWebsiteUrl("/docs/libgen-mcp"), undefined);
+  assert.equal(filterWebsiteUrl(""), undefined);
+  assert.equal(filterWebsiteUrl(undefined), undefined);
+});
+
+test("validateServerCardDocument: un card sin authentication falla ruidosamente en vez de reventar en la plantilla", () => {
+  assert.throws(
+    () =>
+      validateServerCardDocument("broken", {
+        serverInfo: { name: "broken-mcp", version: "1.0.0" },
+      }),
+    /authentication is missing or not an object/,
+  );
+});
+
+test("validateServerCardDocument: authentication que no es objeto falla ruidosamente", () => {
+  assert.throws(
+    () =>
+      validateServerCardDocument("broken", {
+        serverInfo: { name: "broken-mcp", version: "1.0.0" },
+        authentication: "none",
+      }),
+    /authentication is missing or not an object/,
+  );
+});
+
+test("validateServerCardDocument: authentication.required que no es booleano falla ruidosamente", () => {
+  assert.throws(
+    () =>
+      validateServerCardDocument("broken", {
+        serverInfo: { name: "broken-mcp", version: "1.0.0" },
+        authentication: { required: "yes", schemes: [] },
+      }),
+    /authentication\.required is missing or not a boolean/,
+  );
+});
+
+test("validateServerCardDocument: authentication.schemes que no es array falla ruidosamente", () => {
+  assert.throws(
+    () =>
+      validateServerCardDocument("broken", {
+        serverInfo: { name: "broken-mcp", version: "1.0.0" },
+        authentication: { required: true, schemes: "header-token" },
+      }),
+    /authentication\.schemes is missing or not an array/,
+  );
+});
+
+// Las validaciones nuevas corren al importar el módulo, así que un card real
+// que las incumpliera ya habría tumbado este fichero; se afirma aquí para que
+// el fallo diga cuál de los dos y en qué campo, no "no se pudo importar".
+test("los dos cards committeados cumplen la forma mínima de authentication", () => {
+  for (const id of ["libgen", "gitlab"]) {
+    const card = getServerCard(id);
+    assert.ok(card, `${id} debería tener una card committeada`);
+    assert.equal(typeof card.authentication.required, "boolean", `${id}: required`);
+    assert.ok(Array.isArray(card.authentication.schemes), `${id}: schemes`);
+  }
+});
+
+// Los tests de `filterWebsiteUrl`/`filterIcons` de arriba prueban las
+// funciones AISLADAS: pasarían igual si nadie las llamase. Y ninguna ficha
+// committeada puede cubrir el cableado, porque ninguna trae un valor que los
+// filtros cambien (libgen publica su sitio en https, gitlab no publica
+// ninguno). Estos casos traen su propio documento, que es la única forma de
+// que borrar el filtro del resumen se note.
+test("summarizeServerCardDocument: un websiteUrl que no es https no llega al resumen que pinta la página", () => {
+  const doc = validateServerCardDocument("wired", {
+    // eslint-disable-next-line sonarjs/no-clear-text-protocols, unicorn/prefer-https -- El literal http:// ES el caso bajo prueba: que un card que publique su sitio en claro pierda el enlace en vez de aparecer como "sitio oficial". Sustituirlo por https vaciaría la aserción.
+    serverInfo: { name: "wired-mcp", version: "1.0.0", websiteUrl: "http://jmrp.io/docs" },
+    authentication: { required: false, schemes: [] },
+  });
+
+  const card = summarizeServerCardDocument("wired", doc);
+  assert.equal(card.serverInfo.websiteUrl, undefined);
+  // El resto de serverInfo sigue pasando: el filtro descarta un campo, no la ficha.
+  assert.equal(card.serverInfo.name, "wired-mcp");
+  assert.equal(card.serverInfo.version, "1.0.0");
+});
+
+test("summarizeServerCardDocument: un websiteUrl https sí llega al resumen, verbatim", () => {
+  const doc = validateServerCardDocument("wired", {
+    serverInfo: { name: "wired-mcp", version: "1.0.0", websiteUrl: "https://jmrp.io/docs" },
+    authentication: { required: false, schemes: [] },
+  });
+
+  assert.equal(
+    summarizeServerCardDocument("wired", doc).serverInfo.websiteUrl,
+    "https://jmrp.io/docs",
+  );
+});
+
+test("summarizeServerCardDocument: los iconos con esquema no permitido tampoco llegan al resumen, ni los del servidor ni los de una tool", () => {
+  const doc = validateServerCardDocument("wired", {
+    serverInfo: {
+      name: "wired-mcp",
+      version: "1.0.0",
+      icons: [{ src: "javascript:alert(1)" }, { src: "data:image/svg+xml;base64,AAAA" }],
+    },
+    authentication: { required: false, schemes: [] },
+    tools: [{ name: "peligrosa", icons: [{ src: "https://evil.example/icon.svg" }] }],
+  });
+
+  const card = summarizeServerCardDocument("wired", doc);
+  assert.deepEqual(card.serverInfo.icons, [{ src: "data:image/svg+xml;base64,AAAA" }]);
+  assert.equal(card.tools[0].icons, undefined);
 });
