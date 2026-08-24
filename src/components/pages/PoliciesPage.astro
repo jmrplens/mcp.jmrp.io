@@ -21,6 +21,11 @@ const t = ui[lang];
 // Site-relative, like every other cross-page link on this site: an absolute
 // URL here would jump a dev or preview server straight to production.
 const homeHref = new URL(pageUrl(lang, "home")).pathname;
+// The credential notice lives on the gitlab card, on the home page — same
+// anchor `InspectorPage.astro` links to for the same notice. Both pages
+// raising the token question have to land on the one place that answers it,
+// or the two answers drift.
+const gitlabNoticeHref = `${homeHref}#gitlab-security`;
 ---
 
 <div class="policies">
@@ -40,6 +45,16 @@ const homeHref = new URL(pageUrl(lang, "home")).pathname;
   <section class="policies-section" aria-labelledby="privacy-h">
     <h2 class="subsection-title" id="privacy-h">{t.privacyEyebrow}</h2>
     {t.privacyBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+    {/* The pointer the last `privacyBody` paragraph stops short of. It is NOT
+        part of that array on purpose: the array is printed as plain text, so
+        an `<a>` cannot live inside one of its strings — the reason the copy
+        is split across two keys (see `policies.credentialNotice`). Same
+        shape as `InspectorPage.astro`'s `noticePointer`, deliberately: two
+        pages asking the same question have to land on the same answer. */}
+    <p class="prose-text">
+      {t.credentialNotice}{" "}
+      <a href={gitlabNoticeHref}>{t.credentialNoticeLink}</a>
+    </p>
   </section>
 
   <section class="policies-section" aria-labelledby="logs-h">
@@ -100,6 +115,21 @@ const homeHref = new URL(pageUrl(lang, "home")).pathname;
   }
 
   .back-link a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* `.prose-text` itself lives in base.css, but the link INSIDE one does not:
+     InternalsPage.astro carries this same pair scoped to itself, and the
+     scoping is per component — without a copy here the one link in this
+     page's prose falls back to the UA's default blue, which is the one color
+     on the page nobody chose. */
+  .prose-text a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .prose-text a:hover {
     text-decoration: underline;
     text-underline-offset: 3px;
   }
