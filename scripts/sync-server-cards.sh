@@ -99,15 +99,27 @@ sync_one() {
   # mano. Las cuatro familias (tools/prompts/resources/resourceTemplates)
   # deben ser arrays cuando el card las incluye — `?` en cada acceso evita
   # que jq falle si el campo no existe, en vez de tratarlo como error de
-  # forma.
+  # forma. Las MISMAS cuatro familias cuentan como catálogo presente: un MCP
+  # que solo publicara resource templates es un card legítimo, y dejar
+  # resourceTemplates fuera de esa lista lo rechazaba aquí aunque el build lo
+  # aceptase y la página lo renderizara.
+  #
+  # `authentication` se exige con la forma exacta que consume la página
+  # (ServerPage.astro lee `.required` y `.schemes.length` sin guarda): sin
+  # esta comprobación un card sin el campo no falla aquí sino en la
+  # generación de páginas, como un TypeError que ya no dice de qué card
+  # venía.
   if ! jq -e '
         (.serverInfo?.name? | type == "string" and length > 0) and
         (.serverInfo?.version? | type == "string" and length > 0) and
-        ([.tools?, .prompts?, .resources?] | any(. != null)) and
+        ([.tools?, .prompts?, .resources?, .resourceTemplates?] | any(. != null)) and
         ([.tools?, .prompts?, .resources?, .resourceTemplates?]
-          | all(. == null or type == "array"))
+          | all(. == null or type == "array")) and
+        (.authentication? | type == "object") and
+        (.authentication?.required? | type == "boolean") and
+        (.authentication?.schemes? | type == "array")
       ' "$tmp" >/dev/null 2>&1; then
-    log "  ERROR $id: $url no tiene forma de Server Card válida (falta serverInfo.name/version, no hay ningún catálogo, o alguna familia no es un array)"
+    log "  ERROR $id: $url no tiene forma de Server Card válida (falta serverInfo.name/version, no hay ningún catálogo, alguna familia no es un array, o authentication no es un objeto con required booleano y schemes array)"
     rm -f "$tmp"
     return 1
   fi
