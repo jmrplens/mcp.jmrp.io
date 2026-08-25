@@ -20,6 +20,8 @@ import {
   summarizeServerCardDocument,
   validateServerCardDocument,
 } from "../../src/data/server-cards.ts";
+import { servers } from "../../src/data/servers.ts";
+import { safeIcon } from "../../src/lib/card-icons.ts";
 
 test("libgen (card completo): expone title/description/websiteUrl/icons de servidor, icons de tools y prompts, y annotations curadas", () => {
   const card = getServerCard("libgen");
@@ -64,17 +66,26 @@ test("libgen (card completo): expone title/description/websiteUrl/icons de servi
   }
 });
 
-test("gitlab (sin los campos nuevos): la ficha sigue funcionando igual, y las annotations que ya traía ahora se exponen", () => {
+test("gitlab (identidad propia desde 2.7.0): expone title/description/websiteUrl/icons, y las annotations que ya traía", () => {
   const card = getServerCard("gitlab");
   assert.ok(card, "gitlab debería tener una card committeada");
 
+  // Hasta 2.6.6 este test afirmaba lo contrario: gitlab era el fixture REAL de
+  // "card sin los campos SEP-1649", frente a libgen que sí los traía. 2.7.0 se
+  // los dio, así que ese sujeto ya no existe en el repo — la degradación la
+  // cubre ahora el documento sintético de "un card mínimo válido no falla".
+  // Aquí se afirma lo contrario de antes A PROPÓSITO, no por ceder ante un
+  // fallo: el dato cambió, y un test que siguiera exigiendo `undefined`
+  // impediría publicar la identidad que el servidor ya declara.
   assert.equal(card.serverInfo.name, "gitlab-mcp-server");
-  assert.equal(card.serverInfo.title, undefined);
-  assert.equal(card.serverInfo.description, undefined);
-  assert.equal(card.serverInfo.websiteUrl, undefined);
-  assert.equal(card.serverInfo.icons, undefined);
+  assert.equal(card.serverInfo.title, "GitLab MCP Server");
+  assert.ok(card.serverInfo.description, "gitlab: falta serverInfo.description");
+  assert.equal(card.serverInfo.websiteUrl, "https://jmrp.io/docs/gitlab-mcp-server");
+  assert.ok(card.serverInfo.icons?.length, "gitlab: falta serverInfo.icons");
 
   assert.ok(card.tools.length > 0, "gitlab debería tener tools");
+  // gitlab publica icons de servidor pero todavía no por tool ni por prompt:
+  // la degradación por entrada sigue teniendo sujeto real aquí.
   for (const tool of card.tools) {
     assert.equal(tool.icons, undefined, `${tool.name}: gitlab no publica icons de tool`);
   }
@@ -278,4 +289,69 @@ test("summarizeServerCardDocument: los iconos con esquema no permitido tampoco l
   const card = summarizeServerCardDocument("wired", doc);
   assert.deepEqual(card.serverInfo.icons, [{ src: "data:image/svg+xml;base64,AAAA" }]);
   assert.equal(card.tools[0].icons, undefined);
+});
+
+test("el fallback de versión de cada servidor coincide con el de su card", () => {
+  // `servers.ts`'s `version` is the value the Server Card falls back to when
+  // the build cannot read `/health` (offline build, stopped container). It is
+  // a SECOND copy of a number the snapshot already carries, so it goes stale
+  // the moment `sync-server-cards.sh` refreshes a card and nobody edits
+  // `servers.ts` — which is what happened three times: libgen (1.6.3 vs
+  // 1.6.4), gitlab (2.6.5 vs 2.6.6, stale since the repo's first commit) and
+  // both again on the 1.6.6/2.7.0 refresh. A code review caught one of the
+  // three, and only after the drift shipped.
+  //
+  // Nothing else notices, because the fallback is unreachable on any build
+  // WITH network — which is every build anyone watches.
+  for (const server of servers) {
+    const card = getServerCard(server.id);
+    if (!card) continue; // A server may be listed before its snapshot lands.
+    assert.equal(
+      server.version,
+      card.serverInfo.version,
+      `El fallback de ${server.id} en servers.ts (${server.version}) no coincide ` +
+        `con su card (${card.serverInfo.version}). Refresca el fallback al ` +
+        `sincronizar el snapshot.`,
+    );
+  }
+});
+
+test("summarizeServerCardDocument: un card sin los campos opcionales de serverInfo no inventa ninguno", () => {
+  // Cubre lo que gitlab demostraba con datos reales hasta 2.7.0. Sin este
+  // sintético, el día que ambos cards publiquen todos los campos opcionales
+  // nadie comprobaría ya que la ausencia se propaga como `undefined` en vez de
+  // como `null`, `""` o un array vacío — que es lo que la ficha distingue para
+  // decidir si pinta un bloque.
+  const doc = validateServerCardDocument("bare", {
+    serverInfo: { name: "bare-mcp", version: "0.1.0" },
+    authentication: { required: false, schemes: [] },
+  });
+  const card = summarizeServerCardDocument("bare", doc);
+  assert.equal(card.serverInfo.title, undefined);
+  assert.equal(card.serverInfo.description, undefined);
+  assert.equal(card.serverInfo.websiteUrl, undefined);
+  assert.equal(card.serverInfo.icons, undefined);
+});
+
+test("safeIcon: prefiere el SVG aunque el card lo publique en otra posición", () => {
+  // El orden del array lo decide el SERVIDOR. Si un card pusiera el WebP
+  // primero, la ficha pintaría un raster de 16px en un hueco de 1em y encima
+  // le aplicaría el `filter: invert(1)` de ServerPage, pensado para SVG
+  // monocromos: dos defectos visibles y ningún error.
+  const webpFirst = [
+    { src: "data:image/webp;base64,AA==", mimeType: "image/webp", theme: "light" },
+    { src: "data:image/svg+xml;base64,BB==", mimeType: "image/svg+xml" },
+  ];
+  assert.equal(safeIcon(webpFirst).mimeType, "image/svg+xml");
+
+  // Sin SVG, se coge el primero seguro en vez de no pintar nada.
+  const noSvg = [{ src: "data:image/webp;base64,AA==", mimeType: "image/webp" }];
+  assert.equal(safeIcon(noSvg).mimeType, "image/webp");
+
+  // Un SVG con `src` inseguro no gana por ser SVG.
+  const unsafeSvg = [
+    { src: "javascript:alert(1)", mimeType: "image/svg+xml" },
+    { src: "data:image/webp;base64,AA==", mimeType: "image/webp" },
+  ];
+  assert.equal(safeIcon(unsafeSvg).mimeType, "image/webp");
 });
