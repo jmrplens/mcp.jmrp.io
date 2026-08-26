@@ -193,6 +193,18 @@ export default function DomainActionsFilter({
           />
           {sp.domainToggleReadOnly}
         </label>
+        {/* Leyenda de los puntos de las tarjetas, en el hueco que queda a la
+            izquierda del contador (petición del autor, con captura). Los
+            estilos del punto viven en el CSS de la isla: los scoped de la
+            página no alcanzan al DOM que se renderiza en cliente. */}
+        <span className="domain-legend">
+          <span className="df-dot df-dot--destructive" aria-hidden="true"></span>
+          {sp.domainChipDestructive}
+        </span>
+        <span className="domain-legend">
+          <span className="df-dot df-dot--readonly" aria-hidden="true"></span>
+          {sp.domainChipReadOnly}
+        </span>
         <span className="domain-filter-count" aria-live="polite">
           {countText}
         </span>

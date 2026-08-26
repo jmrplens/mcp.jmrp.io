@@ -58,3 +58,29 @@
   color: var(--color-text-muted);
   font-size: var(--text-sm);
 }
+
+/* Leyenda junto al contador: el mismo punto que llevan las tarjetas. Con
+   clase propia (df-dot) porque las .action-dot de la página tienen ámbito
+   de componente Astro y no alcanzan al DOM cliente de la isla. */
+.domain-legend {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.df-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+}
+
+.df-dot--destructive {
+  background: var(--color-danger);
+}
+
+.df-dot--readonly {
+  background: var(--color-text-muted);
+}
