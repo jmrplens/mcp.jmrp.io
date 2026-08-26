@@ -193,10 +193,14 @@ export default function DomainActionsFilter({
           />
           {sp.domainToggleReadOnly}
         </label>
-        {/* Leyenda de los puntos de las tarjetas, en el hueco que queda a la
-            izquierda del contador (petición del autor, con captura). Los
-            estilos del punto viven en el CSS de la isla: los scoped de la
-            página no alcanzan al DOM que se renderiza en cliente. */}
+      </div>
+      {/* Fila propia para leyenda + contador: dejarlos en el flex de los
+          conmutadores hacía que en móvil el wrap partiera la leyenda por
+          cualquier sitio (captura del autor). Dos filas deliberadas: arriba
+          los conmutadores; aquí la leyenda a la izquierda y el contador a la
+          derecha. Los estilos del punto viven en el CSS de la isla: los
+          scoped de la página no alcanzan al DOM renderizado en cliente. */}
+      <div className="domain-filter-status">
         <span className="domain-legend">
           <span className="df-dot df-dot--destructive" aria-hidden="true"></span>
           {sp.domainChipDestructive}

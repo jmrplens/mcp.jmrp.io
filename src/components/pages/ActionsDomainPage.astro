@@ -229,6 +229,16 @@ function domainHref(target: string): string {
     align-items: center;
   }
 
+  /* En estrecho, tres datos no caben en una línea y el wrap partía por
+     cualquier sitio (captura del autor): columna limpia, un dato por línea. */
+  @media (width <= 480px) {
+    .domain-facts {
+      flex-direction: column;
+      gap: 0.3rem;
+      align-items: flex-start;
+    }
+  }
+
   .fact--destructive {
     color: var(--color-danger);
   }
