@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { inspector, serverSelect, stubMcp } from "./helpers";
+import { inspector, passSameOriginToMcp, serverSelect, stubMcp } from "./helpers";
 
 /**
  * El formulario es lo que separa "probar un MCP" de "saberse su esquema".
@@ -13,6 +13,13 @@ test.skip(
   !!process.env.E2E_NO_NETWORK,
   "requiere salida a Internet contra mcp.jmrp.io",
 );
+
+// Registrada ANTES que cualquier `stubMcp` de un test: en Playwright gana la
+// última ruta añadida, así que los tests que sí simulan al servidor siguen
+// mandando sobre esta.
+test.beforeEach(async ({ page }) => {
+  await passSameOriginToMcp(page);
+});
 
 test("las tools se eligen de una lista y su esquema se vuelve formulario", async ({
   page,
