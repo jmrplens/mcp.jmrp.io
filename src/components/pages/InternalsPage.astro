@@ -41,7 +41,14 @@
  * `.mcp-box-border`, see the "Traveling highlight box" section of the
  * <style> block) that glides continuously along it, dwelling at whichever
  * stage the current bubble narrates and travelling to the next with an
- * accelerate/cruise/decelerate profile — never appearing or disappearing.
+ * accelerate/cruise/decelerate profile. It stays on screen for the whole
+ * pass and only leaves at the wrap: at the end of stage 6 it fades out in
+ * place, jumps back to stage 1 while invisible, and fades in there — which
+ * is what the author asked for after watching it crawl backwards across the
+ * whole diagram to restart ("debería hacer fade-out al final y en cuanto no
+ * se ve debe estar al inicio haciendo fade-in"). That return crawl was the
+ * one movement in the loop that narrated nothing: no bubble accompanies it,
+ * and a request never travels from its destination back to the client.
  * The first cut instead highlighted each stage with its own opacity-only
  * `::after` overlay, which the author read as "tosco" (choppy): the
  * highlight popped in at one stage and popped out at the next instead of
@@ -820,15 +827,25 @@ const MATCHED_NODE_INDEX = 0;
   }
 
   /* ===== Traveling highlight box ===============================================
-     ONE indicator that glides continuously along the strip — always
-     visible, dwelling at whichever stage the current bubble narrates and
-     travelling to the next with an accelerate/cruise/decelerate profile
-     (`box-travel` below, shared with the bubbles' timeline — see "Bubble
-     cycle" further down). This replaced an earlier version that highlighted
-     each stage with its own opacity-only `::after`, popping in at one stage
-     and out at the next — the author read that as "tosco" (choppy) and
-     asked for the indicator to stay on screen at all times. See this file's
-     header comment for the fuller history.
+     ONE indicator that glides along the strip, dwelling at whichever stage
+     the current bubble narrates and travelling to the next with an
+     accelerate/cruise/decelerate profile (`box-travel` below, shared with
+     the bubbles' timeline — see "Bubble cycle" further down). This replaced
+     an earlier version that highlighted each stage with its own opacity-only
+     `::after`, popping in at one stage and out at the next — the author read
+     that as "tosco" (choppy) and asked for an indicator that is SEEN TO
+     MOVE. That is still the rule between stages: it never pops from one to
+     the next.
+
+     The wrap is the deliberate exception. Between 81% and 84% it fades out
+     where it stands, jumps back to stage 1 while fully transparent, and
+     fades in from 97% — in step with the bubbles, whose sixth fades out at
+     84% and whose first fades in at 97%, so the box and its caption always
+     arrive together. Before this it crawled the whole width backwards to
+     restart, which narrated nothing (no bubble accompanies that leg, and no
+     request travels from its destination back to the client) and read as a
+     seventh step that does not exist. See this file's header comment for the
+     fuller history.
 
      Two elements, not one — `.mcp-box-fill` and `.mcp-box-border` — because
      CSS cannot give `z-index` to only half of a single element's own box
@@ -1328,6 +1345,7 @@ const MATCHED_NODE_INDEX = 0;
     0% {
       left: 0.0%;
       width: 14.286%;
+      opacity: 100%;
     }
     11% {
       left: 0.0%;
@@ -1447,21 +1465,27 @@ const MATCHED_NODE_INDEX = 0;
     81% {
       left: 78.571%;
       width: 21.429%;
-      animation-timing-function: ease-in;
+      opacity: 100%;
     }
-    87.333% {
-      left: 52.381%;
-      width: 19.048%;
-      animation-timing-function: linear;
+    84% {
+      left: 78.571%;
+      width: 21.429%;
+      opacity: 0%;
     }
-    93.667% {
-      left: 26.19%;
-      width: 16.667%;
-      animation-timing-function: ease-out;
+    84.1% {
+      left: 0.0%;
+      width: 14.286%;
+      opacity: 0%;
+    }
+    97% {
+      left: 0.0%;
+      width: 14.286%;
+      opacity: 0%;
     }
     100% {
       left: 0.0%;
       width: 14.286%;
+      opacity: 100%;
     }
   }
 
