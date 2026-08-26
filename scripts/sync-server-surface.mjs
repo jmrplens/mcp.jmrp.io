@@ -19,9 +19,9 @@
  *
  * GUARDIA ANTI-FUGA (fallo DURO, exit 1, antes de escribir un solo byte):
  * la instancia GitLab del autor no debe aparecer jamás en el repo. Si el
- * host de GITLAB_URL asoma en cualquier byte descargado o en cualquier
+ * host de MCP_SURFACE_GITLAB_URL asoma en cualquier byte descargado o en cualquier
  * snapshot serializado, se aborta la cadena de build entera. Ningún mensaje
- * de este script imprime GITLAB_URL ni GITLAB_TOKEN; los textos de error del
+ * de este script imprime MCP_SURFACE_GITLAB_URL ni MCP_SURFACE_GITLAB_TOKEN; los textos de error del
  * servidor se sanean antes de loguearse por si lo ecoaran.
  *
  * ESCRITURA: determinista (orden de claves fijo, listas ordenadas por
@@ -43,31 +43,22 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
-// El .env del repo (gitignorado) trae GITLAB_URL/GITLAB_TOKEN en el servidor.
+// El .env del repo (gitignorado) trae MCP_SURFACE_GITLAB_URL/_TOKEN en el
+// servidor. Mismo patrón que deploy-live-mcp.mjs: `loadEnvFile` NO pisa lo que
+// ya venga del entorno (shell > .env; exportar vacío anula), y sin .env se
+// sigue con lo que haya.
 //
-// A DIFERENCIA de deploy-live-mcp.mjs, aquí el FICHERO manda sobre el shell
-// para esas dos claves. La convención del repo (shell > .env, exportar vacío
-// anula) presupone que nadie exporta esas variables por otro motivo — y en
-// este host es falso: el ~/.bashrc exporta un GITLAB_TOKEN de OTRO tooling
-// (el CLI de la sesión de agentes). Heredarlo no falla ruidosamente: cambia
-// la IDENTIDAD de la superficie publicada — con ese token el edge respondía
-// 401 y el fallo blando congelaba el snapshot en silencio, y sin cabecera
-// habría snapshoteado la superficie de la instancia POR DEFECTO (~100
-// acciones menos, sin admin/storage_move; visto el 2026-08-26). Un dato
-// citable con la identidad equivocada es el defecto que más caro nos ha
-// costado en las auditorías; el opt-out aquí es editar el .env, no exportar.
-function envValue(key) {
-  try {
-    const raw = fs.readFileSync(new URL("../.env", import.meta.url), "utf8");
-    const line = raw
-      .split(/\r?\n/)
-      .find((l) => l.startsWith(`${key}=`) && !l.startsWith("#"));
-    const value = line?.slice(key.length + 1).trim();
-    if (value) return value;
-  } catch {
-    // Sin .env (CI): se sigue con lo que traiga el entorno.
-  }
-  return process.env[key];
+// Los nombres llevan prefijo de proyecto A PROPÓSITO. La primera versión leía
+// GITLAB_TOKEN/GITLAB_URL a secas y el ~/.bashrc de este host exporta un
+// GITLAB_TOKEN de OTRO tooling: con shell > .env, el script heredaba ese token
+// en silencio y publicaba la superficie de OTRA identidad (~100 acciones de
+// diferencia, sin los dominios de administración; visto el 2026-08-26). Un
+// nombre genérico convierte cualquier export ajeno en una colisión invisible;
+// uno con prefijo no puede chocar a ciegas.
+try {
+  process.loadEnvFile(new URL("../.env", import.meta.url));
+} catch {
+  // Sin .env (CI): se sigue con lo que traiga el entorno.
 }
 
 const PROTOCOL_VERSION = "2026-07-28";
@@ -75,7 +66,7 @@ const BASE = "https://mcp.jmrp.io";
 const SURFACE_DIR = path.join(process.cwd(), "src", "data", "surface");
 const TAG = "[sync-server-surface]";
 
-const GITLAB_TOKEN = envValue("GITLAB_TOKEN");
+const GITLAB_TOKEN = process.env.MCP_SURFACE_GITLAB_TOKEN;
 // GITLAB_URL arma la guardia anti-fuga Y viaja como cabecera GITLAB-URL en
 // las peticiones de gitlab: sin la cabecera el edge consulta su instancia
 // por defecto, que es OTRA superficie (verificado 2026-08-26: ~100 acciones
@@ -83,7 +74,7 @@ const GITLAB_TOKEN = envValue("GITLAB_TOKEN");
 // this token") significa que el token de .env no vale para esa instancia
 // (caducado o rotado): fallo blando, el snapshot commiteado se conserva.
 // JAMÁS debe acabar en un log ni en un snapshot.
-const GITLAB_URL = envValue("GITLAB_URL");
+const GITLAB_URL = process.env.MCP_SURFACE_GITLAB_URL;
 
 /**
  * Variantes en minúsculas del host de GITLAB_URL (con y sin puerto) que no
@@ -489,14 +480,14 @@ async function main() {
 
   // gitlab — discover y manifiesto exigen token Y cabecera GITLAB-URL
   // (sin ella el edge sirve la superficie de su instancia por defecto, no
-  // la documentada), y sin GITLAB_URL la guardia anti-fuga queda además
+  // la documentada), y sin MCP_SURFACE_GITLAB_URL la guardia anti-fuga queda además
   // desarmada: no se escribe nada derivado de gitlab sin poder
   // inspeccionarlo antes. En CI sin secretos se conservan ambos snapshots:
   // esa ES la semántica de respaldo.
   if (!GITLAB_TOKEN || !GITLAB_URL) {
     const reason = GITLAB_TOKEN
-      ? "falta GITLAB_URL y sin ella la guardia anti-fuga no puede armarse"
-      : "falta GITLAB_TOKEN";
+      ? "falta MCP_SURFACE_GITLAB_URL y sin ella la guardia anti-fuga no puede armarse"
+      : "falta MCP_SURFACE_GITLAB_TOKEN";
     softWarn("gitlab-discover.json", reason);
     softWarn("gitlab-actions.json", reason);
   } else {

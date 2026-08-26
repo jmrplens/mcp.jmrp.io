@@ -3,7 +3,7 @@
  *
  * La instancia GitLab del autor no puede aparecer en NADA publicado ni en
  * NADA commiteado: el repo es público y su hostname solo vive en `.env`
- * (GITLAB_URL). Por eso este fichero no contiene el valor por ningún lado
+ * (MCP_SURFACE_GITLAB_URL). Por eso este fichero no contiene el valor por ningún lado
  * —ni en fixtures, ni en comentarios, ni en mensajes de fallo—: se lee de
  * `process.env` en el momento de ejecutar y, cuando algo falla, el assert
  * lista RUTAS de ficheros, nunca lo que se estaba buscando.
@@ -44,14 +44,14 @@ try {
 }
 
 /**
- * Agujas a buscar: el host de GITLAB_URL en minúsculas, con y sin puerto
+ * Agujas a buscar: el host de MCP_SURFACE_GITLAB_URL en minúsculas, con y sin puerto
  * (hoy el valor no lleva puerto, pero la guardia no debe depender de eso).
  * Devuelve `null` si la variable no está — el llamante decide saltarse.
  *
  * @returns {string[] | null} Subcadenas a detectar, o `null` sin variable.
  */
 function resolveNeedles() {
-  const raw = process.env.GITLAB_URL;
+  const raw = process.env.MCP_SURFACE_GITLAB_URL;
   if (!raw) return null;
   let host;
   let hostname;
@@ -104,7 +104,7 @@ function scanForNeedles(rootDir, needles) {
 }
 
 const SKIP_NOTE =
-  "GITLAB_URL no está ni en el entorno ni en .env: no hay host que buscar " +
+  "MCP_SURFACE_GITLAB_URL no está ni en el entorno ni en .env: no hay host que buscar " +
   "(en CI es lo esperado)";
 
 test("ninguna superficie publicada contiene el host de la instancia GitLab", (t) => {
@@ -117,7 +117,7 @@ test("ninguna superficie publicada contiene el host de la instancia GitLab", (t)
   assert.deepEqual(
     leaks,
     [],
-    `el host de GITLAB_URL aparece en ${leaks.length} fichero(s) publicados: ` +
+    `el host de MCP_SURFACE_GITLAB_URL aparece en ${leaks.length} fichero(s) publicados: ` +
       `${leaks.join(", ")} — el valor buscado no se imprime a propósito`,
   );
 });
@@ -134,7 +134,7 @@ test("los snapshots de src/data/surface/ tampoco contienen el host", (t) => {
   assert.deepEqual(
     leaks,
     [],
-    `el host de GITLAB_URL aparece en ${leaks.length} snapshot(s) commiteados: ` +
+    `el host de MCP_SURFACE_GITLAB_URL aparece en ${leaks.length} snapshot(s) commiteados: ` +
       `${leaks.join(", ")} — el valor buscado no se imprime a propósito`,
   );
 });
