@@ -1,22 +1,22 @@
 # mcp.jmrp.io
 
-Sitio público de los servidores **Model Context Protocol** self-hosted de
-[jmrp.io](https://jmrp.io): qué endpoints hay, cómo se usan, y un inspector
-para probarlos desde el navegador.
+Public site for the self-hosted **Model Context Protocol** servers of
+[jmrp.io](https://jmrp.io): which endpoints exist, how to use them, and an
+inspector to try them from the browser.
 
 **https://mcp.jmrp.io** · [Español](https://mcp.jmrp.io/es/)
 
-## Los servidores
+## The servers
 
-| Endpoint | Repositorio | Credenciales |
+| Endpoint | Repository | Credentials |
 |---|---|---|
-| `https://mcp.jmrp.io/libgen` | [libgen-mcp](https://github.com/jmrplens/libgen-mcp) | Ninguna |
-| `https://mcp.jmrp.io/gitlab` | [gitlab-mcp-server](https://github.com/jmrplens/gitlab-mcp-server) | `PRIVATE-TOKEN` por petición |
+| `https://mcp.jmrp.io/libgen` | [libgen-mcp](https://github.com/jmrplens/libgen-mcp) | None |
+| `https://mcp.jmrp.io/gitlab` | [gitlab-mcp-server](https://github.com/jmrplens/gitlab-mcp-server) | `PRIVATE-TOKEN` per request |
 
-Transporte **streamable HTTP**. `https://mcp.jmrp.io/servers.json` devuelve la
-misma lista en JSON para clientes automáticos.
+Transport is **streamable HTTP**. `https://mcp.jmrp.io/servers.json` returns
+the same list as JSON for automated clients.
 
-### Configurar un cliente MCP
+### Configuring an MCP client
 
 ```json
 {
@@ -31,66 +31,68 @@ misma lista en JSON para clientes automáticos.
 }
 ```
 
-`GITLAB-URL` es opcional: sin ella, el servidor usa `https://gitlab.com`.
+`GITLAB-URL` is optional: without it, the server targets `https://gitlab.com`.
 
-> Los tokens viajan en cada petición y **no se guardan en el servidor**. El
-> inspector de esta web los mantiene solo en la memoria del navegador: no toca
-> `localStorage` ni cookies, y desaparecen al recargar.
+> Tokens travel with each request and are **never stored on the server**. The
+> inspector on this site keeps them in browser memory only: it touches neither
+> `localStorage` nor cookies, and they are gone on reload.
 
-> `GET` sobre un endpoint devuelve **405**: en modo *stateless* el protocolo
-> reserva `GET`/`DELETE` para sesiones. No es que esté caído — usa `POST`, o
-> `/libgen/health` para comprobar el estado.
+> A `GET` on an endpoint answers **405**: in *stateless* mode the protocol
+> reserves `GET`/`DELETE` for sessions. The server is not down — use `POST`,
+> or `/libgen/health` to check its status.
 
-## Desarrollo
+## Development
 
-Requiere Node 24 y pnpm.
+Requires Node 24 and pnpm.
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-| Comando | Qué hace |
+| Command | What it does |
 |---|---|
-| `pnpm build` | Construye a `dist/` |
-| `pnpm deploy` | Build + snippets a nginx + purga de Cloudflare |
+| `pnpm build` | Build into `dist/` |
+| `pnpm deploy` | Build + nginx snippets + Cloudflare purge |
 | `pnpm lint` · `pnpm typecheck` | eslint · astro check |
 | `pnpm test:unit` · `pnpm test:e2e` | node:test · Playwright |
-| `pnpm identity:sync` | Refresca el snapshot de la identidad canónica |
+| `pnpm identity:sync` | Refresh the canonical identity snapshot |
 
-Los e2e llaman a los **endpoints reales** en producción: es intencionado,
-validan el camino completo. Sin salida a Internet, `E2E_NO_NETWORK=1` los salta.
+The e2e tests call the **real endpoints** in production: that is intentional —
+they validate the full path. Without Internet access, `E2E_NO_NETWORK=1`
+skips them.
 
-## El inspector
+## The inspector
 
-Tres pestañas —**tools**, **prompts** y **resources**— con la misma mecánica:
-cargar el catálogo, elegir una entrada y ejecutarla. Los argumentos se piden
-con un formulario generado del esquema del servidor, con el tipo de cada campo,
-cuáles son obligatorios y desplegables para los valores enumerados. Para
-esquemas que ningún formulario representa bien, hay un modo JSON.
+Three tabs — **tools**, **prompts** and **resources** — with the same
+mechanics: load the catalog, pick an entry and run it. Arguments are collected
+through a form generated from the server's schema, showing each field's type,
+which ones are required, and dropdowns for enumerated values. For schemas no
+form represents well, there is a JSON mode.
 
-## Cómo está montado
+## How it is built
 
-Sitio estático de Astro con una isla Preact (el inspector). Se sirve desde
-nginx en el mismo servidor que los MCP, que cuelgan del mismo dominio: por eso
-el inspector habla con ellos en **mismo origen** y la CSP no necesita abrir
-`connect-src`.
+A static Astro site with one Preact island (the inspector). It is served by
+nginx on the same host as the MCP servers, which hang off the same domain:
+that is why the inspector talks to them **same-origin** and the CSP never
+needs to open `connect-src`.
 
-La CSP usa nonces por petición: el build deja un marcador y nginx lo sustituye,
-con un Worker de Cloudflare que acuña uno nuevo en el edge sin romper la caché.
+The CSP uses per-request nonces: the build leaves a placeholder and nginx
+substitutes it, with a Cloudflare Worker minting a fresh one at the edge
+without breaking the cache.
 
-El nodo `Person` de los metadatos se descarga en build del
-[documento canónico de jmrp.io](https://jmrp.io/identity/person.jsonld), igual
-que en los demás sitios de documentación, con un snapshot commiteado de
-respaldo.
+The `Person` node in the metadata is downloaded at build time from the
+[canonical jmrp.io document](https://jmrp.io/identity/person.jsonld), like on
+the other documentation sites, with a committed snapshot as fallback.
 
-## Añadir un servidor MCP
+## Adding an MCP server
 
-Una entrada en `src/data/servers.ts` y su `location` en el vhost. Nada de
-markup: las fichas, el inspector, `servers.json` y `llms.txt` se generan de ahí.
+One entry in `src/data/servers.ts` and its `location` in the vhost. No
+markup: the server cards, the inspector, `servers.json` and `llms.txt` are
+all generated from there.
 
-Detalles y restricciones del proyecto, en [AGENTS.md](AGENTS.md).
+Project details and constraints live in [AGENTS.md](AGENTS.md).
 
-## Licencia
+## License
 
 MIT
