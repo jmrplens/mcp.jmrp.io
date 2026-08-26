@@ -16,20 +16,26 @@
  */
 import type {
   CardPromptArgument,
-  CardResourceTemplate,
   PromptSummary,
   ResourceSummary,
+  ResourceTemplateSummary,
   ToolAnnotationsSummary,
   ToolSummary,
 } from "../../data/server-cards";
-import { getServerCard, getServerCardDocument } from "../../data/server-cards";
+import { getServerCard } from "../../data/server-cards";
 import { servers } from "../../data/servers";
+import {
+  getDiscover,
+  getGitlabActions,
+  type SurfaceServerId,
+} from "../../data/surface";
 import { ui } from "../../i18n/ui";
 import { serversPage } from "../../i18n/ui/servers-page";
 import { getLangFromUrl } from "../../i18n/utils";
 import { safeIcon } from "../../lib/card-icons";
 import { pageUrl } from "../../lib/seo";
 import { anchorSlug } from "../../lib/slug";
+import ActionSearch from "../ActionSearch";
 import ServerEntryChips from "../ServerEntryChips.astro";
 import ServerToc from "../ServerToc.astro";
 import UpdatedLine from "../UpdatedLine.astro";
@@ -51,10 +57,6 @@ const sp = serversPage[lang];
 const card = getServerCard(id);
 if (!card) {
   throw new Error(`[servers] no server card for id "${id}" — getStaticPaths should have prevented this`);
-}
-const doc = getServerCardDocument(id);
-if (!doc) {
-  throw new Error(`[servers] no server card document for id "${id}"`);
 }
 const serverMeta = servers.find((s) => s.id === id);
 if (!serverMeta) {
@@ -112,13 +114,12 @@ const resourceEntries: Entry<ResourceSummary>[] = card.resources.map((resource) 
   label: resource.title ?? resource.name,
   data: resource,
 }));
-const templateEntries: Entry<CardResourceTemplate>[] = doc.resourceTemplates.map(
-  (tmpl) => ({
+const templateEntries: Entry<ResourceTemplateSummary>[] =
+  card.resourceTemplates.map((tmpl) => ({
     id: `template-${anchorSlug(tmpl.uriTemplate)}`,
     label: tmpl.name,
     data: tmpl,
-  }),
-);
+  }));
 
 const hasPrompts = promptEntries.length > 0;
 const hasResources = resourceEntries.length > 0;
@@ -131,10 +132,69 @@ const hasTemplates = templateEntries.length > 0;
 // why a chip grid exists at all.
 const CHIP_THRESHOLD = 8;
 
+// ---------------------------------------------------------------------------
+// Surface snapshots — what the server itself says at runtime, captured per
+// build by `scripts/sync-server-surface.mjs` and read through
+// `src/data/surface.ts`. Absence DEGRADES on purpose: the loader returns
+// `undefined` and the sections below simply do not render — see that
+// module's header comment.
+// ---------------------------------------------------------------------------
+
+// `getDiscover` types its parameter against the servers that HAVE committed
+// snapshots today; this page renders any server with a card. The cast is
+// safe because absence is a supported input: an id without a snapshot file
+// yields `undefined`, which is exactly the "section not rendered" path.
+const discover = getDiscover(id as SurfaceServerId);
+const instructions =
+  discover?.instructions && discover.instructions.trim().length > 0
+    ? discover.instructions
+    : undefined;
+
+// The action manifest is gitlab's alone (`gitlab://tools`); the id gate
+// keeps a future server from painting gitlab's catalog on its own page.
+const actions = id === "gitlab" ? getGitlabActions() : undefined;
+
+// The snapshot orders domains alphabetically so a count change diffs as one
+// line (see the extractor); the page re-orders for reading — biggest domain
+// first, name as the tiebreaker.
+const catalogRows = actions
+  ? [...actions.domains].sort(
+      (a, b) => b.count - a.count || a.domain.localeCompare(b.domain),
+    )
+  : [];
+// The heading, the TOC and the table all cite `actionCount` — the same
+// figure `/servers.json`, `/servers/<id>/actions.json` and the llms*.txt
+// publish. The upstream `entryCount` is larger because the manifest also
+// lists its visible tools as entries (`gitlab_find_action`, a navigation
+// tool, not an action); those already render in the Tools section above,
+// and their per-tool flags live in `meta.visibleTools` if ever needed here.
+
+// The search island fetches the compact, credential-free index the static
+// endpoint `/servers/<id>/actions.json` emits (see
+// `src/pages/servers/[server]/actions.json.ts` — the route `/servers.json`
+// and the llms*.txt announce). Same-origin, so it passes `connect-src
+// 'self'`. That route exists exactly when the snapshot loads (its
+// `getStaticPaths` filters on it), which is the same `actions` gate the
+// island renders behind — derived from the id, never hardcoded.
+const actionsIndexHref = `/servers/${id}/actions.json`;
+
+// Subscriptions block + per-template "subscribable" chips, from the curated
+// card summary (`capabilities`/`subscriptions` are verbatim card data — see
+// `server-cards.ts`). Only gitlab publishes `subscriptions` today, but the
+// section renders for any card that does.
+const subs = card.subscriptions;
+const subscribableCount = subs?.subscribable_uri_templates.length ?? 0;
+
 const tocFamilies = [
   // No count: it is prose, not a family of entries — see `TocFamily.count`.
   { id: "context-h", label: sp.contextHead },
+  ...(instructions
+    ? [{ id: "instructions-h", label: sp.instructionsHead }]
+    : []),
   { id: "tools-h", label: t.toolsHead, count: toolEntries.length },
+  ...(actions
+    ? [{ id: "catalog-h", label: sp.catalogHead, count: actions.meta.actionCount }]
+    : []),
   ...(hasPrompts ? [{ id: "prompts-h", label: t.promptsHead, count: promptEntries.length }] : []),
   ...(hasResources
     ? [{ id: "resources-h", label: sp.resourcesHead, count: resourceEntries.length }]
@@ -142,6 +202,7 @@ const tocFamilies = [
   ...(hasTemplates
     ? [{ id: "templates-h", label: sp.templatesHead, count: templateEntries.length }]
     : []),
+  ...(subs ? [{ id: "subscriptions-h", label: sp.subscriptionsHead }] : []),
 ];
 
 const authText = card.authentication.required ? t.credentialsRequired : t.noCredentials;
@@ -179,12 +240,12 @@ function isRequired(arg: CardPromptArgument): boolean {
   return arg.required === true;
 }
 
-// Everything below is OPTIONAL card data (libgen 1.6.4 publishes it, gitlab
-// 2.6.6 does not yet) — every one of these can be `undefined`, and the
-// markup below degrades to exactly today's page when it is. `card.serverInfo`
-// is used (not `doc.serverInfo`) for consistency with the rest of this
-// component, which already reads everything off the curated `card`: nothing
-// here strips a schema the way tools/prompts do, so the two are the same data.
+// Everything below is OPTIONAL card data — every one of these can be
+// `undefined`, and the markup below degrades to exactly today's page when it
+// is. Like the rest of this component it all reads off the curated `card`:
+// since the summary grew `resourceTemplates` (with its curated
+// `subscribable` flag), nothing on this page needs the full document any
+// more.
 const serverIcon = safeIcon(card.serverInfo.icons);
 // The card's own title, shown as a caption under the `<h1>` — never a second
 // heading. Guards against a future card publishing a title identical to the
@@ -344,6 +405,33 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
         </p>
       </section>
 
+      {/* The server's own connect-time instructions (`server/discover`),
+          quoted verbatim from the committed surface snapshot — data, not
+          chrome, so it is never translated (the ES intro says "(en inglés)",
+          same convention as `cardDescriptionLabel`). Placed after the
+          service context — whose own comment defends its spot right behind
+          the overview — and before the 1,300 words of tools, where whoever
+          is configuring a client actually needs it. */}
+      {
+        instructions && (
+          <section
+            class="server-family"
+            aria-labelledby="instructions-title"
+            id="instructions-h"
+          >
+            <h2 class="subsection-title" id="instructions-title">
+              {sp.instructionsHead}
+            </h2>
+            <p class="fold-intro">{sp.instructionsIntro}</p>
+            <div class="card-own-description server-instructions">
+              {descriptionParagraphs(instructions).map((paragraph) => (
+                <p>{paragraph}</p>
+              ))}
+            </div>
+          </section>
+        )
+      }
+
       <section class="server-family" aria-labelledby="tools-title" id="tools-h">
         <h2 class="subsection-title" id="tools-title">
           {t.toolsHead} <span class="count">({toolEntries.length})</span>
@@ -391,6 +479,59 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
           }
         </div>
       </section>
+
+      {/* gitlab's fine-grained action catalog (`gitlab://tools`), counted
+          by domain from the committed snapshot. This section only ever
+          consumes AGGREGATES (`meta` counts + per-domain rows) — never the
+          upstream instance the manifest was read from, which the extractor's
+          anti-leak guard keeps out of the snapshot in the first place. */}
+      {
+        actions && (
+          <section
+            class="server-family"
+            aria-labelledby="catalog-title"
+            id="catalog-h"
+          >
+            <h2 class="subsection-title" id="catalog-title">
+              {sp.catalogHead} <span class="count">({actions.meta.actionCount})</span>
+            </h2>
+            <p class="fold-intro">{sp.catalogIntro}</p>
+            {/* Always visible, never folded: every count below is only true
+                for the token tier that asked (`cacheScope: "private"`). */}
+            <p class="catalog-token-note">{sp.catalogTokenNote}</p>
+            <div class="table-scroll">
+              <table class="catalog-table">
+                <caption class="sr-only">{sp.catalogTableCaption}</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">{sp.catalogColDomain}</th>
+                    <th scope="col">{sp.catalogColTotal}</th>
+                    <th scope="col">{sp.catalogColDestructive}</th>
+                    <th scope="col">{sp.catalogColReadOnly}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {catalogRows.map((row) => (
+                    <tr>
+                      <th scope="row">
+                        <code>{row.domain}</code>
+                      </th>
+                      <td>{row.count}</td>
+                      <td>{row.destructiveCount}</td>
+                      <td>{row.readOnlyCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <ActionSearch
+              client:visible
+              lang={lang}
+              indexUrl={actionsIndexHref}
+            />
+          </section>
+        )
+      }
 
       {
         hasPrompts && (
@@ -499,6 +640,11 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                   <p class="entry-name">
                     <code>{entry.data.uriTemplate}</code>
                   </p>
+                  {entry.data.subscribable && (
+                    <ul class="annotation-chips" aria-label={sp.toolBehaviorLabel}>
+                      <li class="chip a-chip--info">{sp.subscribableChip}</li>
+                    </ul>
+                  )}
                   {descriptionParagraphs(entry.data.description).map((paragraph) => (
                     <p class="entry-desc">{paragraph}</p>
                   ))}
@@ -510,6 +656,57 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                 </article>
               ))}
             </div>
+          </section>
+        )
+      }
+
+      {/* Whether a client can subscribe instead of polling — the block that
+          explains the "subscribable" chips on the templates above, so it
+          sits right after them. Availability is read from the card, never
+          hardcoded: on THIS deployment `subscriptions/listen` is up and
+          `resources/subscribe` is not, but only the data says so. */}
+      {
+        subs && (
+          <section
+            class="server-family"
+            aria-labelledby="subscriptions-title"
+            id="subscriptions-h"
+          >
+            <h2 class="subsection-title" id="subscriptions-title">
+              {sp.subscriptionsHead}
+            </h2>
+            <p class="fold-intro">{sp.subscriptionsIntro}</p>
+            <dl class="meta-grid">
+              {Object.entries(subs.methods).map(([methodName, method]) => (
+                <div>
+                  <dt>
+                    <code>{methodName}</code>
+                  </dt>
+                  <dd>
+                    {method.available
+                      ? sp.subscriptionAvailable
+                      : sp.subscriptionUnavailable}
+                    {method.available && method.since_protocol && (
+                      <>
+                        {" · "}
+                        {sp.subscriptionSinceProtocol}{" "}
+                        <code>{method.since_protocol}</code>
+                      </>
+                    )}
+                    {!method.available && method.requires && (
+                      <>
+                        {" · "}
+                        {sp.subscriptionRequiresLabel}: {method.requires}
+                      </>
+                    )}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            <p class="entry-meta">
+              {sp.subscribableTemplatesLabel}: {subscribableCount} /{" "}
+              {templateEntries.length}
+            </p>
           </section>
         )
       }
@@ -877,6 +1074,84 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
   .entry-cta a:hover {
     text-decoration: underline;
     text-underline-offset: 3px;
+  }
+
+  /* ===== Instructions (server/discover) ================================== */
+  /* Shares `.card-own-description`'s quote styling (the subtle background is
+     the "this is the server speaking, not this site" marker); these rules
+     only add what a MULTI-paragraph quote needs on top of that single-`<p>`
+     rule. */
+  .server-instructions p {
+    margin: 0;
+    /* The server lays out numbered steps with single line breaks INSIDE a
+       paragraph; collapsing them would rewrite its prose into one long
+       line. `pre-line` renders the quote as its author wrote it (the same
+       verbatim principle `descriptionParagraphs` documents). */
+    white-space: pre-line;
+  }
+
+  .server-instructions p + p {
+    margin-top: 0.65rem;
+  }
+
+  /* ===== Action catalog (gitlab) ========================================= */
+  /* The Free-token caveat. Body text, not a chip, and never folded away:
+     without it every count in the table claims a universality the manifest
+     itself disowns (`cacheScope: "private"`). */
+  .catalog-token-note {
+    margin: 0 0 1rem;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+  }
+
+  /* A four-column table can outgrow a phone; it scrolls inside its own box
+     so the page body never scrolls horizontally (same concern as the
+     `min-width: 0` rule above). */
+  .table-scroll {
+    margin: 0 0 1rem;
+    overflow-x: auto;
+  }
+
+  .catalog-table {
+    width: 100%;
+    font-size: var(--text-sm);
+    border-collapse: collapse;
+  }
+
+  .catalog-table th,
+  .catalog-table td {
+    padding: 0.45rem 0.7rem;
+    border-bottom: 1px solid var(--color-hair);
+  }
+
+  .catalog-table thead th {
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--fw-normal);
+    text-align: right;
+  }
+
+  .catalog-table thead th:first-child,
+  .catalog-table tbody th {
+    text-align: left;
+  }
+
+  .catalog-table tbody th {
+    font-weight: var(--fw-normal);
+  }
+
+  .catalog-table tbody th code {
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+
+  /* Numeric cells right-aligned and tabular so the columns compare at a
+     glance. */
+  .catalog-table td {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
   }
 
   /* ===== TOC: desktop sticky rail ========================================= */

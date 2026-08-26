@@ -134,6 +134,64 @@ export const serversPage = {
     annotationIdempotent: "idempotent",
     /** `annotations.openWorldHint` — talks to something outside this server (the network, another API). */
     annotationExternalNetwork: "external network",
+
+    /**
+     * ---- `server/discover` instructions ----------------------------------
+     * The connect-time text the server hands every client, quoted verbatim
+     * on its page from the committed surface snapshot (`src/data/surface.ts`).
+     * It is DATA, not chrome, so it is never translated — the ES intro
+     * carries "(en inglés)" for the same reason `cardDescriptionLabel` does.
+     */
+    instructionsHead: "Usage instructions",
+    instructionsIntro:
+      "What the server itself tells every client on connect (server/discover), quoted verbatim.",
+
+    /**
+     * ---- Subscriptions (gitlab) ------------------------------------------
+     * Availability is per METHOD and per DEPLOYMENT: the page reads it from
+     * the card's `subscriptions.methods` instead of asserting it here, and
+     * the `requires`/`since_protocol` values it appends are verbatim server
+     * data (English, like every other protocol identifier on these pages).
+     */
+    subscriptionsHead: "Subscriptions",
+    subscriptionsIntro:
+      "Whether a client can watch a resource for changes instead of polling it, and which of the URI templates above accept a subscription — those carry a chip.",
+    subscriptionAvailable: "Available on this deployment",
+    subscriptionUnavailable: "Not available on this deployment",
+    subscriptionSinceProtocol: "since protocol",
+    subscriptionRequiresLabel: "requires",
+    subscribableTemplatesLabel: "Subscribable URI templates",
+    subscribableChip: "subscribable",
+
+    /**
+     * ---- Action catalog (gitlab) -----------------------------------------
+     * The by-domain count table plus the progressive search island over the
+     * `gitlab://tools` manifest snapshot. `catalogTokenNote` is the caveat
+     * that must stay ALWAYS visible: the manifest is scoped to the token
+     * that asks (`cacheScope: "private"`), so every count on the page is the
+     * Free tier's surface, not a universal one.
+     */
+    catalogHead: "Action catalog",
+    catalogIntro:
+      "Behind the tools above sits a catalog of fine-grained actions, invoked through gitlab_execute_action and published as the gitlab://tools resource. This table only counts it, by domain — the full list is the resource itself.",
+    catalogTokenNote:
+      "Counted with a Free-tier GitLab token. The catalog is scoped to the token that asks, so the count moves with both its tier and its permissions: higher tiers expose more actions, and administration domains only appear to tokens allowed to use them.",
+    catalogTableCaption: "Actions by domain",
+    catalogColDomain: "Domain",
+    catalogColTotal: "Actions",
+    catalogColDestructive: "Destructive",
+    catalogColReadOnly: "Read-only",
+    /** Row label for manifest entries that carry no `domain` field. */
+    searchLabel: "Search the catalog",
+    searchPlaceholder: "Filter by id, title or domain…",
+    searchLoading: "Loading index…",
+    searchError:
+      "Could not load the index. The table above still counts every domain.",
+    searchNoResults: "No actions match.",
+    /** Rendered after the overflow count: `{n} more matches — …`. */
+    searchMoreResults: "more matches — refine the query",
+    /** aria-label of the search island's live results region. */
+    searchResultsLabel: "Search results",
   },
   es: {
     /** Ver `en.metaTitleIndex`. */
@@ -204,5 +262,63 @@ export const serversPage = {
     annotationIdempotent: "idempotente",
     /** Ver `en.annotationExternalNetwork`. */
     annotationExternalNetwork: "red externa",
+
+    /** Ver `en.instructionsHead`. */
+    instructionsHead: "Instrucciones de uso",
+    /** Ver `en.instructionsIntro`. Va "(en inglés)" porque la prosa es dato del servidor. */
+    instructionsIntro:
+      "Lo que el propio servidor le dice a cada cliente al conectar (server/discover), citado tal cual (en inglés).",
+
+    /** Ver `en.subscriptionsHead`. */
+    subscriptionsHead: "Suscripciones",
+    /** Ver `en.subscriptionsIntro`. */
+    subscriptionsIntro:
+      "Si un cliente puede vigilar un resource en vez de sondearlo, y cuáles de las URI templates de arriba aceptan suscripción — esas llevan un chip.",
+    /** Ver `en.subscriptionAvailable`. */
+    subscriptionAvailable: "Disponible en este despliegue",
+    /** Ver `en.subscriptionUnavailable`. */
+    subscriptionUnavailable: "No disponible en este despliegue",
+    /** Ver `en.subscriptionSinceProtocol`. */
+    subscriptionSinceProtocol: "desde el protocolo",
+    /** Ver `en.subscriptionRequiresLabel`. */
+    subscriptionRequiresLabel: "requiere",
+    /** Ver `en.subscribableTemplatesLabel`. */
+    subscribableTemplatesLabel: "URI templates suscribibles",
+    /** Ver `en.subscribableChip`. */
+    subscribableChip: "suscribible",
+
+    /** Ver `en.catalogHead`. */
+    catalogHead: "Catálogo de acciones",
+    /** Ver `en.catalogIntro`. */
+    catalogIntro:
+      "Detrás de las tools de arriba hay un catálogo de acciones de grano fino, invocadas vía gitlab_execute_action y publicadas como el resource gitlab://tools. Esta tabla solo lo cuenta, por dominio — la lista completa es el propio resource.",
+    /** Ver `en.catalogTokenNote`. */
+    catalogTokenNote:
+      "Contado con un token Free de GitLab. El catálogo depende del token que pregunta, así que el recuento se mueve con su tier y con sus permisos: los tiers superiores exponen más acciones, y los dominios de administración solo aparecen a tokens autorizados a usarlos.",
+    /** Ver `en.catalogTableCaption`. */
+    catalogTableCaption: "Acciones por dominio",
+    /** Ver `en.catalogColDomain`. */
+    catalogColDomain: "Dominio",
+    /** Ver `en.catalogColTotal`. */
+    catalogColTotal: "Acciones",
+    /** Ver `en.catalogColDestructive`. */
+    catalogColDestructive: "Destructivas",
+    /** Ver `en.catalogColReadOnly`. */
+    catalogColReadOnly: "Solo lectura",
+    /** Ver `en.searchLabel`. */
+    searchLabel: "Buscar en el catálogo",
+    /** Ver `en.searchPlaceholder`. */
+    searchPlaceholder: "Filtra por id, título o dominio…",
+    /** Ver `en.searchLoading`. */
+    searchLoading: "Cargando índice…",
+    /** Ver `en.searchError`. */
+    searchError:
+      "No se pudo cargar el índice. La tabla de arriba sigue contando todos los dominios.",
+    /** Ver `en.searchNoResults`. */
+    searchNoResults: "Ninguna acción coincide.",
+    /** Ver `en.searchMoreResults`. */
+    searchMoreResults: "coincidencias más — afina la búsqueda",
+    /** Ver `en.searchResultsLabel`. */
+    searchResultsLabel: "Resultados de la búsqueda",
   },
 } as const;

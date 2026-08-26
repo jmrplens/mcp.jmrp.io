@@ -1,0 +1,94 @@
+/**
+ * Estilos de la isla del buscador del catálogo de acciones.
+ *
+ * En un .css aparte y no en un <style> de Astro porque el componente es
+ * Preact: Astro solo aplica sus estilos con ámbito a ficheros .astro (el
+ * mismo motivo que documenta Inspector.css). La forma base del chip viene
+ * de `.chip` (utilities.css, global); aquí solo se añaden los colores de
+ * las variantes, calcados de los `.a-chip--*` de ServerPage.astro — esas
+ * reglas tienen ámbito de componente y no alcanzan al DOM que esta isla
+ * pinta en el cliente.
+ */
+
+.action-search {
+  margin-top: 1.25rem;
+}
+
+.as-label {
+  display: block;
+  margin: 0 0 0.35rem;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.as-input {
+  width: 100%;
+  max-width: 28rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.as-input:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.as-note {
+  margin: 0.6rem 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.as-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0;
+  margin: 0.6rem 0 0;
+  list-style: none;
+}
+
+.as-item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.45rem 0.6rem;
+  font-size: var(--text-sm);
+  border: 1px solid var(--color-hair);
+  border-radius: var(--radius-sm);
+}
+
+.as-id {
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.as-title {
+  color: var(--color-text);
+}
+
+/* Informativo, tan discreto como el resto de metadatos (calca `.a-chip--info`). */
+.as-chip--domain {
+  color: var(--color-text-muted);
+  background: var(--color-bg-subtle);
+}
+
+/* El único chip que debe destacar: dice que la acción puede cambiar o borrar
+   algo. El significado va en el TEXTO ("destructive"/"destructiva"); el color
+   solo lo subraya (mismo razonamiento de accesibilidad que
+   `.a-chip--destructive` en ServerPage.astro). */
+.as-chip--destructive {
+  color: var(--color-danger);
+  font-weight: var(--fw-medium);
+  background: var(--danger-dim);
+  border-color: var(--color-danger);
+}
