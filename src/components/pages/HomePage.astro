@@ -27,6 +27,7 @@ const t = ui[lang];
 // Site-relative, like the language switch in Base.astro: an absolute URL
 // here would jump a dev or preview server straight to production.
 const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
+const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
 ---
 
 <section class="hero">
@@ -57,6 +58,22 @@ const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
   </p>
 </section>
 
+{/* The `/internals/` invitation, between the hero and the servers. It sat
+    after the two server cards until the comparison table was removed and the
+    measurement was taken again: even then it landed 2.46 screens down on a
+    390px phone, which is past where most visitors stop. The question it
+    answers — what happens to my request, and to my token — is one a reader
+    has BEFORE pasting a credential into anything, so it now precedes the
+    cards rather than following them. */}
+  <aside class="internals-callout">
+    <p class="internals-callout-eyebrow">{t.internalsEyebrow}</p>
+    <p class="internals-callout-title">{t.internalsTitle}</p>
+    <p class="internals-callout-lead">{t.internalsLead}</p>
+    <p class="internals-callout-link">
+      <a href={internalsHref}>{t.internalsLink}</a>
+    </p>
+  </aside>
+
 <section aria-labelledby="servers-h">
   {/* h2 y no p: eran rótulos decorativos y la página colgaba 734 palabras de
       dos únicos H2 (los nombres de las fichas). Como h2 dan outline real sin
@@ -68,59 +85,7 @@ const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
   <div class="grid">
     {servers.map((s) => <ServerCard server={s} lang={lang} />)}
   </div>
-  {/* A real <table>, not a styled grid, and built from `servers` rather than
-      hand-written: adding a third MCP must not mean editing markup.
-      It exists because the page had zero tables and this is the question that
-      actually brings people to a hosted endpoint — "which of these two do I
-      want?". AI Overviews lifts tables straight out of the page, and a
-      two-item comparison is exactly the shape it takes. */}
-  <table class="compare">
-    <caption>{t.compareHead}</caption>
-    <thead>
-      <tr>
-        <th scope="col">{t.compareAttribute}</th>
-        {servers.map((s) => <th scope="col">{s.name}</th>)}
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <th scope="row">{t.compareCredential}</th>
-        {
-          servers.map((s) => (
-            <td>
-              {s.requiredHeaders.length > 0
-                ? s.requiredHeaders.map((h) => h.name).join(", ")
-                : t.compareNoCredential}
-            </td>
-          ))
-        }
-      </tr>
-      <tr>
-        <th scope="row">{t.compareCovers}</th>
-        {
-          servers.map((s) => (
-            <td>{s.id === "libgen" ? t.compareCoversLibgen : t.compareCoversGitlab}</td>
-          ))
-        }
-      </tr>
-      <tr>
-        <th scope="row">{t.compareTools}</th>
-        {servers.map((s) => <td>{s.tools.length}</td>)}
-      </tr>
-      <tr>
-        <th scope="row">{t.compareEndpoint}</th>
-        {
-          servers.map((s) => (
-            <td><code>{s.endpoint}</code></td>
-          ))
-        }
-      </tr>
-      <tr>
-        <th scope="row">{t.compareTransport}</th>
-        {servers.map(() => <td>{t.compareTransportValue}</td>)}
-      </tr>
-    </tbody>
-  </table>
+
 
   <p class="machine">
     <a href="/servers.json"><code>/servers.json</code></a>
@@ -258,6 +223,52 @@ const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
     gap: 1.25rem;
   }
 
+  /* ===== Internals callout =====================================================
+     Bordered block rather than another `.machine`-style one-liner: it is an
+     invitation to a whole page, not a pointer to a file, and the two must
+     not read as the same weight. The accent bar on the inline-start edge is
+     the only decoration — it marks the block as an aside without needing a
+     background fill, which at this position would compete with the server
+     cards above it. */
+  .internals-callout {
+    padding: 1rem 1.1rem;
+    margin: 2rem 0 1.5rem;
+    border: 1px solid var(--color-border);
+    border-inline-start: 3px solid var(--color-accent);
+    border-radius: var(--radius-md);
+  }
+
+  .internals-callout-eyebrow {
+    margin: 0 0 0.35rem;
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .internals-callout-title {
+    margin: 0 0 0.4rem;
+    color: var(--color-text-heading);
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .internals-callout-lead {
+    max-width: 60ch;
+    margin: 0 0 0.7rem;
+    color: var(--color-text);
+    text-wrap: pretty;
+  }
+
+  .internals-callout-link {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+
   .machine {
     margin: 1.25rem 0 0;
     color: var(--color-text-muted);
@@ -294,57 +305,11 @@ const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
     text-underline-offset: 3px;
   }
 
-  /* Wide content scrolls inside its own container: the page body must never
-     scroll horizontally on a phone. */
-  .compare {
-    display: block;
-    max-width: 100%;
-    margin: 1.75rem 0 0;
-    overflow-x: auto;
-    border-collapse: collapse;
-    font-size: 0.85rem;
-    white-space: nowrap;
-  }
 
-  .compare caption {
-    margin-bottom: 0.75rem;
-    color: var(--color-text-heading);
-    font-family: var(--font-display);
-    font-size: 1.05rem;
-    font-weight: 700;
-    text-align: start;
-  }
 
-  .compare th,
-  .compare td {
-    padding: 0.5rem 0.9rem;
-    border-bottom: 1px solid var(--color-hair);
-    text-align: start;
-    vertical-align: top;
-  }
 
-  .compare thead th {
-    color: var(--color-text-heading);
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-  }
 
-  .compare tbody th {
-    color: var(--color-text-muted);
-    font-size: 0.8rem;
-    font-weight: 600;
-  }
 
-  .compare td {
-    color: var(--color-text);
-    /* The reach cells are full sentences: they need to wrap even though the
-       table as a whole is nowrap for the endpoint column. */
-    white-space: normal;
-  }
 
-  .compare code {
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    overflow-wrap: anywhere;
-  }
+
 </style>

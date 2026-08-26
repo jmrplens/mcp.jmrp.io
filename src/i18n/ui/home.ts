@@ -51,26 +51,23 @@ export const home = {
     serversEyebrow: "Servers",
     serversIntro:
       "Both servers speak streamable HTTP: one POST per JSON-RPC 2.0 call, stateless — no session header — answering JSON or an SSE stream depending on your Accept header (application/json, text/event-stream). A GET to an endpoint returns 405 by design.",
+    /** The `/internals/` callout. The page it points at is the one that
+     * answers "what actually happens to my request, and to my token" — the
+     * question a hosted endpoint owes an answer to — and nothing on this
+     * page pointed at it: it was reachable only from the header nav. The
+     * eyebrow/lead/link split matches the other blocks here rather than
+     * inventing a new shape, and the lead names the three things the page
+     * proves (encryption, three instances, exit country) instead of saying
+     * "learn more", which gives a reader nothing to decide with. */
+    internalsEyebrow: "Under the hood",
+    internalsTitle: "What happens to your request",
+    internalsLead:
+      "The whole path, drawn and explained: HTTPS all the way in and out, three instances per server with one always picked for you, and a fixed exit country — plus where a PRIVATE-TOKEN is readable, and where it never is.",
+    internalsLink: "See how it works",
     machineIndex: "Machine-readable index",
     /** Same idea as `machineIndex`, for the `/llms.txt` pointer below it. */
     machineLlms: "Context index for AI assistants",
-    // Comparison table strings. The table answers the question that actually
-    // brings people to a hosted MCP endpoint — "which of these two do I
-    // want?" — and it is a table on purpose: AI Overviews extracts tables
-    // directly, and this page had none.
-    compareHead: "Which of the two do I want?",
-    compareIntro:
-      "Both speak the same protocol over the same transport. What differs is what they reach and whether they ask you for a credential.",
-    compareAttribute: "",
-    compareEndpoint: "Endpoint",
-    compareCredential: "Credential",
-    compareTools: "Tools",
-    compareTransport: "Transport",
-    compareCovers: "Reaches",
-    compareNoCredential: "None — it is public",
-    compareTransportValue: "streamable HTTP, stateless",
-    compareCoversLibgen: "Books and papers: open-access providers plus shadow-library sources",
-    compareCoversGitlab: "Any GitLab instance, over its REST API",
+
     repository: "Repository",
     documentation: "Documentation",
     credentialsRequired: "Credentials required",
@@ -120,22 +117,15 @@ export const home = {
     serversEyebrow: "Servidores",
     serversIntro:
       "Ambos servidores hablan streamable HTTP: un POST por llamada JSON-RPC 2.0, sin estado — sin cabecera de sesión — respondiendo JSON o un stream SSE según tu cabecera Accept (application/json, text/event-stream). Un GET al endpoint devuelve 405 a propósito.",
+    /** Ver `en.internalsEyebrow`. */
+    internalsEyebrow: "Por dentro",
+    internalsTitle: "Qué le pasa a tu petición",
+    internalsLead:
+      "El camino entero, dibujado y explicado: HTTPS a la ida y a la vuelta, tres instancias por servidor con una siempre elegida para ti y un país de salida fijo — y dónde se puede leer un PRIVATE-TOKEN y dónde no.",
+    internalsLink: "Mira cómo funciona",
     machineIndex: "Índice para máquinas",
     /** Ver `en.machineLlms`: mismo patrón para el puntero a `/llms.txt`. */
     machineLlms: "Índice de contexto para asistentes de IA",
-    compareHead: "¿Cuál de los dos quiero?",
-    compareIntro:
-      "Los dos hablan el mismo protocolo sobre el mismo transporte. Lo que cambia es hasta dónde llegan y si te piden una credencial.",
-    compareAttribute: "",
-    compareEndpoint: "Endpoint",
-    compareCredential: "Credencial",
-    compareTools: "Tools",
-    compareTransport: "Transporte",
-    compareCovers: "Alcance",
-    compareNoCredential: "Ninguna — es público",
-    compareTransportValue: "streamable HTTP, sin estado",
-    compareCoversLibgen: "Libros y artículos: proveedores de acceso abierto y fuentes de bibliotecas en la sombra",
-    compareCoversGitlab: "Cualquier instancia de GitLab, por su API REST",
     repository: "Repositorio",
     documentation: "Documentación",
     credentialsRequired: "Requiere credenciales",
