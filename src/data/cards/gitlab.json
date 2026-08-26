@@ -5,6 +5,19 @@
       "header-token"
     ]
   },
+  "capabilities": {
+    "completions": {},
+    "prompts": {
+      "listChanged": true
+    },
+    "resources": {
+      "listChanged": true,
+      "subscribe": true
+    },
+    "tools": {
+      "listChanged": true
+    }
+  },
   "prompts": [
     {
       "arguments": [
@@ -652,6 +665,9 @@
   ],
   "resourceTemplates": [
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -659,13 +675,16 @@
         ],
         "priority": 0.6
       },
-      "description": "Get details for a specific GitLab group by numeric ID or URL-encoded path. Returns name, full path, description, visibility, and web URL.",
+      "description": "Get details for a specific GitLab group by numeric ID or URL-encoded path. Returns name, full path, description, visibility, and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "group",
       "title": "Group Details",
       "uriTemplate": "gitlab://group/{group_id}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -673,7 +692,7 @@
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single group label by numeric ID or name. Returns id, name, color, description, and open issue/MR counts.",
+      "description": "Get details for a single group label by numeric ID or name. Returns id, name, color, description, and open issue/MR counts. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "group_label",
       "title": "Group Label Details",
@@ -694,6 +713,9 @@
       "uriTemplate": "gitlab://group/{group_id}/members"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -701,7 +723,7 @@
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single group milestone by IID. Returns id, iid, title, description, state, due date, and web URL.",
+      "description": "Get details for a single group milestone by IID. Returns id, iid, title, description, state, due date, and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "group_milestone",
       "title": "Group Milestone Details",
@@ -722,6 +744,9 @@
       "uriTemplate": "gitlab://group/{group_id}/projects"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -729,13 +754,16 @@
         ],
         "priority": 0.6
       },
-      "description": "Get basic metadata for a GitLab project by numeric ID or URL-encoded path. Returns name, namespace path, visibility, web URL, description, and default branch.",
+      "description": "Get basic metadata for a GitLab project by numeric ID or URL-encoded path. Returns name, namespace path, visibility, web URL, description, and default branch. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "project",
       "title": "Project Metadata",
       "uriTemplate": "gitlab://project/{project_id}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -743,13 +771,16 @@
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single project issue board by numeric ID. Returns id and name.",
+      "description": "Get details for a single project issue board by numeric ID. Returns id and name. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "board",
       "title": "Board Details",
       "uriTemplate": "gitlab://project/{project_id}/board/{board_id}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -757,7 +788,7 @@
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single repository branch. Returns name, protection status, merge status, default flag, and web URL.",
+      "description": "Get details for a single repository branch. Returns name, protection status, merge status, default flag, and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "branch",
       "title": "Branch Details",
@@ -792,6 +823,9 @@
       "uriTemplate": "gitlab://project/{project_id}/commit/{sha}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -799,13 +833,16 @@
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single project deploy key by numeric ID. Returns id, title, key, and fingerprint.",
+      "description": "Get details for a single project deploy key by numeric ID. Returns id, title, key, and fingerprint. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "deploy_key",
       "title": "Deploy Key Details",
       "uriTemplate": "gitlab://project/{project_id}/deploy_key/{deploy_key_id}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -813,13 +850,16 @@
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single project deployment by numeric ID. Returns id, iid, ref, sha, status, and environment name.",
+      "description": "Get details for a single project deployment by numeric ID. Returns id, iid, ref, sha, status, and environment name. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "deployment",
       "title": "Deployment Details",
       "uriTemplate": "gitlab://project/{project_id}/deployment/{deployment_id}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -827,13 +867,16 @@
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single project environment by numeric ID. Returns id, name, slug, state, and tier.",
+      "description": "Get details for a single project environment by numeric ID. Returns id, name, slug, state, and tier. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "environment",
       "title": "Environment Details",
       "uriTemplate": "gitlab://project/{project_id}/environment/{environment_id}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -841,13 +884,16 @@
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single project feature flag by name. Returns name, description, active, and version.",
+      "description": "Get details for a single project feature flag by name. Returns name, description, active, and version. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "feature_flag",
       "title": "Feature Flag Details",
       "uriTemplate": "gitlab://project/{project_id}/feature_flag/{name}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -855,13 +901,16 @@
         ],
         "priority": 0.6
       },
-      "description": "Get the contents of a repository file at a specific ref (branch, tag, or SHA). Path may include slashes. Files over 1 MiB return metadata only with truncated=true. Binary files return metadata with empty content.",
+      "description": "Get the contents of a repository file at a specific ref (branch, tag, or SHA). Path may include slashes. Files over 1 MiB return metadata only with truncated=true. Binary files return metadata with empty content. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "file_blob",
       "title": "Repository File",
       "uriTemplate": "gitlab://project/{project_id}/file/{ref}/{+path}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -869,7 +918,7 @@
         ],
         "priority": 0.6
       },
-      "description": "Get details of a specific issue by its IID (project-scoped ID). Returns title, state, labels, assignees, author, web URL, and creation date.",
+      "description": "Get details of a specific issue by its IID (project-scoped ID). Returns title, state, labels, assignees, author, web URL, and creation date. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "issue",
       "title": "Issue Details",
@@ -890,6 +939,9 @@
       "uriTemplate": "gitlab://project/{project_id}/issues"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -897,13 +949,16 @@
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single CI job by numeric ID. Returns id, name, stage, status, ref, duration, and web URL.",
+      "description": "Get details for a single CI job by numeric ID. Returns id, name, stage, status, ref, duration, and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "job",
       "title": "Job Details",
       "uriTemplate": "gitlab://project/{project_id}/job/{job_id}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -911,7 +966,7 @@
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single project label by numeric ID or label name. Returns id, name, color, description, and open issue/MR counts.",
+      "description": "Get details for a single project label by numeric ID or label name. Returns id, name, color, description, and open issue/MR counts. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "label",
       "title": "Label Details",
@@ -946,6 +1001,9 @@
       "uriTemplate": "gitlab://project/{project_id}/members"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -953,7 +1011,7 @@
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single project milestone by IID. Returns id, iid, title, description, state, due date, and web URL.",
+      "description": "Get details for a single project milestone by IID. Returns id, iid, title, description, state, due date, and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "milestone",
       "title": "Milestone Details",
@@ -974,6 +1032,9 @@
       "uriTemplate": "gitlab://project/{project_id}/milestones"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -981,13 +1042,16 @@
         ],
         "priority": 0.6
       },
-      "description": "Get details of a specific merge request by its IID (project-scoped ID). Returns title, state, source/target branches, author, merge status, and web URL. Supports resources/subscribe.",
+      "description": "Get details of a specific merge request by its IID (project-scoped ID). Returns title, state, source/target branches, author, merge status, and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "merge_request",
       "title": "Merge Request Details",
       "uriTemplate": "gitlab://project/{project_id}/mr/{merge_request_iid}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -995,13 +1059,16 @@
         ],
         "priority": 0.4
       },
-      "description": "List discussion threads on a merge request. Each discussion has an id, individual_note flag, and an array of notes (id, author, body, system, resolved/resolvable, created_at).",
+      "description": "List discussion threads on a merge request. Each discussion has an id, individual_note flag, and an array of notes (id, author, body, system, resolved/resolvable, created_at). Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "merge_request_discussions",
       "title": "Merge Request Discussions",
       "uriTemplate": "gitlab://project/{project_id}/mr/{merge_request_iid}/discussions"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -1009,13 +1076,16 @@
         ],
         "priority": 0.4
       },
-      "description": "List notes (comments) on a merge request. Returns each note's id, author username, body, system flag, resolvable/resolved flags, and timestamps.",
+      "description": "List notes (comments) on a merge request. Returns each note's id, author username, body, system flag, resolvable/resolved flags, and timestamps. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "merge_request_notes",
       "title": "Merge Request Notes",
       "uriTemplate": "gitlab://project/{project_id}/mr/{merge_request_iid}/notes"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -1023,13 +1093,16 @@
         ],
         "priority": 0.6
       },
-      "description": "Get details of a specific CI/CD pipeline by its numeric ID. Returns pipeline status, ref, SHA, source, and web URL. Supports resources/subscribe.",
+      "description": "Get details of a specific CI/CD pipeline by its numeric ID. Returns pipeline status, ref, SHA, source, and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "pipeline",
       "title": "Pipeline Details",
       "uriTemplate": "gitlab://project/{project_id}/pipeline/{pipeline_id}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -1037,13 +1110,16 @@
         ],
         "priority": 0.4
       },
-      "description": "List all jobs for a specific CI/CD pipeline including each job's name, stage, status, duration, failure reason (if failed), and web URL.",
+      "description": "List all jobs for a specific CI/CD pipeline including each job's name, stage, status, duration, failure reason (if failed), and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "pipeline_jobs",
       "title": "Pipeline Jobs",
       "uriTemplate": "gitlab://project/{project_id}/pipeline/{pipeline_id}/jobs"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -1051,13 +1127,16 @@
         ],
         "priority": 0.6
       },
-      "description": "Get the most recent CI/CD pipeline for a GitLab project. Returns pipeline ID, status (running/pending/success/failed/canceled), ref, SHA, source, and web URL. Supports resources/subscribe.",
+      "description": "Get the most recent CI/CD pipeline for a GitLab project. Returns pipeline ID, status (running/pending/success/failed/canceled), ref, SHA, source, and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "latest_pipeline",
       "title": "Latest Pipeline",
       "uriTemplate": "gitlab://project/{project_id}/pipelines/latest"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -1065,7 +1144,7 @@
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single GitLab release by tag name. Returns tag_name, name, description, author, creation/release dates.",
+      "description": "Get details for a single GitLab release by tag name. Returns tag_name, name, description, author, creation/release dates. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "release",
       "title": "Release Details",
@@ -1086,6 +1165,9 @@
       "uriTemplate": "gitlab://project/{project_id}/releases"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -1093,13 +1175,16 @@
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single project snippet by numeric ID. Returns id, title, file_name, description, visibility, and web URL.",
+      "description": "Get details for a single project snippet by numeric ID. Returns id, title, file_name, description, visibility, and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "project_snippet",
       "title": "Project Snippet Details",
       "uriTemplate": "gitlab://project/{project_id}/snippet/{snippet_id}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -1107,7 +1192,7 @@
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single Git tag. Returns name, target commit SHA, annotation message, and protection status.",
+      "description": "Get details for a single Git tag. Returns name, target commit SHA, annotation message, and protection status. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "tag",
       "title": "Tag Details",
@@ -1128,6 +1213,9 @@
       "uriTemplate": "gitlab://project/{project_id}/tags"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -1135,13 +1223,16 @@
         ],
         "priority": 0.6
       },
-      "description": "Get a wiki page by slug. Returns title, slug, format (markdown/rdoc/asciidoc/org), and raw content. Slugs are case-sensitive and use hyphens for spaces.",
+      "description": "Get a wiki page by slug. Returns title, slug, format (markdown/rdoc/asciidoc/org), and raw content. Slugs are case-sensitive and use hyphens for spaces. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "wiki_page",
       "title": "Wiki Page",
       "uriTemplate": "gitlab://project/{project_id}/wiki/{slug}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
           "user",
@@ -1149,7 +1240,7 @@
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single personal/global snippet by numeric ID. Returns id, title, file_name, description, visibility, and web URL.",
+      "description": "Get details for a single personal/global snippet by numeric ID. Returns id, title, file_name, description, visibility, and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
       "mimeType": "application/json",
       "name": "snippet",
       "title": "Snippet Details",
@@ -1158,7 +1249,6 @@
     {
       "annotations": {
         "audience": [
-          "user",
           "assistant"
         ],
         "priority": 0.6
@@ -1263,7 +1353,6 @@
     {
       "annotations": {
         "audience": [
-          "user",
           "assistant"
         ],
         "priority": 0.4
@@ -1318,8 +1407,50 @@
     ],
     "name": "gitlab-mcp-server",
     "title": "GitLab MCP Server",
-    "version": "2.7.0",
+    "version": "2.7.1",
     "websiteUrl": "https://jmrp.io/docs/gitlab-mcp-server"
+  },
+  "subscriptions": {
+    "methods": {
+      "resources/subscribe": {
+        "available": false,
+        "requires": "stateful sessions (--stateless=false)"
+      },
+      "subscriptions/listen": {
+        "available": true,
+        "since_protocol": "2026-07-28"
+      }
+    },
+    "notification": "notifications/resources/updated, sent when the watched content changes (server polls GitLab)",
+    "subscribable_uri_templates": [
+      "gitlab://group/{group_id}",
+      "gitlab://group/{group_id}/label/{label_id}",
+      "gitlab://group/{group_id}/milestone/{milestone_iid}",
+      "gitlab://project/{project_id}",
+      "gitlab://project/{project_id}/board/{board_id}",
+      "gitlab://project/{project_id}/branch/{branch}",
+      "gitlab://project/{project_id}/deploy_key/{deploy_key_id}",
+      "gitlab://project/{project_id}/deployment/{deployment_id}",
+      "gitlab://project/{project_id}/environment/{environment_id}",
+      "gitlab://project/{project_id}/feature_flag/{name}",
+      "gitlab://project/{project_id}/file/{ref}/{+path}",
+      "gitlab://project/{project_id}/issue/{issue_iid}",
+      "gitlab://project/{project_id}/job/{job_id}",
+      "gitlab://project/{project_id}/label/{label_id}",
+      "gitlab://project/{project_id}/milestone/{milestone_iid}",
+      "gitlab://project/{project_id}/mr/{merge_request_iid}",
+      "gitlab://project/{project_id}/mr/{merge_request_iid}/discussions",
+      "gitlab://project/{project_id}/mr/{merge_request_iid}/notes",
+      "gitlab://project/{project_id}/pipeline/{pipeline_id}",
+      "gitlab://project/{project_id}/pipeline/{pipeline_id}/jobs",
+      "gitlab://project/{project_id}/pipelines/latest",
+      "gitlab://project/{project_id}/release/{tag_name}",
+      "gitlab://project/{project_id}/snippet/{snippet_id}",
+      "gitlab://project/{project_id}/tag/{tag_name}",
+      "gitlab://project/{project_id}/wiki/{slug}",
+      "gitlab://snippet/{snippet_id}"
+    ],
+    "supported": true
   },
   "tools": [
     {
