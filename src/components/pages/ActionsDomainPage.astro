@@ -1,0 +1,258 @@
+---
+/**
+ * Action-domain page body: `/servers/<id>/actions/<domain>/`.
+ *
+ * The full reference list of ONE manifest domain, one collapsed `<details>`
+ * per action — collapsed is what kills the infinite scroll on the big
+ * domains (`project` alone is 123 actions) without needing any JavaScript.
+ * The filter island on top is progressive enhancement over this SSR list:
+ * it reads the DOM the page emitted, never a second copy of the data (see
+ * DomainActionsFilter's header for the match/order/open rules).
+ *
+ * Action ids, titles, domains and descriptions are protocol DATA, rendered
+ * verbatim and never translated — the same rule the ficha applies to the
+ * card's content. Single line breaks inside a description paragraph render
+ * as explicit `<br />` because the post-build minifier collapses raw
+ * newlines in text nodes (see ServerPage's `paragraphLines`).
+ */
+import type { GitlabActionEntry } from "../../data/surface";
+import type { Lang } from "../../i18n/ui";
+import { serversPage } from "../../i18n/ui/servers-page";
+import { serverPagePath } from "../../lib/seo";
+import DomainActionsFilter from "../DomainActionsFilter";
+
+interface Props {
+  lang: Lang;
+  serverId: string;
+  domain: string;
+  /** This domain's actions, in the snapshot's stable by-id order. */
+  actions: GitlabActionEntry[];
+  /** The token-scope caveat, shared verbatim with the ficha's catalog. */
+  tokenNote: string;
+}
+
+const { lang, serverId, domain, actions, tokenNote } = Astro.props;
+const sp = serversPage[lang];
+
+const localePrefix = lang === "es" ? "/es/" : "/";
+const fichaHref = `${localePrefix}${serverPagePath(serverId)}`;
+
+const destructiveCount = actions.filter((a) => a.destructive).length;
+const readOnlyCount = actions.filter((a) => a.read_only).length;
+
+/** Same split rules as ServerPage: paragraphs on blank lines, `<br />` inside. */
+function descriptionParagraphs(text: string): string[] {
+  return text
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+}
+function paragraphLines(paragraph: string): string[] {
+  return paragraph.split("\n").map((line) => line.trim());
+}
+---
+
+<div class="domain-page">
+  <p class="eyebrow">{sp.domainPageKicker}</p>
+  <h1 class="domain-title"><code>{domain}</code></h1>
+  <p class="domain-intro">{sp.domainPageIntro}</p>
+  <p class="domain-facts">
+    <span class="fact">{actions.length} · {sp.catalogColTotal.toLowerCase()}</span>
+    <span class="fact fact--destructive">
+      {destructiveCount} · {sp.catalogColDestructive.toLowerCase()}
+    </span>
+    <span class="fact fact--readonly">
+      {readOnlyCount} · {sp.catalogColReadOnly.toLowerCase()}
+    </span>
+  </p>
+  <p class="domain-note">{tokenNote}</p>
+  <p class="domain-back"><a href={fichaHref}>{sp.domainBackToCard}</a></p>
+
+  <DomainActionsFilter
+    client:idle
+    lang={lang}
+    listId="actions-list"
+    total={actions.length}
+  />
+
+  <ol class="actions-list" id="actions-list">
+    {
+      actions.map((action) => (
+        <li>
+          <details
+            class="action-item"
+            id={action.id}
+            data-action-id={action.id}
+            data-action-title={action.title}
+            data-destructive={String(action.destructive)}
+            data-read-only={String(action.read_only)}
+          >
+            <summary class="action-summary">
+              <code class="action-id">{action.id}</code>
+              <span class="action-title">{action.title}</span>
+              <span class="action-chips">
+                {action.destructive && (
+                  <span class="chip a-chip--destructive">{sp.domainChipDestructive}</span>
+                )}
+                {action.read_only && (
+                  <span class="chip a-chip--info">{sp.domainChipReadOnly}</span>
+                )}
+              </span>
+            </summary>
+            <div class="action-body">
+              <div class="action-desc">
+                {descriptionParagraphs(action.description).map((paragraph) => (
+                  <p>
+                    {paragraphLines(paragraph).map((line, i) => (
+                      <>
+                        {i > 0 && <br />}
+                        {line}
+                      </>
+                    ))}
+                  </p>
+                ))}
+              </div>
+              <p class="action-params">
+                <strong>{sp.domainParamsLabel}:</strong>{" "}
+                {action.required_params?.length ? (
+                  action.required_params.map((param, i) => (
+                    <>
+                      {i > 0 && ", "}
+                      <code>{param}</code>
+                    </>
+                  ))
+                ) : (
+                  <span>{sp.domainNoParams}</span>
+                )}
+              </p>
+            </div>
+          </details>
+        </li>
+      ))
+    }
+  </ol>
+</div>
+
+<style>
+  .domain-page {
+    max-width: 52rem;
+  }
+
+  .domain-title {
+    margin: 0.2rem 0 0.6rem;
+  }
+
+  .domain-title code {
+    font-size: 1.6rem;
+  }
+
+  .domain-intro {
+    margin: 0 0 0.6rem;
+    color: var(--color-text-muted);
+  }
+
+  .domain-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.1rem;
+    margin: 0 0 0.4rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+
+  .fact--destructive {
+    color: var(--color-danger);
+  }
+
+  .fact--readonly {
+    color: var(--color-text-muted);
+  }
+
+  .domain-note {
+    margin: 0 0 0.5rem;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .domain-back {
+    margin: 0 0 0.75rem;
+    font-size: var(--text-sm);
+  }
+
+  /* Contenedor flex en columna A PROPÓSITO: la isla reordena con CSS
+     `order` (coincidencias por descripción al final) sin mover el DOM. */
+  .actions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  .action-item {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  .action-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.7rem;
+    align-items: baseline;
+    padding: 0.55rem 0.8rem;
+    cursor: pointer;
+  }
+
+  .action-summary:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  .action-id {
+    font-size: var(--text-sm);
+  }
+
+  .action-title {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .action-chips {
+    display: inline-flex;
+    gap: 0.35rem;
+    margin-left: auto;
+  }
+
+  /* Variantes de chip calcadas de ServerPage (ámbito de componente: no
+     llegan hasta aquí solas). La forma base es `.chip` de utilities.css. */
+  .a-chip--info {
+    color: var(--color-text-muted);
+    background: var(--color-bg-subtle);
+  }
+
+  .a-chip--destructive {
+    color: var(--color-danger);
+    font-weight: var(--fw-medium);
+    background: var(--danger-dim);
+    border-color: var(--color-danger);
+  }
+
+  .action-body {
+    padding: 0.15rem 0.85rem 0.7rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .action-desc p {
+    margin: 0.55rem 0 0;
+    font-size: var(--text-sm);
+    line-height: 1.55;
+  }
+
+  .action-params {
+    margin: 0.65rem 0 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+</style>

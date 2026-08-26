@@ -192,6 +192,33 @@ export const serversPage = {
     searchMoreResults: "more matches — refine the query",
     /** aria-label of the search island's live results region. */
     searchResultsLabel: "Search results",
+    /**
+     * ---- Action-domain pages (/servers/<id>/actions/<domain>/) ------------
+     * One page per manifest domain: the full reference list, one collapsed
+     * `<details>` per action, with a progressive filter on top. Domain names
+     * and action ids are protocol DATA and are never translated.
+     */
+    domainPageTitleSuffix: "actions · mcp.jmrp.io",
+    domainPageKicker: "Action domain",
+    /**
+     * Meta description template; `{count}`/`{domain}` filled by the route.
+     * Budgeted for the 155-char snippet ceiling at the longest domain name.
+     */
+    domainMetaDescription:
+      "The {count} {domain} actions gitlab exposes via gitlab_execute_action, each with its full description and required parameters.",
+    domainPageIntro:
+      "Every action this domain exposes through gitlab_execute_action, from the gitlab://tools manifest. Each entry folds out to its full upstream description and required parameters.",
+    domainBackToCard: "Back to the server card",
+    domainFilterLabel: "Filter this domain's actions",
+    domainFilterPlaceholder: "Type to filter by id, title or description…",
+    domainFilterCount: "{shown} of {total} actions",
+    domainFilterNoMatch: "No action matches. Clear the filter to see the full list.",
+    domainChipDestructive: "destructive",
+    domainChipReadOnly: "read-only",
+    domainToggleDestructive: "Destructive only",
+    domainToggleReadOnly: "Read-only only",
+    domainParamsLabel: "Required parameters",
+    domainNoParams: "No required parameters",
   },
   es: {
     /** Ver `en.metaTitleIndex`. */
@@ -320,5 +347,24 @@ export const serversPage = {
     searchMoreResults: "coincidencias más — afina la búsqueda",
     /** Ver `en.searchResultsLabel`. */
     searchResultsLabel: "Resultados de la búsqueda",
+    /** Ver el bloque `en.domainPage*`. */
+    domainPageTitleSuffix: "acciones · mcp.jmrp.io",
+    domainPageKicker: "Dominio de acciones",
+    /** Ver `en.domainMetaDescription`. */
+    domainMetaDescription:
+      "Las {count} acciones {domain} que gitlab expone vía gitlab_execute_action, cada una con su descripción completa y sus parámetros.",
+    domainPageIntro:
+      "Todas las acciones que este dominio expone vía gitlab_execute_action, del manifiesto gitlab://tools. Cada entrada se despliega a su descripción completa y sus parámetros obligatorios.",
+    domainBackToCard: "Volver a la ficha del servidor",
+    domainFilterLabel: "Filtrar las acciones de este dominio",
+    domainFilterPlaceholder: "Escribe para filtrar por id, título o descripción…",
+    domainFilterCount: "{shown} de {total} acciones",
+    domainFilterNoMatch: "Ninguna acción coincide. Borra el filtro para ver la lista completa.",
+    domainChipDestructive: "destructiva",
+    domainChipReadOnly: "solo lectura",
+    domainToggleDestructive: "Solo destructivas",
+    domainToggleReadOnly: "Solo de lectura",
+    domainParamsLabel: "Parámetros obligatorios",
+    domainNoParams: "Sin parámetros obligatorios",
   },
 } as const;
