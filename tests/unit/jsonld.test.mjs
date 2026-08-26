@@ -15,7 +15,8 @@ import { test } from "node:test";
 
 import { serverCards } from "../../src/data/server-cards.ts";
 import { servers } from "../../src/data/servers.ts";
-import { PAGE_PATHS, pageUrl, serverPageUrl } from "../../src/lib/seo.ts";
+import {
+  actionsDomainPageUrl, PAGE_PATHS, pageUrl, serverPageUrl } from "../../src/lib/seo.ts";
 
 // The build only creates a detail page for a server with a committed card
 // (`servers.filter((server) => serverCards[server.id])` in `src/lib/llms.ts`
@@ -413,6 +414,17 @@ function pageInfoFor(htmlPath) {
   if (serverMatch) {
     return { lang, page: "servers", serverId: serverMatch[1] };
   }
+  // Página de dominio de acciones: comparte page "servers" con la ficha pero
+  // NO su identidad — ni serverId (no re-emite el WebAPI) ni la URL fija.
+  const domainMatch = /^servers\/([^/]+)\/actions\/([^/]+)\/index\.html$/.exec(rest);
+  if (domainMatch) {
+    return {
+      lang,
+      page: "servers",
+      serverId: undefined,
+      actionsDomain: { serverId: domainMatch[1], domain: domainMatch[2] },
+    };
+  }
   const page = Object.entries(PAGE_PATHS).find(
     ([, segment]) => `${segment}index.html` === rest,
   )?.[0];
@@ -429,10 +441,17 @@ test("cada WebPage lleva SU url y SU @id, no los de la portada ni los del índic
   // `pageUrl(lang)` a secas. Una ficha de servidor tiene el mismo riesgo
   // frente al ÍNDICE `/servers/`, porque comparten `page: "servers"`.
   for (const htmlPage of htmlPages()) {
-    const { lang, page, serverId } = pageInfoFor(htmlPage);
+    const { lang, page, serverId, actionsDomain } = pageInfoFor(htmlPage);
     const graph = graphOf(htmlPage);
     const webpage = graph.find((n) => n["@type"] === "WebPage");
-    const expectedUrl = serverId ? serverPageUrl(lang, serverId) : pageUrl(lang, page);
+    let expectedUrl = pageUrl(lang, page);
+    if (serverId) expectedUrl = serverPageUrl(lang, serverId);
+    if (actionsDomain)
+      expectedUrl = actionsDomainPageUrl(
+        lang,
+        actionsDomain.serverId,
+        actionsDomain.domain,
+      );
     assert.equal(
       webpage.url,
       expectedUrl,
