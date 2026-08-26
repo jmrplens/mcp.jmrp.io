@@ -220,6 +220,15 @@ function domainHref(target: string): string {
     font-size: var(--text-sm);
   }
 
+  /* Cada dato es su propio inline-flex con hueco: sin esto el punto de la
+     leyenda quedaba pegado al número ("●24") — el espacio en blanco del
+     markup no sobrevive al minificador. */
+  .fact {
+    display: inline-flex;
+    gap: 0.4rem;
+    align-items: center;
+  }
+
   .fact--destructive {
     color: var(--color-danger);
   }
