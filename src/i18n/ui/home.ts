@@ -67,23 +67,7 @@ export const home = {
     machineIndex: "Machine-readable index",
     /** Same idea as `machineIndex`, for the `/llms.txt` pointer below it. */
     machineLlms: "Context index for AI assistants",
-    // Comparison table strings. The table answers the question that actually
-    // brings people to a hosted MCP endpoint — "which of these two do I
-    // want?" — and it is a table on purpose: AI Overviews extracts tables
-    // directly, and this page had none.
-    compareHead: "Which of the two do I want?",
-    compareIntro:
-      "Both speak the same protocol over the same transport. What differs is what they reach and whether they ask you for a credential.",
-    compareAttribute: "",
-    compareEndpoint: "Endpoint",
-    compareCredential: "Credential",
-    compareTools: "Tools",
-    compareTransport: "Transport",
-    compareCovers: "Reaches",
-    compareNoCredential: "None — it is public",
-    compareTransportValue: "streamable HTTP, stateless",
-    compareCoversLibgen: "Books and papers: open-access providers plus shadow-library sources",
-    compareCoversGitlab: "Any GitLab instance, over its REST API",
+
     repository: "Repository",
     documentation: "Documentation",
     credentialsRequired: "Credentials required",
@@ -142,19 +126,6 @@ export const home = {
     machineIndex: "Índice para máquinas",
     /** Ver `en.machineLlms`: mismo patrón para el puntero a `/llms.txt`. */
     machineLlms: "Índice de contexto para asistentes de IA",
-    compareHead: "¿Cuál de los dos quiero?",
-    compareIntro:
-      "Los dos hablan el mismo protocolo sobre el mismo transporte. Lo que cambia es hasta dónde llegan y si te piden una credencial.",
-    compareAttribute: "",
-    compareEndpoint: "Endpoint",
-    compareCredential: "Credencial",
-    compareTools: "Tools",
-    compareTransport: "Transporte",
-    compareCovers: "Alcance",
-    compareNoCredential: "Ninguna — es público",
-    compareTransportValue: "streamable HTTP, sin estado",
-    compareCoversLibgen: "Libros y artículos: proveedores de acceso abierto y fuentes de bibliotecas en la sombra",
-    compareCoversGitlab: "Cualquier instancia de GitLab, por su API REST",
     repository: "Repositorio",
     documentation: "Documentación",
     credentialsRequired: "Requiere credenciales",

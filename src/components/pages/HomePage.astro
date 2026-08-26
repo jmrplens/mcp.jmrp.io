@@ -55,17 +55,24 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
       (Ruling R6 — see the comment on `home.tryInBrowser`). */}
   <p class="try-inspector">
     <a href={inspectorHref}>{t.tryInBrowser}</a>
-    {/* Second, quieter entry to `/internals/`. The callout further down is
-        the page's real invitation, but it lands ~3 screens in on a phone —
-        measured — and "what actually happens to my request?" is a question
-        a visitor has BEFORE they scroll past two server cards and a
-        comparison table. Same string as the callout's link on purpose: two
-        entries to one page should not read as two different places. */}
-    <a
-      class="try-internals"
-      href={internalsHref}>{t.internalsLink}</a>
   </p>
 </section>
+
+{/* The `/internals/` invitation, between the hero and the servers. It sat
+    after the two server cards until the comparison table was removed and the
+    measurement was taken again: even then it landed 2.46 screens down on a
+    390px phone, which is past where most visitors stop. The question it
+    answers — what happens to my request, and to my token — is one a reader
+    has BEFORE pasting a credential into anything, so it now precedes the
+    cards rather than following them. */}
+  <aside class="internals-callout">
+    <p class="internals-callout-eyebrow">{t.internalsEyebrow}</p>
+    <p class="internals-callout-title">{t.internalsTitle}</p>
+    <p class="internals-callout-lead">{t.internalsLead}</p>
+    <p class="internals-callout-link">
+      <a href={internalsHref}>{t.internalsLink}</a>
+    </p>
+  </aside>
 
 <section aria-labelledby="servers-h">
   {/* h2 y no p: eran rótulos decorativos y la página colgaba 734 palabras de
@@ -78,74 +85,7 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
   <div class="grid">
     {servers.map((s) => <ServerCard server={s} lang={lang} />)}
   </div>
-  {/* A real <table>, not a styled grid, and built from `servers` rather than
-      hand-written: adding a third MCP must not mean editing markup.
-      It exists because the page had zero tables and this is the question that
-      actually brings people to a hosted endpoint — "which of these two do I
-      want?". AI Overviews lifts tables straight out of the page, and a
-      two-item comparison is exactly the shape it takes. */}
-  <table class="compare">
-    <caption>{t.compareHead}</caption>
-    <thead>
-      <tr>
-        <th scope="col">{t.compareAttribute}</th>
-        {servers.map((s) => <th scope="col">{s.name}</th>)}
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <th scope="row">{t.compareCredential}</th>
-        {
-          servers.map((s) => (
-            <td>
-              {s.requiredHeaders.length > 0
-                ? s.requiredHeaders.map((h) => h.name).join(", ")
-                : t.compareNoCredential}
-            </td>
-          ))
-        }
-      </tr>
-      <tr>
-        <th scope="row">{t.compareCovers}</th>
-        {
-          servers.map((s) => (
-            <td>{s.id === "libgen" ? t.compareCoversLibgen : t.compareCoversGitlab}</td>
-          ))
-        }
-      </tr>
-      <tr>
-        <th scope="row">{t.compareTools}</th>
-        {servers.map((s) => <td>{s.tools.length}</td>)}
-      </tr>
-      <tr>
-        <th scope="row">{t.compareEndpoint}</th>
-        {
-          servers.map((s) => (
-            <td><code>{s.endpoint}</code></td>
-          ))
-        }
-      </tr>
-      <tr>
-        <th scope="row">{t.compareTransport}</th>
-        {servers.map(() => <td>{t.compareTransportValue}</td>)}
-      </tr>
-    </tbody>
-  </table>
 
-  {/* Callout to `/internals/`. It sits AFTER the servers block on purpose:
-      the question it answers ("what happens to my request, and to my
-      token?") is one a visitor only asks once they know what these servers
-      are, and putting it in the hero would have competed with the
-      inspector link for the one action above the fold. Before this, the
-      page never linked the page at all — only the header nav did. */}
-  <aside class="internals-callout">
-    <p class="internals-callout-eyebrow">{t.internalsEyebrow}</p>
-    <p class="internals-callout-title">{t.internalsTitle}</p>
-    <p class="internals-callout-lead">{t.internalsLead}</p>
-    <p class="internals-callout-link">
-      <a href={internalsHref}>{t.internalsLink}</a>
-    </p>
-  </aside>
 
   <p class="machine">
     <a href="/servers.json"><code>/servers.json</code></a>
@@ -346,15 +286,9 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
     text-underline-offset: 3px;
   }
 
-  /* Same look as `.machine`: small mono pointers out of the hero. Two of
-     them now — the inspector and `/internals/` — so this is a wrapping flex
-     row rather than a plain paragraph: at 360px the pair stacks instead of
-     pushing the second link off the line. */
+  /* Same look as `.machine`: a small mono pointer out of the hero, this one
+     to the inspector's own page instead of a machine-readable file. */
   .try-inspector {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem 1.25rem;
-    align-items: baseline;
     margin: 0.9rem 0 0;
     color: var(--color-text-muted);
     font-size: 0.8125rem;
@@ -371,64 +305,11 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
     text-underline-offset: 3px;
   }
 
-  /* The quieter of the two: the inspector stays the hero's primary call.
-     Specificity, not `!important` — `.try-inspector a` above paints both
-     links accent, and this pair of classes simply outranks it. */
-  .try-inspector a.try-internals {
-    color: var(--color-text-muted);
-  }
 
-  /* Wide content scrolls inside its own container: the page body must never
-     scroll horizontally on a phone. */
-  .compare {
-    display: block;
-    max-width: 100%;
-    margin: 1.75rem 0 0;
-    overflow-x: auto;
-    border-collapse: collapse;
-    font-size: 0.85rem;
-    white-space: nowrap;
-  }
 
-  .compare caption {
-    margin-bottom: 0.75rem;
-    color: var(--color-text-heading);
-    font-family: var(--font-display);
-    font-size: 1.05rem;
-    font-weight: 700;
-    text-align: start;
-  }
 
-  .compare th,
-  .compare td {
-    padding: 0.5rem 0.9rem;
-    border-bottom: 1px solid var(--color-hair);
-    text-align: start;
-    vertical-align: top;
-  }
 
-  .compare thead th {
-    color: var(--color-text-heading);
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-  }
 
-  .compare tbody th {
-    color: var(--color-text-muted);
-    font-size: 0.8rem;
-    font-weight: 600;
-  }
 
-  .compare td {
-    color: var(--color-text);
-    /* The reach cells are full sentences: they need to wrap even though the
-       table as a whole is nowrap for the endpoint column. */
-    white-space: normal;
-  }
 
-  .compare code {
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    overflow-wrap: anywhere;
-  }
 </style>
