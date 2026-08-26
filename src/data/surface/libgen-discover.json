@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "endpoint": "https://mcp.jmrp.io/libgen/mcp",
+    "method": "server/discover",
+    "protocolVersion": "2026-07-28",
+    "generatedAt": "2026-08-26T08:09:35Z"
+  },
+  "serverInfo": {
+    "name": "libgen-mcp",
+    "title": "Books & Papers MCP Server",
+    "description": "Federated search of books and papers, BibTeX/RIS citations, open-access retrieval and reading.",
+    "version": "1.7.0",
+    "websiteUrl": "https://jmrp.io/docs/libgen-mcp"
+  },
+  "supportedVersions": [
+    "2026-07-28",
+    "2025-11-25",
+    "2025-06-18",
+    "2025-03-26",
+    "2024-11-05"
+  ],
+  "capabilities": {
+    "prompts": {
+      "listChanged": true
+    },
+    "tools": {
+      "listChanged": true
+    }
+  },
+  "instructions": "libgen-mcp searches, retrieves and reads books, papers, comics, magazines and standards — no account or API key needed for any tool.\n\nWORKFLOW — the tools chain by identifier: search returns each record's md5 (books) or doi (articles); carry that identifier into the next call.\n1. search — find candidate records across the catalog and, when needed, open-access sources.\n2. get_details — full metadata and a ready-to-paste BibTeX/RIS citation for a record you already identified; it does not fetch the file. Use it whenever a citation is requested.\n3. download — save the file by md5 (book), doi (article) or isbn (openly licensed book sources); resolve_only=true returns a link without saving.\n4. read — extract, paginate, search within (find) or outline a file's text by the same md5/doi (or a local path); it fetches the file itself, so it does not require calling download first.\n\nPROMPTS — acquire_book, research_topic, get_paper and download_troubleshoot wrap these tools into ready-made, step-by-step workflows. Prefer one of them over calling the tools ad hoc when the user's request matches its shape.",
+  "ttlMs": 3600000,
+  "cacheScope": "public"
+}

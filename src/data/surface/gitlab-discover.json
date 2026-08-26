@@ -1,0 +1,38 @@
+{
+  "meta": {
+    "endpoint": "https://mcp.jmrp.io/gitlab/mcp",
+    "method": "server/discover",
+    "protocolVersion": "2026-07-28",
+    "generatedAt": "2026-08-26T08:09:35Z"
+  },
+  "serverInfo": {
+    "name": "gitlab-mcp-server",
+    "title": "GitLab MCP Server",
+    "description": "Model Context Protocol server for GitLab: projects, issues, merge requests, pipelines, repositories, releases, groups, and admin workflows over the GitLab REST and GraphQL APIs.",
+    "version": "2.7.1",
+    "websiteUrl": "https://jmrp.io/docs/gitlab-mcp-server"
+  },
+  "supportedVersions": [
+    "2026-07-28",
+    "2025-11-25",
+    "2025-06-18",
+    "2025-03-26",
+    "2024-11-05"
+  ],
+  "capabilities": {
+    "completions": {},
+    "prompts": {
+      "listChanged": true
+    },
+    "resources": {
+      "listChanged": true,
+      "subscribe": true
+    },
+    "tools": {
+      "listChanged": true
+    }
+  },
+  "instructions": "gitlab-mcp-server exposes GitLab projects, merge requests, issues, branches, tags, releases, repositories, commits, files, groups, members, and uploads.\n\nFINDING TOOLS — This server exposes two tools that reach the whole GitLab API:\n1. Call gitlab_find_action with a natural-language description of the task to get matching action IDs and their input schemas.\n2. Call gitlab_execute_action with that action ID, its parameters under 'params'.\n3. Every action=\"...\" named below is a canonical action ID: pass it to gitlab_execute_action directly, no find step needed.\n\nPROJECT DISCOVERY — To find the project_id needed for most operations:\n1. Read the .git/config file from the workspace to find [remote \"origin\"] url = ...\n2. Call action=\"discover_project.resolve\" with that URL to get the project_id.\n3. Alternatively, use action=\"project.list\" (owned=true) or action=\"search.projects\" to find projects by name.\n\nDEFAULT BRANCH — When generating URLs to repository files or branches:\n1. Call action=\"project.get\" to retrieve the project metadata, which includes the default_branch field.\n2. ALWAYS use the returned default_branch value (e.g. develop, master) instead of assuming 'main'.\n3. Projects can use any branch as default, so NEVER hardcode 'main' in URLs.\n\nPACKAGE + RELEASE WORKFLOW — When uploading packages and linking them to releases:\n1. Preferred: Use action=\"package.publish_and_link\" to upload a file and create the release link in one step.\n2. Alternative: Use action=\"package.publish\" first, then use the 'url' field from its response as the URL for action=\"release.link_create\".\n3. NEVER construct package download URLs manually — always use the actual URL returned by the publish tool.\n4. RELEASE LINK NAMING: The link_name MUST be the exact filename (e.g. 'checksums.txt.asc'), NEVER add descriptive suffixes like '(GPG signature)'. go-selfupdate and other tools match asset names exactly.\n\nRELEASE CREATION — When creating releases:\n1. You do NOT need to create the tag first. Provide 'ref' (branch or SHA) in action=\"release.create\" and GitLab auto-creates the tag.\n2. The response includes 'assets_sources' with auto-generated tar.gz/zip archive URLs — use those, never construct source archive URLs.\n3. Use 'tag_message' to create an annotated tag instead of a lightweight one.\n\nID vs IID — GitLab uses two identifiers for issues and merge requests:\n1. IID is the project-scoped number shown in URLs and UI (e.g. issue #3, MR !5). Most operations expect IID.\n2. ID is the global numeric identifier. Only use action=\"issue.get_by_id\" when you have a global ID from another API response.\n\nWATCHING RESOURCES — Instead of re-reading a resource in a loop to detect change:\n1. Single-object resources (a pipeline, an issue, a merge request, a file, a wiki page, ...) can be watched for change notifications via MCP subscriptions/listen (protocol 2026-07-28; the legacy resources/subscribe is refused on this transport); collections (issue lists, branch lists) cannot.\n2. Example: subscribe to gitlab://project/{project_id}/pipelines/latest to be notified when a pipeline's state changes, instead of polling it yourself — the server watches GitLab and sends notifications/resources/updated only when the content actually changed.",
+  "ttlMs": 300000,
+  "cacheScope": "private"
+}

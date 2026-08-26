@@ -1,0 +1,6169 @@
+{
+  "meta": {
+    "endpoint": "https://mcp.jmrp.io/gitlab/mcp",
+    "resourceUri": "gitlab://tools",
+    "surface": "dynamic",
+    "uriTemplate": "gitlab://tools/{id}",
+    "sourceVersion": "2.7.1",
+    "entryCount": 852,
+    "actionCount": 851,
+    "visibleTools": [
+      {
+        "name": "gitlab_execute_action",
+        "title": "GitLab Execute Action",
+        "destructive": true,
+        "read_only": false
+      },
+      {
+        "name": "gitlab_find_action",
+        "title": "GitLab Find Action",
+        "destructive": false,
+        "read_only": true
+      }
+    ],
+    "ttlMs": 300000,
+    "cacheScope": "private",
+    "generatedAt": "2026-08-26T07:42:35Z"
+  },
+  "domains": [
+    {
+      "domain": "access",
+      "count": 48,
+      "destructiveCount": 9,
+      "readOnlyCount": 19
+    },
+    {
+      "domain": "admin",
+      "count": 92,
+      "destructiveCount": 18,
+      "readOnlyCount": 41
+    },
+    {
+      "domain": "branch",
+      "count": 11,
+      "destructiveCount": 3,
+      "readOnlyCount": 5
+    },
+    {
+      "domain": "ci_catalog",
+      "count": 2,
+      "destructiveCount": 0,
+      "readOnlyCount": 2
+    },
+    {
+      "domain": "ci_variable",
+      "count": 15,
+      "destructiveCount": 3,
+      "readOnlyCount": 6
+    },
+    {
+      "domain": "custom_emoji",
+      "count": 3,
+      "destructiveCount": 1,
+      "readOnlyCount": 1
+    },
+    {
+      "domain": "discover_project",
+      "count": 1,
+      "destructiveCount": 0,
+      "readOnlyCount": 1
+    },
+    {
+      "domain": "environment",
+      "count": 18,
+      "destructiveCount": 4,
+      "readOnlyCount": 7
+    },
+    {
+      "domain": "feature_flags",
+      "count": 10,
+      "destructiveCount": 2,
+      "readOnlyCount": 4
+    },
+    {
+      "domain": "group",
+      "count": 75,
+      "destructiveCount": 13,
+      "readOnlyCount": 32
+    },
+    {
+      "domain": "interactive",
+      "count": 4,
+      "destructiveCount": 0,
+      "readOnlyCount": 0
+    },
+    {
+      "domain": "issue",
+      "count": 59,
+      "destructiveCount": 7,
+      "readOnlyCount": 31
+    },
+    {
+      "domain": "job",
+      "count": 25,
+      "destructiveCount": 5,
+      "readOnlyCount": 13
+    },
+    {
+      "domain": "merge_request",
+      "count": 46,
+      "destructiveCount": 7,
+      "readOnlyCount": 23
+    },
+    {
+      "domain": "model_registry",
+      "count": 1,
+      "destructiveCount": 0,
+      "readOnlyCount": 1
+    },
+    {
+      "domain": "mr_review",
+      "count": 23,
+      "destructiveCount": 3,
+      "readOnlyCount": 10
+    },
+    {
+      "domain": "package",
+      "count": 29,
+      "destructiveCount": 8,
+      "readOnlyCount": 12
+    },
+    {
+      "domain": "pipeline",
+      "count": 33,
+      "destructiveCount": 4,
+      "readOnlyCount": 15
+    },
+    {
+      "domain": "project",
+      "count": 123,
+      "destructiveCount": 24,
+      "readOnlyCount": 50
+    },
+    {
+      "domain": "release",
+      "count": 12,
+      "destructiveCount": 2,
+      "readOnlyCount": 5
+    },
+    {
+      "domain": "repository",
+      "count": 41,
+      "destructiveCount": 2,
+      "readOnlyCount": 27
+    },
+    {
+      "domain": "runner",
+      "count": 19,
+      "destructiveCount": 4,
+      "readOnlyCount": 8
+    },
+    {
+      "domain": "search",
+      "count": 10,
+      "destructiveCount": 0,
+      "readOnlyCount": 10
+    },
+    {
+      "domain": "server",
+      "count": 2,
+      "destructiveCount": 0,
+      "readOnlyCount": 2
+    },
+    {
+      "domain": "snippet",
+      "count": 34,
+      "destructiveCount": 6,
+      "readOnlyCount": 17
+    },
+    {
+      "domain": "storage_move",
+      "count": 12,
+      "destructiveCount": 0,
+      "readOnlyCount": 8
+    },
+    {
+      "domain": "tag",
+      "count": 9,
+      "destructiveCount": 2,
+      "readOnlyCount": 5
+    },
+    {
+      "domain": "template",
+      "count": 12,
+      "destructiveCount": 0,
+      "readOnlyCount": 12
+    },
+    {
+      "domain": "user",
+      "count": 76,
+      "destructiveCount": 14,
+      "readOnlyCount": 37
+    },
+    {
+      "domain": "wiki",
+      "count": 6,
+      "destructiveCount": 1,
+      "readOnlyCount": 2
+    }
+  ],
+  "entries": [
+    {
+      "id": "access.approve_group",
+      "title": "Access Request Approve Group",
+      "domain": "access",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "access.approve_project",
+      "title": "Access Request Approve Project",
+      "domain": "access",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "access.deny_group",
+      "title": "Access Request Deny Group",
+      "domain": "access",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "access.deny_project",
+      "title": "Access Request Deny Project",
+      "domain": "access",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "access.deploy_key_add",
+      "title": "Deploy Key Add",
+      "domain": "access",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "access.deploy_key_add_instance",
+      "title": "Deploy Key Add Instance",
+      "domain": "access",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "access.deploy_key_delete",
+      "title": "Deploy Key Delete",
+      "domain": "access",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "access.deploy_key_enable",
+      "title": "Deploy Key Enable",
+      "domain": "access",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "access.deploy_key_get",
+      "title": "Deploy Key Get",
+      "domain": "access",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "access.deploy_key_list_all",
+      "title": "Deploy Key List All",
+      "domain": "access",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "access.deploy_key_list_project",
+      "title": "Deploy Key List Project",
+      "domain": "access",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "access.deploy_key_list_user_project",
+      "title": "Deploy Key List User Project",
+      "domain": "access",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "access.deploy_key_update",
+      "title": "Deploy Key Update",
+      "domain": "access",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "access.deploy_token_create_group",
+      "title": "Deploy Token Create Group",
+      "domain": "access",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "access.deploy_token_create_project",
+      "title": "Deploy Token Create Project",
+      "domain": "access",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "access.deploy_token_delete_group",
+      "title": "Deploy Token Delete Group",
+      "domain": "access",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "access.deploy_token_delete_project",
+      "title": "Deploy Token Delete Project",
+      "domain": "access",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "access.deploy_token_get_group",
+      "title": "Deploy Token Get Group",
+      "domain": "access",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "access.deploy_token_get_project",
+      "title": "Deploy Token Get Project",
+      "domain": "access",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "access.deploy_token_list_all",
+      "title": "Deploy Token List All",
+      "domain": "access",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "access.deploy_token_list_group",
+      "title": "Deploy Token List Group",
+      "domain": "access",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "access.deploy_token_list_project",
+      "title": "Deploy Token List Project",
+      "domain": "access",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "access.invite_group",
+      "title": "Group Invite",
+      "domain": "access",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "access.invite_list_group",
+      "title": "Group Invite List Pending",
+      "domain": "access",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "access.invite_list_project",
+      "title": "Project Invite List Pending",
+      "domain": "access",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "access.invite_project",
+      "title": "Project Invite",
+      "domain": "access",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "access.request_group",
+      "title": "Access Request Request Group",
+      "domain": "access",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "access.request_list_group",
+      "title": "Access Request List Group",
+      "domain": "access",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "access.request_list_project",
+      "title": "Access Request List Project",
+      "domain": "access",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "access.request_project",
+      "title": "Access Request Request Project",
+      "domain": "access",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "access.token_group_create",
+      "title": "Group Access Token Create",
+      "domain": "access",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "access.token_group_get",
+      "title": "Group Access Token Get",
+      "domain": "access",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "access.token_group_list",
+      "title": "Group Access Token List",
+      "domain": "access",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "access.token_group_revoke",
+      "title": "Group Access Token Revoke",
+      "domain": "access",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "access.token_group_rotate",
+      "title": "Group Access Token Rotate",
+      "domain": "access",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "access.token_group_rotate_self",
+      "title": "Group Access Token Rotate Self",
+      "domain": "access",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "access.token_personal_get",
+      "title": "Personal Access Token Get",
+      "domain": "access",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "access.token_personal_list",
+      "title": "Personal Access Token List",
+      "domain": "access",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "access.token_personal_revoke",
+      "title": "Personal Access Token Revoke",
+      "domain": "access",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "access.token_personal_revoke_self",
+      "title": "Personal Access Token Revoke Self",
+      "domain": "access",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "access.token_personal_rotate",
+      "title": "Personal Access Token Rotate",
+      "domain": "access",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "access.token_personal_rotate_self",
+      "title": "Personal Access Token Rotate Self",
+      "domain": "access",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "access.token_project_create",
+      "title": "Project Access Token Create",
+      "domain": "access",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "access.token_project_get",
+      "title": "Project Access Token Get",
+      "domain": "access",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "access.token_project_list",
+      "title": "Project Access Token List",
+      "domain": "access",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "access.token_project_revoke",
+      "title": "Project Access Token Revoke",
+      "domain": "access",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "access.token_project_rotate",
+      "title": "Project Access Token Rotate",
+      "domain": "access",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "access.token_project_rotate_self",
+      "title": "Project Access Token Rotate Self",
+      "domain": "access",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.alert_metric_image_delete",
+      "title": "Delete Alert Metric Image",
+      "domain": "admin",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "admin.alert_metric_image_list",
+      "title": "List Alert Metric Images",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.alert_metric_image_update",
+      "title": "Update Alert Metric Image",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.alert_metric_image_upload",
+      "title": "Upload Alert Metric Image",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.app_statistics_get",
+      "title": "Get Application Statistics",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.appearance_get",
+      "title": "Get Appearance",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.appearance_update",
+      "title": "Update Appearance",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.application_create",
+      "title": "Create Application",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.application_delete",
+      "title": "Delete Application",
+      "domain": "admin",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "admin.application_list",
+      "title": "List Applications",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.application_renew_secret",
+      "title": "Renew Application Secret",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.broadcast_message_create",
+      "title": "Create Broadcast Message",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.broadcast_message_delete",
+      "title": "Delete Broadcast Message",
+      "domain": "admin",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "admin.broadcast_message_get",
+      "title": "Get Broadcast Message",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.broadcast_message_list",
+      "title": "List Broadcast Messages",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.broadcast_message_update",
+      "title": "Update Broadcast Message",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.bulk_import_cancel",
+      "title": "Cancel Bulk Import",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.bulk_import_entity_failures",
+      "title": "List Bulk Import Entity Failures",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.bulk_import_entity_get",
+      "title": "Get Bulk Import Entity",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.bulk_import_entity_list",
+      "title": "List Bulk Import Entities",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.bulk_import_get",
+      "title": "Get Bulk Import",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.bulk_import_list",
+      "title": "List Bulk Imports",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.bulk_import_start",
+      "title": "Start Bulk Import",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.cluster_agent_delete",
+      "title": "Delete Cluster Agent",
+      "domain": "admin",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "admin.cluster_agent_get",
+      "title": "Get Cluster Agent",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.cluster_agent_list",
+      "title": "List Cluster Agents",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.cluster_agent_register",
+      "title": "Register Cluster Agent",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.cluster_agent_token_create",
+      "title": "Create Cluster Agent Token",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.cluster_agent_token_get",
+      "title": "Get Cluster Agent Token",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.cluster_agent_token_list",
+      "title": "List Cluster Agent Tokens",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.cluster_agent_token_revoke",
+      "title": "Revoke Cluster Agent Token",
+      "domain": "admin",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "admin.custom_attr_delete",
+      "title": "Delete Custom Attribute",
+      "domain": "admin",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "admin.custom_attr_get",
+      "title": "Get Custom Attribute",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.custom_attr_list",
+      "title": "List Custom Attributes",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.custom_attr_set",
+      "title": "Set Custom Attribute",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.db_migration_mark",
+      "title": "Mark Migration",
+      "domain": "admin",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "admin.dependency_proxy_delete",
+      "title": "Purge Dependency Proxy",
+      "domain": "admin",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "admin.error_tracking_create",
+      "title": "Create Error Tracking Client Key",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.error_tracking_delete",
+      "title": "Delete Error Tracking Client Key",
+      "domain": "admin",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "admin.error_tracking_get_settings",
+      "title": "Get Error Tracking Settings",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.error_tracking_list",
+      "title": "List Error Tracking Client Keys",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.error_tracking_update_settings",
+      "title": "Enable Disable Error Tracking",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.feature_delete",
+      "title": "Delete Feature Flag",
+      "domain": "admin",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "admin.feature_list",
+      "title": "List Features",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.feature_list_definitions",
+      "title": "List Feature Definitions",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.feature_set",
+      "title": "Set Feature Flag",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.import_bitbucket",
+      "title": "Import From Bitbucket Cloud",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.import_bitbucket_server",
+      "title": "Import From Bitbucket Server",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.import_cancel_github",
+      "title": "Cancel Github Import",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.import_gists",
+      "title": "Import Github Gists",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.import_github",
+      "title": "Import From Github",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.license_add",
+      "title": "Add License",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.license_delete",
+      "title": "Delete License",
+      "domain": "admin",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "admin.license_get",
+      "title": "Get License",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.metadata_get",
+      "title": "Get Metadata",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.plan_limits_change",
+      "title": "Change Plan Limits",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.plan_limits_get",
+      "title": "Get Plan Limits",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.secure_file_create",
+      "title": "Create Secure File",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.secure_file_delete",
+      "title": "Remove Secure File",
+      "domain": "admin",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "admin.secure_file_get",
+      "title": "Show Secure File",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.secure_file_list",
+      "title": "List Secure Files",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.settings_get",
+      "title": "Get Settings",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.settings_update",
+      "title": "Update Settings",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.sidekiq_compound_metrics",
+      "title": "Get Sidekiq Compound Metrics",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.sidekiq_job_stats",
+      "title": "Get Sidekiq Job Stats",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.sidekiq_process_metrics",
+      "title": "Get Sidekiq Process Metrics",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.sidekiq_queue_metrics",
+      "title": "Get Sidekiq Queue Metrics",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.system_hook_add",
+      "title": "Add System Hook",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.system_hook_delete",
+      "title": "Delete System Hook",
+      "domain": "admin",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "admin.system_hook_delete_url_variable",
+      "title": "Delete System Hook URL Variable",
+      "domain": "admin",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "admin.system_hook_edit",
+      "title": "Edit System Hook",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.system_hook_get",
+      "title": "Get System Hook",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.system_hook_list",
+      "title": "List System Hooks",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.system_hook_set_url_variable",
+      "title": "Set System Hook URL Variable",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.system_hook_test",
+      "title": "Test System Hook",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.terraform_state_delete",
+      "title": "Delete Terraform State",
+      "domain": "admin",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "admin.terraform_state_get",
+      "title": "Get Terraform State",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.terraform_state_list",
+      "title": "List Terraform States",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.terraform_state_lock",
+      "title": "Lock Terraform State",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.terraform_state_unlock",
+      "title": "Unlock Terraform State",
+      "domain": "admin",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "admin.terraform_version_delete",
+      "title": "Delete Terraform State Version",
+      "domain": "admin",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "admin.topic_create",
+      "title": "Create Topic",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.topic_delete",
+      "title": "Delete Topic",
+      "domain": "admin",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "admin.topic_get",
+      "title": "Get Topic",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.topic_list",
+      "title": "List Topics",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.topic_update",
+      "title": "Update Topic",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.usage_data_metric_definitions",
+      "title": "Get Metric Definitions",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.usage_data_non_sql_metrics",
+      "title": "Get Non Sql Metrics",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.usage_data_queries",
+      "title": "Get Usage Queries",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.usage_data_service_ping",
+      "title": "Get Service Ping",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "admin.usage_data_track_event",
+      "title": "Track Event",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "admin.usage_data_track_events",
+      "title": "Track Events",
+      "domain": "admin",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "branch.create",
+      "title": "Branch Create",
+      "domain": "branch",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "branch.delete",
+      "title": "Branch Delete",
+      "domain": "branch",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "branch.delete_merged",
+      "title": "Branch Delete Merged",
+      "domain": "branch",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "branch.get",
+      "title": "Branch Get",
+      "domain": "branch",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "branch.get_protected",
+      "title": "Protected Branch Get",
+      "domain": "branch",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "branch.list",
+      "title": "Branch List",
+      "domain": "branch",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "branch.list_protected",
+      "title": "Protected Branches List",
+      "domain": "branch",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "branch.protect",
+      "title": "Branch Protect",
+      "domain": "branch",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "branch.rule_list",
+      "title": "List Branch Rules",
+      "domain": "branch",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "branch.unprotect",
+      "title": "Branch Unprotect",
+      "domain": "branch",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "branch.update_protected",
+      "title": "Protected Branch Update",
+      "domain": "branch",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "ci_catalog.get",
+      "title": "Get Catalog Resource",
+      "domain": "ci_catalog",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "ci_catalog.list",
+      "title": "List Catalog Resources",
+      "domain": "ci_catalog",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "ci_variable.create",
+      "title": "CI Variable Create",
+      "domain": "ci_variable",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "ci_variable.delete",
+      "title": "CI Variable Delete",
+      "domain": "ci_variable",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "ci_variable.get",
+      "title": "CI Variable Get",
+      "domain": "ci_variable",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "ci_variable.group_create",
+      "title": "Group Variable Create",
+      "domain": "ci_variable",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "ci_variable.group_delete",
+      "title": "Group Variable Delete",
+      "domain": "ci_variable",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "ci_variable.group_get",
+      "title": "Group Variable Get",
+      "domain": "ci_variable",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "ci_variable.group_list",
+      "title": "Group Variable List",
+      "domain": "ci_variable",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "ci_variable.group_update",
+      "title": "Group Variable Update",
+      "domain": "ci_variable",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "ci_variable.instance_create",
+      "title": "Instance Variable Create",
+      "domain": "ci_variable",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "ci_variable.instance_delete",
+      "title": "Instance Variable Delete",
+      "domain": "ci_variable",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "ci_variable.instance_get",
+      "title": "Instance Variable Get",
+      "domain": "ci_variable",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "ci_variable.instance_list",
+      "title": "Instance Variable List",
+      "domain": "ci_variable",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "ci_variable.instance_update",
+      "title": "Instance Variable Update",
+      "domain": "ci_variable",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "ci_variable.list",
+      "title": "CI Variable List",
+      "domain": "ci_variable",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "ci_variable.update",
+      "title": "CI Variable Update",
+      "domain": "ci_variable",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "custom_emoji.create",
+      "title": "Create Custom Emoji",
+      "domain": "custom_emoji",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "custom_emoji.delete",
+      "title": "Delete Custom Emoji",
+      "domain": "custom_emoji",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "custom_emoji.list",
+      "title": "List Custom Emoji",
+      "domain": "custom_emoji",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "discover_project.resolve",
+      "title": "Discover Project",
+      "domain": "discover_project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "environment.create",
+      "title": "Environment Create",
+      "domain": "environment",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "environment.delete",
+      "title": "Environment Delete",
+      "domain": "environment",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "environment.deployment_approve_or_reject",
+      "title": "Deployment Approve Or Reject",
+      "domain": "environment",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "environment.deployment_create",
+      "title": "Deployment Create",
+      "domain": "environment",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "environment.deployment_delete",
+      "title": "Deployment Delete",
+      "domain": "environment",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "environment.deployment_get",
+      "title": "Deployment Get",
+      "domain": "environment",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "environment.deployment_list",
+      "title": "Deployment List",
+      "domain": "environment",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "environment.deployment_merge_requests",
+      "title": "List Deployment Merge Requests",
+      "domain": "environment",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "environment.deployment_update",
+      "title": "Deployment Update",
+      "domain": "environment",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "environment.freeze_create",
+      "title": "Create Freeze Period",
+      "domain": "environment",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "environment.freeze_delete",
+      "title": "Delete Freeze Period",
+      "domain": "environment",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "environment.freeze_get",
+      "title": "Get Freeze Period",
+      "domain": "environment",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "environment.freeze_list",
+      "title": "List Freeze Periods",
+      "domain": "environment",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "environment.freeze_update",
+      "title": "Update Freeze Period",
+      "domain": "environment",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "environment.get",
+      "title": "Environment Get",
+      "domain": "environment",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "environment.list",
+      "title": "Environment List",
+      "domain": "environment",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "environment.stop",
+      "title": "Environment Stop",
+      "domain": "environment",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "environment.update",
+      "title": "Environment Update",
+      "domain": "environment",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "feature_flags.feature_flag_create",
+      "title": "Feature Flag Create",
+      "domain": "feature_flags",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "feature_flags.feature_flag_delete",
+      "title": "Feature Flag Delete",
+      "domain": "feature_flags",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "feature_flags.feature_flag_get",
+      "title": "Feature Flag Get",
+      "domain": "feature_flags",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "feature_flags.feature_flag_list",
+      "title": "Feature Flag List",
+      "domain": "feature_flags",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "feature_flags.feature_flag_update",
+      "title": "Feature Flag Update",
+      "domain": "feature_flags",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "feature_flags.ff_user_list_create",
+      "title": "Ff User List Create",
+      "domain": "feature_flags",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "feature_flags.ff_user_list_delete",
+      "title": "Ff User List Delete",
+      "domain": "feature_flags",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "feature_flags.ff_user_list_get",
+      "title": "Ff User List Get",
+      "domain": "feature_flags",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "feature_flags.ff_user_list_list",
+      "title": "Ff User List List",
+      "domain": "feature_flags",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "feature_flags.ff_user_list_update",
+      "title": "Ff User List Update",
+      "domain": "feature_flags",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.archive",
+      "title": "Group Archive",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.badge_add",
+      "title": "Add Group Badge",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.badge_delete",
+      "title": "Delete Group Badge",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "group.badge_edit",
+      "title": "Edit Group Badge",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.badge_get",
+      "title": "Get Group Badge",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.badge_list",
+      "title": "List Group Badges",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.badge_preview",
+      "title": "Preview Group Badge",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.create",
+      "title": "Group Create",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.delete",
+      "title": "Group Delete",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "group.get",
+      "title": "Group Get",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.group_board_create_list",
+      "title": "Group Board List Create",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.group_board_delete",
+      "title": "Group Board Delete",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "group.group_board_delete_list",
+      "title": "Group Board List Delete",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "group.group_board_get",
+      "title": "Group Board Get",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.group_board_get_list",
+      "title": "Group Board List Get",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.group_board_list",
+      "title": "Group Board List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.group_board_list_lists",
+      "title": "Group Board List Lists",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.group_board_update",
+      "title": "Group Board Update",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.group_board_update_list",
+      "title": "Group Board List Update",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.group_export_download",
+      "title": "Download Group Export",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.group_export_schedule",
+      "title": "Schedule Group Export",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.group_import_file",
+      "title": "Import Group From File",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.group_label_create",
+      "title": "Group Label Create",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.group_label_delete",
+      "title": "Group Label Delete",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "group.group_label_get",
+      "title": "Group Label Get",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.group_label_list",
+      "title": "Group Label List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.group_label_subscribe",
+      "title": "Group Label Subscribe",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.group_label_unsubscribe",
+      "title": "Group Label Unsubscribe",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.group_label_update",
+      "title": "Group Label Update",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.group_member_add",
+      "title": "Group Member Add",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.group_member_edit",
+      "title": "Group Member Edit",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.group_member_get",
+      "title": "Group Member Get",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.group_member_get_inherited",
+      "title": "Group Member Get Inherited",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.group_member_remove",
+      "title": "Group Member Remove",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "group.group_member_share",
+      "title": "Group Share",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.group_member_unshare",
+      "title": "Group Unshare",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "group.group_milestone_create",
+      "title": "Group Milestone Create",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.group_milestone_delete",
+      "title": "Group Milestone Delete",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "group.group_milestone_get",
+      "title": "Group Milestone Get",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.group_milestone_issues",
+      "title": "Group Milestone Issues",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.group_milestone_list",
+      "title": "Group Milestone List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.group_milestone_merge_requests",
+      "title": "Group Milestone Merge Requests",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.group_milestone_update",
+      "title": "Group Milestone Update",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.group_relations_list_status",
+      "title": "List Group Relations Export Status",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.group_relations_schedule",
+      "title": "Schedule Group Relations Export",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.group_upload_delete_by_id",
+      "title": "Delete Group Markdown Upload By ID",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "group.group_upload_delete_by_secret",
+      "title": "Delete Group Markdown Upload By Secret",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "group.group_upload_list",
+      "title": "List Group Markdown Uploads",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.invited_groups",
+      "title": "Group Invited List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.issues",
+      "title": "Issue List Group",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.list",
+      "title": "Group List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.members",
+      "title": "Group Members List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.projects",
+      "title": "Group Projects",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.release_list",
+      "title": "Group Release List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.restore",
+      "title": "Group Restore",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.search",
+      "title": "Group Search",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.service_account_create",
+      "title": "Group Service Account Create",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.service_account_delete",
+      "title": "Group Service Account Delete",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "group.service_account_list",
+      "title": "Group Service Account List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.service_account_pat_create",
+      "title": "Group Service Account Pat Create",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.service_account_pat_list",
+      "title": "Group Service Account Pat List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.service_account_pat_revoke",
+      "title": "Group Service Account Pat Revoke",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "group.service_account_pat_rotate",
+      "title": "Group Service Account Pat Rotate",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.service_account_update",
+      "title": "Group Service Account Update",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.share_with_group",
+      "title": "Group Share With Group",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.shared_projects",
+      "title": "Group Shared Projects List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.shared_with",
+      "title": "Group Shared With List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.subgroups",
+      "title": "Subgroups List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.transfer",
+      "title": "Group Transfer",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.transfer_locations",
+      "title": "Group Transfer Locations",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "group.transfer_project",
+      "title": "Group Transfer Project",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.unarchive",
+      "title": "Group Unarchive",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.unshare_from_group",
+      "title": "Group Unshare From Group",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "group.update",
+      "title": "Group Update",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "group.upload_avatar",
+      "title": "Group Upload Avatar",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "interactive.issue_create",
+      "title": "Interactive Issue Create",
+      "domain": "interactive",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "interactive.mr_create",
+      "title": "Interactive MR Create",
+      "domain": "interactive",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "interactive.project_create",
+      "title": "Interactive Project Create",
+      "domain": "interactive",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "interactive.release_create",
+      "title": "Interactive Release Create",
+      "domain": "interactive",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.create",
+      "title": "Issue Create",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.create_todo",
+      "title": "Issue Create Todo",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.delete",
+      "title": "Issue Delete",
+      "domain": "issue",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "issue.discussion_add_note",
+      "title": "Add Issue Discussion Note",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.discussion_create",
+      "title": "Create Issue Discussion",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.discussion_delete_note",
+      "title": "Delete Issue Discussion Note",
+      "domain": "issue",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "issue.discussion_get",
+      "title": "Get Issue Discussion",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.discussion_list",
+      "title": "List Issue Discussions",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.discussion_update_note",
+      "title": "Update Issue Discussion Note",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.emoji_issue_create",
+      "title": "Issue Emoji Create",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.emoji_issue_delete",
+      "title": "Issue Emoji Delete",
+      "domain": "issue",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "issue.emoji_issue_get",
+      "title": "Issue Emoji Get",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.emoji_issue_list",
+      "title": "Issue Emoji List",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.emoji_issue_note_create",
+      "title": "Issue Note Emoji Create",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.emoji_issue_note_delete",
+      "title": "Issue Note Emoji Delete",
+      "domain": "issue",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "issue.emoji_issue_note_get",
+      "title": "Issue Note Emoji Get",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.emoji_issue_note_list",
+      "title": "Issue Note Emoji List",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.event_issue_label_get",
+      "title": "Issue Label Event Get",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.event_issue_label_list",
+      "title": "Issue Label Event List",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.event_issue_milestone_get",
+      "title": "Issue Milestone Event Get",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.event_issue_milestone_list",
+      "title": "Issue Milestone Event List",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.event_issue_state_get",
+      "title": "Issue State Event Get",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.event_issue_state_list",
+      "title": "Issue State Event List",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.get",
+      "title": "Issue Get",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.get_by_id",
+      "title": "Issue Get By ID",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.link_create",
+      "title": "Issue Link Create",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.link_delete",
+      "title": "Issue Link Delete",
+      "domain": "issue",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "issue.link_get",
+      "title": "Issue Link Get",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.link_list",
+      "title": "Issue Link List",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.list",
+      "title": "Issue List",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.list_all",
+      "title": "Issue List All",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.list_group",
+      "title": "Issue List Group",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.move",
+      "title": "Issue Move",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.mrs_closing",
+      "title": "Issue MRs Closing",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.mrs_related",
+      "title": "Issue MRs Related",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.note_create",
+      "title": "Issue Note Create",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.note_delete",
+      "title": "Issue Note Delete",
+      "domain": "issue",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "issue.note_get",
+      "title": "Issue Note Get",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.note_list",
+      "title": "Issue Note List",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.note_update",
+      "title": "Issue Note Update",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.participants",
+      "title": "Issue Participants",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.reorder",
+      "title": "Issue Reorder",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.spent_time_add",
+      "title": "Issue Spent Time Add",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.spent_time_reset",
+      "title": "Issue Spent Time Reset",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.statistics_get",
+      "title": "Get Issue Statistics",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.statistics_get_group",
+      "title": "Get Group Issue Statistics",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.statistics_get_project",
+      "title": "Get Project Issue Statistics",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.subscribe",
+      "title": "Issue Subscribe",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.time_estimate_reset",
+      "title": "Issue Time Estimate Reset",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.time_estimate_set",
+      "title": "Issue Time Estimate Set",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.time_stats_get",
+      "title": "Issue Time Stats Get",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.unsubscribe",
+      "title": "Issue Unsubscribe",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.update",
+      "title": "Issue Update",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.work_item_create",
+      "title": "Create Work Item",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "issue.work_item_delete",
+      "title": "Delete Work Item",
+      "domain": "issue",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "issue.work_item_get",
+      "title": "Get Work Item",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.work_item_list",
+      "title": "List Work Items",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.work_item_type_list",
+      "title": "List Work Item Types",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "issue.work_item_update",
+      "title": "Update Work Item",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "job.artifacts",
+      "title": "Job Artifacts",
+      "domain": "job",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "job.cancel",
+      "title": "Job Cancel",
+      "domain": "job",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "job.delete_artifacts",
+      "title": "Job Delete Artifacts",
+      "domain": "job",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "job.delete_project_artifacts",
+      "title": "Job Delete Project Artifacts",
+      "domain": "job",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "job.download_artifacts",
+      "title": "Job Download Artifacts",
+      "domain": "job",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "job.download_single_artifact",
+      "title": "Job Download Single Artifact",
+      "domain": "job",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "job.download_single_artifact_by_ref",
+      "title": "Job Download Single Artifact By Ref",
+      "domain": "job",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "job.erase",
+      "title": "Job Erase",
+      "domain": "job",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "job.get",
+      "title": "Job Get",
+      "domain": "job",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "job.keep_artifacts",
+      "title": "Job Keep Artifacts",
+      "domain": "job",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "job.list",
+      "title": "Job List",
+      "domain": "job",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "job.list_bridges",
+      "title": "Job List Bridges",
+      "domain": "job",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "job.list_project",
+      "title": "Job List Project",
+      "domain": "job",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "job.play",
+      "title": "Job Play",
+      "domain": "job",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "job.retry",
+      "title": "Job Retry",
+      "domain": "job",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "job.token_scope_add_group",
+      "title": "Add Group Job Token Allowlist",
+      "domain": "job",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "job.token_scope_add_project",
+      "title": "Add Project Job Token Allowlist",
+      "domain": "job",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "job.token_scope_get",
+      "title": "Get Job Token Access Settings",
+      "domain": "job",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "job.token_scope_list_groups",
+      "title": "List Job Token Group Allowlist",
+      "domain": "job",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "job.token_scope_list_inbound",
+      "title": "List Job Token Inbound Allowlist",
+      "domain": "job",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "job.token_scope_patch",
+      "title": "Patch Job Token Access Settings",
+      "domain": "job",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "job.token_scope_remove_group",
+      "title": "Remove Group Job Token Allowlist",
+      "domain": "job",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "job.token_scope_remove_project",
+      "title": "Remove Project Job Token Allowlist",
+      "domain": "job",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "job.trace",
+      "title": "Job Trace",
+      "domain": "job",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "job.wait",
+      "title": "Job Wait",
+      "domain": "job",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.approval_config",
+      "title": "MR Approval Config",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.approval_reset",
+      "title": "MR Approval Reset",
+      "domain": "merge_request",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.approve",
+      "title": "MR Approve",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.cancel_auto_merge",
+      "title": "MR Cancel Auto Merge",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.commits",
+      "title": "MR Commits",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.context_commits_create",
+      "title": "Create MR Context Commits",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.context_commits_delete",
+      "title": "Delete MR Context Commits",
+      "domain": "merge_request",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.context_commits_list",
+      "title": "List MR Context Commits",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.create",
+      "title": "MR Create",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.create_pipeline",
+      "title": "MR Create Pipeline",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.create_todo",
+      "title": "MR Create Todo",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.delete",
+      "title": "MR Delete",
+      "domain": "merge_request",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.emoji_mr_create",
+      "title": "MR Emoji Create",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.emoji_mr_delete",
+      "title": "MR Emoji Delete",
+      "domain": "merge_request",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.emoji_mr_get",
+      "title": "MR Emoji Get",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.emoji_mr_list",
+      "title": "MR Emoji List",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.emoji_mr_note_create",
+      "title": "MR Note Emoji Create",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.emoji_mr_note_delete",
+      "title": "MR Note Emoji Delete",
+      "domain": "merge_request",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.emoji_mr_note_get",
+      "title": "MR Note Emoji Get",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.emoji_mr_note_list",
+      "title": "MR Note Emoji List",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.event_mr_label_get",
+      "title": "MR Label Event Get",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.event_mr_label_list",
+      "title": "MR Label Event List",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.event_mr_milestone_get",
+      "title": "MR Milestone Event Get",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.event_mr_milestone_list",
+      "title": "MR Milestone Event List",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.event_mr_state_get",
+      "title": "MR State Event Get",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.event_mr_state_list",
+      "title": "MR State Event List",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.get",
+      "title": "MR Get",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.issues_closed",
+      "title": "MR Issues Closed",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.list",
+      "title": "MR List",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.list_global",
+      "title": "MR List Global",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.list_group",
+      "title": "MR List Group",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.merge",
+      "title": "MR Merge",
+      "domain": "merge_request",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.participants",
+      "title": "MR Participants",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.pipelines",
+      "title": "MR Pipelines",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.rebase",
+      "title": "MR Rebase",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.related_issues",
+      "title": "MR Related Issues",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.reviewers",
+      "title": "MR Reviewers",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.spent_time_add",
+      "title": "MR Add Spent Time",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.spent_time_reset",
+      "title": "MR Reset Spent Time",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.subscribe",
+      "title": "MR Subscribe",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.time_estimate_reset",
+      "title": "MR Reset Time Estimate",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.time_estimate_set",
+      "title": "MR Set Time Estimate",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.time_stats",
+      "title": "MR Time Stats",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "merge_request.unapprove",
+      "title": "MR Unapprove",
+      "domain": "merge_request",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.unsubscribe",
+      "title": "MR Unsubscribe",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "merge_request.update",
+      "title": "MR Update",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "model_registry.download",
+      "title": "Download Ml Model Package",
+      "domain": "model_registry",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "mr_review.changes_get",
+      "title": "MR Changes Get",
+      "domain": "mr_review",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "mr_review.diff_version_get",
+      "title": "MR Diff Version Get",
+      "domain": "mr_review",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "mr_review.diff_versions_list",
+      "title": "MR Diff Versions List",
+      "domain": "mr_review",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "mr_review.discussion_create",
+      "title": "MR Discussion Create",
+      "domain": "mr_review",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "mr_review.discussion_get",
+      "title": "MR Discussion Get",
+      "domain": "mr_review",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "mr_review.discussion_list",
+      "title": "MR Discussion List",
+      "domain": "mr_review",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "mr_review.discussion_note_delete",
+      "title": "MR Discussion Note Delete",
+      "domain": "mr_review",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "mr_review.discussion_note_update",
+      "title": "MR Discussion Note Update",
+      "domain": "mr_review",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "mr_review.discussion_reply",
+      "title": "MR Discussion Reply",
+      "domain": "mr_review",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "mr_review.discussion_resolve",
+      "title": "MR Discussion Resolve",
+      "domain": "mr_review",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "mr_review.draft_note_create",
+      "title": "MR Draft Note Create",
+      "domain": "mr_review",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "mr_review.draft_note_delete",
+      "title": "MR Draft Note Delete",
+      "domain": "mr_review",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "mr_review.draft_note_get",
+      "title": "MR Draft Note Get",
+      "domain": "mr_review",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "mr_review.draft_note_list",
+      "title": "MR Draft Note List",
+      "domain": "mr_review",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "mr_review.draft_note_publish",
+      "title": "MR Draft Note Publish",
+      "domain": "mr_review",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "mr_review.draft_note_publish_all",
+      "title": "MR Draft Note Publish All",
+      "domain": "mr_review",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "mr_review.draft_note_update",
+      "title": "MR Draft Note Update",
+      "domain": "mr_review",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "mr_review.note_create",
+      "title": "MR Note Create",
+      "domain": "mr_review",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "mr_review.note_delete",
+      "title": "MR Note Delete",
+      "domain": "mr_review",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "mr_review.note_get",
+      "title": "MR Note Get",
+      "domain": "mr_review",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "mr_review.note_list",
+      "title": "MR Notes List",
+      "domain": "mr_review",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "mr_review.note_update",
+      "title": "MR Note Update",
+      "domain": "mr_review",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "mr_review.raw_diffs",
+      "title": "MR Raw Diffs",
+      "domain": "mr_review",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "package.delete",
+      "title": "Package Delete",
+      "domain": "package",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "package.download",
+      "title": "Package Download",
+      "domain": "package",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "package.file_delete",
+      "title": "Package File Delete",
+      "domain": "package",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "package.file_list",
+      "title": "Package File List",
+      "domain": "package",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "package.group_list",
+      "title": "List Group Packages",
+      "domain": "package",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "package.list",
+      "title": "Package List",
+      "domain": "package",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "package.protection_rule_create",
+      "title": "Create Package Protection Rule",
+      "domain": "package",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "package.protection_rule_delete",
+      "title": "Delete Package Protection Rule",
+      "domain": "package",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "package.protection_rule_list",
+      "title": "List Package Protection Rules",
+      "domain": "package",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "package.protection_rule_update",
+      "title": "Update Package Protection Rule",
+      "domain": "package",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "package.publish",
+      "title": "Package Publish",
+      "domain": "package",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "package.publish_and_link",
+      "title": "Package Publish And Link",
+      "domain": "package",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "package.publish_directory",
+      "title": "Package Publish Directory",
+      "domain": "package",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "package.registry_delete",
+      "title": "Registry Delete Repository",
+      "domain": "package",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "package.registry_get",
+      "title": "Registry Get Repository",
+      "domain": "package",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "package.registry_list_group",
+      "title": "Registry List Group",
+      "domain": "package",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "package.registry_list_project",
+      "title": "Registry List Project",
+      "domain": "package",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "package.registry_rule_create",
+      "title": "Registry Protection Create",
+      "domain": "package",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "package.registry_rule_delete",
+      "title": "Registry Protection Delete",
+      "domain": "package",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "package.registry_rule_list",
+      "title": "Registry Protection List",
+      "domain": "package",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "package.registry_rule_update",
+      "title": "Registry Protection Update",
+      "domain": "package",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "package.registry_tag_delete",
+      "title": "Registry Delete Tag",
+      "domain": "package",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "package.registry_tag_delete_bulk",
+      "title": "Registry Delete Tags Bulk",
+      "domain": "package",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "package.registry_tag_get",
+      "title": "Registry Get Tag",
+      "domain": "package",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "package.registry_tag_list",
+      "title": "Registry List Tags",
+      "domain": "package",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "package.registry_tag_rule_create",
+      "title": "Registry Tag Protection Create",
+      "domain": "package",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "package.registry_tag_rule_delete",
+      "title": "Registry Tag Protection Delete",
+      "domain": "package",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "package.registry_tag_rule_list",
+      "title": "Registry Tag Protection List",
+      "domain": "package",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "package.registry_tag_rule_update",
+      "title": "Registry Tag Protection Update",
+      "domain": "package",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "pipeline.cancel",
+      "title": "Pipeline Cancel",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "pipeline.create",
+      "title": "Pipeline Create",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "pipeline.delete",
+      "title": "Pipeline Delete",
+      "domain": "pipeline",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "pipeline.get",
+      "title": "Pipeline Get",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "pipeline.latest",
+      "title": "Pipeline Latest",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "pipeline.list",
+      "title": "Pipeline List",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "pipeline.resource_group_edit",
+      "title": "Edit Resource Group",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "pipeline.resource_group_get",
+      "title": "Get Resource Group",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "pipeline.resource_group_list",
+      "title": "List Resource Groups",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "pipeline.resource_group_upcoming_jobs",
+      "title": "List Resource Group Upcoming Jobs",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "pipeline.retry",
+      "title": "Pipeline Retry",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "pipeline.schedule_create",
+      "title": "Pipeline Schedule Create",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "pipeline.schedule_create_variable",
+      "title": "Pipeline Schedule Create Variable",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "pipeline.schedule_delete",
+      "title": "Pipeline Schedule Delete",
+      "domain": "pipeline",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "pipeline.schedule_delete_variable",
+      "title": "Pipeline Schedule Delete Variable",
+      "domain": "pipeline",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "pipeline.schedule_edit_variable",
+      "title": "Pipeline Schedule Edit Variable",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "pipeline.schedule_get",
+      "title": "Pipeline Schedule Get",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "pipeline.schedule_list",
+      "title": "Pipeline Schedule List",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "pipeline.schedule_list_triggered_pipelines",
+      "title": "Pipeline Schedule List Triggered Pipelines",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "pipeline.schedule_run",
+      "title": "Pipeline Schedule Run",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "pipeline.schedule_take_ownership",
+      "title": "Pipeline Schedule Take Ownership",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "pipeline.schedule_update",
+      "title": "Pipeline Schedule Update",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "pipeline.test_report",
+      "title": "Pipeline Test Report",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "pipeline.test_report_summary",
+      "title": "Pipeline Test Report Summary",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "pipeline.trigger_create",
+      "title": "Pipeline Trigger Create",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "pipeline.trigger_delete",
+      "title": "Pipeline Trigger Delete",
+      "domain": "pipeline",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "pipeline.trigger_get",
+      "title": "Pipeline Trigger Get",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "pipeline.trigger_list",
+      "title": "Pipeline Trigger List",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "pipeline.trigger_run",
+      "title": "Pipeline Trigger Run",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "pipeline.trigger_update",
+      "title": "Pipeline Trigger Update",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "pipeline.update_metadata",
+      "title": "Pipeline Update Metadata",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "pipeline.variables",
+      "title": "Pipeline Variables",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "pipeline.wait",
+      "title": "Pipeline Wait",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.archive",
+      "title": "Project Archive",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.badge_add",
+      "title": "Add Project Badge",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.badge_delete",
+      "title": "Delete Project Badge",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.badge_edit",
+      "title": "Edit Project Badge",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.badge_get",
+      "title": "Get Project Badge",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.badge_list",
+      "title": "List Project Badges",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.badge_preview",
+      "title": "Preview Project Badge",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.board_create",
+      "title": "Board Create",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.board_delete",
+      "title": "Board Delete",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.board_get",
+      "title": "Board Get",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.board_list",
+      "title": "Board List",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.board_list_create",
+      "title": "Board List Create",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.board_list_delete",
+      "title": "Board List Delete",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.board_list_get",
+      "title": "Board List Get",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.board_list_list",
+      "title": "Board List Lists",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.board_list_update",
+      "title": "Board List Update",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.board_update",
+      "title": "Board Update",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.create",
+      "title": "Project Create",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.create_for_user",
+      "title": "Project Create For User",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.create_fork_relation",
+      "title": "Project Create Fork Relation",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.delete",
+      "title": "Project Delete",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.delete_fork_relation",
+      "title": "Project Delete Fork Relation",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.delete_shared_group",
+      "title": "Project Delete Shared Group",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.download_avatar",
+      "title": "Project Download Avatar",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.export_download",
+      "title": "Download Project Export",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.export_schedule",
+      "title": "Schedule Project Export",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.export_status",
+      "title": "Get Project Export Status",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.fork",
+      "title": "Project Fork",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.get",
+      "title": "Project Get",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.hook_add",
+      "title": "Project Hook Add",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.hook_delete",
+      "title": "Project Hook Delete",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.hook_delete_custom_header",
+      "title": "Project Hook Delete Custom Header",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.hook_delete_url_variable",
+      "title": "Project Hook Delete URL Variable",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.hook_edit",
+      "title": "Project Hook Edit",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.hook_get",
+      "title": "Project Hook Get",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.hook_list",
+      "title": "Project Hook List",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.hook_set_custom_header",
+      "title": "Project Hook Set Custom Header",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.hook_set_url_variable",
+      "title": "Project Hook Set URL Variable",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.hook_test",
+      "title": "Project Hook Test",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.import_from_file",
+      "title": "Import Project From File",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.import_status",
+      "title": "Get Project Import Status",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.integration_delete",
+      "title": "Delete Integration",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.integration_delete_group",
+      "title": "Delete Group Integration",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.integration_delete_group_datadog",
+      "title": "Delete Group Datadog Integration",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.integration_get",
+      "title": "Get Integration",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.integration_get_group",
+      "title": "Get Group Integration",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.integration_get_group_datadog",
+      "title": "Get Group Datadog Integration",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.integration_list",
+      "title": "List Integrations",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.integration_list_group",
+      "title": "List Group Integrations",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.integration_set",
+      "title": "Set Integration",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.integration_set_group",
+      "title": "Set Group Integration",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.integration_set_group_datadog",
+      "title": "Set Group Datadog Integration",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.integration_set_jira",
+      "title": "Set Jira Integration",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.label_create",
+      "title": "Label Create",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.label_delete",
+      "title": "Label Delete",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.label_get",
+      "title": "Label Get",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.label_list",
+      "title": "Label List",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.label_promote",
+      "title": "Label Promote",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.label_subscribe",
+      "title": "Label Subscribe",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.label_unsubscribe",
+      "title": "Label Unsubscribe",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.label_update",
+      "title": "Label Update",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.languages",
+      "title": "Project Languages",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.list",
+      "title": "Project List",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.list_forks",
+      "title": "Project List Forks",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.list_groups",
+      "title": "Project List Groups",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.list_invited_groups",
+      "title": "Project List Invited Groups",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.list_starrers",
+      "title": "Project List Starrers",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.list_user_contributed",
+      "title": "Project List User Contributed",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.list_user_projects",
+      "title": "Project List User Projects",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.list_user_starred",
+      "title": "Project List User Starred",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.list_users",
+      "title": "Project List Users",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.member_add",
+      "title": "Project Member Add",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.member_delete",
+      "title": "Project Member Delete",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.member_edit",
+      "title": "Project Member Edit",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.member_get",
+      "title": "Project Member Get",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.member_inherited",
+      "title": "Project Member Get Inherited",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.members",
+      "title": "Project Members List",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.milestone_create",
+      "title": "Milestone Create",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.milestone_delete",
+      "title": "Milestone Delete",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.milestone_get",
+      "title": "Milestone Get",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.milestone_issues",
+      "title": "Milestone Issues",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.milestone_list",
+      "title": "Milestone List",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.milestone_merge_requests",
+      "title": "Milestone Merge Requests",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.milestone_update",
+      "title": "Milestone Update",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.mirror_add",
+      "title": "Add Project Mirror",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.mirror_delete",
+      "title": "Delete Project Mirror",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.mirror_edit",
+      "title": "Edit Project Mirror",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.mirror_force_push",
+      "title": "Force Push Mirror Update",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.mirror_get",
+      "title": "Get Project Mirror",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.mirror_get_public_key",
+      "title": "Get Project Mirror Public Key",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.mirror_list",
+      "title": "List Project Mirrors",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.pages_domain_create",
+      "title": "Pages Domain Create",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.pages_domain_delete",
+      "title": "Pages Domain Delete",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.pages_domain_get",
+      "title": "Pages Domain Get",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.pages_domain_list",
+      "title": "Pages Domain List",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.pages_domain_list_all",
+      "title": "Pages Domain List All",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.pages_domain_update",
+      "title": "Pages Domain Update",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.pages_get",
+      "title": "Pages Get",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.pages_unpublish",
+      "title": "Pages Unpublish",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.pages_update",
+      "title": "Pages Update",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.repository_storage_get",
+      "title": "Project Repository Storage Get",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.restore",
+      "title": "Project Restore",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.service_account_create",
+      "title": "Project Service Account Create",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.service_account_delete",
+      "title": "Project Service Account Delete",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.service_account_list",
+      "title": "Project Service Account List",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.service_account_pat_create",
+      "title": "Project Service Account Pat Create",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.service_account_pat_list",
+      "title": "Project Service Account Pat List",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.service_account_pat_revoke",
+      "title": "Project Service Account Pat Revoke",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.service_account_pat_rotate",
+      "title": "Project Service Account Pat Rotate",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.service_account_update",
+      "title": "Project Service Account Update",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.share_with_group",
+      "title": "Project Share With Group",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.star",
+      "title": "Project Star",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.start_housekeeping",
+      "title": "Project Start Housekeeping",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.statistics_get",
+      "title": "Get Project Statistics",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "project.transfer",
+      "title": "Project Transfer",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.unarchive",
+      "title": "Project Unarchive",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.unstar",
+      "title": "Project Unstar",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.update",
+      "title": "Project Update",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.upload",
+      "title": "Project Upload",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.upload_avatar",
+      "title": "Project Upload Avatar",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "project.upload_delete",
+      "title": "Project Upload Delete",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.upload_delete_by_secret",
+      "title": "Project Upload Delete By Secret",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "project.upload_list",
+      "title": "Project Upload List",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "release.create",
+      "title": "Release Create",
+      "domain": "release",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "release.delete",
+      "title": "Release Delete",
+      "domain": "release",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "release.get",
+      "title": "Release Get",
+      "domain": "release",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "release.get_latest",
+      "title": "Release Latest",
+      "domain": "release",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "release.link_create",
+      "title": "Release Link Create",
+      "domain": "release",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "release.link_create_batch",
+      "title": "Release Link Create Batch",
+      "domain": "release",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "release.link_delete",
+      "title": "Release Link Delete",
+      "domain": "release",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "release.link_get",
+      "title": "Release Link Get",
+      "domain": "release",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "release.link_list",
+      "title": "Release Link List",
+      "domain": "release",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "release.link_update",
+      "title": "Release Link Update",
+      "domain": "release",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "release.list",
+      "title": "Release List",
+      "domain": "release",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "release.update",
+      "title": "Release Update",
+      "domain": "release",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "repository.archive",
+      "title": "Repository Archive",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.blob",
+      "title": "Repository Blob",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.changelog_add",
+      "title": "Repository Changelog Add",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "repository.changelog_generate",
+      "title": "Repository Changelog Generate",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.commit_cherry_pick",
+      "title": "Commit Cherry Pick",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "repository.commit_comment_create",
+      "title": "Commit Comment Create",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "repository.commit_comments",
+      "title": "Commit Comments",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.commit_create",
+      "title": "Commit Create",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "repository.commit_diff",
+      "title": "Commit Diff",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.commit_discussion_add_note",
+      "title": "Add Commit Discussion Note",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "repository.commit_discussion_create",
+      "title": "Create Commit Discussion",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "repository.commit_discussion_delete_note",
+      "title": "Delete Commit Discussion Note",
+      "domain": "repository",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "repository.commit_discussion_get",
+      "title": "Get Commit Discussion",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.commit_discussion_list",
+      "title": "List Commit Discussions",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.commit_discussion_update_note",
+      "title": "Update Commit Discussion Note",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "repository.commit_get",
+      "title": "Commit Get",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.commit_list",
+      "title": "Commit List",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.commit_merge_requests",
+      "title": "Commit Merge Requests",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.commit_refs",
+      "title": "Commit Refs",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.commit_revert",
+      "title": "Commit Revert",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "repository.commit_signature",
+      "title": "Commit Signature",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.commit_status_set",
+      "title": "Commit Status Set",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "repository.commit_statuses",
+      "title": "Commit Statuses",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.compare",
+      "title": "Repository Compare",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.contributors",
+      "title": "Repository Contributors",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.file_blame",
+      "title": "File Blame",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.file_create",
+      "title": "File Create",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "repository.file_delete",
+      "title": "File Delete",
+      "domain": "repository",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "repository.file_get",
+      "title": "File Get",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.file_history",
+      "title": "Commit List",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.file_metadata",
+      "title": "File Metadata",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.file_raw",
+      "title": "File Raw",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.file_raw_metadata",
+      "title": "File Raw Metadata",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.file_update",
+      "title": "File Update",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "repository.list_submodules",
+      "title": "List Repository Submodules",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.markdown_render",
+      "title": "Render Markdown",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.merge_base",
+      "title": "Repository Merge Base",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.raw_blob",
+      "title": "Repository Raw Blob",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.read_submodule_file",
+      "title": "Read Repository Submodule File",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.tree",
+      "title": "Repository Tree",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "repository.update_submodule",
+      "title": "Update Repository Submodule",
+      "domain": "repository",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "runner.delete_by_token",
+      "title": "Runner Delete By Token",
+      "domain": "runner",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "runner.delete_registered",
+      "title": "Runner Delete Registered",
+      "domain": "runner",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "runner.disable_project",
+      "title": "Runner Disable Project",
+      "domain": "runner",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "runner.enable_project",
+      "title": "Runner Enable Project",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "runner.get",
+      "title": "Runner Get",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "runner.jobs",
+      "title": "Runner Jobs",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "runner.list",
+      "title": "Runner List",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "runner.list_all",
+      "title": "Runner List All",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "runner.list_group",
+      "title": "Runner List Group",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "runner.list_managers",
+      "title": "Runner List Managers",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "runner.list_project",
+      "title": "Runner List Project",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "runner.register",
+      "title": "Runner Register",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "runner.remove",
+      "title": "Runner Remove",
+      "domain": "runner",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "runner.reset_group_reg_token",
+      "title": "Runner Reset Group Reg Token",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "runner.reset_instance_reg_token",
+      "title": "Runner Reset Instance Reg Token",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "runner.reset_project_reg_token",
+      "title": "Runner Reset Project Reg Token",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "runner.reset_token",
+      "title": "Runner Reset Token",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "runner.update",
+      "title": "Runner Update",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "runner.verify",
+      "title": "Runner Verify",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "search.code",
+      "title": "Search Code",
+      "domain": "search",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "search.commits",
+      "title": "Search Commits",
+      "domain": "search",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "search.issues",
+      "title": "Search Issues",
+      "domain": "search",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "search.merge_requests",
+      "title": "Search Merge Requests",
+      "domain": "search",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "search.milestones",
+      "title": "Search Milestones",
+      "domain": "search",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "search.notes",
+      "title": "Search Notes",
+      "domain": "search",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "search.projects",
+      "title": "Search Projects",
+      "domain": "search",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "search.snippets",
+      "title": "Search Snippets",
+      "domain": "search",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "search.users",
+      "title": "Search Users",
+      "domain": "search",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "search.wiki",
+      "title": "Search Wiki",
+      "domain": "search",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "server.health_check",
+      "title": "Server Health Check",
+      "domain": "server",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "server.status",
+      "title": "Server Status",
+      "domain": "server",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "snippet.content",
+      "title": "Snippet Content",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "snippet.create",
+      "title": "Snippet Create",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "snippet.delete",
+      "title": "Snippet Delete",
+      "domain": "snippet",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "snippet.discussion_add_note",
+      "title": "Add Snippet Discussion Note",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "snippet.discussion_create",
+      "title": "Create Snippet Discussion",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "snippet.discussion_delete_note",
+      "title": "Delete Snippet Discussion Note",
+      "domain": "snippet",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "snippet.discussion_get",
+      "title": "Get Snippet Discussion",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "snippet.discussion_list",
+      "title": "List Snippet Discussions",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "snippet.discussion_update_note",
+      "title": "Update Snippet Discussion Note",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "snippet.emoji_snippet_create",
+      "title": "Snippet Emoji Create",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "snippet.emoji_snippet_delete",
+      "title": "Snippet Emoji Delete",
+      "domain": "snippet",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "snippet.emoji_snippet_get",
+      "title": "Snippet Emoji Get",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "snippet.emoji_snippet_list",
+      "title": "Snippet Emoji List",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "snippet.emoji_snippet_note_create",
+      "title": "Snippet Note Emoji Create",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "snippet.emoji_snippet_note_delete",
+      "title": "Snippet Note Emoji Delete",
+      "domain": "snippet",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "snippet.emoji_snippet_note_get",
+      "title": "Snippet Note Emoji Get",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "snippet.emoji_snippet_note_list",
+      "title": "Snippet Note Emoji List",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "snippet.explore",
+      "title": "Snippet Explore",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "snippet.file_content",
+      "title": "Snippet File Content",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "snippet.get",
+      "title": "Snippet Get",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "snippet.list",
+      "title": "Snippet List",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "snippet.list_all",
+      "title": "Snippet List All",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "snippet.note_create",
+      "title": "Snippet Note Create",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "snippet.note_delete",
+      "title": "Snippet Note Delete",
+      "domain": "snippet",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "snippet.note_get",
+      "title": "Snippet Note Get",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "snippet.note_list",
+      "title": "Snippet Note List",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "snippet.note_update",
+      "title": "Snippet Note Update",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "snippet.project_content",
+      "title": "Project Snippet Content",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "snippet.project_create",
+      "title": "Project Snippet Create",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "snippet.project_delete",
+      "title": "Project Snippet Delete",
+      "domain": "snippet",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "snippet.project_get",
+      "title": "Project Snippet Get",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "snippet.project_list",
+      "title": "Project Snippet List",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "snippet.project_update",
+      "title": "Project Snippet Update",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "snippet.update",
+      "title": "Snippet Update",
+      "domain": "snippet",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "storage_move.get_project",
+      "title": "Get Project Storage Move",
+      "domain": "storage_move",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "storage_move.get_project_for_project",
+      "title": "Get Project Storage Move For Project",
+      "domain": "storage_move",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "storage_move.get_snippet",
+      "title": "Get Snippet Storage Move",
+      "domain": "storage_move",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "storage_move.get_snippet_for_snippet",
+      "title": "Get Snippet Storage Move For Snippet",
+      "domain": "storage_move",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "storage_move.retrieve_all_project",
+      "title": "Retrieve All Project Storage Moves",
+      "domain": "storage_move",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "storage_move.retrieve_all_snippet",
+      "title": "Retrieve All Snippet Storage Moves",
+      "domain": "storage_move",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "storage_move.retrieve_project",
+      "title": "Retrieve Project Storage Moves",
+      "domain": "storage_move",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "storage_move.retrieve_snippet",
+      "title": "Retrieve Snippet Storage Moves",
+      "domain": "storage_move",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "storage_move.schedule_all_project",
+      "title": "Schedule All Project Storage Moves",
+      "domain": "storage_move",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "storage_move.schedule_all_snippet",
+      "title": "Schedule All Snippet Storage Moves",
+      "domain": "storage_move",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "storage_move.schedule_project",
+      "title": "Schedule Project Storage Move",
+      "domain": "storage_move",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "storage_move.schedule_snippet",
+      "title": "Schedule Snippet Storage Move",
+      "domain": "storage_move",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "tag.create",
+      "title": "Tag Create",
+      "domain": "tag",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "tag.delete",
+      "title": "Tag Delete",
+      "domain": "tag",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "tag.get",
+      "title": "Tag Get",
+      "domain": "tag",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "tag.get_protected",
+      "title": "Tag Get Protected",
+      "domain": "tag",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "tag.get_signature",
+      "title": "Tag Get Signature",
+      "domain": "tag",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "tag.list",
+      "title": "Tag List",
+      "domain": "tag",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "tag.list_protected",
+      "title": "Tag List Protected",
+      "domain": "tag",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "tag.protect",
+      "title": "Tag Protect",
+      "domain": "tag",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "tag.unprotect",
+      "title": "Tag Unprotect",
+      "domain": "tag",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "template.ci_yml_get",
+      "title": "Get CI Yml Template",
+      "domain": "template",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "template.ci_yml_list",
+      "title": "List CI Yml Templates",
+      "domain": "template",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "template.dockerfile_get",
+      "title": "Get Dockerfile Template",
+      "domain": "template",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "template.dockerfile_list",
+      "title": "List Dockerfile Templates",
+      "domain": "template",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "template.gitignore_get",
+      "title": "Get Gitignore Template",
+      "domain": "template",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "template.gitignore_list",
+      "title": "List Gitignore Templates",
+      "domain": "template",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "template.license_get",
+      "title": "Get License Template",
+      "domain": "template",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "template.license_list",
+      "title": "List License Templates",
+      "domain": "template",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "template.lint",
+      "title": "CI Lint",
+      "domain": "template",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "template.lint_project",
+      "title": "CI Lint Project",
+      "domain": "template",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "template.project_template_get",
+      "title": "Get Project Template",
+      "domain": "template",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "template.project_template_list",
+      "title": "List Project Templates",
+      "domain": "template",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.activate",
+      "title": "Activate User",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.activities",
+      "title": "Get User Activities",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.add_email",
+      "title": "Add Email",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.add_email_for_user",
+      "title": "Add Email For User",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.add_gpg_key",
+      "title": "Add GPG Key",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.add_gpg_key_for_user",
+      "title": "Add GPG Key For User",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.add_ssh_key",
+      "title": "Add SSH Key",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.add_ssh_key_for_user",
+      "title": "Add SSH Key For User",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.approve",
+      "title": "Approve User",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.associations_count",
+      "title": "Get User Associations Count",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.avatar_get",
+      "title": "Get Avatar",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.ban",
+      "title": "Ban User",
+      "domain": "user",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "user.block",
+      "title": "Block User",
+      "domain": "user",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "user.contribution_events",
+      "title": "List User Contribution Events",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.create",
+      "title": "Create User",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.create_current_user_pat",
+      "title": "Create Current User Pat",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.create_impersonation_token",
+      "title": "Create Impersonation Token",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.create_personal_access_token",
+      "title": "Create Personal Access Token",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.create_runner",
+      "title": "Create User Runner",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.create_service_account",
+      "title": "Create Service Account",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.current",
+      "title": "User Current",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.current_user_status",
+      "title": "Current User Status",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.deactivate",
+      "title": "Deactivate User",
+      "domain": "user",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "user.delete",
+      "title": "Delete User",
+      "domain": "user",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "user.delete_email",
+      "title": "Delete Email",
+      "domain": "user",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "user.delete_email_for_user",
+      "title": "Delete Email For User",
+      "domain": "user",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "user.delete_gpg_key",
+      "title": "Delete GPG Key",
+      "domain": "user",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "user.delete_gpg_key_for_user",
+      "title": "Delete GPG Key For User",
+      "domain": "user",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "user.delete_identity",
+      "title": "Delete User Identity",
+      "domain": "user",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "user.delete_ssh_key",
+      "title": "Delete SSH Key",
+      "domain": "user",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "user.delete_ssh_key_for_user",
+      "title": "Delete SSH Key For User",
+      "domain": "user",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "user.disable_two_factor",
+      "title": "Disable Two Factor",
+      "domain": "user",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "user.emails",
+      "title": "List Emails",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.emails_for_user",
+      "title": "List Emails For User",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.event_list_contributions",
+      "title": "User Contribution Event List",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.event_list_project",
+      "title": "Project Event List",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.get",
+      "title": "Get User",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.get_email",
+      "title": "Get Email",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.get_gpg_key",
+      "title": "Get GPG Key",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.get_gpg_key_for_user",
+      "title": "Get GPG Key For User",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.get_impersonation_token",
+      "title": "Get Impersonation Token",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.get_ssh_key",
+      "title": "Get SSH Key",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.get_ssh_key_for_user",
+      "title": "Get SSH Key For User",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.get_status",
+      "title": "Get User Status",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.gpg_keys",
+      "title": "List GPG Keys",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.gpg_keys_for_user",
+      "title": "List GPG Keys For User",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.key_get_by_fingerprint",
+      "title": "Get Key By Fingerprint",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.key_get_with_user",
+      "title": "Get Key With User",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.list",
+      "title": "List Users",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.list_impersonation_tokens",
+      "title": "List Impersonation Tokens",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.list_service_accounts",
+      "title": "List Service Accounts",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.me",
+      "title": "User Current",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.memberships",
+      "title": "Get User Memberships",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.modify",
+      "title": "Modify User",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.namespace_exists",
+      "title": "Namespace Exists",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.namespace_get",
+      "title": "Namespace Get",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.namespace_list",
+      "title": "Namespace List",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.namespace_search",
+      "title": "Namespace Search",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.notification_global_get",
+      "title": "Notification Global Get",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.notification_global_update",
+      "title": "Notification Global Update",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.notification_group_get",
+      "title": "Notification Group Get",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.notification_group_update",
+      "title": "Notification Group Update",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.notification_project_get",
+      "title": "Notification Project Get",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.notification_project_update",
+      "title": "Notification Project Update",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.reject",
+      "title": "Reject User",
+      "domain": "user",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "user.revoke_impersonation_token",
+      "title": "Revoke Impersonation Token",
+      "domain": "user",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "user.set_status",
+      "title": "Set User Status",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.ssh_keys",
+      "title": "List SSH Keys",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.ssh_keys_for_user",
+      "title": "List SSH Keys For User",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.todo_list",
+      "title": "Todo List",
+      "domain": "user",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "user.todo_mark_all_done",
+      "title": "Todo Mark All Done",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.todo_mark_done",
+      "title": "Todo Mark Done",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.unban",
+      "title": "Unban User",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.unblock",
+      "title": "Unblock User",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.update_service_account",
+      "title": "Update Instance Service Account",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "user.upload_avatar",
+      "title": "Upload User Avatar",
+      "domain": "user",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "wiki.create",
+      "title": "Wiki Create",
+      "domain": "wiki",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "wiki.delete",
+      "title": "Wiki Delete",
+      "domain": "wiki",
+      "destructive": true,
+      "read_only": false
+    },
+    {
+      "id": "wiki.get",
+      "title": "Wiki Get",
+      "domain": "wiki",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "wiki.list",
+      "title": "Wiki List",
+      "domain": "wiki",
+      "destructive": false,
+      "read_only": true
+    },
+    {
+      "id": "wiki.update",
+      "title": "Wiki Update",
+      "domain": "wiki",
+      "destructive": false,
+      "read_only": false
+    },
+    {
+      "id": "wiki.upload_attachment",
+      "title": "Wiki Upload Attachment",
+      "domain": "wiki",
+      "destructive": false,
+      "read_only": false
+    }
+  ]
+}
