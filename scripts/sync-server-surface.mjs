@@ -13,9 +13,10 @@
  * PROYECCIÓN POR WHITELIST, no passthrough: ningún campo futuro desconocido
  * de la respuesta puede colarse en el repo (que es público), los iconos ya
  * viven en src/data/cards/<id>.json y duplicarlos invita a divergencia, y el
- * manifiesto de 516 KB se reduce a lo que el buscador necesita (id, title,
- * domain, destructive, read_only) — las descriptions quedan fuera por
- * decisión cerrada del autor.
+ * manifiesto de 516 KB se reduce a lo que consumen las superficies del
+ * sitio: el buscador (id, title, domain, destructive, read_only) y, desde
+ * las páginas por dominio, también description y required_params. Los
+ * inputSchema completos siguen fuera.
  *
  * GUARDIA ANTI-FUGA (fallo DURO, exit 1, antes de escribir un solo byte):
  * la instancia GitLab del autor no debe aparecer jamás en el repo. Si el
@@ -322,8 +323,12 @@ function buildActionsSnapshot(endpoint, result, sourceVersion, generatedAt) {
     if (entry.kind === "dynamic_action" && (
         !isNonEmptyString(entry.title) ||
         !isNonEmptyString(entry.domain) ||
+        !isNonEmptyString(entry.description) ||
         typeof entry.destructive !== "boolean" ||
-        typeof entry.read_only !== "boolean"
+        typeof entry.read_only !== "boolean" ||
+        (entry.required_params !== undefined &&
+          !(Array.isArray(entry.required_params) &&
+            entry.required_params.every((x) => isNonEmptyString(x))))
       )) {
         throw new Error(`entrada ${entry.id} con campos mal tipados`);
       }
@@ -342,6 +347,13 @@ function buildActionsSnapshot(endpoint, result, sourceVersion, generatedAt) {
 
   // Proyección: campos verbatim upstream (snake_case read_only incluido — es
   // una proyección, no una transformación) y orden estable por id.
+  //
+  // `description` y `required_params` entraron con las páginas por dominio
+  // (/servers/<id>/actions/<dominio>/): son el contenido de referencia que
+  // esas páginas publican. Lo que sigue fuera — `inputSchema`, `kind`,
+  // `tool`, `backing_*`, `detail_uri` — o es derivable o no lo consume
+  // ninguna superficie del sitio. El endpoint actions.json NO emite estos
+  // dos campos: su proyección es aparte y sigue compacta.
   const entries = manifest.entries
     .filter((e) => e.kind === "dynamic_action")
     .map((e) => ({
@@ -350,6 +362,8 @@ function buildActionsSnapshot(endpoint, result, sourceVersion, generatedAt) {
       domain: e.domain,
       destructive: e.destructive,
       read_only: e.read_only,
+      description: e.description,
+      ...(e.required_params && { required_params: e.required_params }),
     }))
     .sort((a, b) => byteCompare(a.id, b.id));
 

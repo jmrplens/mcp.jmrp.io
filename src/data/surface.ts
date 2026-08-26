@@ -86,6 +86,14 @@ export interface GitlabActionEntry {
   domain: string;
   destructive: boolean;
   read_only: boolean;
+  /**
+   * Full upstream description — the reference content the per-domain pages
+   * (`/servers/<id>/actions/<domain>/`) publish. The compact actions.json
+   * endpoint deliberately does NOT emit it: its projection is its own.
+   */
+  description: string;
+  /** Upstream `required_params`, verbatim; absent when the action takes none. */
+  required_params?: string[];
 }
 
 /** Per-domain counts precomputed by the extractor for the SSR breakdown. */
@@ -248,7 +256,11 @@ function validateActions(parsed: unknown): string | undefined {
         isString(e.title) &&
         isString(e.domain) &&
         isBoolean(e.destructive) &&
-        isBoolean(e.read_only)),
+        isBoolean(e.read_only) &&
+        isString(e.description) &&
+        (e.required_params === undefined ||
+          (Array.isArray(e.required_params) &&
+            e.required_params.every((x: unknown) => isString(x))))),
     )
   ) {
     return "entries is missing or badly typed";
