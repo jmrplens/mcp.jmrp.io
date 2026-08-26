@@ -3346,7 +3346,7 @@
       ],
       "mimeType": "text/markdown",
       "name": "pipeline_troubleshooting",
-      "size": 1875,
+      "size": 1877,
       "title": "Pipeline Troubleshooting Guide",
       "uri": "gitlab://guides/pipeline-troubleshooting"
     },
@@ -3457,7 +3457,7 @@
     ],
     "name": "gitlab-mcp-server",
     "title": "GitLab MCP Server",
-    "version": "2.7.2",
+    "version": "2.7.3",
     "websiteUrl": "https://jmrp.io/docs/gitlab-mcp-server"
   },
   "subscriptions": {

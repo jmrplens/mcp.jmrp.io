@@ -3,13 +3,13 @@
     "endpoint": "https://mcp.jmrp.io/gitlab/mcp",
     "method": "server/discover",
     "protocolVersion": "2026-07-28",
-    "generatedAt": "2026-08-26T13:37:28Z"
+    "generatedAt": "2026-08-26T15:32:40Z"
   },
   "serverInfo": {
     "name": "gitlab-mcp-server",
     "title": "GitLab MCP Server",
     "description": "Model Context Protocol server for GitLab: projects, issues, merge requests, pipelines, repositories, releases, groups, and admin workflows over the GitLab REST and GraphQL APIs.",
-    "version": "2.7.2",
+    "version": "2.7.3",
     "websiteUrl": "https://jmrp.io/docs/gitlab-mcp-server"
   },
   "supportedVersions": [
