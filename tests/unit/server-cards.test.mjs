@@ -91,13 +91,21 @@ test("gitlab (identidad propia desde 2.7.0): expone title/description/websiteUrl
   assert.ok(card.serverInfo.icons?.length, "gitlab: falta serverInfo.icons");
 
   assert.ok(card.tools.length > 0, "gitlab debería tener tools");
-  // gitlab publica icons de servidor pero todavía no por tool ni por prompt:
-  // la degradación por entrada sigue teniendo sujeto real aquí.
+  // 2.7.2 cerró el hueco que este test documentaba: el card lleva ya los
+  // mismos arrays de 3 iconos que tools/list en las CUATRO familias (fue
+  // hallazgo de la auditoría del sitio, atendido en el PR #305 upstream).
+  // La degradación por entrada la cubre el documento sintético "bare".
   for (const tool of card.tools) {
-    assert.equal(tool.icons, undefined, `${tool.name}: gitlab no publica icons de tool`);
+    assert.ok(tool.icons?.length, `${tool.name}: 2.7.2 publica icons de tool`);
   }
   for (const prompt of card.prompts) {
-    assert.equal(prompt.icons, undefined, `${prompt.name}: gitlab no publica icons de prompt`);
+    assert.ok(prompt.icons?.length, `${prompt.name}: 2.7.2 publica icons de prompt`);
+  }
+  for (const resource of card.resources) {
+    assert.ok(resource.icons?.length, `${resource.name}: 2.7.2 publica icons de resource`);
+  }
+  for (const template of card.resourceTemplates) {
+    assert.ok(template.icons?.length, `${template.name}: 2.7.2 publica icons de template`);
   }
 
   // Annotations already existed on gitlab's card before this change; the

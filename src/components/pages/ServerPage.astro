@@ -638,9 +638,14 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
               {sp.resourcesHead} <span class="count">({resourceEntries.length})</span>
             </h2>
             <div class="entry-list">
-              {resourceEntries.map((entry) => (
+              {resourceEntries.map((entry) => {
+                const icon = safeIcon(entry.data.icons);
+                return (
                 <article class="entry" id={entry.id}>
-                  <h3 class="entry-title">{entry.label}</h3>
+                  <h3 class="entry-title">
+                    {icon && <img src={icon.src} alt="" aria-hidden="true" class="entry-icon" />}
+                    {entry.label}
+                  </h3>
                   <p class="entry-name">
                     <code>{entry.data.uri}</code>
                   </p>
@@ -665,7 +670,8 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                     </a>
                   </p>
                 </article>
-              ))}
+                );
+              })}
             </div>
           </section>
         )
@@ -685,9 +691,14 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
               />
             )}
             <div class="entry-list">
-              {templateEntries.map((entry) => (
+              {templateEntries.map((entry) => {
+                const icon = safeIcon(entry.data.icons);
+                return (
                 <article class="entry" id={entry.id}>
-                  <h3 class="entry-title">{entry.data.title}</h3>
+                  <h3 class="entry-title">
+                    {icon && <img src={icon.src} alt="" aria-hidden="true" class="entry-icon" />}
+                    {entry.data.title}
+                  </h3>
                   <p class="entry-name">
                     <code>{entry.data.uriTemplate}</code>
                   </p>
@@ -712,7 +723,8 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                     </p>
                   )}
                 </article>
-              ))}
+                );
+              })}
             </div>
           </section>
         )

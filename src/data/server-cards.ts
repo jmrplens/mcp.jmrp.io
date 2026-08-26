@@ -197,6 +197,8 @@ export type CardResource = {
   description: string;
   mimeType?: string;
   annotations?: CardResourceAnnotations;
+  /** 2.7.2: resources carry the same 3-icon arrays tools do. */
+  icons?: CardIcon[];
 };
 
 /** A parameterized resource, as `resourceTemplates[]` declares it. */
@@ -208,6 +210,8 @@ export type CardResourceTemplate = {
   mimeType?: string;
   annotations?: CardResourceAnnotations;
   _meta?: Record<string, unknown>;
+  /** 2.7.2: templates carry icons too. */
+  icons?: CardIcon[];
 };
 
 /** The `_meta` key gitlab uses to flag a template as subscribable (26/37 carry it on 2.7.1). */
@@ -261,7 +265,7 @@ export type PromptSummary = Pick<
 export type ResourceSummary = Pick<
   CardResource,
   "uri" | "name" | "title" | "description" | "mimeType"
->;
+> & { icons?: CardIcon[] };
 
 /**
  * What a page paints for one resource template. `subscribable` is curated
@@ -271,7 +275,7 @@ export type ResourceSummary = Pick<
 export type ResourceTemplateSummary = Pick<
   CardResourceTemplate,
   "uriTemplate" | "name" | "title" | "description" | "mimeType"
-> & { subscribable: boolean };
+> & { subscribable: boolean; icons?: CardIcon[] };
 
 /** The curated, page-ready view of one server's card. */
 export type ServerCardSummary = {
@@ -575,20 +579,24 @@ export function summarizeServerCardDocument(
       arguments: args ?? [],
       icons: filterIcons(icons),
     })),
-    resources: doc.resources.map(({ uri, name, title, description, mimeType }) => ({
-      uri,
-      name,
-      title,
-      description,
-      mimeType,
-    })),
+    resources: doc.resources.map(
+      ({ uri, name, title, description, mimeType, icons }) => ({
+        uri,
+        name,
+        title,
+        description,
+        mimeType,
+        icons: filterIcons(icons),
+      }),
+    ),
     resourceTemplates: doc.resourceTemplates.map(
-      ({ uriTemplate, name, title, description, mimeType, _meta }) => ({
+      ({ uriTemplate, name, title, description, mimeType, _meta, icons }) => ({
         uriTemplate,
         name,
         title,
         description,
         mimeType,
+        icons: filterIcons(icons),
         // Strict `=== true` on purpose: only the server's explicit boolean
         // marks a template subscribable — a string "true" (or any other
         // truthy junk in `_meta`) must not.
