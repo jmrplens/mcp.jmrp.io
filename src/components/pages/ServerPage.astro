@@ -234,6 +234,21 @@ function descriptionParagraphs(text: string): string[] {
     .filter(Boolean);
 }
 
+/**
+ * A paragraph's lines, for rendering single line breaks as explicit `<br />`.
+ *
+ * The first version kept the raw `\n` inside the `<p>` and relied on
+ * `white-space: pre-line` to honour them — correct against the source, and
+ * useless against the BUILD: the post-build HTML minifier collapses
+ * whitespace inside text nodes, so the served page carried zero line breaks
+ * and pre-line had nothing left to preserve. The gitlab `instructions` block
+ * (numbered steps separated by single `\n`) rendered as one run-on wall.
+ * An explicit `<br />` is markup, not whitespace: the minifier keeps it.
+ */
+function paragraphLines(paragraph: string): string[] {
+  return paragraph.split("\n").map((line) => line.trim());
+}
+
 /** True if an argument declares itself required — `arguments[].required` is
  * omitted (not sent as `false`) when optional, see `CardPromptArgument`. */
 function isRequired(arg: CardPromptArgument): boolean {
@@ -425,7 +440,14 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
             <p class="fold-intro">{sp.instructionsIntro}</p>
             <div class="card-own-description server-instructions">
               {descriptionParagraphs(instructions).map((paragraph) => (
-                <p>{paragraph}</p>
+                <p>
+                  {paragraphLines(paragraph).map((line, i) => (
+                    <>
+                      {i > 0 && <br />}
+                      {line}
+                    </>
+                  ))}
+                </p>
               ))}
             </div>
           </section>
@@ -468,7 +490,14 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                     )
                   }
                   {descriptionParagraphs(entry.data.description).map((paragraph) => (
-                    <p class="entry-desc">{paragraph}</p>
+                    <p class="entry-desc">
+                      {paragraphLines(paragraph).map((line, i) => (
+                        <>
+                          {i > 0 && <br />}
+                          {line}
+                        </>
+                      ))}
+                    </p>
                   ))}
                   <p class="entry-cta">
                     <a href={inspectorHref("tools", entry.data.name)}>{sp.tryInInspector}</a>
@@ -559,7 +588,14 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                     <code>{entry.data.name}</code>
                   </p>
                   {descriptionParagraphs(entry.data.description).map((paragraph) => (
-                    <p class="entry-desc">{paragraph}</p>
+                    <p class="entry-desc">
+                      {paragraphLines(paragraph).map((line, i) => (
+                        <>
+                          {i > 0 && <br />}
+                          {line}
+                        </>
+                      ))}
+                    </p>
                   ))}
                   {entry.data.arguments.length > 0 ? (
                     <dl class="args">
@@ -601,7 +637,14 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                     <code>{entry.data.uri}</code>
                   </p>
                   {descriptionParagraphs(entry.data.description).map((paragraph) => (
-                    <p class="entry-desc">{paragraph}</p>
+                    <p class="entry-desc">
+                      {paragraphLines(paragraph).map((line, i) => (
+                        <>
+                          {i > 0 && <br />}
+                          {line}
+                        </>
+                      ))}
+                    </p>
                   ))}
                   {entry.data.mimeType && (
                     <p class="entry-meta">
@@ -646,7 +689,14 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                     </ul>
                   )}
                   {descriptionParagraphs(entry.data.description).map((paragraph) => (
-                    <p class="entry-desc">{paragraph}</p>
+                    <p class="entry-desc">
+                      {paragraphLines(paragraph).map((line, i) => (
+                        <>
+                          {i > 0 && <br />}
+                          {line}
+                        </>
+                      ))}
+                    </p>
                   ))}
                   {entry.data.mimeType && (
                     <p class="entry-meta">
@@ -1083,10 +1133,10 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
      rule. */
   .server-instructions p {
     margin: 0;
-    /* The server lays out numbered steps with single line breaks INSIDE a
-       paragraph; collapsing them would rewrite its prose into one long
-       line. `pre-line` renders the quote as its author wrote it (the same
-       verbatim principle `descriptionParagraphs` documents). */
+    /* Single line breaks inside a paragraph render as explicit <br /> (see
+       `paragraphLines`): the post-build minifier collapses raw newlines in
+       text nodes, so relying on pre-line alone silently lost them in the
+       served page. pre-line stays as a safety net. */
     white-space: pre-line;
   }
 
