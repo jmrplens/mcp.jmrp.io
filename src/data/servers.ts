@@ -195,7 +195,7 @@ export const servers: McpServer[] = [
     // {"name":"libgen-mcp","version":"1.6.3"}. See `nativeCard` on `McpServer`
     // for what that flag actually does (announces it in the RFC 9727 catalog).
     nativeCard: true,
-    version: "1.7.0",
+    version: "1.7.1",
     endpoint: "https://mcp.jmrp.io/libgen",
     repo: "https://github.com/jmrplens/libgen-mcp",
     docs: "https://github.com/jmrplens/libgen-mcp#readme",

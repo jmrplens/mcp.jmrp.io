@@ -3,13 +3,13 @@
     "endpoint": "https://mcp.jmrp.io/libgen/mcp",
     "method": "server/discover",
     "protocolVersion": "2026-07-28",
-    "generatedAt": "2026-08-26T08:09:35Z"
+    "generatedAt": "2026-08-26T17:33:18Z"
   },
   "serverInfo": {
     "name": "libgen-mcp",
     "title": "Books & Papers MCP Server",
     "description": "Federated search of books and papers, BibTeX/RIS citations, open-access retrieval and reading.",
-    "version": "1.7.0",
+    "version": "1.7.1",
     "websiteUrl": "https://jmrp.io/docs/libgen-mcp"
   },
   "supportedVersions": [
