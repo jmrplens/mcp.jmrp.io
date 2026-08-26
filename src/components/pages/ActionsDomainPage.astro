@@ -56,12 +56,18 @@ function paragraphLines(paragraph: string): string[] {
   <p class="eyebrow">{sp.domainPageKicker}</p>
   <h1 class="domain-title"><code>{domain}</code></h1>
   <p class="domain-intro">{sp.domainPageIntro}</p>
+  {/* Datos y LEYENDA a la vez: el punto de cada cifra es el mismo que llevan
+      las tarjetas de abajo — en móvil los chips con texto no cabían y partían
+      línea, así que cada acción lleva solo su punto y la palabra vive aquí
+      (y en sr-only dentro de cada tarjeta: el color nunca es la única señal). */}
   <p class="domain-facts">
     <span class="fact">{actions.length} · {sp.catalogColTotal.toLowerCase()}</span>
     <span class="fact fact--destructive">
+      <span class="action-dot action-dot--destructive" aria-hidden="true"></span>
       {destructiveCount} · {sp.catalogColDestructive.toLowerCase()}
     </span>
     <span class="fact fact--readonly">
+      <span class="action-dot action-dot--readonly" aria-hidden="true"></span>
       {readOnlyCount} · {sp.catalogColReadOnly.toLowerCase()}
     </span>
   </p>
@@ -92,10 +98,14 @@ function paragraphLines(paragraph: string): string[] {
               <span class="action-title">{action.title}</span>
               <span class="action-chips">
                 {action.destructive && (
-                  <span class="chip a-chip--destructive">{sp.domainChipDestructive}</span>
+                  <span class="action-dot action-dot--destructive">
+                    <span class="sr-only">{sp.domainChipDestructive}</span>
+                  </span>
                 )}
                 {action.read_only && (
-                  <span class="chip a-chip--info">{sp.domainChipReadOnly}</span>
+                  <span class="action-dot action-dot--readonly">
+                    <span class="sr-only">{sp.domainChipReadOnly}</span>
+                  </span>
                 )}
               </span>
             </summary>
@@ -225,18 +235,24 @@ function paragraphLines(paragraph: string): string[] {
     margin-left: auto;
   }
 
-  /* Variantes de chip calcadas de ServerPage (ámbito de componente: no
-     llegan hasta aquí solas). La forma base es `.chip` de utilities.css. */
-  .a-chip--info {
-    color: var(--color-text-muted);
-    background: var(--color-bg-subtle);
+  /* Puntos en lugar de chips con texto: en móvil los chips partían el
+     summary en dos líneas. La palabra vive en la leyenda de arriba y en el
+     sr-only de cada punto — el color nunca es la única señal. */
+  .action-dot {
+    display: inline-block;
+    flex: none;
+    align-self: center;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
   }
 
-  .a-chip--destructive {
-    color: var(--color-danger);
-    font-weight: var(--fw-medium);
-    background: var(--danger-dim);
-    border-color: var(--color-danger);
+  .action-dot--destructive {
+    background: var(--color-danger);
+  }
+
+  .action-dot--readonly {
+    background: var(--color-text-muted);
   }
 
   .action-body {
