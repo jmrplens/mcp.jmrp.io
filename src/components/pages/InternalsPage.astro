@@ -269,6 +269,9 @@ const wires = {
   tls_out: egressKeys.map((_, i) => wire(COL_X[4], egressY(i), COL_X[5], egressY(i))),
 };
 
+/** Every wire, in one list: the flow dots ride the same paths as the colours. */
+const allWires = [...wires.tls_in, ...wires.local, ...wires.ssh, ...wires.tls_out];
+
 // The node the reduced-motion frozen frame rings as "the chosen one" (see
 // the `prefers-reduced-motion` rules in the <style> block). ILLUSTRATIVE,
 // not the real affinity outcome for any actual client — computing that
@@ -334,6 +337,11 @@ const MATCHED_NODE_INDEX = 0;
         {wires.local.map((d) => <path class="wire wire--local" d={d} vector-effect="non-scaling-stroke" />)}
         {wires.ssh.map((d) => <path class="wire wire--ssh" d={d} vector-effect="non-scaling-stroke" />)}
         {wires.tls_out.map((d) => <path class="wire wire--tls" d={d} vector-effect="non-scaling-stroke" />)}
+        {/* Flow dots: the same paths again, dotted and marching, so the figure
+            is visibly alive the moment it appears instead of waiting for the
+            highlight box's first move. Painted over the colours, in the accent
+            so they read against green, grey and blue alike. */}
+        {allWires.map((d) => <path class="flow" d={d} vector-effect="non-scaling-stroke" />)}
       </svg>
 
 
@@ -752,6 +760,26 @@ const MATCHED_NODE_INDEX = 0;
 
   .wire--ssh {
     stroke: var(--wire-ssh);
+  }
+
+  /* The current. A dash of length 0 with a round cap paints a dot, so this is
+     a line of dots marching along the wire — the animation runs from the
+     first frame, which is what tells a visitor the figure is live before the
+     highlight box has moved anywhere. `stroke-dashoffset` is the only thing
+     animated: the geometry never changes, so no layout is involved. */
+  .flow {
+    fill: none;
+    stroke: var(--color-accent);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 0 16;
+    animation: flow-dots 1.6s linear infinite;
+  }
+
+  @keyframes flow-dots {
+    to {
+      stroke-dashoffset: -16;
+    }
   }
 
   /* ===== Transport legend ======================================================
@@ -1508,6 +1536,12 @@ const MATCHED_NODE_INDEX = 0;
      figure already carries every word the bubbles would have. */
   @media (prefers-reduced-motion: reduce) {
     .bubble {
+      display: none;
+    }
+
+    /* The current is motion and nothing else: frozen it would only speckle
+       the wires, so it goes away entirely and they stay solid. */
+    .flow {
       display: none;
     }
 
