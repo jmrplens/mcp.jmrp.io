@@ -384,7 +384,7 @@ test("safeIcon: prefiere el SVG aunque el card lo publique en otra posición", (
 // degradación (no publica subscriptions ni _meta); los sintéticos cubren lo
 // que ningún card committeado puede demostrar hoy.
 
-test("gitlab (2.7.1): expone capabilities y subscriptions en el resumen curado", () => {
+test("gitlab: expone capabilities y subscriptions en el resumen curado", () => {
   const card = getServerCard("gitlab");
   assert.ok(card, "gitlab debería tener una card committeada");
 
@@ -407,10 +407,12 @@ test("gitlab (2.7.1): expone capabilities y subscriptions en el resumen curado",
   assert.equal(typeof subscribe.requires, "string", "resources/subscribe.requires: string");
   assert.ok(subscribe.requires.length > 0, "resources/subscribe.requires: no vacía");
 
-  assert.equal(
-    card.subscriptions.subscribable_uri_templates.length,
-    26,
-    "el card 2.7.1 declara 26 URI templates suscribibles",
+  // Sin recuentos fijados: el build re-sincroniza el snapshot y cada release
+  // upstream los movería sin que el card deje de ser coherente. La coherencia
+  // interna la prueba el deepEqual del test siguiente.
+  assert.ok(
+    card.subscriptions.subscribable_uri_templates.length > 0,
+    "el card declara al menos una URI template suscribible",
   );
 });
 
@@ -418,9 +420,13 @@ test("gitlab: el flag _meta suscribible se propaga curado y coincide con la list
   const card = getServerCard("gitlab");
   assert.ok(card?.subscriptions, "gitlab debería tener card y subscriptions");
 
-  assert.equal(card.resourceTemplates.length, 37, "gitlab 2.7.1 publica 37 resource templates");
+  assert.ok(card.resourceTemplates.length > 0, "gitlab publica resource templates");
   const flagged = card.resourceTemplates.filter((tmpl) => tmpl.subscribable);
-  assert.equal(flagged.length, 26, "26 de los 37 templates llevan el flag curado");
+  assert.equal(
+    flagged.length,
+    card.subscriptions.subscribable_uri_templates.length,
+    "el recuento de templates marcados debe igualar la lista declarada",
+  );
 
   // Guarda anti-deriva entre las dos fuentes del MISMO card: el conjunto de
   // templates marcados por `_meta` debe ser EXACTAMENTE el que declara

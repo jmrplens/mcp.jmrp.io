@@ -27,7 +27,7 @@
 import type { APIRoute, GetStaticPaths } from "astro";
 
 import type { GitlabActionsSnapshot } from "../../../data/surface";
-import { getGitlabActions } from "../../../data/surface";
+import { actionCatalogs } from "../../../data/surface";
 
 /**
  * Una ruta por servidor CON catálogo committeado (hoy: gitlab), pasando el
@@ -37,10 +37,7 @@ import { getGitlabActions } from "../../../data/surface";
  * @returns Las rutas estáticas, con el id y el snapshot como props.
  */
 export const getStaticPaths: GetStaticPaths = () => {
-  const catalogs: Record<string, GitlabActionsSnapshot | undefined> = {
-    gitlab: getGitlabActions(),
-  };
-  return Object.entries(catalogs)
+  return Object.entries(actionCatalogs())
     .filter(([, catalog]) => catalog !== undefined)
     .map(([server, catalog]) => ({
       params: { server },

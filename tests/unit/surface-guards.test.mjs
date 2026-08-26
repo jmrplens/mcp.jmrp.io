@@ -53,14 +53,21 @@ try {
 function resolveNeedles() {
   const raw = process.env.MCP_SURFACE_GITLAB_URL;
   if (!raw) return null;
-  let host;
-  let hostname;
+  let host = "";
+  let hostname = "";
   try {
     const parsed = new URL(raw);
     host = parsed.host;
     hostname = parsed.hostname;
   } catch {
-    // Valor sin esquema: se usa tal cual, y recortado por si llevara puerto.
+    // Sin esquema y sin dos puntos: new URL lanza; cae al crudo, abajo.
+  }
+  if (!host && !hostname) {
+    // Valor sin esquema, O con dos puntos y sin esquema ("host:8443"): a este
+    // último new URL NO le lanza — lo parsea como esquema + ruta opaca con
+    // host VACÍO, y sin este fallback los tests de escaneo se saltarían justo
+    // con la variable puesta. El crudo tal cual, y recortado por si llevara
+    // puerto. MISMO fallback que FORBIDDEN_HOSTS en sync-server-surface.mjs.
     host = raw;
     hostname = raw.split(":", 1)[0];
   }
@@ -141,8 +148,10 @@ test("los snapshots de src/data/surface/ tampoco contienen el host", (t) => {
 
 test("la guardia muerde: un host plantado en una copia del dist se detecta", (t) => {
   // Verifica el MECANISMO, no el estado: si `scanForNeedles` dejara de ver la
-  // subcadena, los dos tests anteriores quedarían en verde para siempre. La
-  // copia vive bajo /tmp para no ensuciar el dist real, y sin GITLAB_URL se
+  // subcadena, los dos tests anteriores quedarían en verde para siempre. El
+  // árbol es SINTÉTICO — el mecanismo no necesita el dist real, y copiarlo
+  // haría fallar este test en un checkout sin build (el header promete que
+  // `pnpm test:unit` sin `.env` ni build queda verde). Sin GITLAB_URL se
   // planta una aguja sintética (TLD .invalid, RFC 2606) para que el mecanismo
   // quede probado también en CI.
   const needles = resolveNeedles() ?? ["gitlab.fixture.invalid"];
@@ -150,7 +159,11 @@ test("la guardia muerde: un host plantado en una copia del dist se detecta", (t)
   t.after(() => fs.rmSync(tmp, { recursive: true, force: true }));
 
   const copy = path.join(tmp, "dist");
-  fs.cpSync(DIST, copy, { recursive: true, dereference: true });
+  fs.mkdirSync(path.join(copy, "clean"), { recursive: true });
+  fs.writeFileSync(
+    path.join(copy, "clean", "index.html"),
+    "<!doctype html><title>sin agujas</title>",
+  );
 
   const planted = path.join("guard-fixture", "leak.json");
   fs.mkdirSync(path.join(copy, "guard-fixture"));

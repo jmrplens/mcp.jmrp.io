@@ -14,6 +14,7 @@ import {
 } from "../lib/mcp-catalog";
 import {
   formFields,
+  type JsonSchema,
   type McpTool,
   requirementGroups,
   skeletonFor,
@@ -51,6 +52,33 @@ const INIT_PARAMS = {
   clientInfo: { name: "mcp.jmrp.io inspector", version: "1" },
 };
 
+
+/**
+ * "Exactly one of: md5 or id or doi" — el formulario no puede marcar ningún
+ * campo suelto como obligatorio cuando el requisito es un GRUPO (libgen 1.7.1
+ * los declara como anyOf/oneOf de ramas required), así que se enuncia encima
+ * con las palabras del idioma de la página. A nivel de módulo por S3776: el
+ * componente ya roza el límite de complejidad y esto son solo datos de render.
+ *
+ * @param tab Pestaña activa; solo las tools llevan inputSchema con grupos.
+ * @param schema El `inputSchema` de la tool elegida.
+ * @param t Bloque de cadenas del inspector en el idioma de la página.
+ * @returns La línea ya redactada, o undefined si no hay grupos legibles.
+ */
+function requirementNoteFor(
+  tab: Tab,
+  schema: JsonSchema | undefined,
+  t: (typeof ui)[Lang]["insp"],
+): string | undefined {
+  if (tab !== "tools") return undefined;
+  const groups = requirementGroups(schema);
+  if (!groups) return undefined;
+  const label = groups.kind === "oneOf" ? t.groupOneOf : t.groupAnyOf;
+  const spelled = groups.groups
+    .map((group) => group.join(" + "))
+    .join(` ${t.groupJoiner} `);
+  return `${label}: ${spelled}`;
+}
 
 /**
  * Isla interactiva que habla con los servidores MCP desde el navegador del
@@ -168,19 +196,7 @@ export default function Inspector({
       ? formFields(promptSchema(selectedPrompt?.arguments ?? []))
       : formFields(selectedTool?.inputSchema);
 
-  // "Exactly one of: md5 | id | doi" — el formulario no puede marcar ningún
-  // campo suelto como obligatorio cuando el requisito es un GRUPO (libgen
-  // 1.7.1 los declara como anyOf/oneOf de ramas required), así que se
-  // enuncia encima, con las palabras del idioma de la página.
-  const groups =
-    tab === "tools" ? requirementGroups(selectedTool?.inputSchema) : undefined;
-  let requirementNote: string | undefined;
-  if (groups) {
-    const label = groups.kind === "oneOf" ? t.groupOneOf : t.groupAnyOf;
-    const joiner = ` ${t.groupJoiner} `;
-    const spelled = groups.groups.map((group) => group.join(" + ")).join(joiner);
-    requirementNote = `${label}: ${spelled}`;
-  }
+  const requirementNote = requirementNoteFor(tab, selectedTool?.inputSchema, t);
 
 
   /** Solo las cabeceras del servidor activo, y solo las que tienen valor. */

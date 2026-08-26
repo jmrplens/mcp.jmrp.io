@@ -16,8 +16,7 @@ import type { GetStaticPaths } from "astro";
 
 import ActionsDomainPage from "../../../../../components/pages/ActionsDomainPage.astro";
 import { servers } from "../../../../../data/servers";
-import type { GitlabActionsSnapshot } from "../../../../../data/surface";
-import { getGitlabActions } from "../../../../../data/surface";
+import { actionsDomainPaths } from "../../../../../data/surface";
 import { serversPage } from "../../../../../i18n/ui/servers-page";
 import { getLangFromUrl } from "../../../../../i18n/utils";
 import Base from "../../../../../layouts/Base.astro";
@@ -26,35 +25,9 @@ import {
   actionsDomainPageUrl,
 } from "../../../../../lib/seo";
 
-/** One route per (server with a catalog, domain). */
-export const getStaticPaths = (() => {
-  const catalogs: Record<string, GitlabActionsSnapshot | undefined> = {
-    gitlab: getGitlabActions(),
-  };
-  return Object.entries(catalogs)
-    .filter(
-      (pair): pair is [string, GitlabActionsSnapshot] => pair[1] !== undefined,
-    )
-    .flatMap(([server, catalog]) => {
-      // Dominio real de cada id, para resolver el destino de los alias_of —
-      // el objetivo puede vivir en OTRO dominio (issue.list_group →
-      // group.issues) y la página no puede derivarlo del prefijo del id.
-      const domainOf = new Map(catalog.entries.map((e) => [e.id, e.domain]));
-      return catalog.domains.map((d) => {
-        const actions = catalog.entries.filter((e) => e.domain === d.domain);
-        const aliasDomains = Object.fromEntries(
-          actions
-            .filter((e) => e.alias_of !== undefined)
-            .map((e) => [e.alias_of as string, domainOf.get(e.alias_of as string)])
-            .filter((pair): pair is [string, string] => pair[1] !== undefined),
-        );
-        return {
-          params: { server, domain: d.domain },
-          props: { server, domain: d.domain, actions, aliasDomains },
-        };
-      });
-    });
-}) satisfies GetStaticPaths;
+/** One route per (server with a catalog, domain) — shared body, see surface.ts. */
+export const getStaticPaths = (() =>
+  actionsDomainPaths()) satisfies GetStaticPaths;
 
 const { server, domain, actions, aliasDomains } = Astro.props;
 const lang = getLangFromUrl(Astro.url);

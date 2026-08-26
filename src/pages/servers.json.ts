@@ -1,22 +1,16 @@
 import type { APIRoute } from "astro";
 
-import {
-  serverCardDocuments,
-  SUBSCRIBABLE_META_KEY,
-} from "../data/server-cards";
+import { serverCardDocuments, serverCards } from "../data/server-cards";
 import { servers } from "../data/servers";
-import type { GitlabActionsSnapshot } from "../data/surface";
-import { getGitlabActions } from "../data/surface";
+import { actionCatalogs } from "../data/surface";
 import { SITE_ORIGIN } from "../lib/seo";
 
 /**
- * Catálogos de acciones dinámicas con snapshot committeado en
- * `src/data/surface/` (hoy solo gitlab). El loader memoiza y nunca lanza: un
+ * Catálogos de acciones dinámicas con snapshot committeado, desde el registro
+ * único de `src/data/surface.ts`. El loader memoiza y nunca lanza: un
  * checkout sin snapshot simplemente no emite la clave `actionCatalog`.
  */
-const actionCatalogs: Record<string, GitlabActionsSnapshot | undefined> = {
-  gitlab: getGitlabActions(),
-};
+const catalogs = actionCatalogs();
 
 /**
  * Índice para máquinas. Sustituye al JSON que servía `location = /` en nginx
@@ -48,7 +42,8 @@ export const GET: APIRoute = () =>
           // Se comprueba en vez de indexar a secas: un servidor puede estar
           // dado de alta antes de que aterrice su snapshot.
           const card = serverCardDocuments[s.id];
-          const catalog = actionCatalogs[s.id];
+          const summary = serverCards[s.id];
+          const catalog = catalogs[s.id];
           const prompts = s.prompts?.length
             ? s.prompts.map((prompt) => prompt.name)
             : (card?.prompts ?? []).map((prompt) => prompt.name);
@@ -77,14 +72,15 @@ export const GET: APIRoute = () =>
             // Suscripciones: solo si el card declara el contrato (gitlab
             // desde 2.7.x; libgen no lo trae y conserva su juego de claves
             // exacto). `methods` viaja tal cual (available/requires/
-            // since_protocol); la lista de plantillas suscribibles se deriva
-            // de `_meta[SUBSCRIBABLE_META_KEY] === true`, la clave
-            // comprobable a máquina — nunca de la prosa del bloque.
-            ...(card?.subscriptions && {
+            // since_protocol); la lista de plantillas suscribibles sale del
+            // flag `subscribable` que server-cards.ts CURA desde `_meta` —
+            // el `_meta` crudo no sale de la capa de datos, y así un cambio
+            // en la semántica de la clave se aplica en un solo sitio.
+            ...(summary?.subscriptions && {
               subscriptions: {
-                methods: card.subscriptions.methods,
-                subscribableUriTemplates: card.resourceTemplates
-                  .filter((t) => t._meta?.[SUBSCRIBABLE_META_KEY] === true)
+                methods: summary.subscriptions.methods,
+                subscribableUriTemplates: summary.resourceTemplates
+                  .filter((t) => t.subscribable)
                   .map((t) => t.uriTemplate),
               },
             }),

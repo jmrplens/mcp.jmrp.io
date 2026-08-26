@@ -84,22 +84,26 @@ const GITLAB_URL = process.env.MCP_SURFACE_GITLAB_URL;
  */
 const FORBIDDEN_HOSTS = (() => {
   if (!GITLAB_URL) return [];
+  let hosts = [];
   try {
     const u = new URL(GITLAB_URL);
-    return [...new Set([u.host, u.hostname].filter(Boolean))].map((h) =>
-      h.toLowerCase(),
-    );
+    hosts = [...new Set([u.host, u.hostname].filter(Boolean))];
   } catch {
-    // Valor sin esquema ("host.ejemplo.com"): la guardia debe quedar armada
-    // igual — el valor crudo como host, y recortado por si llevara puerto.
+    // Sin esquema y sin dos puntos: new URL lanza; cae al crudo, abajo.
+  }
+  if (hosts.length === 0) {
+    // Valor sin esquema ("host.ejemplo.com"), O con dos puntos y sin esquema
+    // ("host.ejemplo.com:8443"): a este último new URL NO le lanza — lo parsea
+    // como esquema + ruta opaca con host VACÍO, y sin este fallback la guardia
+    // se desarmaría en silencio justo con la variable puesta. En ambos casos:
+    // el valor crudo como host, y recortado por si llevara puerto.
     // MISMO fallback que resolveNeedles() en tests/unit/surface-guards.test.mjs:
     // si los dos resolutores divergen, el build y su red de seguridad
     // inspeccionan cosas distintas y una fuga podría publicarse.
     const hostname = GITLAB_URL.split(":", 1)[0];
-    return [...new Set([GITLAB_URL, hostname])]
-      .filter(Boolean)
-      .map((h) => h.toLowerCase());
+    hosts = [...new Set([GITLAB_URL, hostname])].filter(Boolean);
   }
+  return hosts.map((h) => h.toLowerCase());
 })();
 
 /**
@@ -264,13 +268,6 @@ function buildDiscoverSnapshot(endpoint, result, generatedAt) {
 }
 
 /**
- * Valida el manifiesto gitlab://tools y lo reduce al contrato del snapshot:
- * solo las entradas kind==="dynamic_action", con los cinco campos que
- * el buscador necesita, más el recuento por dominio precalculado para el SSR.
- * `sourceVersion` ata el catálogo a la release del discover de la MISMA
- * extracción. Lanza si la forma no cuadra (el llamador lo degrada a blando).
- */
-/**
  * Valida el envoltorio JSON-RPC de resources/read y devuelve el manifiesto
  * parseado de contents[0].text. Extraído de buildActionsSnapshot por S3776:
  * cada capa de validación con su nombre en vez de una función de 29.
@@ -407,6 +404,13 @@ function validateManifestEntries(manifest) {
   }
 }
 
+/**
+ * Valida el manifiesto gitlab://tools y lo reduce al contrato del snapshot:
+ * solo las entradas kind==="dynamic_action", con los cinco campos que
+ * el buscador necesita, más el recuento por dominio precalculado para el SSR.
+ * `sourceVersion` ata el catálogo a la release del discover de la MISMA
+ * extracción. Lanza si la forma no cuadra (el llamador lo degrada a blando).
+ */
 function buildActionsSnapshot(endpoint, result, sourceVersion, generatedAt) {
   const { manifest, resourceUri, ttlMs, cacheScope } = parseManifestEnvelope(result);
   validateManifestHeader(manifest);
@@ -533,11 +537,6 @@ function writeIfChanged(target, snapshot) {
   console.log(`${TAG} ✓ ${path.basename(target)}: actualizado`);
 }
 
-/**
- * Orquesta las tres extracciones. Cada una degrada a fallo blando por
- * separado (como sync-server-cards.sh: un MCP caído no bloquea al otro);
- * solo la guardia anti-fuga es fallo duro, y corre ANTES de escribir nada.
- */
 /** libgen — server/discover, sin autenticación. Fallo blando por separado. */
 async function collectLibgenDiscover(pending, generatedAt) {
   try {

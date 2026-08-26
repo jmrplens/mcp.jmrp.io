@@ -15,7 +15,7 @@
  * lo que espera la herramienta que lo consuma), pero enlazan y nombran la
  * versión española del sitio.
  */
-import type { ServerCardDocument } from "../data/server-cards";
+import type { ServerCardSummary } from "../data/server-cards";
 import {
   serverCardDocuments,
   serverCards,
@@ -248,15 +248,17 @@ function capabilityBlock(
  * contrato (`subscriptions`).
  *
  * La disponibilidad de cada método se genera de `card.subscriptions.methods`
- * y el recuento de plantillas suscribibles se deriva de
- * `_meta[SUBSCRIBABLE_META_KEY] === true` en cada plantilla — la clave
- * comprobable a máquina, nunca la prosa del card—, así que nada de este
- * bloque puede desviarse del snapshot committeado.
+ * y el recuento de plantillas suscribibles sale del flag `subscribable` que
+ * server-cards.ts cura desde `_meta` — el `_meta` crudo no sale de la capa de
+ * datos, así que nada de este bloque puede desviarse del snapshot committeado
+ * ni de las demás superficies que leen el mismo flag. El texto emitido sí
+ * nombra la clave `_meta` original: es la que un cliente MCP verá en
+ * `resources/templates/list`.
  *
- * @param card Documento completo del card, si existe.
+ * @param card Resumen curado del card, si existe.
  * @returns El bloque en Markdown, o cadena vacía si no hay contrato.
  */
-function subscriptionsBlock(card: ServerCardDocument | undefined): string {
+function subscriptionsBlock(card: ServerCardSummary | undefined): string {
   if (!card?.subscriptions) return "";
   const lines = Object.entries(card.subscriptions.methods).map(
     ([method, info]) => {
@@ -271,7 +273,7 @@ function subscriptionsBlock(card: ServerCardDocument | undefined): string {
     },
   );
   const count = card.resourceTemplates.filter(
-    (template) => template._meta?.[SUBSCRIBABLE_META_KEY] === true,
+    (template) => template.subscribable,
   ).length;
   lines.push(
     `- ${count} of the resource templates above are subscribable — the ones whose \`resources/templates/list\` entry carries \`_meta["${SUBSCRIBABLE_META_KEY}"]: true\`.`,
@@ -374,7 +376,7 @@ ${server.description.en}
 
 Tools:
 
-${server.tools.map((tool) => `- \`${tool.name}\` — ${tool.what.en}`).join("\n")}${promptBlock}${resourceBlock}${templateBlock}${subscriptionsBlock(card)}${actionCatalogBlock(server.id)}
+${server.tools.map((tool) => `- \`${tool.name}\` — ${tool.what.en}`).join("\n")}${promptBlock}${resourceBlock}${templateBlock}${subscriptionsBlock(serverCards[server.id])}${actionCatalogBlock(server.id)}
 
 Verify the live list with:
 

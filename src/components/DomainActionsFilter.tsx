@@ -37,6 +37,12 @@ import { serversPage } from "../i18n/ui/servers-page";
 /** The per-card handle the island reads once from the SSR'd DOM. */
 interface CardRef {
   el: HTMLDetailsElement;
+  /**
+   * The flex item `hidden`/`order` must act on: the wrapping `<li>` (the flex
+   * container is the `<ol>`). On the `<details>` itself, `order` is a no-op
+   * and `hidden` still leaves the empty `<li>` contributing its row gap.
+   */
+  item: HTMLElement;
   /** id + title, lowercased — the first-class match target. */
   name: string;
   /** Full description text, lowercased — the second-class match target. */
@@ -60,6 +66,7 @@ function collectCards(listId: string): CardRef[] {
   return [...list.querySelectorAll<HTMLDetailsElement>("details.action-item")].map(
     (el) => ({
       el,
+      item: el.closest("li") ?? el,
       name: `${el.dataset.actionId ?? ""} ${el.dataset.actionTitle ?? ""}`.toLowerCase(),
       desc: (el.querySelector(".action-desc")?.textContent ?? "").toLowerCase(),
       destructive: el.dataset.destructive === "true",
@@ -92,9 +99,9 @@ function applyFilter(
     const nameHit = q === "" || card.name.includes(q);
     const descHit = q !== "" && !nameHit && card.desc.includes(q);
     const show = passesToggles && (nameHit || descHit);
-    card.el.hidden = !show;
+    card.item.hidden = !show;
     // Reordenación sin mover el DOM: ver el comentario de cabecera.
-    card.el.style.order = descHit ? "1" : "0";
+    card.item.style.order = descHit ? "1" : "0";
     // Solo se fuerza el estado en coincidencias por descripción; el
     // abierto/cerrado que el usuario haya dejado en el resto se respeta.
     if (descHit) {

@@ -168,7 +168,8 @@ function domainHref(target: string): string {
                 )}
               </p>
               {
-                action.required_params_any_of?.length && (
+                action.required_params_any_of &&
+                  action.required_params_any_of.length > 0 && (
                   <p class="action-params">
                     <strong>{sp.domainAnyOfLabel}:</strong>{" "}
                     {action.required_params_any_of.map((group, gi) => (
