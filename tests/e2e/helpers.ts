@@ -107,9 +107,19 @@ const CORS = {
  * Lets the specs that call the REAL endpoint through its origin check.
  *
  * Both MCP servers refuse any request whose `Sec-Fetch-Site` is `cross-site`
- * ("cross-origin request detected from Sec-Fetch-Site header", HTTP 403) —
- * DNS-rebinding protection, applied by the server itself, not by nginx or
- * Cloudflare. On the real site that check never fires: the inspector page and
+ * ("cross-origin request detected from Sec-Fetch-Site header", HTTP 403).
+ * This is NOT a misconfiguration to route around: each server wraps its
+ * handler in Go's `http.NewCrossOriginProtection()` on purpose
+ * (`crossOriginProtected` in libgen-mcp's `cmd/server/main.go`,
+ * `crossOriginProtectionMiddleware` in gitlab-mcp-server's), because the
+ * 2026-07-28 streamable-HTTP transport requires servers to validate Origin
+ * against DNS rebinding. Reproduced straight against a container IP on the
+ * Docker network, so neither nginx nor Cloudflare is involved; the rule is
+ * Go's: safe methods pass, a request with no browser headers passes, a
+ * `Sec-Fetch-Site` of `same-site` or `cross-site` is refused, and with no
+ * `Sec-Fetch-Site` the `Origin` must match the request's `Host`.
+ *
+ * On the real site the check never fires: the inspector page and
  * the endpoint share an origin, so the browser stamps `same-origin`. Under
  * Playwright the same build is served from `localhost:4321` while the island
  * still calls the absolute `https://mcp.jmrp.io/...` from `servers.ts`, so the
@@ -121,6 +131,8 @@ const CORS = {
  * real, and the only thing corrected is the artefact of serving the page from
  * a different host than production. Scoped to the two endpoint URLs so a page
  * load — or any other request a test makes — keeps the browser's own value.
+ * It does not weaken the protection anywhere it runs: this is test-process
+ * plumbing, and the deployed servers keep refusing the same requests.
  *
  * @param page Página bajo test.
  * @returns Nada; registra la ruta en la página.
