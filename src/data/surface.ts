@@ -92,8 +92,27 @@ export interface GitlabActionEntry {
    * endpoint deliberately does NOT emit it: its projection is its own.
    */
   description: string;
-  /** Upstream `required_params`, verbatim; absent when the action takes none. */
-  required_params?: string[];
+  /**
+   * Upstream `required_params`, verbatim; absent when the action takes none.
+   * 2.7.2 upgraded each entry from a bare name to `{name, type}` (at this
+   * site's request); `type` may still be absent for genuinely mixed-type
+   * params (`admin.feature_set`'s `value`).
+   */
+  required_params?: GitlabActionParam[];
+  /**
+   * Alternative requirement groups: at least ONE group must be fully
+   * provided, on top of `required_params`. E.g. snippet.create needs `title`
+   * plus (`file_name` + `content`) or (`files`).
+   */
+  required_params_any_of?: GitlabActionParam[][];
+  /** Canonical id this entry is a declared alias of (3 pairs in 2.7.2). */
+  alias_of?: string;
+}
+
+/** One required parameter, as the manifest publishes it since 2.7.2. */
+export interface GitlabActionParam {
+  name: string;
+  type?: string;
 }
 
 /** Per-domain counts precomputed by the extractor for the SSR breakdown. */
@@ -203,6 +222,29 @@ function validateDiscover(parsed: unknown): string | undefined {
  * consistency sums the SSR math relies on: `actionCount === entries.length`
  * and `sum(domains.count) === actionCount`.
  */
+/** One `{name, type}` pair; `type` tolerated as absent (mixed-type params). */
+function isValidParam(x: unknown): boolean {
+  return (
+    isRecord(x) && isString(x.name) && (x.type === undefined || isString(x.type))
+  );
+}
+
+/** `required_params`, when present: an array of valid params. */
+function isValidParams(value: unknown): boolean {
+  return value === undefined || (Array.isArray(value) && value.every(isValidParam));
+}
+
+/** `required_params_any_of`, when present: groups of valid params. */
+function isValidAnyOf(value: unknown): boolean {
+  return (
+    value === undefined ||
+    (Array.isArray(value) &&
+      value.every(
+        (g) => Array.isArray(g) && g.length > 0 && g.every(isValidParam),
+      ))
+  );
+}
+
 function validateActions(parsed: unknown): string | undefined {
   if (!isRecord(parsed)) return "root is not an object";
   const { meta, domains, entries } = parsed;
@@ -258,9 +300,9 @@ function validateActions(parsed: unknown): string | undefined {
         isBoolean(e.destructive) &&
         isBoolean(e.read_only) &&
         isString(e.description) &&
-        (e.required_params === undefined ||
-          (Array.isArray(e.required_params) &&
-            e.required_params.every((x: unknown) => isString(x))))),
+        isValidParams(e.required_params) &&
+        isValidAnyOf(e.required_params_any_of) &&
+        (e.alias_of === undefined || isString(e.alias_of))),
     )
   ) {
     return "entries is missing or badly typed";

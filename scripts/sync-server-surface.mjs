@@ -325,12 +325,42 @@ function validateManifestHeader(manifest) {
   }
 }
 
-/** `required_params` es opcional; presente, debe ser array de strings no vacíos. */
+/**
+ * One `{name, type}` pair as 2.7.2's typed required_params publish them.
+ * `type` is tolerated as ABSENT: `admin.feature_set`'s `value` ships without
+ * one (a feature-flag value is genuinely mixed-type), and rejecting the whole
+ * catalog over an untyped param would trade one missing annotation for 851
+ * frozen entries. The page simply renders the bare name in that case.
+ */
+function isTypedParam(x) {
+  return (
+    isPlainObject(x) &&
+    isNonEmptyString(x.name) &&
+    (x.type === undefined || isNonEmptyString(x.type))
+  );
+}
+
+/**
+ * `required_params` is optional; when present, an array of `{name, type}`
+ * objects (2.7.2 upgraded it from bare name strings, at this site's request —
+ * the domain pages render the type next to each parameter).
+ */
 function hasValidRequiredParams(entry) {
   if (entry.required_params === undefined) return true;
+  return Array.isArray(entry.required_params) && entry.required_params.every(isTypedParam);
+}
+
+/**
+ * `required_params_any_of` is optional: an array of GROUPS, each a non-empty
+ * array of `{name, type}` — "at least one of these groups must be satisfied".
+ */
+function hasValidAnyOfGroups(entry) {
+  if (entry.required_params_any_of === undefined) return true;
   return (
-    Array.isArray(entry.required_params) &&
-    entry.required_params.every((x) => isNonEmptyString(x))
+    Array.isArray(entry.required_params_any_of) &&
+    entry.required_params_any_of.every(
+      (group) => Array.isArray(group) && group.length > 0 && group.every(isTypedParam),
+    )
   );
 }
 
@@ -342,7 +372,9 @@ function isWellTypedAction(entry) {
     isNonEmptyString(entry.description) &&
     typeof entry.destructive === "boolean" &&
     typeof entry.read_only === "boolean" &&
-    hasValidRequiredParams(entry)
+    hasValidRequiredParams(entry) &&
+    hasValidAnyOfGroups(entry) &&
+    (entry.alias_of === undefined || isNonEmptyString(entry.alias_of))
   );
 }
 
@@ -399,6 +431,10 @@ function buildActionsSnapshot(endpoint, result, sourceVersion, generatedAt) {
       read_only: e.read_only,
       description: e.description,
       ...(e.required_params && { required_params: e.required_params }),
+      ...(e.required_params_any_of && {
+        required_params_any_of: e.required_params_any_of,
+      }),
+      ...(e.alias_of && { alias_of: e.alias_of }),
     }))
     .sort((a, b) => byteCompare(a.id, b.id));
 
