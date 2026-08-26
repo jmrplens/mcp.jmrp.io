@@ -2,6 +2,15 @@ import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  // One retry. Several of these specs drive a live endpoint over the public
+  // internet, and the host that runs them also runs the production stack
+  // (nginx, both MCP pools, their containers), so a run occasionally loses a
+  // single test to a 30s expectation that would have passed on the next go —
+  // observed across full-suite runs failing a DIFFERENT test each time,
+  // including one backed by a stub, which is what rules out the network as
+  // the sole cause. A retry hides a flake; it cannot hide a real break, which
+  // fails both attempts.
+  retries: 1,
   use: { baseURL: "http://localhost:4321" },
   webServer: {
     // `astro preview` serves the built artifact, so the e2e tests exercise
@@ -23,5 +32,12 @@ export default defineConfig({
       'DIST_DIR=$(node scripts/deploy-swap.mjs prepare) && astro build --outDir "$DIST_DIR" && astro preview --outDir "$DIST_DIR" --port 4321',
     url: "http://localhost:4321",
     reuseExistingServer: false,
+    // Playwright's default is 60s and this command BUILDS before it serves:
+    // measured at 65s on the production host with a cold output directory
+    // (`prepare` empties it, so the post-build image/compression caches start
+    // from scratch), which failed the run before a single test executed. The
+    // build is the slow part, not the server; three minutes is room for a
+    // loaded machine, not a wait anyone sits through on a healthy one.
+    timeout: 180_000,
   },
 });
