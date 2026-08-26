@@ -219,6 +219,12 @@ export const serversPage = {
     domainToggleReadOnly: "Read-only only",
     domainParamsLabel: "Required parameters",
     domainNoParams: "No required parameters",
+    /** Prefix of the alternative-requirements line (2.7.2's any_of groups). */
+    domainAnyOfLabel: "At least one of",
+    /** Joiner between alternative groups: "…, or …". */
+    domainAnyOfJoiner: "or",
+    /** Label of the alias marker; the target id follows as a link. */
+    domainAliasOf: "alias of",
   },
   es: {
     /** Ver `en.metaTitleIndex`. */
@@ -366,5 +372,9 @@ export const serversPage = {
     domainToggleReadOnly: "Solo de lectura",
     domainParamsLabel: "Parámetros obligatorios",
     domainNoParams: "Sin parámetros obligatorios",
+    /** Ver `en.domainAnyOfLabel`. */
+    domainAnyOfLabel: "Al menos uno de",
+    domainAnyOfJoiner: "o",
+    domainAliasOf: "alias de",
   },
 } as const;

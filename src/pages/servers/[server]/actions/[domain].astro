@@ -35,19 +35,28 @@ export const getStaticPaths = (() => {
     .filter(
       (pair): pair is [string, GitlabActionsSnapshot] => pair[1] !== undefined,
     )
-    .flatMap(([server, catalog]) =>
-      catalog.domains.map((d) => ({
-        params: { server, domain: d.domain },
-        props: {
-          server,
-          domain: d.domain,
-          actions: catalog.entries.filter((e) => e.domain === d.domain),
-        },
-      })),
-    );
+    .flatMap(([server, catalog]) => {
+      // Dominio real de cada id, para resolver el destino de los alias_of —
+      // el objetivo puede vivir en OTRO dominio (issue.list_group →
+      // group.issues) y la página no puede derivarlo del prefijo del id.
+      const domainOf = new Map(catalog.entries.map((e) => [e.id, e.domain]));
+      return catalog.domains.map((d) => {
+        const actions = catalog.entries.filter((e) => e.domain === d.domain);
+        const aliasDomains = Object.fromEntries(
+          actions
+            .filter((e) => e.alias_of !== undefined)
+            .map((e) => [e.alias_of as string, domainOf.get(e.alias_of as string)])
+            .filter((pair): pair is [string, string] => pair[1] !== undefined),
+        );
+        return {
+          params: { server, domain: d.domain },
+          props: { server, domain: d.domain, actions, aliasDomains },
+        };
+      });
+    });
 }) satisfies GetStaticPaths;
 
-const { server, domain, actions } = Astro.props;
+const { server, domain, actions, aliasDomains } = Astro.props;
 const lang = getLangFromUrl(Astro.url);
 const sp = serversPage[lang];
 
@@ -78,5 +87,6 @@ const description = sp.domainMetaDescription
     domain={domain}
     actions={actions}
     tokenNote={sp.catalogTokenNote}
+    aliasDomains={aliasDomains}
   />
 </Base>

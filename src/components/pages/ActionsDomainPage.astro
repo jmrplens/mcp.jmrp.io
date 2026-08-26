@@ -15,7 +15,7 @@
  * as explicit `<br />` because the post-build minifier collapses raw
  * newlines in text nodes (see ServerPage's `paragraphLines`).
  */
-import type { GitlabActionEntry } from "../../data/surface";
+import type { GitlabActionEntry, GitlabActionParam } from "../../data/surface";
 import type { Lang } from "../../i18n/ui";
 import { serversPage } from "../../i18n/ui/servers-page";
 import { serverPagePath } from "../../lib/seo";
@@ -29,9 +29,15 @@ interface Props {
   actions: GitlabActionEntry[];
   /** The token-scope caveat, shared verbatim with the ficha's catalog. */
   tokenNote: string;
+  /**
+   * Domain of each `alias_of` target present in `actions`, resolved by the
+   * route from the full snapshot — the target may live in ANOTHER domain
+   * (issue.list_group → group.issues), so the link cannot derive it here.
+   */
+  aliasDomains: Record<string, string>;
 }
 
-const { lang, serverId, domain, actions, tokenNote } = Astro.props;
+const { lang, serverId, domain, actions, tokenNote, aliasDomains } = Astro.props;
 const sp = serversPage[lang];
 
 const localePrefix = lang === "es" ? "/es/" : "/";
@@ -49,6 +55,16 @@ function descriptionParagraphs(text: string): string[] {
 }
 function paragraphLines(paragraph: string): string[] {
   return paragraph.split("\n").map((line) => line.trim());
+}
+
+/** `name (type)` — or the bare name for the mixed-type params 2.7.2 leaves untyped. */
+function paramLabel(param: GitlabActionParam): string {
+  return param.type ? `${param.name} (${param.type})` : param.name;
+}
+
+/** Base href of a SIBLING domain page, for cross-domain alias links. */
+function domainHref(target: string): string {
+  return `../${target}/`;
 }
 ---
 
@@ -96,6 +112,22 @@ function paragraphLines(paragraph: string): string[] {
             <summary class="action-summary">
               <code class="action-id">{action.id}</code>
               <span class="action-title">{action.title}</span>
+              {
+                action.alias_of && (
+                  <span class="action-alias">
+                    {sp.domainAliasOf}{" "}
+                    <a
+                      href={`${
+                        aliasDomains[action.alias_of] === domain
+                          ? ""
+                          : domainHref(aliasDomains[action.alias_of] ?? domain)
+                      }#${action.alias_of}`}
+                    >
+                      <code>{action.alias_of}</code>
+                    </a>
+                  </span>
+                )
+              }
               <span class="action-chips">
                 {action.destructive && (
                   <span class="action-dot action-dot--destructive">
@@ -128,13 +160,31 @@ function paragraphLines(paragraph: string): string[] {
                   action.required_params.map((param, i) => (
                     <>
                       {i > 0 && ", "}
-                      <code>{param}</code>
+                      <code>{paramLabel(param)}</code>
                     </>
                   ))
                 ) : (
                   <span>{sp.domainNoParams}</span>
                 )}
               </p>
+              {
+                action.required_params_any_of?.length && (
+                  <p class="action-params">
+                    <strong>{sp.domainAnyOfLabel}:</strong>{" "}
+                    {action.required_params_any_of.map((group, gi) => (
+                      <>
+                        {gi > 0 && ` ${sp.domainAnyOfJoiner} `}
+                        {group.map((param, pi) => (
+                          <>
+                            {pi > 0 && " + "}
+                            <code>{paramLabel(param)}</code>
+                          </>
+                        ))}
+                      </>
+                    ))}
+                  </p>
+                )
+              }
             </div>
           </details>
         </li>
@@ -227,6 +277,11 @@ function paragraphLines(paragraph: string): string[] {
   .action-title {
     color: var(--color-text-muted);
     font-size: var(--text-sm);
+  }
+
+  .action-alias {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
   }
 
   .action-chips {
