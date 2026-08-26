@@ -9,6 +9,12 @@
  * published as the server's official site; and a card missing the minimum
  * shape this module depends on must fail loudly instead of producing
  * `undefined` deep in a page.
+ *
+ * Since gitlab 2.7.x the same two directions cover `capabilities`,
+ * `subscriptions` and the curated `subscribable` flag on resource templates:
+ * gitlab must expose them, libgen (no `subscriptions`, no `_meta`) must keep
+ * summarizing them to `undefined`/`[]` without error, and the raw `_meta`
+ * must never leak into the curated summary.
  */
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -17,6 +23,7 @@ import {
   filterIcons,
   filterWebsiteUrl,
   getServerCard,
+  SUBSCRIBABLE_META_KEY,
   summarizeServerCardDocument,
   validateServerCardDocument,
 } from "../../src/data/server-cards.ts";
@@ -161,6 +168,14 @@ test("validateServerCardDocument: un card mínimo válido no falla, y las famili
   assert.deepEqual(doc.prompts, []);
   assert.deepEqual(doc.resources, []);
   assert.deepEqual(doc.resourceTemplates, []);
+
+  // Ampliación 2.7.x: sin `capabilities` ni `subscriptions` el card sigue
+  // siendo válido, y la ausencia llega al resumen como `undefined` (no como
+  // `{}` ni `null`) — que es lo que la ficha comprueba para no pintar bloque.
+  const card = summarizeServerCardDocument("minimal", doc);
+  assert.equal(card.capabilities, undefined);
+  assert.equal(card.subscriptions, undefined);
+  assert.deepEqual(card.resourceTemplates, []);
 });
 
 test("filterWebsiteUrl: conserva una URL https", () => {
@@ -354,4 +369,164 @@ test("safeIcon: prefiere el SVG aunque el card lo publique en otra posición", (
     { src: "data:image/webp;base64,AA==", mimeType: "image/webp" },
   ];
   assert.equal(safeIcon(unsafeSvg).mimeType, "image/webp");
+});
+
+// Cobertura de `capabilities`/`subscriptions`/`subscribable` (gitlab 2.7.x).
+// El sujeto real con datos es gitlab; libgen es el sujeto real de la
+// degradación (no publica subscriptions ni _meta); los sintéticos cubren lo
+// que ningún card committeado puede demostrar hoy.
+
+test("gitlab (2.7.1): expone capabilities y subscriptions en el resumen curado", () => {
+  const card = getServerCard("gitlab");
+  assert.ok(card, "gitlab debería tener una card committeada");
+
+  assert.ok(card.capabilities, "gitlab: falta capabilities");
+  assert.equal(
+    card.capabilities.resources.subscribe,
+    true,
+    "gitlab declara capabilities.resources.subscribe",
+  );
+
+  assert.ok(card.subscriptions, "gitlab: falta subscriptions");
+  const listen = card.subscriptions.methods["subscriptions/listen"];
+  assert.ok(listen, "falta el método subscriptions/listen");
+  assert.equal(listen.available, true, "subscriptions/listen: disponible en este despliegue");
+  assert.equal(listen.since_protocol, "2026-07-28", "subscriptions/listen.since_protocol");
+
+  const subscribe = card.subscriptions.methods["resources/subscribe"];
+  assert.ok(subscribe, "falta el método resources/subscribe");
+  assert.equal(subscribe.available, false, "resources/subscribe: no disponible (stateless)");
+  assert.equal(typeof subscribe.requires, "string", "resources/subscribe.requires: string");
+  assert.ok(subscribe.requires.length > 0, "resources/subscribe.requires: no vacía");
+
+  assert.equal(
+    card.subscriptions.subscribable_uri_templates.length,
+    26,
+    "el card 2.7.1 declara 26 URI templates suscribibles",
+  );
+});
+
+test("gitlab: el flag _meta suscribible se propaga curado y coincide con la lista declarada", () => {
+  const card = getServerCard("gitlab");
+  assert.ok(card?.subscriptions, "gitlab debería tener card y subscriptions");
+
+  assert.equal(card.resourceTemplates.length, 37, "gitlab 2.7.1 publica 37 resource templates");
+  const flagged = card.resourceTemplates.filter((tmpl) => tmpl.subscribable);
+  assert.equal(flagged.length, 26, "26 de los 37 templates llevan el flag curado");
+
+  // Guarda anti-deriva entre las dos fuentes del MISMO card: el conjunto de
+  // templates marcados por `_meta` debe ser EXACTAMENTE el que declara
+  // `subscriptions.subscribable_uri_templates`. Si una release del servidor
+  // actualiza una lista y no la otra, este deepEqual lo dice con nombres.
+  const fromMeta = flagged.map((tmpl) => tmpl.uriTemplate).sort((a, b) => a.localeCompare(b));
+  const declared = [...card.subscriptions.subscribable_uri_templates].sort((a, b) =>
+    a.localeCompare(b),
+  );
+  assert.deepEqual(fromMeta, declared, "las dos fuentes del card han derivado entre sí");
+
+  // `_meta` crudo no debe salir de la capa de datos — espejo de la aserción
+  // sobre `annotations.title` del test de libgen.
+  for (const tmpl of card.resourceTemplates) {
+    assert.equal("_meta" in tmpl, false, `${tmpl.uriTemplate}: _meta crudo en el resumen`);
+  }
+});
+
+test("libgen: capabilities sin subscriptions, y cero templates", () => {
+  const card = getServerCard("libgen");
+  assert.ok(card, "libgen debería tener una card committeada");
+  assert.equal(card.capabilities?.tools?.listChanged, true, "capabilities.tools.listChanged");
+  assert.equal(card.subscriptions, undefined, "libgen no publica subscriptions");
+  assert.deepEqual(card.resourceTemplates, [], "libgen no publica resource templates");
+});
+
+test("validateServerCardDocument: capabilities que no es objeto falla ruidosamente", () => {
+  assert.throws(
+    () =>
+      validateServerCardDocument("broken", {
+        serverInfo: { name: "broken-mcp", version: "1.0.0" },
+        authentication: { required: false, schemes: [] },
+        capabilities: "tools",
+      }),
+    /capabilities is present but not an object/,
+  );
+  // Un array también da `typeof === "object"`: no debe colar.
+  assert.throws(
+    () =>
+      validateServerCardDocument("broken", {
+        serverInfo: { name: "broken-mcp", version: "1.0.0" },
+        authentication: { required: false, schemes: [] },
+        capabilities: [],
+      }),
+    /capabilities is present but not an object/,
+  );
+});
+
+test("validateServerCardDocument: subscriptions sin methods / con available no booleano / sin subscribable_uri_templates falla ruidosamente", () => {
+  const base = {
+    serverInfo: { name: "broken-mcp", version: "1.0.0" },
+    authentication: { required: false, schemes: [] },
+  };
+
+  assert.throws(
+    () => validateServerCardDocument("broken", { ...base, subscriptions: {} }),
+    /subscriptions\.methods is missing or not an object/,
+  );
+
+  assert.throws(
+    () =>
+      validateServerCardDocument("broken", {
+        ...base,
+        subscriptions: {
+          methods: { "resources/subscribe": { available: "yes" } },
+          subscribable_uri_templates: [],
+        },
+      }),
+    /subscriptions\.methods\["resources\/subscribe"\]\.available is missing or not a boolean/,
+  );
+
+  assert.throws(
+    () =>
+      validateServerCardDocument("broken", {
+        ...base,
+        subscriptions: { methods: { "subscriptions/listen": { available: true } } },
+      }),
+    /subscriptions\.subscribable_uri_templates is missing or not an array/,
+  );
+});
+
+test("summarizeServerCardDocument: solo _meta === true marca suscribible", () => {
+  const doc = validateServerCardDocument("meta", {
+    serverInfo: { name: "meta-mcp", version: "1.0.0" },
+    authentication: { required: false, schemes: [] },
+    resourceTemplates: [
+      {
+        uriTemplate: "x://a/{id}",
+        name: "a",
+        title: "A",
+        description: "con el flag booleano",
+        _meta: { [SUBSCRIBABLE_META_KEY]: true },
+      },
+      {
+        uriTemplate: "x://b/{id}",
+        name: "b",
+        title: "B",
+        description: "con el flag como string",
+        _meta: { [SUBSCRIBABLE_META_KEY]: "true" },
+      },
+      {
+        uriTemplate: "x://c/{id}",
+        name: "c",
+        title: "C",
+        description: "sin _meta",
+      },
+    ],
+  });
+
+  const card = summarizeServerCardDocument("meta", doc);
+  assert.deepEqual(
+    card.resourceTemplates.map((tmpl) => tmpl.subscribable),
+    // El `=== true` es estricto a propósito: un "true" string no cuenta.
+    [true, false, false],
+    "solo el booleano explícito del servidor marca un template como suscribible",
+  );
 });
