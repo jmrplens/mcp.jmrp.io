@@ -95,23 +95,41 @@ function warnUnservedFiles() {
     else prefixes.push(uri);
   }
 
+  // Raíz Y subdirectorios. La versión anterior solo miraba la raíz
+  // (readdirSync sin recursión) y /servers/gitlab/actions.json — un JSON
+  // anidado cuya URL es exactamente su ruta — llegó a producción como 404
+  // sin que nadie avisara (2026-08-26). Los .html quedan fuera del barrido
+  // recursivo: sus URLs bonitas (/servers/gitlab/ → index.html) se declaran
+  // por directorio y mapearlas aquí duplicaría la lógica del vhost; los
+  // no-HTML no tienen ese indirection y se comprueban tal cual.
   const missing = fs
-    .readdirSync(DIST, { withFileTypes: true })
+    .readdirSync(DIST, { withFileTypes: true, recursive: true })
     .filter((e) => e.isFile())
-    .map((e) => e.name)
+    .map((e) => {
+      const rel = path.relative(DIST, path.join(e.parentPath, e.name));
+      return rel.split(path.sep).join("/");
+    })
     // Los snippets se COPIAN a /etc/nginx, no se sirven; los .br/.gz los elige
-    // nginx solo junto al original; index.html lo sirve `location = /`.
+    // nginx solo junto al original; los index.html los sirven las locations
+    // exactas de su directorio.
     .filter(
-      (name) =>
-        !FILES.includes(name) &&
-        !name.endsWith(".br") &&
-        !name.endsWith(".gz") &&
-        name !== "index.html",
+      (rel) =>
+        !FILES.includes(rel) &&
+        !rel.endsWith(".br") &&
+        !rel.endsWith(".gz") &&
+        !rel.endsWith(".html"),
     )
+    // Astro no puede emitir carpetas con punto, así que el build escribe
+    // well-known/ y el vhost lo publica como /.well-known/ (ver su comentario
+    // "El fichero en disco es /well-known/…"). Para esos, la URL a comprobar
+    // lleva el punto.
+    .map((rel) => ({
+      rel,
+      url: rel.startsWith("well-known/") ? `/.${rel}` : `/${rel}`,
+    }))
     .filter(
-      (name) =>
-        !exact.has(`/${name}`) &&
-        prefixes.every((p) => p === "/" || !`/${name}`.startsWith(p)),
+      ({ url }) =>
+        !exact.has(url) && prefixes.every((p) => p === "/" || !url.startsWith(p)),
     );
 
   if (missing.length === 0) return;
@@ -119,8 +137,8 @@ function warnUnservedFiles() {
   console.warn(
     `⚠ ${missing.length} fichero(s) del build sin 'location' en el vhost — darán 404:`,
   );
-  for (const name of missing) {
-    console.warn(`    location = /${name} { try_files /${name} =404; }`);
+  for (const { rel, url } of missing) {
+    console.warn(`    location = ${url} { try_files /${rel} =404; }`);
   }
 }
 
