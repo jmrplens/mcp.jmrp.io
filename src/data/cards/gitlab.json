@@ -5,6 +5,19 @@
       "header-token"
     ]
   },
+  "capabilities": {
+    "completions": {},
+    "prompts": {
+      "listChanged": true
+    },
+    "resources": {
+      "listChanged": true,
+      "subscribe": true
+    },
+    "tools": {
+      "listChanged": true
+    }
+  },
   "prompts": [
     {
       "arguments": [
@@ -27,6 +40,31 @@
         }
       ],
       "description": "Audit commit message quality between two refs. Scores Conventional Commit usage, merge commits, breaking-change markers, body/detail quality, and linked work references for release and contribution readiness.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iMyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMS41Ii8+PGxpbmUgeDE9IjAiIHkxPSI4IiB4Mj0iNSIgeTI9IjgiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEuNSIvPjxsaW5lIHgxPSIxMSIgeTE9IjgiIHgyPSIxNiIgeTI9IjgiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRmQAAABXRUJQVlA4TFcAAAAvD8ADEFUobts28hzK/pP2eHUAJY1AE4BJ3JKOV3JpAC1ADhqQYhPgGwOCKzEXIR/TPbzwRAw7SxKXlqruZmjVZqqOd6qDSe0peQw/pnt+eDIocXoC3wgA",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4TFwAAAAvD8ADEFUwbiTJyeWfMY05Cy8C6N2LQBXJSt4j6eNXcmkALEAOGpCCCfAfK3HetvJDteOzdOSZ+w1PToEEiyZKZegCNRjq9VuBipLQSOTrPjPpSPeblYhrVBb8Iw==",
+          "theme": "dark"
+        }
+      ],
       "name": "audit_commit_hygiene",
       "title": "Audit Commit Hygiene"
     },
@@ -40,6 +78,31 @@
         }
       ],
       "description": "Run a comprehensive audit of a GitLab project covering settings, branch protection, access management, labels, milestones, and templates in a single report. Use this for a complete project health assessment with actionable recommendations.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik04IDFMMiA0djRjMCA0IDMgNiA2IDcgMy0xIDYtMyA2LTdWNHoiLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4TGoAAAAvD8ADEDUohCTJ0bibw3h/uBwF9iKU1NbWqD8BSUDvUYI8xMJOOVvghkdt2zYMU2efocOCEojY9cfPzPqsv9XDX9Yf3BVOR1+hde5X3HeB2DN2IPUywRvxTGgsCKtjgRfBFcBRhStwlrAA",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4TGoAAAAvD8ADEDUwaCRJkX/J23v4cGhgNkJJbW2N+hOQBPQeJchDLOyUswVueNC2bRsmaT37DC2OUwLR7TjxI6KHcRoF/nDu4I5wXvQR2sv8iPlXRew/tj5FuOB98fTrCcJ6scCD4iqYoyoqrDUs",
+          "theme": "dark"
+        }
+      ],
       "name": "audit_project_full",
       "title": "Audit Project Full"
     },
@@ -53,6 +116,31 @@
         }
       ],
       "description": "Audit workflow configuration for a GitLab project: labels (names, colors, descriptions), milestones (open/closed, due dates), and issue/MR templates. Identifies gaps like labels without descriptions, milestones without due dates, or missing templates.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik04IDFMMiA0djRjMCA0IDMgNiA2IDcgMy0xIDYtMyA2LTdWNHoiLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4TGoAAAAvD8ADEDUohCTJ0bibw3h/uBwF9iKU1NbWqD8BSUDvUYI8xMJOOVvghkdt2zYMU2efocOCEojY9cfPzPqsv9XDX9Yf3BVOR1+hde5X3HeB2DN2IPUywRvxTGgsCKtjgRfBFcBRhStwlrAA",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4TGoAAAAvD8ADEDUwaCRJkX/J23v4cGhgNkJJbW2N+hOQBPQeJchDLOyUswVueNC2bRsmaT37DC2OUwLR7TjxI6KHcRoF/nDu4I5wXvQR2sv8iPlXRew/tj5FuOB98fTrCcJ6scCD4iqYoyoqrDUs",
+          "theme": "dark"
+        }
+      ],
       "name": "audit_project_workflow",
       "title": "Audit Project Workflow"
     },
@@ -77,6 +165,31 @@
         }
       ],
       "description": "List all MRs targeting a specific branch in a project. Shows readiness summary with conflict/draft/approval counts. Ideal for release branch reviews.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xMS43NSAyLjVhLjc1Ljc1IDAgMSAxIDAgMS41Ljc1Ljc1IDAgMCAxIDAtMS41bS43NSAzLjE3YTIuMjUgMi4yNSAwIDEgMC0xLjUgMHYuNThBMi4yNSAyLjI1IDAgMCAxIDguNzUgOC41aC0yLjVBMy43MyAzLjczIDAgMCAwIDQuNSA5LjN2LjQ1YTIuMjUgMi4yNSAwIDEgMCAxLjUgMFY5LjNhMi4yNCAyLjI0IDAgMCAxIC4yNS0uMDRoMi41YTMuNzUgMy43NSAwIDAgMCAzLjc1LTMuNzV6TTQuMjUgMTJhLjc1Ljc1IDAgMSAxIDAgMS41Ljc1Ljc1IDAgMCAxIDAtMS41Ii8+PC9zdmc+"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqIAAABXRUJQVlA4TJYAAAAvD8ADELW4iSTJkY6EmpqT7x5/iKsYtPUIPtr8iHAiAQCazOuWdouL7suuecPlBTTXDk/gA64PcJ7AEzgqkWgToIERM2X0wavC4MOKJ/sq2vxR/7yrwuRnc6hSVJzXmar7mrzqs879xUrp0KaTA/bcNlrFHDoS/B+MynRtHiupWl62qVUxTsWOatXGx8S5fbEqTchNaCA=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRp4AAABXRUJQVlA4TJIAAAAvD8ADEHW4iSTJkfgj/pgqY6xVDE71R4QTCQDQZF63tFtcdF92gez+ApprhyfwAdcHOE/gCRyVSJxMwHXQLMuaNT6FQeTOr+cp+6So7vhPaZIkXKauaoRnU3ONp8rXvG3ejY107Dtw4pnXj76GTkkrp/8v5ho7JA2fJq9ZfqQJramaoyQ0p4pnEY+NTV2NNHEdBA==",
+          "theme": "dark"
+        }
+      ],
       "name": "branch_mr_summary",
       "title": "Branch MR Summary"
     },
@@ -102,6 +215,31 @@
         }
       ],
       "description": "Compare commit and file differences between two Git refs. Use for release branch preparation, feature branch divergence analysis, or deciding whether a merge/backport needs deeper review.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xMS43NSAyLjVhLjc1Ljc1IDAgMSAxIDAgMS41Ljc1Ljc1IDAgMCAxIDAtMS41bS43NSAzLjE3YTIuMjUgMi4yNSAwIDEgMC0xLjUgMHYuNThBMi4yNSAyLjI1IDAgMCAxIDguNzUgOC41aC0yLjVBMy43MyAzLjczIDAgMCAwIDQuNSA5LjN2LjQ1YTIuMjUgMi4yNSAwIDEgMCAxLjUgMFY5LjNhMi4yNCAyLjI0IDAgMCAxIC4yNS0uMDRoMi41YTMuNzUgMy43NSAwIDAgMCAzLjc1LTMuNzV6TTQuMjUgMTJhLjc1Ljc1IDAgMSAxIDAgMS41Ljc1Ljc1IDAgMCAxIDAtMS41Ii8+PC9zdmc+"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqIAAABXRUJQVlA4TJYAAAAvD8ADELW4iSTJkY6EmpqT7x5/iKsYtPUIPtr8iHAiAQCazOuWdouL7suuecPlBTTXDk/gA64PcJ7AEzgqkWgToIERM2X0wavC4MOKJ/sq2vxR/7yrwuRnc6hSVJzXmar7mrzqs879xUrp0KaTA/bcNlrFHDoS/B+MynRtHiupWl62qVUxTsWOatXGx8S5fbEqTchNaCA=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRp4AAABXRUJQVlA4TJIAAAAvD8ADEHW4iSTJkfgj/pgqY6xVDE71R4QTCQDQZF63tFtcdF92gez+ApprhyfwAdcHOE/gCRyVSJxMwHXQLMuaNT6FQeTOr+cp+6So7vhPaZIkXKauaoRnU3ONp8rXvG3ejY107Dtw4pnXj76GTkkrp/8v5ho7JA2fJq9ZfqQJramaoyQ0p4pnEY+NTV2NNHEdBA==",
+          "theme": "dark"
+        }
+      ],
       "name": "compare_branches",
       "title": "Compare Branches"
     },
@@ -120,6 +258,31 @@
         }
       ],
       "description": "Generate a daily standup summary based on the user's GitLab activity in the last 24 hours: contribution events, authored MRs, assigned MRs, MRs under review, assigned issues, and created issues. Produces a comprehensive report with done/planned/blockers sections.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iNSIgcj0iMyIgZmlsbD0iY3VycmVudENvbG9yIi8+PHBhdGggZmlsbD0iY3VycmVudENvbG9yIiBkPSJNMiAxNGMwLTMgMy01IDYtNXM2IDIgNiA1eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4TGUAAAAvD8ADEDU4aBtJkljs3lnLYPgj7OceBN0RbGLbatR9C+jABrLyww5KEJG6tHmrPwHzn4dETYVDncW7Cx0t6B01KB0IQucQqAvT+fgStOwemd7iUQZO51EJ6cflkEHCTSlYHTP8GgA=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4TGkAAAAvD8ADEDUwbNs20v4jyynQ3uW5Z4Ikgk1sW426bwEd2EBWfthBCSJSlzZv9Seg/7mJSLMKNlWAeGZAheboFavOSgU4QmUTsDpgU+XxFmhl3T3oLZKlNMRhLxVI6henLeksiYvttCqa7msA",
+          "theme": "dark"
+        }
+      ],
       "name": "daily_standup",
       "title": "Daily Standup"
     },
@@ -144,6 +307,31 @@
         }
       ],
       "description": "Generate comprehensive release notes from commits, merge requests, and file changes between two Git refs (tags, branches, or SHAs). Produces a structured document with commits, merged MRs with labels, contributors, and statistics for organizing into user-friendly release notes.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik04IDFsMiAzaDRsLTMgMyAxLjUgNEw4IDguNSAzLjUgMTEgNSA3IDIgNGg0eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4THIAAAAvD8ADEDUwiiRJ0ao4qJGwz/XvjkFAdwSbAAAh+RN8NSTQwMgoxD+KoIdJCiVuuvFcCArTtmGUdNyi2YQPNwDn439UH5NrVovmTuh1O9O+o1HomloxbLa5VqNQDm+EBBPA8nAKrf0mYmYJSMrMv0ngwgg=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4THEAAAAvD8ADEHUwjiSpTf4Zw+xD3isA3EIEmwAAIfkTfDUk0MDIKMQ/iqCHSQolTDeeC3EK07ZhlHTcku4m+uguTJyXb1LnNPmtdaTmk6hftRzfq0novX7EsNnNHgcT5fIQJpiC5XAnuiejOLGUUhq9ph8mAQA=",
+          "theme": "dark"
+        }
+      ],
       "name": "generate_release_notes",
       "title": "Generate Release Notes"
     },
@@ -157,6 +345,31 @@
         }
       ],
       "description": "Track milestone progress across all projects in a group. Shows issue/MR completion per milestone with progress bars.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiIGQ9Ik0yIDE0TDggMmw2IDEyeiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRmwAAABXRUJQVlA4TF8AAAAvD8ADEDUgaNs2Y7Er/KH2HYU2Qk0bSc72hyGhXiTXHYfD8/kVtm3bZDFpP4km2hwJc0QZPYCMelAGDOuFlVXUIn8GcRCHaBEF9x/F/Eex/kA+TX1J8zNYISmbWRmcCQA=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnAAAABXRUJQVlA4TGQAAAAvD8ADEDUwDIC0jf8fnEG6S/AFjFDUtpHU/2DYA3WQzG84DJ69V2Hbtk0Wk/YTc7ZSThI4icJwAsCwpjCAsXqXVu+tSOhPQIasICUkof7NiH8z0h2Aj0RsiSwQum06Qub0CqUJ",
+          "theme": "dark"
+        }
+      ],
       "name": "group_milestone_progress",
       "title": "Group Milestone Progress"
     },
@@ -180,6 +393,31 @@
         }
       ],
       "description": "List merge requests across a GitLab group with optional state and target branch filters. Shows MRs grouped by project with blocker and readiness summary statistics.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik00LjI1IDIuNWEuNzUuNzUgMCAxIDAgMCAxLjUuNzUuNzUgMCAwIDAgMC0xLjVNNC41IDUuNjdhMi4yNSAyLjI1IDAgMSAxLTEuNSAwdjQuNjZhMi4yNSAyLjI1IDAgMSAxIDEuNSAwem0wIDAiLz48Y2lyY2xlIGN4PSIxMS43NSIgY3k9IjEyLjI1IiByPSIuNzUiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjxwYXRoIGZpbGw9ImN1cnJlbnRDb2xvciIgZD0iTTExLjc1IDkuNzVhMi4yNSAyLjI1IDAgMSAwIC43NSA0LjM3VjkuM2EyLjI1IDIuMjUgMCAwIDEtLjc1LjQ1bTAtNy4yNWEuNzUuNzUgMCAxIDEgMCAxLjUuNzUuNzUgMCAwIDEgMC0xLjVtLjc1IDMuMTdhMi4yNSAyLjI1IDAgMSAwLTEuNSAwdjMuNThoMS41eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ0AAAAvD8ADEJU4bCTJUS6If2AbT/5ZntNnMI+HcxFOIwBAIiRzJJchLJNZgMYAHIlEdGts4ToAkQ5D0OQ/uU+AFjSFjOSGBvbsXvVM4kPNyhB4M3tY/OEHl0DYZH6lMHpnykEz6cm0wrRKguPgJRJPBVeSzCylcF7kxcbzuY88B2PvdU8z6aBVkiaEpYxAFIN/sTSLOq0yF9w0PUzcYRlhAA==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ4AAAAvD8ADEDUwbiQpDvkHjDy9D26QM5iNcGJr2xIhmUNyWYRlMhugsQAOiUR0a+zCdQETpzOLmKbJ9ZsA/xgGlYpGbqooc0HjG33sY9nIZF3CA5Cj57rZh84fSDZL4xrW2MWyALaNLYhdJU68U8ViQKFt4wKZXH6pIgdeVrY0PHzsxY1tmAtiuxHsAIWbIw6QX/mk/q4RrIDCOzcctVEPew==",
+          "theme": "dark"
+        }
+      ],
       "name": "group_mr_dashboard",
       "title": "Group MR Dashboard"
     },
@@ -193,6 +431,31 @@
         }
       ],
       "description": "Analyze label usage distribution in a project. Shows open/closed issue counts and open MR counts per label. Zero additional API calls beyond label list.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cmVjdCB4PSIxIiB5PSI0IiB3aWR0aD0iMTQiIGhlaWdodD0iOCIgcng9IjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRpIAAABXRUJQVlA4TIYAAAAvD8ADEDUwiiQp0mjgBTm88C8T9jQwEcG2trYm/wT8FTPQhc6wGWEp+Ut2CB3aCbVu8HPOBNQPF2ZE8hZVlwFVuZtY2anY5wxYaLqnDjhSurEwI5464GIaa3ikBFzWJKTecGXE1JW01nBd+vU0p7QebxMBTsPS5G1ZxtwCqhYOL+2kaiLghw==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRpAAAABXRUJQVlA4TIMAAAAvD8ADEHUwiiRJ0fpXfFv9OGYDvRzBNratKL8CfkQNZEu2dYbalBjSw5KhmRBrB//PTIB/OKOOeFEOc5qlbTwLoh7RID5FVxZ31D6dFIM5ow4oal/EwNoyNcBlunKm3dCpA+pXsLDSLPkZmLPOwzsLKzJhOuVwpIoLYM/YlI/ceoAfAgA=",
+          "theme": "dark"
+        }
+      ],
       "name": "label_distribution",
       "title": "Label Distribution"
     },
@@ -211,6 +474,31 @@
         }
       ],
       "description": "Analyze MR throughput metrics for a project. Shows merge rate, average time-to-merge, and daily merged count chart. Ideal for tracking team delivery pace.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cG9seWxpbmUgcG9pbnRzPSIxLDE0IDUsNiA5LDEwIDE1LDIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRpgAAABXRUJQVlA4TIwAAAAvD8ADEHUwiGSrDSJIu4+D+BdIBwcvdSLY1tbWhNwxQoYZmEMtHcMlLHMonUd28dCaVZi2DeO07PYQTSqEHmR8lG2Q7BZPlvG85Dk20maUORZrHMxYy3cU5VtO/qtYslZl5GBNthmSxaeKzLLmo0tLdUQoGd+Rl/6/zJJEHXeaUZIjrdiWVSl2FLzmJA==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRpYAAABXRUJQVlA4TIkAAAAvD8ADEHUwaCRJkX/DB/1wDO9gniPY1tbWhNwxQoYZmAMtHcMlLHMonUd38dCaVZi2DeO07PYQHRRhhI98vuhjJTtbYIXAa35WkjUqMFMHWKDh83n9lpOfulqiUR05WLJZQ3oCayKTqF/avNRGI5SNz2e1G3EzSZKvqNWNkgLpxb6WMseBnNcxCQA=",
+          "theme": "dark"
+        }
+      ],
       "name": "merge_velocity",
       "title": "Merge Velocity"
     },
@@ -229,6 +517,31 @@
         }
       ],
       "description": "Track milestone progress for a project. Shows issue/MR completion, progress bar, and due date risk. Omit milestone argument to see all active milestones.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiIGQ9Ik0yIDE0TDggMmw2IDEyeiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRmwAAABXRUJQVlA4TF8AAAAvD8ADEDUgaNs2Y7Er/KH2HYU2Qk0bSc72hyGhXiTXHYfD8/kVtm3bZDFpP4km2hwJc0QZPYCMelAGDOuFlVXUIn8GcRCHaBEF9x/F/Eex/kA+TX1J8zNYISmbWRmcCQA=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnAAAABXRUJQVlA4TGQAAAAvD8ADEDUwDIC0jf8fnEG6S/AFjFDUtpHU/2DYA3WQzG84DJ69V2Hbtk0Wk/YTc7ZSThI4icJwAsCwpjCAsXqXVu+tSOhPQIasICUkof7NiH8z0h2Aj0RsiSwQum06Qub0CqUJ",
+          "theme": "dark"
+        }
+      ],
       "name": "milestone_progress",
       "title": "Milestone Progress"
     },
@@ -248,6 +561,31 @@
         }
       ],
       "description": "Score a merge request description for reviewer readiness. Checks context, linked work, test evidence, rollout/risk notes, checklists, and whether changed files suggest missing screenshots or migration notes.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik00LjI1IDIuNWEuNzUuNzUgMCAxIDAgMCAxLjUuNzUuNzUgMCAwIDAgMC0xLjVNNC41IDUuNjdhMi4yNSAyLjI1IDAgMSAxLTEuNSAwdjQuNjZhMi4yNSAyLjI1IDAgMSAxIDEuNSAwem0wIDAiLz48Y2lyY2xlIGN4PSIxMS43NSIgY3k9IjEyLjI1IiByPSIuNzUiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjxwYXRoIGZpbGw9ImN1cnJlbnRDb2xvciIgZD0iTTExLjc1IDkuNzVhMi4yNSAyLjI1IDAgMSAwIC43NSA0LjM3VjkuM2EyLjI1IDIuMjUgMCAwIDEtLjc1LjQ1bTAtNy4yNWEuNzUuNzUgMCAxIDEgMCAxLjUuNzUuNzUgMCAwIDEgMC0xLjVtLjc1IDMuMTdhMi4yNSAyLjI1IDAgMSAwLTEuNSAwdjMuNThoMS41eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ0AAAAvD8ADEJU4bCTJUS6If2AbT/5ZntNnMI+HcxFOIwBAIiRzJJchLJNZgMYAHIlEdGts4ToAkQ5D0OQ/uU+AFjSFjOSGBvbsXvVM4kPNyhB4M3tY/OEHl0DYZH6lMHpnykEz6cm0wrRKguPgJRJPBVeSzCylcF7kxcbzuY88B2PvdU8z6aBVkiaEpYxAFIN/sTSLOq0yF9w0PUzcYRlhAA==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ4AAAAvD8ADEDUwbiQpDvkHjDy9D26QM5iNcGJr2xIhmUNyWYRlMhugsQAOiUR0a+zCdQETpzOLmKbJ9ZsA/xgGlYpGbqooc0HjG33sY9nIZF3CA5Cj57rZh84fSDZL4xrW2MWyALaNLYhdJU68U8ViQKFt4wKZXH6pIgdeVrY0PHzsxY1tmAtiuxHsAIWbIw6QX/mk/q4RrIDCOzcctVEPew==",
+          "theme": "dark"
+        }
+      ],
       "name": "mr_description_quality",
       "title": "MR Description Quality"
     },
@@ -261,6 +599,31 @@
         }
       ],
       "description": "Analyze unresolved discussion threads across open MRs in a project. Use this for review follow-up and merge-readiness cleanup, not approval-rule status.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik00LjI1IDIuNWEuNzUuNzUgMCAxIDAgMCAxLjUuNzUuNzUgMCAwIDAgMC0xLjVNNC41IDUuNjdhMi4yNSAyLjI1IDAgMSAxLTEuNSAwdjQuNjZhMi4yNSAyLjI1IDAgMSAxIDEuNSAwem0wIDAiLz48Y2lyY2xlIGN4PSIxMS43NSIgY3k9IjEyLjI1IiByPSIuNzUiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjxwYXRoIGZpbGw9ImN1cnJlbnRDb2xvciIgZD0iTTExLjc1IDkuNzVhMi4yNSAyLjI1IDAgMSAwIC43NSA0LjM3VjkuM2EyLjI1IDIuMjUgMCAwIDEtLjc1LjQ1bTAtNy4yNWEuNzUuNzUgMCAxIDEgMCAxLjUuNzUuNzUgMCAwIDEgMC0xLjVtLjc1IDMuMTdhMi4yNSAyLjI1IDAgMSAwLTEuNSAwdjMuNThoMS41eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ0AAAAvD8ADEJU4bCTJUS6If2AbT/5ZntNnMI+HcxFOIwBAIiRzJJchLJNZgMYAHIlEdGts4ToAkQ5D0OQ/uU+AFjSFjOSGBvbsXvVM4kPNyhB4M3tY/OEHl0DYZH6lMHpnykEz6cm0wrRKguPgJRJPBVeSzCylcF7kxcbzuY88B2PvdU8z6aBVkiaEpYxAFIN/sTSLOq0yF9w0PUzcYRlhAA==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ4AAAAvD8ADEDUwbiQpDvkHjDy9D26QM5iNcGJr2xIhmUNyWYRlMhugsQAOiUR0a+zCdQETpzOLmKbJ9ZsA/xgGlYpGbqooc0HjG33sY9nIZF3CA5Cj57rZh84fSDZL4xrW2MWyALaNLYhdJU68U8ViQKFt4wKZXH6pIgdeVrY0PHzsxY1tmAtiuxHsAIWbIw6QX/mk/q4RrIDCOzcctVEPew==",
+          "theme": "dark"
+        }
+      ],
       "name": "mr_discussion_health",
       "title": "MR Discussion Health"
     },
@@ -280,6 +643,31 @@
         }
       ],
       "description": "Assess the risk level (LOW/MEDIUM/HIGH/CRITICAL) of a merge request based on size (lines added/removed), number of changed files, new/deleted files, sensitive file patterns (env, auth, migration, CI, security), and conflict status.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik00LjI1IDIuNWEuNzUuNzUgMCAxIDAgMCAxLjUuNzUuNzUgMCAwIDAgMC0xLjVNNC41IDUuNjdhMi4yNSAyLjI1IDAgMSAxLTEuNSAwdjQuNjZhMi4yNSAyLjI1IDAgMSAxIDEuNSAwem0wIDAiLz48Y2lyY2xlIGN4PSIxMS43NSIgY3k9IjEyLjI1IiByPSIuNzUiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjxwYXRoIGZpbGw9ImN1cnJlbnRDb2xvciIgZD0iTTExLjc1IDkuNzVhMi4yNSAyLjI1IDAgMSAwIC43NSA0LjM3VjkuM2EyLjI1IDIuMjUgMCAwIDEtLjc1LjQ1bTAtNy4yNWEuNzUuNzUgMCAxIDEgMCAxLjUuNzUuNzUgMCAwIDEgMC0xLjVtLjc1IDMuMTdhMi4yNSAyLjI1IDAgMSAwLTEuNSAwdjMuNThoMS41eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ0AAAAvD8ADEJU4bCTJUS6If2AbT/5ZntNnMI+HcxFOIwBAIiRzJJchLJNZgMYAHIlEdGts4ToAkQ5D0OQ/uU+AFjSFjOSGBvbsXvVM4kPNyhB4M3tY/OEHl0DYZH6lMHpnykEz6cm0wrRKguPgJRJPBVeSzCylcF7kxcbzuY88B2PvdU8z6aBVkiaEpYxAFIN/sTSLOq0yF9w0PUzcYRlhAA==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ4AAAAvD8ADEDUwbiQpDvkHjDy9D26QM5iNcGJr2xIhmUNyWYRlMhugsQAOiUR0a+zCdQETpzOLmKbJ9ZsA/xgGlYpGbqooc0HjG33sY9nIZF3CA5Cj57rZh84fSDZL4xrW2MWyALaNLYhdJU68U8ViQKFt4wKZXH6pIgdeVrY0PHzsxY1tmAtiuxHsAIWbIw6QX/mk/q4RrIDCOzcctVEPew==",
+          "theme": "dark"
+        }
+      ],
       "name": "mr_risk_assessment",
       "title": "MR Risk Assessment"
     },
@@ -297,6 +685,31 @@
         }
       ],
       "description": "Generate a personal activity summary for a configurable time period. Includes contribution events breakdown, MRs created/merged/reviewed, issues created/closed, and a daily activity chart. Aggregates across all projects.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iNSIgcj0iMyIgZmlsbD0iY3VycmVudENvbG9yIi8+PHBhdGggZmlsbD0iY3VycmVudENvbG9yIiBkPSJNMiAxNGMwLTMgMy01IDYtNXM2IDIgNiA1eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4TGUAAAAvD8ADEDU4aBtJkljs3lnLYPgj7OceBN0RbGLbatR9C+jABrLyww5KEJG6tHmrPwHzn4dETYVDncW7Cx0t6B01KB0IQucQqAvT+fgStOwemd7iUQZO51EJ6cflkEHCTSlYHTP8GgA=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4TGkAAAAvD8ADEDUwbNs20v4jyynQ3uW5Z4Ikgk1sW426bwEd2EBWfthBCSJSlzZv9Seg/7mJSLMKNlWAeGZAheboFavOSgU4QmUTsDpgU+XxFmhl3T3oLZKlNMRhLxVI6henLeksiYvttCqa7msA",
+          "theme": "dark"
+        }
+      ],
       "name": "my_activity_summary",
       "title": "My Activity Summary"
     },
@@ -314,6 +727,31 @@
         }
       ],
       "description": "Show all issues assigned to you across all projects. Includes overdue detection and project grouping. Use this to see your full issue backlog without specifying a project.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iNi41IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iMiIgZmlsbD0iY3VycmVudENvbG9yIi8+PC9zdmc+"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRtwAAABXRUJQVlA4TM8AAAAvD8ADEHU4iCTZVVYGN+Tg3+QPGuY9OH6Eo9q21eaGM86PERLBpIbNYJ38xgDN+2vjrTcBruJXdAy3o1XLCcE9Js3aw+XT3HTn4k/PA5+3jxNoND5jxgjUUQPErlYLz2CzxqZWTq4YW+OLFB+iD/Sc80ed0kBrHGdRMXzOA0V18wuUsis6+lzsoWqCsxg1BHpKUbOSQM/TuHjy5Y7hZkxepNLANW59m1Jlh2qIsYh5nqFaAvXjnDeY5zdnjbx9Xj/OQqmRENzjoHTnWRDOdhUA",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRtIAAABXRUJQVlA4TMYAAAAvD8ADEHU4bCRJapx/xFzPSevviKHBXohwVNu22oSTMRghEUxq2Ay1Tn5jgOb5tXHXnQC/lk/k8VDWpY6WA8A+ztF8K4dvc6WbxZ2eG7KVrZbKF6QrXbUzHOzqaGE6lxnhqJWDs/RVcyMsH6RXZ55/5EzVjKA8YjhzNbKbV93KJrJnsWermuAHMqgzjeRNomYC5cqPq3SXZfAgdDQw4yoT3EqVHdylf5SRGbCols0Gue/rysgDWf8fOmoE6D6urXRneYTnz68=",
+          "theme": "dark"
+        }
+      ],
       "name": "my_issues",
       "title": "My Issues"
     },
@@ -326,6 +764,31 @@
         }
       ],
       "description": "Show all open merge requests across all projects where you are author or assignee. Results are grouped by project for easy scanning. Use this to get a personal MR dashboard without specifying a project.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik00LjI1IDIuNWEuNzUuNzUgMCAxIDAgMCAxLjUuNzUuNzUgMCAwIDAgMC0xLjVNNC41IDUuNjdhMi4yNSAyLjI1IDAgMSAxLTEuNSAwdjQuNjZhMi4yNSAyLjI1IDAgMSAxIDEuNSAwem0wIDAiLz48Y2lyY2xlIGN4PSIxMS43NSIgY3k9IjEyLjI1IiByPSIuNzUiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjxwYXRoIGZpbGw9ImN1cnJlbnRDb2xvciIgZD0iTTExLjc1IDkuNzVhMi4yNSAyLjI1IDAgMSAwIC43NSA0LjM3VjkuM2EyLjI1IDIuMjUgMCAwIDEtLjc1LjQ1bTAtNy4yNWEuNzUuNzUgMCAxIDEgMCAxLjUuNzUuNzUgMCAwIDEgMC0xLjVtLjc1IDMuMTdhMi4yNSAyLjI1IDAgMSAwLTEuNSAwdjMuNThoMS41eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ0AAAAvD8ADEJU4bCTJUS6If2AbT/5ZntNnMI+HcxFOIwBAIiRzJJchLJNZgMYAHIlEdGts4ToAkQ5D0OQ/uU+AFjSFjOSGBvbsXvVM4kPNyhB4M3tY/OEHl0DYZH6lMHpnykEz6cm0wrRKguPgJRJPBVeSzCylcF7kxcbzuY88B2PvdU8z6aBVkiaEpYxAFIN/sTSLOq0yF9w0PUzcYRlhAA==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ4AAAAvD8ADEDUwbiQpDvkHjDy9D26QM5iNcGJr2xIhmUNyWYRlMhugsQAOiUR0a+zCdQETpzOLmKbJ9ZsA/xgGlYpGbqooc0HjG33sY9nIZF3CA5Cj57rZh84fSDZL4xrW2MWyALaNLYhdJU68U8ViQKFt4wKZXH6pIgdeVrY0PHzsxY1tmAtiuxHsAIWbIw6QX/mk/q4RrIDCOzcctVEPew==",
+          "theme": "dark"
+        }
+      ],
       "name": "my_open_mrs",
       "title": "My Open MRs"
     },
@@ -338,6 +801,31 @@
         }
       ],
       "description": "Show all open merge requests where you are assigned as reviewer across all projects. Helps track which MRs are waiting for your review. Results grouped by project.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik00LjI1IDIuNWEuNzUuNzUgMCAxIDAgMCAxLjUuNzUuNzUgMCAwIDAgMC0xLjVNNC41IDUuNjdhMi4yNSAyLjI1IDAgMSAxLTEuNSAwdjQuNjZhMi4yNSAyLjI1IDAgMSAxIDEuNSAwem0wIDAiLz48Y2lyY2xlIGN4PSIxMS43NSIgY3k9IjEyLjI1IiByPSIuNzUiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjxwYXRoIGZpbGw9ImN1cnJlbnRDb2xvciIgZD0iTTExLjc1IDkuNzVhMi4yNSAyLjI1IDAgMSAwIC43NSA0LjM3VjkuM2EyLjI1IDIuMjUgMCAwIDEtLjc1LjQ1bTAtNy4yNWEuNzUuNzUgMCAxIDEgMCAxLjUuNzUuNzUgMCAwIDEgMC0xLjVtLjc1IDMuMTdhMi4yNSAyLjI1IDAgMSAwLTEuNSAwdjMuNThoMS41eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ0AAAAvD8ADEJU4bCTJUS6If2AbT/5ZntNnMI+HcxFOIwBAIiRzJJchLJNZgMYAHIlEdGts4ToAkQ5D0OQ/uU+AFjSFjOSGBvbsXvVM4kPNyhB4M3tY/OEHl0DYZH6lMHpnykEz6cm0wrRKguPgJRJPBVeSzCylcF7kxcbzuY88B2PvdU8z6aBVkiaEpYxAFIN/sTSLOq0yF9w0PUzcYRlhAA==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ4AAAAvD8ADEDUwbiQpDvkHjDy9D26QM5iNcGJr2xIhmUNyWYRlMhugsQAOiUR0a+zCdQETpzOLmKbJ9ZsA/xgGlYpGbqooc0HjG33sY9nIZF3CA5Cj57rZh84fSDZL4xrW2MWyALaNLYhdJU68U8ViQKFt4wKZXH6pIgdeVrY0PHzsxY1tmAtiuxHsAIWbIw6QX/mk/q4RrIDCOzcctVEPew==",
+          "theme": "dark"
+        }
+      ],
       "name": "my_pending_reviews",
       "title": "My Pending Reviews"
     },
@@ -356,6 +844,31 @@
         }
       ],
       "description": "Generate a project activity report including recent events, merged MRs, and open issues. Shows daily activity chart and contributor breakdown.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cG9seWxpbmUgcG9pbnRzPSIxLDE0IDUsNiA5LDEwIDE1LDIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRpgAAABXRUJQVlA4TIwAAAAvD8ADEHUwiGSrDSJIu4+D+BdIBwcvdSLY1tbWhNwxQoYZmEMtHcMlLHMonUd28dCaVZi2DeO07PYQTSqEHmR8lG2Q7BZPlvG85Dk20maUORZrHMxYy3cU5VtO/qtYslZl5GBNthmSxaeKzLLmo0tLdUQoGd+Rl/6/zJJEHXeaUZIjrdiWVSl2FLzmJA==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRpYAAABXRUJQVlA4TIkAAAAvD8ADEHUwaCRJkX/DB/1wDO9gniPY1tbWhNwxQoYZmAMtHcMlLHMonUd38dCaVZi2DeO07PYQHRRhhI98vuhjJTtbYIXAa35WkjUqMFMHWKDh83n9lpOfulqiUR05WLJZQ3oCayKTqF/avNRGI5SNz2e1G3EzSZKvqNWNkgLpxb6WMseBnNcxCQA=",
+          "theme": "dark"
+        }
+      ],
       "name": "project_activity_report",
       "title": "Project Activity Report"
     },
@@ -369,6 +882,31 @@
         }
       ],
       "description": "Rank project contributors by commits, additions, and deletions. Uses the repository contributors API for accurate stats.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iNSIgcj0iMyIgZmlsbD0iY3VycmVudENvbG9yIi8+PHBhdGggZmlsbD0iY3VycmVudENvbG9yIiBkPSJNMiAxNGMwLTMgMy01IDYtNXM2IDIgNiA1eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4TGUAAAAvD8ADEDU4aBtJkljs3lnLYPgj7OceBN0RbGLbatR9C+jABrLyww5KEJG6tHmrPwHzn4dETYVDncW7Cx0t6B01KB0IQucQqAvT+fgStOwemd7iUQZO51EJ6cflkEHCTSlYHTP8GgA=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4TGkAAAAvD8ADEDUwbNs20v4jyynQ3uW5Z4Ikgk1sW426bwEd2EBWfthBCSJSlzZv9Seg/7mJSLMKNlWAeGZAheboFavOSgU4QmUTsDpgU+XxFmhl3T3oLZKlNMRhLxVI6henLeksiYvttCqa7msA",
+          "theme": "dark"
+        }
+      ],
       "name": "project_contributors",
       "title": "Project Contributors"
     },
@@ -382,6 +920,31 @@
         }
       ],
       "description": "Comprehensive project health assessment combining latest pipeline status, open merge requests, and branch hygiene (merged/stale branch counts). Provides actionable recommendations for project maintenance.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik04IDE0cy01LjUtMy41LTUuNS03QTMuNSAzLjUgMCAwIDEgOCA0LjUgMy41IDMuNSAwIDAgMSAxMy41IDdjMCAzLjUtNS41IDctNS41IDciLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRogAAABXRUJQVlA4THsAAAAvD8ADEAWDRpIUjYjDvrv373PhyUCE49q2leYWgLu7duVWGPQBkVFGKcCTMlhvAoR/Nh1FEFC6Fs2SKwSxsUMQFwqnsPygkG9lDA2UXJVZc2aOZpYcEQeFEVgjVsHdEk+PxyV6wk75G/47EeJtc4Mg7tMXspVhYamM8FEA",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRoYAAABXRUJQVlA4THoAAAAvD8ADEDUoaiRJWf+CD3ofx2xgL8JxZNtK9APA3V2zcgsM8vAVKwJwJoypNwH2ZhITJ8gSl4RRjFmBz8AIfJYYdRKuHzDUN2ENGTBJ0tDOUDcx5j+yGDVGP6K3bmI4exyJ7lnw9dfoL3iCxk5lAz67NwXNJozOEiboUg==",
+          "theme": "dark"
+        }
+      ],
       "name": "project_health_check",
       "title": "Project Health Check"
     },
@@ -400,6 +963,31 @@
         }
       ],
       "description": "Analyze release frequency for a project. Shows time between releases, average cadence, and release history chart.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik04IDFsMiAzaDRsLTMgMyAxLjUgNEw4IDguNSAzLjUgMTEgNSA3IDIgNGg0eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4THIAAAAvD8ADEDUwiiRJ0ao4qJGwz/XvjkFAdwSbAAAh+RN8NSTQwMgoxD+KoIdJCiVuuvFcCArTtmGUdNyi2YQPNwDn439UH5NrVovmTuh1O9O+o1HomloxbLa5VqNQDm+EBBPA8nAKrf0mYmYJSMrMv0ngwgg=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4THEAAAAvD8ADEHUwjiSpTf4Zw+xD3isA3EIEmwAAIfkTfDUk0MDIKMQ/iqCHSQolTDeeC3EK07ZhlHTcku4m+uguTJyXb1LnNPmtdaTmk6hftRzfq0novX7EsNnNHgcT5fIQJpiC5XAnuiejOLGUUhq9ph8mAQA=",
+          "theme": "dark"
+        }
+      ],
       "name": "release_cadence",
       "title": "Release Cadence"
     },
@@ -418,6 +1006,31 @@
         }
       ],
       "description": "Check readiness of a release branch by analyzing open MRs targeting it, draft/conflict counts, and unresolved discussion threads.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik04IDFsMiAzaDRsLTMgMyAxLjUgNEw4IDguNSAzLjUgMTEgNSA3IDIgNGg0eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4THIAAAAvD8ADEDUwiiRJ0ao4qJGwz/XvjkFAdwSbAAAh+RN8NSTQwMgoxD+KoIdJCiVuuvFcCArTtmGUdNyi2YQPNwDn439UH5NrVovmTuh1O9O+o1HomloxbLa5VqNQDm+EBBPA8nAKrf0mYmYJSMrMv0ngwgg=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4THEAAAAvD8ADEHUwjiSpTf4Zw+xD3isA3EIEmwAAIfkTfDUk0MDIKMQ/iqCHSQolTDeeC3EK07ZhlHTcku4m+uguTJyXb1LnNPmtdaTmk6hftRzfq0novX7EsNnNHgcT5fIQJpiC5XAnuiejOLGUUhq9ph8mAQA=",
+          "theme": "dark"
+        }
+      ],
       "name": "release_readiness",
       "title": "Release Readiness"
     },
@@ -437,6 +1050,31 @@
         }
       ],
       "description": "Generate a structured code review for a merge request. Files are categorized by risk (high-risk, business logic, tests, documentation) with per-file metrics, branch context, and a review plan. Full diffs are included without truncation.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik00LjI1IDIuNWEuNzUuNzUgMCAxIDAgMCAxLjUuNzUuNzUgMCAwIDAgMC0xLjVNNC41IDUuNjdhMi4yNSAyLjI1IDAgMSAxLTEuNSAwdjQuNjZhMi4yNSAyLjI1IDAgMSAxIDEuNSAwem0wIDAiLz48Y2lyY2xlIGN4PSIxMS43NSIgY3k9IjEyLjI1IiByPSIuNzUiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjxwYXRoIGZpbGw9ImN1cnJlbnRDb2xvciIgZD0iTTExLjc1IDkuNzVhMi4yNSAyLjI1IDAgMSAwIC43NSA0LjM3VjkuM2EyLjI1IDIuMjUgMCAwIDEtLjc1LjQ1bTAtNy4yNWEuNzUuNzUgMCAxIDEgMCAxLjUuNzUuNzUgMCAwIDEgMC0xLjVtLjc1IDMuMTdhMi4yNSAyLjI1IDAgMSAwLTEuNSAwdjMuNThoMS41eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ0AAAAvD8ADEJU4bCTJUS6If2AbT/5ZntNnMI+HcxFOIwBAIiRzJJchLJNZgMYAHIlEdGts4ToAkQ5D0OQ/uU+AFjSFjOSGBvbsXvVM4kPNyhB4M3tY/OEHl0DYZH6lMHpnykEz6cm0wrRKguPgJRJPBVeSzCylcF7kxcbzuY88B2PvdU8z6aBVkiaEpYxAFIN/sTSLOq0yF9w0PUzcYRlhAA==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ4AAAAvD8ADEDUwbiQpDvkHjDy9D26QM5iNcGJr2xIhmUNyWYRlMhugsQAOiUR0a+zCdQETpzOLmKbJ9ZsA/xgGlYpGbqooc0HjG33sY9nIZF3CA5Cj57rZh84fSDZL4xrW2MWyALaNLYhdJU68U8ViQKFt4wKZXH6pIgdeVrY0PHzsxY1tmAtiuxHsAIWbIw6QX/mk/q4RrIDCOzcctVEPew==",
+          "theme": "dark"
+        }
+      ],
       "name": "review_mr",
       "title": "Review MR"
     },
@@ -450,6 +1088,31 @@
         }
       ],
       "description": "Analyze review distribution across group members. Shows how many open MRs each member is reviewing and identifies imbalances. Useful for managers to ensure fair review distribution.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iNSIgcj0iMyIgZmlsbD0iY3VycmVudENvbG9yIi8+PHBhdGggZmlsbD0iY3VycmVudENvbG9yIiBkPSJNMiAxNGMwLTMgMy01IDYtNXM2IDIgNiA1eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4TGUAAAAvD8ADEDU4aBtJkljs3lnLYPgj7OceBN0RbGLbatR9C+jABrLyww5KEJG6tHmrPwHzn4dETYVDncW7Cx0t6B01KB0IQucQqAvT+fgStOwemd7iUQZO51EJ6cflkEHCTSlYHTP8GgA=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4TGkAAAAvD8ADEDUwbNs20v4jyynQ3uW5Z4Ikgk1sW426bwEd2EBWfthBCSJSlzZv9Seg/7mJSLMKNlWAeGZAheboFavOSgU4QmUTsDpgU+XxFmhl3T3oLZKlNMRhLxVI6henLeksiYvttCqa7msA",
+          "theme": "dark"
+        }
+      ],
       "name": "reviewer_workload",
       "title": "Reviewer Workload"
     },
@@ -468,6 +1131,31 @@
         }
       ],
       "description": "Find MRs and issues in a project that haven't been updated for a configurable number of days. Helps identify forgotten or blocked items.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iNi41IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iMiIgZmlsbD0iY3VycmVudENvbG9yIi8+PC9zdmc+"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRtwAAABXRUJQVlA4TM8AAAAvD8ADEHU4iCTZVVYGN+Tg3+QPGuY9OH6Eo9q21eaGM86PERLBpIbNYJ38xgDN+2vjrTcBruJXdAy3o1XLCcE9Js3aw+XT3HTn4k/PA5+3jxNoND5jxgjUUQPErlYLz2CzxqZWTq4YW+OLFB+iD/Sc80ed0kBrHGdRMXzOA0V18wuUsis6+lzsoWqCsxg1BHpKUbOSQM/TuHjy5Y7hZkxepNLANW59m1Jlh2qIsYh5nqFaAvXjnDeY5zdnjbx9Xj/OQqmRENzjoHTnWRDOdhUA",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRtIAAABXRUJQVlA4TMYAAAAvD8ADEHU4bCRJapx/xFzPSevviKHBXohwVNu22oSTMRghEUxq2Ay1Tn5jgOb5tXHXnQC/lk/k8VDWpY6WA8A+ztF8K4dvc6WbxZ2eG7KVrZbKF6QrXbUzHOzqaGE6lxnhqJWDs/RVcyMsH6RXZ55/5EzVjKA8YjhzNbKbV93KJrJnsWermuAHMqgzjeRNomYC5cqPq3SXZfAgdDQw4yoT3EqVHdylf5SRGbCols0Gue/rysgDWf8fOmoE6D6urXRneYTnz68=",
+          "theme": "dark"
+        }
+      ],
       "name": "stale_items_report",
       "title": "Stale Items Report"
     },
@@ -487,6 +1175,31 @@
         }
       ],
       "description": "Suggest suitable merge request reviewers based on the files changed and the list of active project members. Excludes the MR author and asks the model to consider ownership, approval-rule fit, and workload balance.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik00LjI1IDIuNWEuNzUuNzUgMCAxIDAgMCAxLjUuNzUuNzUgMCAwIDAgMC0xLjVNNC41IDUuNjdhMi4yNSAyLjI1IDAgMSAxLTEuNSAwdjQuNjZhMi4yNSAyLjI1IDAgMSAxIDEuNSAwem0wIDAiLz48Y2lyY2xlIGN4PSIxMS43NSIgY3k9IjEyLjI1IiByPSIuNzUiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjxwYXRoIGZpbGw9ImN1cnJlbnRDb2xvciIgZD0iTTExLjc1IDkuNzVhMi4yNSAyLjI1IDAgMSAwIC43NSA0LjM3VjkuM2EyLjI1IDIuMjUgMCAwIDEtLjc1LjQ1bTAtNy4yNWEuNzUuNzUgMCAxIDEgMCAxLjUuNzUuNzUgMCAwIDEgMC0xLjVtLjc1IDMuMTdhMi4yNSAyLjI1IDAgMSAwLTEuNSAwdjMuNThoMS41eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ0AAAAvD8ADEJU4bCTJUS6If2AbT/5ZntNnMI+HcxFOIwBAIiRzJJchLJNZgMYAHIlEdGts4ToAkQ5D0OQ/uU+AFjSFjOSGBvbsXvVM4kPNyhB4M3tY/OEHl0DYZH6lMHpnykEz6cm0wrRKguPgJRJPBVeSzCylcF7kxcbzuY88B2PvdU8z6aBVkiaEpYxAFIN/sTSLOq0yF9w0PUzcYRlhAA==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ4AAAAvD8ADEDUwbiQpDvkHjDy9D26QM5iNcGJr2xIhmUNyWYRlMhugsQAOiUR0a+zCdQETpzOLmKbJ9ZsA/xgGlYpGbqooc0HjG33sY9nIZF3CA5Cj57rZh84fSDZL4xrW2MWyALaNLYhdJU68U8ViQKFt4wKZXH6pIgdeVrY0PHzsxY1tmAtiuxHsAIWbIw6QX/mk/q4RrIDCOzcctVEPew==",
+          "theme": "dark"
+        }
+      ],
       "name": "suggest_mr_reviewers",
       "title": "Suggest MR Reviewers"
     },
@@ -506,6 +1219,31 @@
         }
       ],
       "description": "Summarize the changed files and key modifications in a merge request. Lists each file with its change type (new/modified/deleted/renamed). Use this to quickly understand the scope of a merge request.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik00LjI1IDIuNWEuNzUuNzUgMCAxIDAgMCAxLjUuNzUuNzUgMCAwIDAgMC0xLjVNNC41IDUuNjdhMi4yNSAyLjI1IDAgMSAxLTEuNSAwdjQuNjZhMi4yNSAyLjI1IDAgMSAxIDEuNSAwem0wIDAiLz48Y2lyY2xlIGN4PSIxMS43NSIgY3k9IjEyLjI1IiByPSIuNzUiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjxwYXRoIGZpbGw9ImN1cnJlbnRDb2xvciIgZD0iTTExLjc1IDkuNzVhMi4yNSAyLjI1IDAgMSAwIC43NSA0LjM3VjkuM2EyLjI1IDIuMjUgMCAwIDEtLjc1LjQ1bTAtNy4yNWEuNzUuNzUgMCAxIDEgMCAxLjUuNzUuNzUgMCAwIDEgMC0xLjVtLjc1IDMuMTdhMi4yNSAyLjI1IDAgMSAwLTEuNSAwdjMuNThoMS41eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ0AAAAvD8ADEJU4bCTJUS6If2AbT/5ZntNnMI+HcxFOIwBAIiRzJJchLJNZgMYAHIlEdGts4ToAkQ5D0OQ/uU+AFjSFjOSGBvbsXvVM4kPNyhB4M3tY/OEHl0DYZH6lMHpnykEz6cm0wrRKguPgJRJPBVeSzCylcF7kxcbzuY88B2PvdU8z6aBVkiaEpYxAFIN/sTSLOq0yF9w0PUzcYRlhAA==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ4AAAAvD8ADEDUwbiQpDvkHjDy9D26QM5iNcGJr2xIhmUNyWYRlMhugsQAOiUR0a+zCdQETpzOLmKbJ9ZsA/xgGlYpGbqooc0HjG33sY9nIZF3CA5Cj57rZh84fSDZL4xrW2MWyALaNLYhdJU68U8ViQKFt4wKZXH6pIgdeVrY0PHzsxY1tmAtiuxHsAIWbIw6QX/mk/q4RrIDCOzcctVEPew==",
+          "theme": "dark"
+        }
+      ],
       "name": "summarize_mr_changes",
       "title": "Summarize MR Changes"
     },
@@ -519,6 +1257,31 @@
         }
       ],
       "description": "Summarize all open merge requests in a project including title, author, branches, age in days, and merge status. Highlights stale MRs (>7 days) and blockers. For one target branch, use branch_mr_summary.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik00LjI1IDIuNWEuNzUuNzUgMCAxIDAgMCAxLjUuNzUuNzUgMCAwIDAgMC0xLjVNNC41IDUuNjdhMi4yNSAyLjI1IDAgMSAxLTEuNSAwdjQuNjZhMi4yNSAyLjI1IDAgMSAxIDEuNSAwem0wIDAiLz48Y2lyY2xlIGN4PSIxMS43NSIgY3k9IjEyLjI1IiByPSIuNzUiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjxwYXRoIGZpbGw9ImN1cnJlbnRDb2xvciIgZD0iTTExLjc1IDkuNzVhMi4yNSAyLjI1IDAgMSAwIC43NSA0LjM3VjkuM2EyLjI1IDIuMjUgMCAwIDEtLjc1LjQ1bTAtNy4yNWEuNzUuNzUgMCAxIDEgMCAxLjUuNzUuNzUgMCAwIDEgMC0xLjVtLjc1IDMuMTdhMi4yNSAyLjI1IDAgMSAwLTEuNSAwdjMuNThoMS41eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ0AAAAvD8ADEJU4bCTJUS6If2AbT/5ZntNnMI+HcxFOIwBAIiRzJJchLJNZgMYAHIlEdGts4ToAkQ5D0OQ/uU+AFjSFjOSGBvbsXvVM4kPNyhB4M3tY/OEHl0DYZH6lMHpnykEz6cm0wrRKguPgJRJPBVeSzCylcF7kxcbzuY88B2PvdU8z6aBVkiaEpYxAFIN/sTSLOq0yF9w0PUzcYRlhAA==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ4AAAAvD8ADEDUwbiQpDvkHjDy9D26QM5iNcGJr2xIhmUNyWYRlMhugsQAOiUR0a+zCdQETpzOLmKbJ9ZsA/xgGlYpGbqooc0HjG33sY9nIZF3CA5Cj57rZh84fSDZL4xrW2MWyALaNLYhdJU68U8ViQKFt4wKZXH6pIgdeVrY0PHzsxY1tmAtiuxHsAIWbIw6QX/mk/q4RrIDCOzcctVEPew==",
+          "theme": "dark"
+        }
+      ],
       "name": "summarize_open_mrs",
       "title": "Summarize Open MRs"
     },
@@ -532,6 +1295,31 @@
         }
       ],
       "description": "Summarize the latest CI/CD pipeline status for a project. Groups jobs by outcome (failed/passed/other) and includes failure reasons for debugging.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSIzIiBjeT0iOCIgcj0iMiIgZmlsbD0iY3VycmVudENvbG9yIi8+PGNpcmNsZSBjeD0iOCIgY3k9IjgiIHI9IjIiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjxjaXJjbGUgY3g9IjEzIiBjeT0iOCIgcj0iMiIgZmlsbD0iY3VycmVudENvbG9yIi8+PGxpbmUgeDE9IjUiIHkxPSI4IiB4Mj0iNiIgeTI9IjgiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEiLz48bGluZSB4MT0iMTAiIHkxPSI4IiB4Mj0iMTEiIHkyPSI4IiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9zdmc+"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRkIAAABXRUJQVlA4TDYAAAAvD8ADEDUoaNtGorFl/Kn+B6AXYSBAkntqp9oq/UhIkGhlid4/hgNz6gT8p2ziOpmBulL3/AI=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRkQAAABXRUJQVlA4TDcAAAAvD8ADEDUoahvJ4Q95ynvL3QGYizAQIMk9tVNtlX4kJEi0siTv79EJu3QR/M9iCzfJFqxUuucPAA==",
+          "theme": "dark"
+        }
+      ],
       "name": "summarize_pipeline_status",
       "title": "Summarize Pipeline Status"
     },
@@ -556,6 +1344,31 @@
         }
       ],
       "description": "Generate a comprehensive workload summary for a specific team member over a configurable time period. Includes contribution events, authored and assigned merge requests, MRs under review, authored and assigned issues. Use this for team management and capacity planning.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iNSIgcj0iMyIgZmlsbD0iY3VycmVudENvbG9yIi8+PHBhdGggZmlsbD0iY3VycmVudENvbG9yIiBkPSJNMiAxNGMwLTMgMy01IDYtNXM2IDIgNiA1eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4TGUAAAAvD8ADEDU4aBtJkljs3lnLYPgj7OceBN0RbGLbatR9C+jABrLyww5KEJG6tHmrPwHzn4dETYVDncW7Cx0t6B01KB0IQucQqAvT+fgStOwemd7iUQZO51EJ6cflkEHCTSlYHTP8GgA=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4TGkAAAAvD8ADEDUwbNs20v4jyynQ3uW5Z4Ikgk1sW426bwEd2EBWfthBCSJSlzZv9Seg/7mJSLMKNlWAeGZAheboFavOSgU4QmUTsDpgU+XxFmhl3T3oLZKlNMRhLxVI6henLeksiYvttCqa7msA",
+          "theme": "dark"
+        }
+      ],
       "name": "team_member_workload",
       "title": "Team Member Workload"
     },
@@ -574,6 +1387,31 @@
         }
       ],
       "description": "Generate a team dashboard showing all group members with their open MR counts and recently merged MRs. Includes a workload distribution pie chart. Requires a GitLab group ID.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI1IiBjeT0iNSIgcj0iMiIgZmlsbD0iY3VycmVudENvbG9yIi8+PGNpcmNsZSBjeD0iMTEiIGN5PSI1IiByPSIyIiBmaWxsPSJjdXJyZW50Q29sb3IiLz48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xIDEyYzAtMiAyLTMgNC0zczQgMSA0IDN6bTYgMGMwLTIgMi0zIDQtM3M0IDEgNCAzeiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4TEsAAAAvD8ADEFUobNu2eaNV/n+0ezzgJBGKIkmN7HEoQAzqcMLyuyIhQoIEs0f0I1MKFB6/EeAHOX6nEnil6XsTRvDSNX6NeSxLiV5LfU8A",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRloAAABXRUJQVlA4TE0AAAAvD8ADEFUoaiRJ8S954Hl8BhYiFEWSGtnjUIAY1OGE5XckEhASJJI9Ej9YVYJ5/MYEXjHH7zSzwBRN3xswBn8nbPwiQs5b6gj2uo7vAgA=",
+          "theme": "dark"
+        }
+      ],
       "name": "team_overview",
       "title": "Team Overview"
     },
@@ -587,6 +1425,31 @@
         }
       ],
       "description": "Find open MRs and issues in a project that have no assignee. Helps identify ownership gaps and items needing attention.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iNi41IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iMiIgZmlsbD0iY3VycmVudENvbG9yIi8+PC9zdmc+"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRtwAAABXRUJQVlA4TM8AAAAvD8ADEHU4iCTZVVYGN+Tg3+QPGuY9OH6Eo9q21eaGM86PERLBpIbNYJ38xgDN+2vjrTcBruJXdAy3o1XLCcE9Js3aw+XT3HTn4k/PA5+3jxNoND5jxgjUUQPErlYLz2CzxqZWTq4YW+OLFB+iD/Sc80ed0kBrHGdRMXzOA0V18wuUsis6+lzsoWqCsxg1BHpKUbOSQM/TuHjy5Y7hZkxepNLANW59m1Jlh2qIsYh5nqFaAvXjnDeY5zdnjbx9Xj/OQqmRENzjoHTnWRDOdhUA",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRtIAAABXRUJQVlA4TMYAAAAvD8ADEHU4bCRJapx/xFzPSevviKHBXohwVNu22oSTMRghEUxq2Ay1Tn5jgOb5tXHXnQC/lk/k8VDWpY6WA8A+ztF8K4dvc6WbxZ2eG7KVrZbKF6QrXbUzHOzqaGE6lxnhqJWDs/RVcyMsH6RXZ55/5EzVjKA8YjhzNbKbV93KJrJnsWermuAHMqgzjeRNomYC5cqPq3SXZfAgdDQw4yoT3EqVHdylf5SRGbCols0Gue/rysgDWf8fOmoE6D6urXRneYTnz68=",
+          "theme": "dark"
+        }
+      ],
       "name": "unassigned_items",
       "title": "Unassigned Items"
     },
@@ -605,6 +1468,31 @@
         }
       ],
       "description": "Generate a detailed activity report for a specific user: contribution events, merged MRs, reviewed MRs, daily activity chart. Designed for managers to review team member productivity.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iNSIgcj0iMyIgZmlsbD0iY3VycmVudENvbG9yIi8+PHBhdGggZmlsbD0iY3VycmVudENvbG9yIiBkPSJNMiAxNGMwLTMgMy01IDYtNXM2IDIgNiA1eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4TGUAAAAvD8ADEDU4aBtJkljs3lnLYPgj7OceBN0RbGLbatR9C+jABrLyww5KEJG6tHmrPwHzn4dETYVDncW7Cx0t6B01KB0IQucQqAvT+fgStOwemd7iUQZO51EJ6cflkEHCTSlYHTP8GgA=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4TGkAAAAvD8ADEDUwbNs20v4jyynQ3uW5Z4Ikgk1sW426bwEd2EBWfthBCSJSlzZv9Seg/7mJSLMKNlWAeGZAheboFavOSgU4QmUTsDpgU+XxFmhl3T3oLZKlNMRhLxVI6henLeksiYvttCqa7msA",
+          "theme": "dark"
+        }
+      ],
       "name": "user_activity_report",
       "title": "User Activity Report"
     },
@@ -628,6 +1516,31 @@
         }
       ],
       "description": "Generate comprehensive user statistics from GitLab: contribution events breakdown, merge request stats (authored/assigned/reviewed by state), issue stats (authored/assigned by state), daily activity trends, and a Mermaid activity chart. Use this for performance reviews, productivity tracking, or personal dashboards.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iNSIgcj0iMyIgZmlsbD0iY3VycmVudENvbG9yIi8+PHBhdGggZmlsbD0iY3VycmVudENvbG9yIiBkPSJNMiAxNGMwLTMgMy01IDYtNXM2IDIgNiA1eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4TGUAAAAvD8ADEDU4aBtJkljs3lnLYPgj7OceBN0RbGLbatR9C+jABrLyww5KEJG6tHmrPwHzn4dETYVDncW7Cx0t6B01KB0IQucQqAvT+fgStOwemd7iUQZO51EJ6cflkEHCTSlYHTP8GgA=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4TGkAAAAvD8ADEDUwbNs20v4jyynQ3uW5Z4Ikgk1sW426bwEd2EBWfthBCSJSlzZv9Seg/7mJSLMKNlWAeGZAheboFavOSgU4QmUTsDpgU+XxFmhl3T3oLZKlNMRhLxVI6henLeksiYvttCqa7msA",
+          "theme": "dark"
+        }
+      ],
       "name": "user_stats",
       "title": "User Stats"
     },
@@ -646,32 +1559,115 @@
         }
       ],
       "description": "Generate a comprehensive weekly recap for a team. Combines merged MRs, open MRs, issues activity, and events into a single summary with Mermaid charts.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cG9seWxpbmUgcG9pbnRzPSIxLDE0IDUsNiA5LDEwIDE1LDIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRpgAAABXRUJQVlA4TIwAAAAvD8ADEHUwiGSrDSJIu4+D+BdIBwcvdSLY1tbWhNwxQoYZmEMtHcMlLHMonUd28dCaVZi2DeO07PYQTSqEHmR8lG2Q7BZPlvG85Dk20maUORZrHMxYy3cU5VtO/qtYslZl5GBNthmSxaeKzLLmo0tLdUQoGd+Rl/6/zJJEHXeaUZIjrdiWVSl2FLzmJA==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRpYAAABXRUJQVlA4TIkAAAAvD8ADEHUwaCRJkX/DB/1wDO9gniPY1tbWhNwxQoYZmAMtHcMlLHMonUd38dCaVZi2DeO07PYQHRRhhI98vuhjJTtbYIXAa35WkjUqMFMHWKDh83n9lpOfulqiUR05WLJZQ3oCayKTqF/avNRGI5SNz2e1G3EzSZKvqNWNkgLpxb6WMseBnNcxCQA=",
+          "theme": "dark"
+        }
+      ],
       "name": "weekly_team_recap",
       "title": "Weekly Team Recap"
     }
   ],
   "resourceTemplates": [
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get details for a specific GitLab group by numeric ID or URL-encoded path. Returns name, full path, description, visibility, and web URL.",
+      "description": "Get details for a specific GitLab group by numeric ID or URL-encoded path. Returns name, full path, description, visibility, and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI1IiBjeT0iNSIgcj0iMiIgZmlsbD0iY3VycmVudENvbG9yIi8+PGNpcmNsZSBjeD0iMTEiIGN5PSI1IiByPSIyIiBmaWxsPSJjdXJyZW50Q29sb3IiLz48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xIDEyYzAtMiAyLTMgNC0zczQgMSA0IDN6bTYgMGMwLTIgMi0zIDQtM3M0IDEgNCAzeiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4TEsAAAAvD8ADEFUobNu2eaNV/n+0ezzgJBGKIkmN7HEoQAzqcMLyuyIhQoIEs0f0I1MKFB6/EeAHOX6nEnil6XsTRvDSNX6NeSxLiV5LfU8A",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRloAAABXRUJQVlA4TE0AAAAvD8ADEFUoaiRJ8S954Hl8BhYiFEWSGtnjUIAY1OGE5XckEhASJJI9Ej9YVYJ5/MYEXjHH7zSzwBRN3xswBn8nbPwiQs5b6gj2uo7vAgA=",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "group",
       "title": "Group Details",
       "uriTemplate": "gitlab://group/{group_id}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single group label by numeric ID or name. Returns id, name, color, description, and open issue/MR counts.",
+      "description": "Get details for a single group label by numeric ID or name. Returns id, name, color, description, and open issue/MR counts. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cmVjdCB4PSIxIiB5PSI0IiB3aWR0aD0iMTQiIGhlaWdodD0iOCIgcng9IjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRpIAAABXRUJQVlA4TIYAAAAvD8ADEDUwiiQp0mjgBTm88C8T9jQwEcG2trYm/wT8FTPQhc6wGWEp+Ut2CB3aCbVu8HPOBNQPF2ZE8hZVlwFVuZtY2anY5wxYaLqnDjhSurEwI5464GIaa3ikBFzWJKTecGXE1JW01nBd+vU0p7QebxMBTsPS5G1ZxtwCqhYOL+2kaiLghw==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRpAAAABXRUJQVlA4TIMAAAAvD8ADEHUwiiRJ0fpXfFv9OGYDvRzBNratKL8CfkQNZEu2dYbalBjSw5KhmRBrB//PTIB/OKOOeFEOc5qlbTwLoh7RID5FVxZ31D6dFIM5ow4oal/EwNoyNcBlunKm3dCpA+pXsLDSLPkZmLPOwzsLKzJhOuVwpIoLYM/YlI/ceoAfAgA=",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "group_label",
       "title": "Group Label Details",
@@ -680,24 +1676,79 @@
     {
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.4
       },
       "description": "List all members of a GitLab group with their access levels (10=guest, 20=reporter, 30=developer, 40=maintainer, 50=owner). Includes inherited members.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iNSIgcj0iMyIgZmlsbD0iY3VycmVudENvbG9yIi8+PHBhdGggZmlsbD0iY3VycmVudENvbG9yIiBkPSJNMiAxNGMwLTMgMy01IDYtNXM2IDIgNiA1eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4TGUAAAAvD8ADEDU4aBtJkljs3lnLYPgj7OceBN0RbGLbatR9C+jABrLyww5KEJG6tHmrPwHzn4dETYVDncW7Cx0t6B01KB0IQucQqAvT+fgStOwemd7iUQZO51EJ6cflkEHCTSlYHTP8GgA=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4TGkAAAAvD8ADEDUwbNs20v4jyynQ3uW5Z4Ikgk1sW426bwEd2EBWfthBCSJSlzZv9Seg/7mJSLMKNlWAeGZAheboFavOSgU4QmUTsDpgU+XxFmhl3T3oLZKlNMRhLxVI6henLeksiYvttCqa7msA",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "group_members",
       "title": "Group Members",
       "uriTemplate": "gitlab://group/{group_id}/members"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single group milestone by IID. Returns id, iid, title, description, state, due date, and web URL.",
+      "description": "Get details for a single group milestone by IID. Returns id, iid, title, description, state, due date, and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiIGQ9Ik0yIDE0TDggMmw2IDEyeiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRmwAAABXRUJQVlA4TF8AAAAvD8ADEDUgaNs2Y7Er/KH2HYU2Qk0bSc72hyGhXiTXHYfD8/kVtm3bZDFpP4km2hwJc0QZPYCMelAGDOuFlVXUIn8GcRCHaBEF9x/F/Eex/kA+TX1J8zNYISmbWRmcCQA=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnAAAABXRUJQVlA4TGQAAAAvD8ADEDUwDIC0jf8fnEG6S/AFjFDUtpHU/2DYA3WQzG84DJ69V2Hbtk0Wk/YTc7ZSThI4icJwAsCwpjCAsXqXVu+tSOhPQIasICUkof7NiH8z0h2Aj0RsiSwQum06Qub0CqUJ",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "group_milestone",
       "title": "Group Milestone Details",
@@ -706,50 +1757,163 @@
     {
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.4
       },
       "description": "List all projects within a GitLab group. Returns each project's ID, name, namespace path, visibility, web URL, description, and default branch.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cmVjdCB4PSIyIiB5PSIzIiB3aWR0aD0iMTIiIGhlaWdodD0iMTAiIHJ4PSIxIiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48bGluZSB4MT0iMiIgeTE9IjYiIHgyPSIxNCIgeTI9IjYiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRl4AAABXRUJQVlA4TFEAAAAvD8ADELWwjWS7SRUSINt/o14FHP6HDKGiCIUAgDYYlfzj+EbtCEwA9SNtZjzRqEL4zUs5jcDWQqIIiF07iWcZIVGGMM37Es03DApnimEN1AcA",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRlYAAABXRUJQVlA4TEkAAAAvD8ADEIWatpGk8Ifs5rr/AEQoaCSpWRc85v9BRzscVQMTEOdHVrVJZViE4s14IoIoJokiyLYm7T0Uk/QF4WmTPo8YJmb4SHEeAA==",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "group_projects",
       "title": "Group Projects",
       "uriTemplate": "gitlab://group/{group_id}/projects"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get basic metadata for a GitLab project by numeric ID or URL-encoded path. Returns name, namespace path, visibility, web URL, description, and default branch.",
+      "description": "Get basic metadata for a GitLab project by numeric ID or URL-encoded path. Returns name, namespace path, visibility, web URL, description, and default branch. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cmVjdCB4PSIyIiB5PSIzIiB3aWR0aD0iMTIiIGhlaWdodD0iMTAiIHJ4PSIxIiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48bGluZSB4MT0iMiIgeTE9IjYiIHgyPSIxNCIgeTI9IjYiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRl4AAABXRUJQVlA4TFEAAAAvD8ADELWwjWS7SRUSINt/o14FHP6HDKGiCIUAgDYYlfzj+EbtCEwA9SNtZjzRqEL4zUs5jcDWQqIIiF07iWcZIVGGMM37Es03DApnimEN1AcA",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRlYAAABXRUJQVlA4TEkAAAAvD8ADEIWatpGk8Ifs5rr/AEQoaCSpWRc85v9BRzscVQMTEOdHVrVJZViE4s14IoIoJokiyLYm7T0Uk/QF4WmTPo8YJmb4SHEeAA==",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "project",
       "title": "Project Metadata",
       "uriTemplate": "gitlab://project/{project_id}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single project issue board by numeric ID. Returns id and name.",
+      "description": "Get details for a single project issue board by numeric ID. Returns id and name. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cmVjdCB4PSIxIiB5PSIyIiB3aWR0aD0iNCIgaGVpZ2h0PSIxMiIgcng9IjEiIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEiLz48cmVjdCB4PSI2IiB5PSIyIiB3aWR0aD0iNCIgaGVpZ2h0PSI4IiByeD0iMSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMSIvPjxyZWN0IHg9IjExIiB5PSIyIiB3aWR0aD0iNCIgaGVpZ2h0PSIxMCIgcng9IjEiIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRm4AAABXRUJQVlA4TGIAAAAvD8ADEAWDtpEcDY0xf6JXvj+ACEWxrVTPT0qgx9u+JQlsoRlMIEYim7RJ6JY+Elya3kCsZ550Y56Uyjrp6kRBQL0nHf2UHoXod59BdSkZnRJMGytnZ6StPG2/Bptn1+C+AQ==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnAAAABXRUJQVlA4TGQAAAAvD8ADEDUwaCRJ0fpXfL17zwwCZiIUxbZS4Scl7/Vg+5YksIVmMIEYSUhAUDmiS6cOKwSmedIZ5iOdleukA8hhcrsnnX8KJ6tC+dlnlABpHJ1hSYJbjp8xtS2f2n4N23m2ht1X",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "board",
       "title": "Board Details",
       "uriTemplate": "gitlab://project/{project_id}/board/{board_id}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single repository branch. Returns name, protection status, merge status, default flag, and web URL.",
+      "description": "Get details for a single repository branch. Returns name, protection status, merge status, default flag, and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xMS43NSAyLjVhLjc1Ljc1IDAgMSAxIDAgMS41Ljc1Ljc1IDAgMCAxIDAtMS41bS43NSAzLjE3YTIuMjUgMi4yNSAwIDEgMC0xLjUgMHYuNThBMi4yNSAyLjI1IDAgMCAxIDguNzUgOC41aC0yLjVBMy43MyAzLjczIDAgMCAwIDQuNSA5LjN2LjQ1YTIuMjUgMi4yNSAwIDEgMCAxLjUgMFY5LjNhMi4yNCAyLjI0IDAgMCAxIC4yNS0uMDRoMi41YTMuNzUgMy43NSAwIDAgMCAzLjc1LTMuNzV6TTQuMjUgMTJhLjc1Ljc1IDAgMSAxIDAgMS41Ljc1Ljc1IDAgMCAxIDAtMS41Ii8+PC9zdmc+"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqIAAABXRUJQVlA4TJYAAAAvD8ADELW4iSTJkY6EmpqT7x5/iKsYtPUIPtr8iHAiAQCazOuWdouL7suuecPlBTTXDk/gA64PcJ7AEzgqkWgToIERM2X0wavC4MOKJ/sq2vxR/7yrwuRnc6hSVJzXmar7mrzqs879xUrp0KaTA/bcNlrFHDoS/B+MynRtHiupWl62qVUxTsWOatXGx8S5fbEqTchNaCA=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRp4AAABXRUJQVlA4TJIAAAAvD8ADEHW4iSTJkfgj/pgqY6xVDE71R4QTCQDQZF63tFtcdF92gez+ApprhyfwAdcHOE/gCRyVSJxMwHXQLMuaNT6FQeTOr+cp+6So7vhPaZIkXKauaoRnU3ONp8rXvG3ejY107Dtw4pnXj76GTkkrp/8v5ho7JA2fJq9ZfqQJramaoyQ0p4pnEY+NTV2NNHEdBA==",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "branch",
       "title": "Branch Details",
@@ -758,11 +1922,37 @@
     {
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.4
       },
       "description": "List all branches in a GitLab project. Returns each branch's name, protection status, merge status, default flag, and web URL.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xMS43NSAyLjVhLjc1Ljc1IDAgMSAxIDAgMS41Ljc1Ljc1IDAgMCAxIDAtMS41bS43NSAzLjE3YTIuMjUgMi4yNSAwIDEgMC0xLjUgMHYuNThBMi4yNSAyLjI1IDAgMCAxIDguNzUgOC41aC0yLjVBMy43MyAzLjczIDAgMCAwIDQuNSA5LjN2LjQ1YTIuMjUgMi4yNSAwIDEgMCAxLjUgMFY5LjNhMi4yNCAyLjI0IDAgMCAxIC4yNS0uMDRoMi41YTMuNzUgMy43NSAwIDAgMCAzLjc1LTMuNzV6TTQuMjUgMTJhLjc1Ljc1IDAgMSAxIDAgMS41Ljc1Ljc1IDAgMCAxIDAtMS41Ii8+PC9zdmc+"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqIAAABXRUJQVlA4TJYAAAAvD8ADELW4iSTJkY6EmpqT7x5/iKsYtPUIPtr8iHAiAQCazOuWdouL7suuecPlBTTXDk/gA64PcJ7AEzgqkWgToIERM2X0wavC4MOKJ/sq2vxR/7yrwuRnc6hSVJzXmar7mrzqs879xUrp0KaTA/bcNlrFHDoS/B+MynRtHiupWl62qVUxTsWOatXGx8S5fbEqTchNaCA=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRp4AAABXRUJQVlA4TJIAAAAvD8ADEHW4iSTJkfgj/pgqY6xVDE71R4QTCQDQZF63tFtcdF92gez+ApprhyfwAdcHOE/gCRyVSJxMwHXQLMuaNT6FQeTOr+cp+6So7vhPaZIkXKauaoRnU3ONp8rXvG3ejY107Dtw4pnXj76GTkkrp/8v5ho7JA2fJq9ZfqQJramaoyQ0p4pnEY+NTV2NNHEdBA==",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "project_branches",
       "title": "Project Branches",
@@ -771,89 +1961,289 @@
     {
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
       "description": "Get details for a single commit by SHA. Returns short_id, title, message, author, committer, authored/committed dates, parent commits, web URL, and stats (additions/deletions).",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iMyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMS41Ii8+PGxpbmUgeDE9IjAiIHkxPSI4IiB4Mj0iNSIgeTI9IjgiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEuNSIvPjxsaW5lIHgxPSIxMSIgeTE9IjgiIHgyPSIxNiIgeTI9IjgiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRmQAAABXRUJQVlA4TFcAAAAvD8ADEFUobts28hzK/pP2eHUAJY1AE4BJ3JKOV3JpAC1ADhqQYhPgGwOCKzEXIR/TPbzwRAw7SxKXlqruZmjVZqqOd6qDSe0peQw/pnt+eDIocXoC3wgA",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4TFwAAAAvD8ADEFUwbiTJyeWfMY05Cy8C6N2LQBXJSt4j6eNXcmkALEAOGpCCCfAfK3HetvJDteOzdOSZ+w1PToEEiyZKZegCNRjq9VuBipLQSOTrPjPpSPeblYhrVBb8Iw==",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "commit",
       "title": "Commit Details",
       "uriTemplate": "gitlab://project/{project_id}/commit/{sha}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single project deploy key by numeric ID. Returns id, title, key, and fingerprint.",
+      "description": "Get details for a single project deploy key by numeric ID. Returns id, title, key, and fingerprint. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI1IiBjeT0iOCIgcj0iMyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMS41Ii8+PGxpbmUgeDE9IjgiIHkxPSI4IiB4Mj0iMTQiIHkyPSI4IiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48bGluZSB4MT0iMTIiIHkxPSI2IiB4Mj0iMTIiIHkyPSI4IiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRmoAAABXRUJQVlA4TF4AAAAvD8ADEDUwattIUHBk+CPd3XsdgEwEmkhS86AU2qALBBAD6MBBqkj4CegHEd1K3w+oV7qtjb506QEZcgw002G5oHJ9M81vBpT5oY6VBsjYMfBEbem2NvoKGTNbBPwm",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRmwAAABXRUJQVlA4TGAAAAAvD8ADEFUwbiTJyeWfMY05Cy8C6N2LQBNJaniUPm3QBQKIAXTgIFUkMAH+YAVGbis+VD0uy0Setd+w5BQRZ6HSTiSjGjxa/raIEh90golrJPS16lnJRLrfrICEUVHkNwE=",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "deploy_key",
       "title": "Deploy Key Details",
       "uriTemplate": "gitlab://project/{project_id}/deploy_key/{deploy_key_id}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single project deployment by numeric ID. Returns id, iid, ref, sha, status, and environment name.",
+      "description": "Get details for a single project deployment by numeric ID. Returns id, iid, ref, sha, status, and environment name. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTggMnY4bS0zLTNsMyAzIDMtMyIvPjxsaW5lIHgxPSIzIiB5MT0iMTMiIHgyPSIxMyIgeTI9IjEzIi8+PC9zdmc+"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRlIAAABXRUJQVlA4TEUAAAAvD8ADEDUoaNtGGo1L+SO9/45AG6EQkiRnhVdhFBboPnnFCfBpnJ02/VWgg8yAr2hZCcyshB2+S6tK4tI6uHQeU4v4zG0A",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRk4AAABXRUJQVlA4TEIAAAAvD8ADEDUwahtJEn/KqefcuwQqEQohSXKIV2EVFujug1eaCeht5AmrvzIeRKsYCLtCvCoBjkC6K0i6H9v7iNr0zms=",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "deployment",
       "title": "Deployment Details",
       "uriTemplate": "gitlab://project/{project_id}/deployment/{deployment_id}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single project environment by numeric ID. Returns id, name, slug, state, and tier.",
+      "description": "Get details for a single project environment by numeric ID. Returns id, name, slug, state, and tier. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMS41Ii8+PGVsbGlwc2UgY3g9IjgiIGN5PSI4IiByeD0iMyIgcnk9IjYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEiLz48bGluZSB4MT0iMiIgeTE9IjgiIHgyPSIxNCIgeTI9IjgiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRuQAAABXRUJQVlA4TNgAAAAvD8ADEFU4iCRJik4GkwP+dW7wnYRmN8JtrW1PQssK0KcqQxfGSAuATvEvYF6BUJuzndTiBsRSD6n8z6ewbdtG2enuGflPNstGtmzmnYPyAnD/vkzPg7qw0wptnSpMRFOruKiXtgU5LmlGSdJ6nCtA+bsuSxLfTesJKHPQC8NO8kQnYu401mzgoIbcvKG1ltR1aewG9h/kKr1jeym44rOQsC/FZoEO7lNMQRk/IvHUtigvfoBVtKh1v3yLQltnUSKus+76D/k8ANz/wNP9aknKtPLJLOO/Lw4=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRuoAAABXRUJQVlA4TN4AAAAvD8ADEHU4bNvIkb7/fpN1OV8J3pndvwi3tbYtDS0rQG+VQydj2AI2BQs4K1gtcevy1yEbeOlJyfkUtm3bKDvdPcP3pDP6QkOGj7wJdgBj94jS2NYdH5Izb80obaoanHfKLuA4iVn4Ud0FIdhsKwBcVIYXZpsjCj7Q6TYJvwmXQ7VBLXvC+RMtaKKbQlbsFbbWhLRsunfdgvqn/YU2QCtduytkU28Fjcxd0RkA3nEKAdBpttnyhuck1v7RnOGD9e5bSmhOZVMHn/0/uLIBGLunS8u92e50Mg5PdppviQE=",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "environment",
       "title": "Environment Details",
       "uriTemplate": "gitlab://project/{project_id}/environment/{environment_id}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single project feature flag by name. Returns name, description, active, and version.",
+      "description": "Get details for a single project feature flag by name. Returns name, description, active, and version. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iMi41IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik03IDFoMnYyLjFhNSA1IDAgMCAxIDEuNy43TDEyLjEgMi40bDEuNCAxLjQtMS40IDEuNGE1IDUgMCAwIDEgLjcgMS43SDE1djJoLTIuMWE1IDUgMCAwIDEtLjcgMS43bDEuNCAxLjQtMS40IDEuNC0xLjQtMS40YTUgNSAwIDAgMS0xLjcuN1YxNUg3di0yLjFhNSA1IDAgMCAxLTEuNy0uN0wzLjkgMTMuNiAyLjUgMTIuMmwxLjQtMS40YTUgNSAwIDAgMS0uNy0xLjdIMVY3aDIuMWE1IDUgMCAwIDEgLjctMS43TDIuNSAzLjkgMy45IDIuNWwxLjQgMS40QTUgNSAwIDAgMSA3IDMuMXoiLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqIAAABXRUJQVlA4TJYAAAAvD8ADEFUwiCQpTkTwzoGK+Fd3fBK2IMJprW1PQ++4jmqyN8kEsAP/XuyAqorUCaKicvBpCpfyTYBOA3el+CijYlMOcsCDi9XMwGVniJWtFq6oXIEp5yA7WTNr1YcN2c3os/skYHODj92elN1HP2PQsFUzQwMEdjPeNXe1YGM1xAJcWout494iJ8piS8Dtln66e1p0hwE=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRp4AAABXRUJQVlA4TJIAAAAvD8ADEJU4biRJkfw3eKFzeQdNqFk46FeE02zblirh0Jxk0S0yAezAvxc7kDQ5E5BIXHRNNDlnAlSbv+eYttGxQZqCiOnsTHNkFX+nAbBy4wcbw8w/ybhRgYhTc6goTcqyUWmSFxbwsPyk1t6U5Yp+U4DIhtOkuPACfG5WALU7CdaUspkZaAo+knsnaoNGVZlBZQ==",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "feature_flag",
       "title": "Feature Flag Details",
       "uriTemplate": "gitlab://project/{project_id}/feature_flag/{name}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get the contents of a repository file at a specific ref (branch, tag, or SHA). Path may include slashes. Files over 1 MiB return metadata only with truncated=true. Binary files return metadata with empty content.",
+      "description": "Get the contents of a repository file at a specific ref (branch, tag, or SHA). Path may include slashes. Files over 1 MiB return metadata only with truncated=true. Binary files return metadata with empty content. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiIGQ9Ik0zIDEuNWg3bDMgM3YxMEgzeiIvPjxsaW5lIHgxPSI1IiB5MT0iNyIgeDI9IjExIiB5Mj0iNyIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMSIvPjxsaW5lIHgxPSI1IiB5MT0iOS41IiB4Mj0iMTEiIHkyPSI5LjUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRmYAAABXRUJQVlA4TFoAAAAvD8ADEFUwbNs20hqNuv+ktXPPBA4aoSaS3AaJWsdSFL43JfOKFETCGYQmICkGGoqugWo2ziDgJLEvTk3kNkzuir3g+JQHmTFk+YVtoLJjf4MAG4U2RTFo3gQ=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRmwAAABXRUJQVlA4TGAAAAAvD8ADEDUwbttGUvoveLFWnutkjwq8EWoi2Wq+EdpcYuH1WMJXtPBNkEX8CUiIDX+oIs9AvLbsADeuStq/rEuRPXVPrsIusnzKjTAyKNs3xgViN+Nn4MYIO2RpiI1ligI=",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "file_blob",
       "title": "Repository File",
       "uriTemplate": "gitlab://project/{project_id}/file/{ref}/{+path}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get details of a specific issue by its IID (project-scoped ID). Returns title, state, labels, assignees, author, web URL, and creation date.",
+      "description": "Get details of a specific issue by its IID (project-scoped ID). Returns title, state, labels, assignees, author, web URL, and creation date. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iNi41IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iMiIgZmlsbD0iY3VycmVudENvbG9yIi8+PC9zdmc+"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRtwAAABXRUJQVlA4TM8AAAAvD8ADEHU4iCTZVVYGN+Tg3+QPGuY9OH6Eo9q21eaGM86PERLBpIbNYJ38xgDN+2vjrTcBruJXdAy3o1XLCcE9Js3aw+XT3HTn4k/PA5+3jxNoND5jxgjUUQPErlYLz2CzxqZWTq4YW+OLFB+iD/Sc80ed0kBrHGdRMXzOA0V18wuUsis6+lzsoWqCsxg1BHpKUbOSQM/TuHjy5Y7hZkxepNLANW59m1Jlh2qIsYh5nqFaAvXjnDeY5zdnjbx9Xj/OQqmRENzjoHTnWRDOdhUA",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRtIAAABXRUJQVlA4TMYAAAAvD8ADEHU4bCRJapx/xFzPSevviKHBXohwVNu22oSTMRghEUxq2Ay1Tn5jgOb5tXHXnQC/lk/k8VDWpY6WA8A+ztF8K4dvc6WbxZ2eG7KVrZbKF6QrXbUzHOzqaGE6lxnhqJWDs/RVcyMsH6RXZ55/5EzVjKA8YjhzNbKbV93KJrJnsWermuAHMqgzjeRNomYC5cqPq3SXZfAgdDQw4yoT3EqVHdylf5SRGbCols0Gue/rysgDWf8fOmoE6D6urXRneYTnz68=",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "issue",
       "title": "Issue Details",
@@ -862,37 +2252,121 @@
     {
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.4
       },
       "description": "List open issues for a GitLab project. Returns each issue's IID, title, state, labels, assignees, author, web URL, and creation date.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iNi41IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iMiIgZmlsbD0iY3VycmVudENvbG9yIi8+PC9zdmc+"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRtwAAABXRUJQVlA4TM8AAAAvD8ADEHU4iCTZVVYGN+Tg3+QPGuY9OH6Eo9q21eaGM86PERLBpIbNYJ38xgDN+2vjrTcBruJXdAy3o1XLCcE9Js3aw+XT3HTn4k/PA5+3jxNoND5jxgjUUQPErlYLz2CzxqZWTq4YW+OLFB+iD/Sc80ed0kBrHGdRMXzOA0V18wuUsis6+lzsoWqCsxg1BHpKUbOSQM/TuHjy5Y7hZkxepNLANW59m1Jlh2qIsYh5nqFaAvXjnDeY5zdnjbx9Xj/OQqmRENzjoHTnWRDOdhUA",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRtIAAABXRUJQVlA4TMYAAAAvD8ADEHU4bCRJapx/xFzPSevviKHBXohwVNu22oSTMRghEUxq2Ay1Tn5jgOb5tXHXnQC/lk/k8VDWpY6WA8A+ztF8K4dvc6WbxZ2eG7KVrZbKF6QrXbUzHOzqaGE6lxnhqJWDs/RVcyMsH6RXZ55/5EzVjKA8YjhzNbKbV93KJrJnsWermuAHMqgzjeRNomYC5cqPq3SXZfAgdDQw4yoT3EqVHdylf5SRGbCols0Gue/rysgDWf8fOmoE6D6urXRneYTnz68=",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "project_issues",
       "title": "Project Issues",
       "uriTemplate": "gitlab://project/{project_id}/issues"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single CI job by numeric ID. Returns id, name, stage, status, ref, duration, and web URL.",
+      "description": "Get details for a single CI job by numeric ID. Returns id, name, stage, status, ref, duration, and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cmVjdCB4PSIyIiB5PSIyIiB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHJ4PSIyIiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNNiA1LjVsNC41IDIuNUw2IDEwLjV6IiBmaWxsPSJjdXJyZW50Q29sb3IiLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRoYAAABXRUJQVlA4THoAAAAvD8ADEDUwjCQlkmHIwD35Z/mBmsEawSiSrUYcQQAOMJGTSwTwEcAxrRb+usgK3LZRfMzwDE0Ej1R6CkCElydedsbWG4F907xPMJDysEONFMEOJS6H+GkhRjaX587HRo3FKSoIAIMN/iECL5j/iZPXXCNSBEqmJ42DAA==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRoYAAABXRUJQVlA4THkAAAAvD8ADEDUwjCQpCvlHjLP+eneQwRLBKLatNixBAA4w0ZtLBPyPAJaQRAs/LroCt20UHzM8wwNBmcYIAVR6qfCyosX7RpB18bjPJSDgweHGksDhQLrEv/WuKouLesla1Zic4oRB6BLFPyjxQvGfdPIqNGYvIAKeVAcDAA==",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "job",
       "title": "Job Details",
       "uriTemplate": "gitlab://project/{project_id}/job/{job_id}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single project label by numeric ID or label name. Returns id, name, color, description, and open issue/MR counts.",
+      "description": "Get details for a single project label by numeric ID or label name. Returns id, name, color, description, and open issue/MR counts. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cmVjdCB4PSIxIiB5PSI0IiB3aWR0aD0iMTQiIGhlaWdodD0iOCIgcng9IjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRpIAAABXRUJQVlA4TIYAAAAvD8ADEDUwiiQp0mjgBTm88C8T9jQwEcG2trYm/wT8FTPQhc6wGWEp+Ut2CB3aCbVu8HPOBNQPF2ZE8hZVlwFVuZtY2anY5wxYaLqnDjhSurEwI5464GIaa3ikBFzWJKTecGXE1JW01nBd+vU0p7QebxMBTsPS5G1ZxtwCqhYOL+2kaiLghw==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRpAAAABXRUJQVlA4TIMAAAAvD8ADEHUwiiRJ0fpXfFv9OGYDvRzBNratKL8CfkQNZEu2dYbalBjSw5KhmRBrB//PTIB/OKOOeFEOc5qlbTwLoh7RID5FVxZ31D6dFIM5ow4oal/EwNoyNcBlunKm3dCpA+pXsLDSLPkZmLPOwzsLKzJhOuVwpIoLYM/YlI/ceoAfAgA=",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "label",
       "title": "Label Details",
@@ -901,11 +2375,37 @@
     {
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.4
       },
       "description": "List all labels defined in a GitLab project. Returns each label's name, color, description, and counts of open issues and merge requests using the label.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cmVjdCB4PSIxIiB5PSI0IiB3aWR0aD0iMTQiIGhlaWdodD0iOCIgcng9IjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRpIAAABXRUJQVlA4TIYAAAAvD8ADEDUwiiQp0mjgBTm88C8T9jQwEcG2trYm/wT8FTPQhc6wGWEp+Ut2CB3aCbVu8HPOBNQPF2ZE8hZVlwFVuZtY2anY5wxYaLqnDjhSurEwI5464GIaa3ikBFzWJKTecGXE1JW01nBd+vU0p7QebxMBTsPS5G1ZxtwCqhYOL+2kaiLghw==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRpAAAABXRUJQVlA4TIMAAAAvD8ADEHUwiiRJ0fpXfFv9OGYDvRzBNratKL8CfkQNZEu2dYbalBjSw5KhmRBrB//PTIB/OKOOeFEOc5qlbTwLoh7RID5FVxZ31D6dFIM5ow4oal/EwNoyNcBlunKm3dCpA+pXsLDSLPkZmLPOwzsLKzJhOuVwpIoLYM/YlI/ceoAfAgA=",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "project_labels",
       "title": "Project Labels",
@@ -914,24 +2414,79 @@
     {
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.4
       },
       "description": "List all members of a GitLab project with their access levels (10=guest, 20=reporter, 30=developer, 40=maintainer, 50=owner). Includes inherited members from parent groups.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iNSIgcj0iMyIgZmlsbD0iY3VycmVudENvbG9yIi8+PHBhdGggZmlsbD0iY3VycmVudENvbG9yIiBkPSJNMiAxNGMwLTMgMy01IDYtNXM2IDIgNiA1eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4TGUAAAAvD8ADEDU4aBtJkljs3lnLYPgj7OceBN0RbGLbatR9C+jABrLyww5KEJG6tHmrPwHzn4dETYVDncW7Cx0t6B01KB0IQucQqAvT+fgStOwemd7iUQZO51EJ6cflkEHCTSlYHTP8GgA=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4TGkAAAAvD8ADEDUwbNs20v4jyynQ3uW5Z4Ikgk1sW426bwEd2EBWfthBCSJSlzZv9Seg/7mJSLMKNlWAeGZAheboFavOSgU4QmUTsDpgU+XxFmhl3T3oLZKlNMRhLxVI6henLeksiYvttCqa7msA",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "project_members",
       "title": "Project Members",
       "uriTemplate": "gitlab://project/{project_id}/members"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single project milestone by IID. Returns id, iid, title, description, state, due date, and web URL.",
+      "description": "Get details for a single project milestone by IID. Returns id, iid, title, description, state, due date, and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiIGQ9Ik0yIDE0TDggMmw2IDEyeiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRmwAAABXRUJQVlA4TF8AAAAvD8ADEDUgaNs2Y7Er/KH2HYU2Qk0bSc72hyGhXiTXHYfD8/kVtm3bZDFpP4km2hwJc0QZPYCMelAGDOuFlVXUIn8GcRCHaBEF9x/F/Eex/kA+TX1J8zNYISmbWRmcCQA=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnAAAABXRUJQVlA4TGQAAAAvD8ADEDUwDIC0jf8fnEG6S/AFjFDUtpHU/2DYA3WQzG84DJ69V2Hbtk0Wk/YTc7ZSThI4icJwAsCwpjCAsXqXVu+tSOhPQIasICUkof7NiH8z0h2Aj0RsiSwQum06Qub0CqUJ",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "milestone",
       "title": "Milestone Details",
@@ -940,102 +2495,331 @@
     {
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.4
       },
       "description": "List all milestones in a GitLab project. Returns each milestone's title, description, state (active/closed), due date, and web URL.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiIGQ9Ik0yIDE0TDggMmw2IDEyeiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRmwAAABXRUJQVlA4TF8AAAAvD8ADEDUgaNs2Y7Er/KH2HYU2Qk0bSc72hyGhXiTXHYfD8/kVtm3bZDFpP4km2hwJc0QZPYCMelAGDOuFlVXUIn8GcRCHaBEF9x/F/Eex/kA+TX1J8zNYISmbWRmcCQA=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnAAAABXRUJQVlA4TGQAAAAvD8ADEDUwDIC0jf8fnEG6S/AFjFDUtpHU/2DYA3WQzG84DJ69V2Hbtk0Wk/YTc7ZSThI4icJwAsCwpjCAsXqXVu+tSOhPQIasICUkof7NiH8z0h2Aj0RsiSwQum06Qub0CqUJ",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "project_milestones",
       "title": "Project Milestones",
       "uriTemplate": "gitlab://project/{project_id}/milestones"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get details of a specific merge request by its IID (project-scoped ID). Returns title, state, source/target branches, author, merge status, and web URL.",
+      "description": "Get details of a specific merge request by its IID (project-scoped ID). Returns title, state, source/target branches, author, merge status, and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik00LjI1IDIuNWEuNzUuNzUgMCAxIDAgMCAxLjUuNzUuNzUgMCAwIDAgMC0xLjVNNC41IDUuNjdhMi4yNSAyLjI1IDAgMSAxLTEuNSAwdjQuNjZhMi4yNSAyLjI1IDAgMSAxIDEuNSAwem0wIDAiLz48Y2lyY2xlIGN4PSIxMS43NSIgY3k9IjEyLjI1IiByPSIuNzUiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjxwYXRoIGZpbGw9ImN1cnJlbnRDb2xvciIgZD0iTTExLjc1IDkuNzVhMi4yNSAyLjI1IDAgMSAwIC43NSA0LjM3VjkuM2EyLjI1IDIuMjUgMCAwIDEtLjc1LjQ1bTAtNy4yNWEuNzUuNzUgMCAxIDEgMCAxLjUuNzUuNzUgMCAwIDEgMC0xLjVtLjc1IDMuMTdhMi4yNSAyLjI1IDAgMSAwLTEuNSAwdjMuNThoMS41eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ0AAAAvD8ADEJU4bCTJUS6If2AbT/5ZntNnMI+HcxFOIwBAIiRzJJchLJNZgMYAHIlEdGts4ToAkQ5D0OQ/uU+AFjSFjOSGBvbsXvVM4kPNyhB4M3tY/OEHl0DYZH6lMHpnykEz6cm0wrRKguPgJRJPBVeSzCylcF7kxcbzuY88B2PvdU8z6aBVkiaEpYxAFIN/sTSLOq0yF9w0PUzcYRlhAA==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ4AAAAvD8ADEDUwbiQpDvkHjDy9D26QM5iNcGJr2xIhmUNyWYRlMhugsQAOiUR0a+zCdQETpzOLmKbJ9ZsA/xgGlYpGbqooc0HjG33sY9nIZF3CA5Cj57rZh84fSDZL4xrW2MWyALaNLYhdJU68U8ViQKFt4wKZXH6pIgdeVrY0PHzsxY1tmAtiuxHsAIWbIw6QX/mk/q4RrIDCOzcctVEPew==",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "merge_request",
       "title": "Merge Request Details",
       "uriTemplate": "gitlab://project/{project_id}/mr/{merge_request_iid}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.4
       },
-      "description": "List discussion threads on a merge request. Each discussion has an id, individual_note flag, and an array of notes (id, author, body, system, resolved/resolvable, created_at).",
+      "description": "List discussion threads on a merge request. Each discussion has an id, individual_note flag, and an array of notes (id, author, body, system, resolved/resolvable, created_at). Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik00LjI1IDIuNWEuNzUuNzUgMCAxIDAgMCAxLjUuNzUuNzUgMCAwIDAgMC0xLjVNNC41IDUuNjdhMi4yNSAyLjI1IDAgMSAxLTEuNSAwdjQuNjZhMi4yNSAyLjI1IDAgMSAxIDEuNSAwem0wIDAiLz48Y2lyY2xlIGN4PSIxMS43NSIgY3k9IjEyLjI1IiByPSIuNzUiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjxwYXRoIGZpbGw9ImN1cnJlbnRDb2xvciIgZD0iTTExLjc1IDkuNzVhMi4yNSAyLjI1IDAgMSAwIC43NSA0LjM3VjkuM2EyLjI1IDIuMjUgMCAwIDEtLjc1LjQ1bTAtNy4yNWEuNzUuNzUgMCAxIDEgMCAxLjUuNzUuNzUgMCAwIDEgMC0xLjVtLjc1IDMuMTdhMi4yNSAyLjI1IDAgMSAwLTEuNSAwdjMuNThoMS41eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ0AAAAvD8ADEJU4bCTJUS6If2AbT/5ZntNnMI+HcxFOIwBAIiRzJJchLJNZgMYAHIlEdGts4ToAkQ5D0OQ/uU+AFjSFjOSGBvbsXvVM4kPNyhB4M3tY/OEHl0DYZH6lMHpnykEz6cm0wrRKguPgJRJPBVeSzCylcF7kxcbzuY88B2PvdU8z6aBVkiaEpYxAFIN/sTSLOq0yF9w0PUzcYRlhAA==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ4AAAAvD8ADEDUwbiQpDvkHjDy9D26QM5iNcGJr2xIhmUNyWYRlMhugsQAOiUR0a+zCdQETpzOLmKbJ9ZsA/xgGlYpGbqooc0HjG33sY9nIZF3CA5Cj57rZh84fSDZL4xrW2MWyALaNLYhdJU68U8ViQKFt4wKZXH6pIgdeVrY0PHzsxY1tmAtiuxHsAIWbIw6QX/mk/q4RrIDCOzcctVEPew==",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "merge_request_discussions",
       "title": "Merge Request Discussions",
       "uriTemplate": "gitlab://project/{project_id}/mr/{merge_request_iid}/discussions"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.4
       },
-      "description": "List notes (comments) on a merge request. Returns each note's id, author username, body, system flag, resolvable/resolved flags, and timestamps.",
+      "description": "List notes (comments) on a merge request. Returns each note's id, author username, body, system flag, resolvable/resolved flags, and timestamps. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik00LjI1IDIuNWEuNzUuNzUgMCAxIDAgMCAxLjUuNzUuNzUgMCAwIDAgMC0xLjVNNC41IDUuNjdhMi4yNSAyLjI1IDAgMSAxLTEuNSAwdjQuNjZhMi4yNSAyLjI1IDAgMSAxIDEuNSAwem0wIDAiLz48Y2lyY2xlIGN4PSIxMS43NSIgY3k9IjEyLjI1IiByPSIuNzUiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjxwYXRoIGZpbGw9ImN1cnJlbnRDb2xvciIgZD0iTTExLjc1IDkuNzVhMi4yNSAyLjI1IDAgMSAwIC43NSA0LjM3VjkuM2EyLjI1IDIuMjUgMCAwIDEtLjc1LjQ1bTAtNy4yNWEuNzUuNzUgMCAxIDEgMCAxLjUuNzUuNzUgMCAwIDEgMC0xLjVtLjc1IDMuMTdhMi4yNSAyLjI1IDAgMSAwLTEuNSAwdjMuNThoMS41eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ0AAAAvD8ADEJU4bCTJUS6If2AbT/5ZntNnMI+HcxFOIwBAIiRzJJchLJNZgMYAHIlEdGts4ToAkQ5D0OQ/uU+AFjSFjOSGBvbsXvVM4kPNyhB4M3tY/OEHl0DYZH6lMHpnykEz6cm0wrRKguPgJRJPBVeSzCylcF7kxcbzuY88B2PvdU8z6aBVkiaEpYxAFIN/sTSLOq0yF9w0PUzcYRlhAA==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4TJ4AAAAvD8ADEDUwbiQpDvkHjDy9D26QM5iNcGJr2xIhmUNyWYRlMhugsQAOiUR0a+zCdQETpzOLmKbJ9ZsA/xgGlYpGbqooc0HjG33sY9nIZF3CA5Cj57rZh84fSDZL4xrW2MWyALaNLYhdJU68U8ViQKFt4wKZXH6pIgdeVrY0PHzsxY1tmAtiuxHsAIWbIw6QX/mk/q4RrIDCOzcctVEPew==",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "merge_request_notes",
       "title": "Merge Request Notes",
       "uriTemplate": "gitlab://project/{project_id}/mr/{merge_request_iid}/notes"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get details of a specific CI/CD pipeline by its numeric ID. Returns pipeline status, ref, SHA, source, and web URL.",
+      "description": "Get details of a specific CI/CD pipeline by its numeric ID. Returns pipeline status, ref, SHA, source, and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSIzIiBjeT0iOCIgcj0iMiIgZmlsbD0iY3VycmVudENvbG9yIi8+PGNpcmNsZSBjeD0iOCIgY3k9IjgiIHI9IjIiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjxjaXJjbGUgY3g9IjEzIiBjeT0iOCIgcj0iMiIgZmlsbD0iY3VycmVudENvbG9yIi8+PGxpbmUgeDE9IjUiIHkxPSI4IiB4Mj0iNiIgeTI9IjgiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEiLz48bGluZSB4MT0iMTAiIHkxPSI4IiB4Mj0iMTEiIHkyPSI4IiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9zdmc+"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRkIAAABXRUJQVlA4TDYAAAAvD8ADEDUoaNtGorFl/Kn+B6AXYSBAkntqp9oq/UhIkGhlid4/hgNz6gT8p2ziOpmBulL3/AI=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRkQAAABXRUJQVlA4TDcAAAAvD8ADEDUoahvJ4Q95ynvL3QGYizAQIMk9tVNtlX4kJEi0siTv79EJu3QR/M9iCzfJFqxUuucPAA==",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "pipeline",
       "title": "Pipeline Details",
       "uriTemplate": "gitlab://project/{project_id}/pipeline/{pipeline_id}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.4
       },
-      "description": "List all jobs for a specific CI/CD pipeline including each job's name, stage, status, duration, failure reason (if failed), and web URL.",
+      "description": "List all jobs for a specific CI/CD pipeline including each job's name, stage, status, duration, failure reason (if failed), and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cmVjdCB4PSIyIiB5PSIyIiB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHJ4PSIyIiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNNiA1LjVsNC41IDIuNUw2IDEwLjV6IiBmaWxsPSJjdXJyZW50Q29sb3IiLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRoYAAABXRUJQVlA4THoAAAAvD8ADEDUwjCQlkmHIwD35Z/mBmsEawSiSrUYcQQAOMJGTSwTwEcAxrRb+usgK3LZRfMzwDE0Ej1R6CkCElydedsbWG4F907xPMJDysEONFMEOJS6H+GkhRjaX587HRo3FKSoIAIMN/iECL5j/iZPXXCNSBEqmJ42DAA==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRoYAAABXRUJQVlA4THkAAAAvD8ADEDUwjCQpCvlHjLP+eneQwRLBKLatNixBAA4w0ZtLBPyPAJaQRAs/LroCt20UHzM8wwNBmcYIAVR6qfCyosX7RpB18bjPJSDgweHGksDhQLrEv/WuKouLesla1Zic4oRB6BLFPyjxQvGfdPIqNGYvIAKeVAcDAA==",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "pipeline_jobs",
       "title": "Pipeline Jobs",
       "uriTemplate": "gitlab://project/{project_id}/pipeline/{pipeline_id}/jobs"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get the most recent CI/CD pipeline for a GitLab project. Returns pipeline ID, status (running/pending/success/failed/canceled), ref, SHA, source, and web URL.",
+      "description": "Get the most recent CI/CD pipeline for a GitLab project. Returns pipeline ID, status (running/pending/success/failed/canceled), ref, SHA, source, and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSIzIiBjeT0iOCIgcj0iMiIgZmlsbD0iY3VycmVudENvbG9yIi8+PGNpcmNsZSBjeD0iOCIgY3k9IjgiIHI9IjIiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjxjaXJjbGUgY3g9IjEzIiBjeT0iOCIgcj0iMiIgZmlsbD0iY3VycmVudENvbG9yIi8+PGxpbmUgeDE9IjUiIHkxPSI4IiB4Mj0iNiIgeTI9IjgiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEiLz48bGluZSB4MT0iMTAiIHkxPSI4IiB4Mj0iMTEiIHkyPSI4IiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9zdmc+"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRkIAAABXRUJQVlA4TDYAAAAvD8ADEDUoaNtGorFl/Kn+B6AXYSBAkntqp9oq/UhIkGhlid4/hgNz6gT8p2ziOpmBulL3/AI=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRkQAAABXRUJQVlA4TDcAAAAvD8ADEDUoahvJ4Q95ynvL3QGYizAQIMk9tVNtlX4kJEi0siTv79EJu3QR/M9iCzfJFqxUuucPAA==",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "latest_pipeline",
       "title": "Latest Pipeline",
       "uriTemplate": "gitlab://project/{project_id}/pipelines/latest"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single GitLab release by tag name. Returns tag_name, name, description, author, creation/release dates.",
+      "description": "Get details for a single GitLab release by tag name. Returns tag_name, name, description, author, creation/release dates. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik04IDFsMiAzaDRsLTMgMyAxLjUgNEw4IDguNSAzLjUgMTEgNSA3IDIgNGg0eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4THIAAAAvD8ADEDUwiiRJ0ao4qJGwz/XvjkFAdwSbAAAh+RN8NSTQwMgoxD+KoIdJCiVuuvFcCArTtmGUdNyi2YQPNwDn439UH5NrVovmTuh1O9O+o1HomloxbLa5VqNQDm+EBBPA8nAKrf0mYmYJSMrMv0ngwgg=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4THEAAAAvD8ADEHUwjiSpTf4Zw+xD3isA3EIEmwAAIfkTfDUk0MDIKMQ/iqCHSQolTDeeC3EK07ZhlHTcku4m+uguTJyXb1LnNPmtdaTmk6hftRzfq0novX7EsNnNHgcT5fIQJpiC5XAnuiejOLGUUhq9ph8mAQA=",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "release",
       "title": "Release Details",
@@ -1044,37 +2828,121 @@
     {
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.4
       },
       "description": "List all releases for a GitLab project. Returns each release's tag name, name, description, author, and creation/release dates.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik04IDFsMiAzaDRsLTMgMyAxLjUgNEw4IDguNSAzLjUgMTEgNSA3IDIgNGg0eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4THIAAAAvD8ADEDUwiiRJ0ao4qJGwz/XvjkFAdwSbAAAh+RN8NSTQwMgoxD+KoIdJCiVuuvFcCArTtmGUdNyi2YQPNwDn439UH5NrVovmTuh1O9O+o1HomloxbLa5VqNQDm+EBBPA8nAKrf0mYmYJSMrMv0ngwgg=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4THEAAAAvD8ADEHUwjiSpTf4Zw+xD3isA3EIEmwAAIfkTfDUk0MDIKMQ/iqCHSQolTDeeC3EK07ZhlHTcku4m+uguTJyXb1LnNPmtdaTmk6hftRzfq0novX7EsNnNHgcT5fIQJpiC5XAnuiejOLGUUhq9ph8mAQA=",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "project_releases",
       "title": "Project Releases",
       "uriTemplate": "gitlab://project/{project_id}/releases"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single project snippet by numeric ID. Returns id, title, file_name, description, visibility, and web URL.",
+      "description": "Get details for a single project snippet by numeric ID. Returns id, title, file_name, description, visibility, and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiIGQ9Ik01IDRMMSA4bDQgNG02LThsNCA0LTQgNCIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRlQAAABXRUJQVlA4TEgAAAAvD8ADEDUoaBsJeRvgXymDgfsIQg2MSUczfheZ2rZtGJe1JGfghOwiCYqcY+C84iALBZC+QgrOBOckEzVCTJYf5fLLoPoPFwQ=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRloAAABXRUJQVlA4TE0AAAAvD8ADEDUobCQp6b/kd8GhgSfCTNs2KrqW2fYFctS2bcO4rCU5o56QukgqBKU1fBTpAD8UFByKWAbP9DtPMpE1hphZ/qgufxm0/sMLFgA=",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "project_snippet",
       "title": "Project Snippet Details",
       "uriTemplate": "gitlab://project/{project_id}/snippet/{snippet_id}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single Git tag. Returns name, target commit SHA, annotation message, and protection status.",
+      "description": "Get details for a single Git tag. Returns name, target commit SHA, annotation message, and protection status. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0yIDJoNS41bDYuNSA2LjUtNS41IDUuNUwyIDcuNXptMyAxLjVhMS41IDEuNSAwIDEgMCAwIDMgMS41IDEuNSAwIDAgMCAwLTMiLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4TFwAAAAvD8ADEFUoaNtGgrFTxp/pdh+CXi9CQSSpjROadYiPGKlCwilM2oBJOn7RBcG2eREz+JmfNmfYhEyJgpYJswBNMT7MwoHiJJ4lZzkkV4MXIall1pJ5SxaVhj3rkg==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRmoAAABXRUJQVlA4TF4AAAAvD8ADEIWito2k8ic8K79n9kIQwSCSpDijhM/6gQ+MQBIhuSGYpGnumfBhJEnfGrv8Qkh6qm0SIZgcNu1QmpbkjodtG9V27BBCCFWckW+NEMKwe7N/c3gI1exq4dMA",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "tag",
       "title": "Tag Details",
@@ -1083,37 +2951,121 @@
     {
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.4
       },
       "description": "List all repository tags for a GitLab project. Returns each tag's name, message, target commit SHA, protection status, and creation date.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0yIDJoNS41bDYuNSA2LjUtNS41IDUuNUwyIDcuNXptMyAxLjVhMS41IDEuNSAwIDEgMCAwIDMgMS41IDEuNSAwIDAgMCAwLTMiLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4TFwAAAAvD8ADEFUoaNtGgrFTxp/pdh+CXi9CQSSpjROadYiPGKlCwilM2oBJOn7RBcG2eREz+JmfNmfYhEyJgpYJswBNMT7MwoHiJJ4lZzkkV4MXIall1pJ5SxaVhj3rkg==",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRmoAAABXRUJQVlA4TF4AAAAvD8ADEIWito2k8ic8K79n9kIQwSCSpDijhM/6gQ+MQBIhuSGYpGnumfBhJEnfGrv8Qkh6qm0SIZgcNu1QmpbkjodtG9V27BBCCFWckW+NEMKwe7N/c3gI1exq4dMA",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "project_tags",
       "title": "Project Tags",
       "uriTemplate": "gitlab://project/{project_id}/tags"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get a wiki page by slug. Returns title, slug, format (markdown/rdoc/asciidoc/org), and raw content. Slugs are case-sensitive and use hyphens for spaces.",
+      "description": "Get a wiki page by slug. Returns title, slug, format (markdown/rdoc/asciidoc/org), and raw content. Slugs are case-sensitive and use hyphens for spaces. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0yIDJoOGw0IDR2OEgyem04IDB2NGg0Ii8+PGxpbmUgeDE9IjQiIHkxPSI4IiB4Mj0iMTAiIHkyPSI4IiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxIi8+PGxpbmUgeDE9IjQiIHkxPSIxMCIgeDI9IjEwIiB5Mj0iMTAiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRigAAABXRUJQVlA4TBwAAAAvD8ADEIWito2Y4ih/pr09/hHzPwEwkN19+lM3",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRigAAABXRUJQVlA4TBwAAAAvD8ADEIXatm0Y/3+yV6eXPWL+JwAGsrtPf+oG",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "wiki_page",
       "title": "Wiki Page",
       "uriTemplate": "gitlab://project/{project_id}/wiki/{slug}"
     },
     {
+      "_meta": {
+        "io.github.jmrplens/subscribable": true
+      },
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single personal/global snippet by numeric ID. Returns id, title, file_name, description, visibility, and web URL.",
+      "description": "Get details for a single personal/global snippet by numeric ID. Returns id, title, file_name, description, visibility, and web URL. Subscribable: subscriptions/listen (protocol 2026-07-28); resources/subscribe on stateful sessions.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiIGQ9Ik01IDRMMSA4bDQgNG02LThsNCA0LTQgNCIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRlQAAABXRUJQVlA4TEgAAAAvD8ADEDUoaBsJeRvgXymDgfsIQg2MSUczfheZ2rZtGJe1JGfghOwiCYqcY+C84iALBZC+QgrOBOckEzVCTJYf5fLLoPoPFwQ=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRloAAABXRUJQVlA4TE0AAAAvD8ADEDUobCQp6b/kd8GhgSfCTNs2KrqW2fYFctS2bcO4rCU5o56QukgqBKU1fBTpAD8UFByKWAbP9DtPMpE1hphZ/qgufxm0/sMLFgA=",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "snippet",
       "title": "Snippet Details",
@@ -1127,6 +3079,31 @@
         "priority": 0.6
       },
       "description": "Accepted call shape and input schema for one entry from gitlab://tools. Replace {id} with an entry ID from the active surface, such as project.get in dynamic mode, gitlab_project.get in meta mode, or gitlab_get_project in individual mode.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iMi41IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik03IDFoMnYyLjFhNSA1IDAgMCAxIDEuNy43TDEyLjEgMi40bDEuNCAxLjQtMS40IDEuNGE1IDUgMCAwIDEgLjcgMS43SDE1djJoLTIuMWE1IDUgMCAwIDEtLjcgMS43bDEuNCAxLjQtMS40IDEuNC0xLjQtMS40YTUgNSAwIDAgMS0xLjcuN1YxNUg3di0yLjFhNSA1IDAgMCAxLTEuNy0uN0wzLjkgMTMuNiAyLjUgMTIuMmwxLjQtMS40YTUgNSAwIDAgMS0uNy0xLjdIMVY3aDIuMWE1IDUgMCAwIDEgLjctMS43TDIuNSAzLjkgMy45IDIuNWwxLjQgMS40QTUgNSAwIDAgMSA3IDMuMXoiLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqIAAABXRUJQVlA4TJYAAAAvD8ADEFUwiCQpTkTwzoGK+Fd3fBK2IMJprW1PQ++4jmqyN8kEsAP/XuyAqorUCaKicvBpCpfyTYBOA3el+CijYlMOcsCDi9XMwGVniJWtFq6oXIEp5yA7WTNr1YcN2c3os/skYHODj92elN1HP2PQsFUzQwMEdjPeNXe1YGM1xAJcWout494iJ8piS8Dtln66e1p0hwE=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRp4AAABXRUJQVlA4TJIAAAAvD8ADEJU4biRJkfw3eKFzeQdNqFk46FeE02zblirh0Jxk0S0yAezAvxc7kDQ5E5BIXHRNNDlnAlSbv+eYttGxQZqCiOnsTHNkFX+nAbBy4wcbw8w/ybhRgYhTc6goTcqyUWmSFxbwsPyk1t6U5Yp+U4DIhtOkuPACfG5WALU7CdaUspkZaAo+knsnaoNGVZlBZQ==",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "tool_detail",
       "title": "Tool Detail",
@@ -1137,44 +3114,240 @@
     {
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.4
       },
       "description": "List all GitLab groups accessible to the authenticated user. Returns each group's ID, name, full path, description, visibility level, and web URL.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI1IiBjeT0iNSIgcj0iMiIgZmlsbD0iY3VycmVudENvbG9yIi8+PGNpcmNsZSBjeD0iMTEiIGN5PSI1IiByPSIyIiBmaWxsPSJjdXJyZW50Q29sb3IiLz48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xIDEyYzAtMiAyLTMgNC0zczQgMSA0IDN6bTYgMGMwLTIgMi0zIDQtM3M0IDEgNCAzeiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4TEsAAAAvD8ADEFUobNu2eaNV/n+0ezzgJBGKIkmN7HEoQAzqcMLyuyIhQoIEs0f0I1MKFB6/EeAHOX6nEnil6XsTRvDSNX6NeSxLiV5LfU8A",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRloAAABXRUJQVlA4TE0AAAAvD8ADEFUoaiRJ8S954Hl8BhYiFEWSGtnjUIAY1OGE5XckEhASJJI9Ej9YVYJ5/MYEXjHH7zSzwBRN3xswBn8nbPwiQs5b6gj2uo7vAgA=",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "groups",
       "title": "All Groups",
       "uri": "gitlab://groups"
     },
     {
+      "annotations": {
+        "audience": [
+          "user",
+          "assistant"
+        ],
+        "priority": 0.6
+      },
       "description": "Code review checklist and best practices for GitLab merge request reviews.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0yIDJoOGw0IDR2OEgyem04IDB2NGg0Ii8+PGxpbmUgeDE9IjQiIHkxPSI4IiB4Mj0iMTAiIHkyPSI4IiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxIi8+PGxpbmUgeDE9IjQiIHkxPSIxMCIgeDI9IjEwIiB5Mj0iMTAiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRigAAABXRUJQVlA4TBwAAAAvD8ADEIWito2Y4ih/pr09/hHzPwEwkN19+lM3",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRigAAABXRUJQVlA4TBwAAAAvD8ADEIXatm0Y/3+yV6eXPWL+JwAGsrtPf+oG",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "text/markdown",
       "name": "code_review",
+      "size": 1037,
+      "title": "Code Review Guide",
       "uri": "gitlab://guides/code-review"
     },
     {
+      "annotations": {
+        "audience": [
+          "user",
+          "assistant"
+        ],
+        "priority": 0.6
+      },
       "description": "Conventional commit message format and examples for consistent Git history.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0yIDJoOGw0IDR2OEgyem04IDB2NGg0Ii8+PGxpbmUgeDE9IjQiIHkxPSI4IiB4Mj0iMTAiIHkyPSI4IiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxIi8+PGxpbmUgeDE9IjQiIHkxPSIxMCIgeDI9IjEwIiB5Mj0iMTAiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRigAAABXRUJQVlA4TBwAAAAvD8ADEIWito2Y4ih/pr09/hHzPwEwkN19+lM3",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRigAAABXRUJQVlA4TBwAAAAvD8ADEIXatm0Y/3+yV6eXPWL+JwAGsrtPf+oG",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "text/markdown",
       "name": "conventional_commits",
+      "size": 1386,
+      "title": "Conventional Commits Guide",
       "uri": "gitlab://guides/conventional-commits"
     },
     {
+      "annotations": {
+        "audience": [
+          "user",
+          "assistant"
+        ],
+        "priority": 0.6
+      },
       "description": "Best practices for Git branching strategies with GitLab (feature branches, trunk-based, GitLab Flow).",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0yIDJoOGw0IDR2OEgyem04IDB2NGg0Ii8+PGxpbmUgeDE9IjQiIHkxPSI4IiB4Mj0iMTAiIHkyPSI4IiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxIi8+PGxpbmUgeDE9IjQiIHkxPSIxMCIgeDI9IjEwIiB5Mj0iMTAiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRigAAABXRUJQVlA4TBwAAAAvD8ADEIWito2Y4ih/pr09/hHzPwEwkN19+lM3",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRigAAABXRUJQVlA4TBwAAAAvD8ADEIXatm0Y/3+yV6eXPWL+JwAGsrtPf+oG",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "text/markdown",
       "name": "git_workflow",
+      "size": 793,
+      "title": "Git Workflow Guide",
       "uri": "gitlab://guides/git-workflow"
     },
     {
+      "annotations": {
+        "audience": [
+          "user",
+          "assistant"
+        ],
+        "priority": 0.6
+      },
       "description": "Guidelines for creating and reviewing high-quality merge requests.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0yIDJoOGw0IDR2OEgyem04IDB2NGg0Ii8+PGxpbmUgeDE9IjQiIHkxPSI4IiB4Mj0iMTAiIHkyPSI4IiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxIi8+PGxpbmUgeDE9IjQiIHkxPSIxMCIgeDI9IjEwIiB5Mj0iMTAiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRigAAABXRUJQVlA4TBwAAAAvD8ADEIWito2Y4ih/pr09/hHzPwEwkN19+lM3",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRigAAABXRUJQVlA4TBwAAAAvD8ADEIXatm0Y/3+yV6eXPWL+JwAGsrtPf+oG",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "text/markdown",
       "name": "merge_request_hygiene",
+      "size": 897,
+      "title": "Merge Request Hygiene Guide",
       "uri": "gitlab://guides/merge-request-hygiene"
     },
     {
+      "annotations": {
+        "audience": [
+          "user",
+          "assistant"
+        ],
+        "priority": 0.6
+      },
       "description": "Common GitLab CI/CD pipeline issues and how to diagnose and fix them.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0yIDJoOGw0IDR2OEgyem04IDB2NGg0Ii8+PGxpbmUgeDE9IjQiIHkxPSI4IiB4Mj0iMTAiIHkyPSI4IiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxIi8+PGxpbmUgeDE9IjQiIHkxPSIxMCIgeDI9IjEwIiB5Mj0iMTAiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRigAAABXRUJQVlA4TBwAAAAvD8ADEIWito2Y4ih/pr09/hHzPwEwkN19+lM3",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRigAAABXRUJQVlA4TBwAAAAvD8ADEIXatm0Y/3+yV6eXPWL+JwAGsrtPf+oG",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "text/markdown",
       "name": "pipeline_troubleshooting",
+      "size": 1877,
+      "title": "Pipeline Troubleshooting Guide",
       "uri": "gitlab://guides/pipeline-troubleshooting"
     },
     {
@@ -1185,6 +3358,31 @@
         "priority": 0.4
       },
       "description": "Surface-aware manifest of the tools and executable actions available in this server instance. Use gitlab://tools/{id} to fetch one entry's accepted call shape and input schema.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iMi41IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik03IDFoMnYyLjFhNSA1IDAgMCAxIDEuNy43TDEyLjEgMi40bDEuNCAxLjQtMS40IDEuNGE1IDUgMCAwIDEgLjcgMS43SDE1djJoLTIuMWE1IDUgMCAwIDEtLjcgMS43bDEuNCAxLjQtMS40IDEuNC0xLjQtMS40YTUgNSAwIDAgMS0xLjcuN1YxNUg3di0yLjFhNSA1IDAgMCAxLTEuNy0uN0wzLjkgMTMuNiAyLjUgMTIuMmwxLjQtMS40YTUgNSAwIDAgMS0uNy0xLjdIMVY3aDIuMWE1IDUgMCAwIDEgLjctMS43TDIuNSAzLjkgMy45IDIuNWwxLjQgMS40QTUgNSAwIDAgMSA3IDMuMXoiLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqIAAABXRUJQVlA4TJYAAAAvD8ADEFUwiCQpTkTwzoGK+Fd3fBK2IMJprW1PQ++4jmqyN8kEsAP/XuyAqorUCaKicvBpCpfyTYBOA3el+CijYlMOcsCDi9XMwGVniJWtFq6oXIEp5yA7WTNr1YcN2c3os/skYHODj92elN1HP2PQsFUzQwMEdjPeNXe1YGM1xAJcWout494iJ8piS8Dtln66e1p0hwE=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRp4AAABXRUJQVlA4TJIAAAAvD8ADEJU4biRJkfw3eKFzeQdNqFk46FeE02zblirh0Jxk0S0yAezAvxc7kDQ5E5BIXHRNNDlnAlSbv+eYttGxQZqCiOnsTHNkFX+nAbBy4wcbw8w/ybhRgYhTc6goTcqyUWmSFxbwsPyk1t6U5Yp+U4DIhtOkuPACfG5WALU7CdaUspkZaAo+knsnaoNGVZlBZQ==",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "tool_manifest",
       "title": "Tool Manifest",
@@ -1193,11 +3391,37 @@
     {
       "annotations": {
         "audience": [
+          "user",
           "assistant"
         ],
         "priority": 0.6
       },
       "description": "Get the currently authenticated GitLab user profile. Returns username, display name, email, state (active/blocked), admin status, and web URL.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI4IiBjeT0iNSIgcj0iMyIgZmlsbD0iY3VycmVudENvbG9yIi8+PHBhdGggZmlsbD0iY3VycmVudENvbG9yIiBkPSJNMiAxNGMwLTMgMy01IDYtNXM2IDIgNiA1eiIvPjwvc3ZnPg=="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4TGUAAAAvD8ADEDU4aBtJkljs3lnLYPgj7OceBN0RbGLbatR9C+jABrLyww5KEJG6tHmrPwHzn4dETYVDncW7Cx0t6B01KB0IQucQqAvT+fgStOwemd7iUQZO51EJ6cflkEHCTSlYHTP8GgA=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4TGkAAAAvD8ADEDUwbNs20v4jyynQ3uW5Z4Ikgk1sW426bwEd2EBWfthBCSJSlzZv9Seg/7mJSLMKNlWAeGZAheboFavOSgU4QmUTsDpgU+XxFmhl3T3oLZKlNMRhLxVI6henLeksiYvttCqa7msA",
+          "theme": "dark"
+        }
+      ],
       "mimeType": "application/json",
       "name": "current_user",
       "title": "Current User Profile",
@@ -1205,8 +3429,78 @@
     }
   ],
   "serverInfo": {
+    "description": "Model Context Protocol server for GitLab: projects, issues, merge requests, pipelines, repositories, releases, groups, and admin workflows over the GitLab REST and GraphQL APIs.",
+    "icons": [
+      {
+        "mimeType": "image/svg+xml",
+        "sizes": [
+          "any"
+        ],
+        "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNIDYuNzUgMTIgQyAxMiAxMiwgMTIgNS4yNSwgMTcuMiA1LjI1IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjMxIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNIDYuNzUgMTIgSCAxNy4yIiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjMxIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNIDYuNzUgMTIgQyAxMiAxMiwgMTIgMTguOCwgMTcuMiAxOC44IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjMxIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48Y2lyY2xlIGN4PSIxOC42IiBjeT0iNS4yNSIgcj0iMS4zMSIgZmlsbD0iY3VycmVudENvbG9yIi8+PGNpcmNsZSBjeD0iMTguNiIgY3k9IjEyIiByPSIxLjMxIiBmaWxsPSJjdXJyZW50Q29sb3IiLz48Y2lyY2xlIGN4PSIxOC42IiBjeT0iMTguOCIgcj0iMS4zMSIgZmlsbD0iY3VycmVudENvbG9yIi8+PGNpcmNsZSBjeD0iNS4yNSIgY3k9IjEyIiByPSIxLjg4IiBmaWxsPSJjdXJyZW50Q29sb3IiLz48L3N2Zz4="
+      },
+      {
+        "mimeType": "image/webp",
+        "sizes": [
+          "16x16"
+        ],
+        "src": "data:image/webp;base64,UklGRqgAAABXRUJQVlA4TJsAAAAvD8ADEDU4iCRJkcbEUc6Th/ev7vgUdEQ4EQBAaXBProlKJdKk8QCSvYIGSR8A/9B5k7a1rdHG3nEK27ZtlJ3unpEnBcMv+BCRpzcw20d01YfJwrR35Dp2++P7uYUtTmHh+7aQPQbAbrNr5YnSY1RW9IBfb/4rCvdR2RcCnxd/9maZc2FnqjO2+aO4x//QiVeO/yHJwHVYyAOfGQA=",
+        "theme": "light"
+      },
+      {
+        "mimeType": "image/webp",
+        "sizes": [
+          "16x16"
+        ],
+        "src": "data:image/webp;base64,UklGRqgAAABXRUJQVlA4TJsAAAAvD8ADEHU4bCTJifJPGDF9ZjD/uAhGwijCiQAASoN7ck1UKpEmjQeQ7BU0SPoA+IdPm7StbW1t7B03AbmymeIb3qSIBy+A7C2qtI2WmeIZ3kDM1Xj+GsO5U3w+FvKfAaCdb9lLW/L7Vsndyor+Lb9Pf7Ulv+9ScPthDOdOCXibz04yne4dUVfGwTRVXMNbQsIzANmbEnM1NLLjYAA=",
+        "theme": "dark"
+      }
+    ],
     "name": "gitlab-mcp-server",
-    "version": "2.6.6"
+    "title": "GitLab MCP Server",
+    "version": "2.7.3",
+    "websiteUrl": "https://jmrp.io/docs/gitlab-mcp-server"
+  },
+  "subscriptions": {
+    "methods": {
+      "resources/subscribe": {
+        "available": false,
+        "requires": "stateful sessions (--stateless=false)"
+      },
+      "subscriptions/listen": {
+        "available": true,
+        "since_protocol": "2026-07-28"
+      }
+    },
+    "notification": "notifications/resources/updated, sent when the watched content changes (server polls GitLab)",
+    "subscribable_uri_templates": [
+      "gitlab://group/{group_id}",
+      "gitlab://group/{group_id}/label/{label_id}",
+      "gitlab://group/{group_id}/milestone/{milestone_iid}",
+      "gitlab://project/{project_id}",
+      "gitlab://project/{project_id}/board/{board_id}",
+      "gitlab://project/{project_id}/branch/{branch}",
+      "gitlab://project/{project_id}/deploy_key/{deploy_key_id}",
+      "gitlab://project/{project_id}/deployment/{deployment_id}",
+      "gitlab://project/{project_id}/environment/{environment_id}",
+      "gitlab://project/{project_id}/feature_flag/{name}",
+      "gitlab://project/{project_id}/file/{ref}/{+path}",
+      "gitlab://project/{project_id}/issue/{issue_iid}",
+      "gitlab://project/{project_id}/job/{job_id}",
+      "gitlab://project/{project_id}/label/{label_id}",
+      "gitlab://project/{project_id}/milestone/{milestone_iid}",
+      "gitlab://project/{project_id}/mr/{merge_request_iid}",
+      "gitlab://project/{project_id}/mr/{merge_request_iid}/discussions",
+      "gitlab://project/{project_id}/mr/{merge_request_iid}/notes",
+      "gitlab://project/{project_id}/pipeline/{pipeline_id}",
+      "gitlab://project/{project_id}/pipeline/{pipeline_id}/jobs",
+      "gitlab://project/{project_id}/pipelines/latest",
+      "gitlab://project/{project_id}/release/{tag_name}",
+      "gitlab://project/{project_id}/snippet/{snippet_id}",
+      "gitlab://project/{project_id}/tag/{tag_name}",
+      "gitlab://project/{project_id}/wiki/{slug}",
+      "gitlab://snippet/{snippet_id}"
+    ],
+    "supported": true
   },
   "tools": [
     {
@@ -1214,10 +3508,34 @@
         "destructiveHint": true,
         "idempotentHint": false,
         "openWorldHint": true,
-        "readOnlyHint": false,
-        "title": "GitLab Execute Action"
+        "readOnlyHint": false
       },
       "description": "Execute one GitLab catalog action by canonical ID or alias. Always pass params as an object; destructive actions require top-level confirm=true. Use find first only when action or params are unclear.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cmVjdCB4PSIyIiB5PSIyIiB3aWR0aD0iMTIiIGhlaWdodD0iNSIgcng9IjEiIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEuNSIvPjxyZWN0IHg9IjIiIHk9IjkiIHdpZHRoPSIxMiIgaGVpZ2h0PSI1IiByeD0iMSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMS41Ii8+PGNpcmNsZSBjeD0iNSIgY3k9IjQuNSIgcj0iLjc1IiBmaWxsPSJjdXJyZW50Q29sb3IiLz48Y2lyY2xlIGN4PSI1IiBjeT0iMTEuNSIgcj0iLjc1IiBmaWxsPSJjdXJyZW50Q29sb3IiLz48L3N2Zz4="
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRmQAAABXRUJQVlA4TFcAAAAvD8ADEDUoaiRJWRPH5N8n078vQkEjSc15+Ir5DiqqJzCgsG3bRs5O2kMYqwRX/OzIZ+UCvn898EmAuwgCfWq5S4UfdJgI+NQd+++jAOU+9fBR24MfDQUA",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRmAAAABXRUJQVlA4TFQAAAAvD8ADEAXbtpEcqf+Smdx7/3mEgjaSlPHwbJ7/VdB5ujegsG3bRs5O2kPiXCNp9oHUESNUegRVIgiJYYaJrQjZYFkHXAnK4diXI0ZUjpBH+OFHpwo=",
+          "theme": "dark"
+        }
+      ],
       "inputSchema": {
         "additionalProperties": false,
         "properties": {
@@ -1300,10 +3618,34 @@
         "destructiveHint": false,
         "idempotentHint": true,
         "openWorldHint": true,
-        "readOnlyHint": true,
-        "title": "GitLab Find Action"
+        "readOnlyHint": true
       },
       "description": "Search the local GitLab action catalog; read-only and no GitLab API call. Use when the action ID or params are unclear; returns schemas, hints, destructive flags, and execute examples.",
+      "icons": [
+        {
+          "mimeType": "image/svg+xml",
+          "sizes": [
+            "any"
+          ],
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48Y2lyY2xlIGN4PSI2LjUiIGN5PSI2LjUiIHI9IjQuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMS41Ii8+PGxpbmUgeDE9IjEwIiB5MT0iMTAiIHgyPSIxNC41IiB5Mj0iMTQuNSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMS41Ii8+PC9zdmc+"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqgAAABXRUJQVlA4TJwAAAAvD8ADEIWDtpEkqVjclps/0+77EESwqa2tDfweiC/KVLVky4gEiIs2kiIgGpoAMn9q27ZhlLrZyRlh30RojGJVqkOXV2cHt8MDtkec3a6x4WHhdZq61zHALoEGqFp09IRvGZ+8MNuPnMO0UD62aqhbTITKrWLT6kNhoYn+XufyR6jgcXqhF0y6f6mULXJlyACTwj/86x85Sf/5yWE=",
+          "theme": "light"
+        },
+        {
+          "mimeType": "image/webp",
+          "sizes": [
+            "16x16"
+          ],
+          "src": "data:image/webp;base64,UklGRqwAAABXRUJQVlA4TJ8AAAAvD8ADEIWDSJIU6fw7rnw4+NknBRFsamtrA78H4osyVS3ZMiIB4qKNpAiIhiaAzJ/atm0YpW52csbGvomdMopVSe+0snd2uN2OHrDtYtntWnbnG9t5TlPnmoHsEBAgNTD27HzK+ORBs32RczQNlI8tDbmBCMmpYtPyO21sJ9HvWi7fhQo9zl5wgbT+JSlb5ORODSDt/MO//pFS/ecnbwwA",
+          "theme": "dark"
+        }
+      ],
       "inputSchema": {
         "additionalProperties": false,
         "properties": {

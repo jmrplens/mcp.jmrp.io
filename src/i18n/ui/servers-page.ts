@@ -134,6 +134,97 @@ export const serversPage = {
     annotationIdempotent: "idempotent",
     /** `annotations.openWorldHint` — talks to something outside this server (the network, another API). */
     annotationExternalNetwork: "external network",
+
+    /**
+     * ---- `server/discover` instructions ----------------------------------
+     * The connect-time text the server hands every client, quoted verbatim
+     * on its page from the committed surface snapshot (`src/data/surface.ts`).
+     * It is DATA, not chrome, so it is never translated — the ES intro
+     * carries "(en inglés)" for the same reason `cardDescriptionLabel` does.
+     */
+    instructionsHead: "Usage instructions",
+    instructionsIntro:
+      "What the server itself tells every client on connect (server/discover), quoted verbatim.",
+
+    /**
+     * ---- Subscriptions (gitlab) ------------------------------------------
+     * Availability is per METHOD and per DEPLOYMENT: the page reads it from
+     * the card's `subscriptions.methods` instead of asserting it here, and
+     * the `requires`/`since_protocol` values it appends are verbatim server
+     * data (English, like every other protocol identifier on these pages).
+     */
+    subscriptionsHead: "Subscriptions",
+    subscriptionsIntro:
+      "Whether a client can watch a resource for changes instead of polling it, and which of the URI templates above accept a subscription — those carry a chip.",
+    subscriptionAvailable: "Available on this deployment",
+    subscriptionUnavailable: "Not available on this deployment",
+    subscriptionSinceProtocol: "since protocol",
+    subscriptionRequiresLabel: "requires",
+    subscribableTemplatesLabel: "Subscribable URI templates",
+    subscribableChip: "subscribable",
+
+    /**
+     * ---- Action catalog (gitlab) -----------------------------------------
+     * The by-domain count table plus the progressive search island over the
+     * `gitlab://tools` manifest snapshot. `catalogTokenNote` is the caveat
+     * that must stay ALWAYS visible: the manifest is scoped to the token
+     * that asks (`cacheScope: "private"`), so every count on the page is the
+     * Free tier's surface, not a universal one.
+     */
+    catalogHead: "Action catalog",
+    catalogIntro:
+      "Behind the tools above sits a catalog of fine-grained actions, invoked through gitlab_execute_action and published as the gitlab://tools resource. This table only counts it, by domain — the full list is the resource itself.",
+    catalogTokenNote:
+      "Counted with a Free-tier GitLab token. The catalog is scoped to the token that asks, so the count moves with both its tier and its permissions: higher tiers expose more actions, and administration domains only appear to tokens allowed to use them.",
+    catalogTableCaption: "Actions by domain",
+    catalogColDomain: "Domain",
+    catalogColTotal: "Actions",
+    catalogColDestructive: "Destructive",
+    catalogColReadOnly: "Read-only",
+    /** Row label for manifest entries that carry no `domain` field. */
+    searchLabel: "Search the catalog",
+    searchPlaceholder: "Filter by id, title or domain…",
+    searchLoading: "Loading index…",
+    searchError:
+      "Could not load the index. The table above still counts every domain.",
+    searchNoResults: "No actions match.",
+    /** Rendered after the overflow count: `{n} more matches — …`. */
+    searchMoreResults: "more matches — refine the query",
+    /** aria-label of the search island's live results region. */
+    searchResultsLabel: "Search results",
+    /**
+     * ---- Action-domain pages (/servers/<id>/actions/<domain>/) ------------
+     * One page per manifest domain: the full reference list, one collapsed
+     * `<details>` per action, with a progressive filter on top. Domain names
+     * and action ids are protocol DATA and are never translated.
+     */
+    domainPageTitleSuffix: "actions · mcp.jmrp.io",
+    domainPageKicker: "Action domain",
+    /**
+     * Meta description template; `{count}`/`{domain}` filled by the route.
+     * Budgeted for the 155-char snippet ceiling at the longest domain name.
+     */
+    domainMetaDescription:
+      "The {count} {domain} actions gitlab exposes via gitlab_execute_action, each with its full description and required parameters.",
+    domainPageIntro:
+      "Every action this domain exposes through gitlab_execute_action, from the gitlab://tools manifest. Each entry folds out to its full upstream description and required parameters.",
+    domainBackToCard: "Back to the server card",
+    domainFilterLabel: "Filter this domain's actions",
+    domainFilterPlaceholder: "Type to filter by id, title or description…",
+    domainFilterCount: "{shown} of {total} actions",
+    domainFilterNoMatch: "No action matches. Clear the filter to see the full list.",
+    domainChipDestructive: "destructive",
+    domainChipReadOnly: "read-only",
+    domainToggleDestructive: "Destructive only",
+    domainToggleReadOnly: "Read-only only",
+    domainParamsLabel: "Required parameters",
+    domainNoParams: "No required parameters",
+    /** Prefix of the alternative-requirements line (2.7.2's any_of groups). */
+    domainAnyOfLabel: "At least one of",
+    /** Joiner between alternative groups: "…, or …". */
+    domainAnyOfJoiner: "or",
+    /** Label of the alias marker; the target id follows as a link. */
+    domainAliasOf: "alias of",
   },
   es: {
     /** Ver `en.metaTitleIndex`. */
@@ -204,5 +295,86 @@ export const serversPage = {
     annotationIdempotent: "idempotente",
     /** Ver `en.annotationExternalNetwork`. */
     annotationExternalNetwork: "red externa",
+
+    /** Ver `en.instructionsHead`. */
+    instructionsHead: "Instrucciones de uso",
+    /** Ver `en.instructionsIntro`. Va "(en inglés)" porque la prosa es dato del servidor. */
+    instructionsIntro:
+      "Lo que el propio servidor le dice a cada cliente al conectar (server/discover), citado tal cual (en inglés).",
+
+    /** Ver `en.subscriptionsHead`. */
+    subscriptionsHead: "Suscripciones",
+    /** Ver `en.subscriptionsIntro`. */
+    subscriptionsIntro:
+      "Si un cliente puede vigilar un resource en vez de sondearlo, y cuáles de las URI templates de arriba aceptan suscripción — esas llevan un chip.",
+    /** Ver `en.subscriptionAvailable`. */
+    subscriptionAvailable: "Disponible en este despliegue",
+    /** Ver `en.subscriptionUnavailable`. */
+    subscriptionUnavailable: "No disponible en este despliegue",
+    /** Ver `en.subscriptionSinceProtocol`. */
+    subscriptionSinceProtocol: "desde el protocolo",
+    /** Ver `en.subscriptionRequiresLabel`. */
+    subscriptionRequiresLabel: "requiere",
+    /** Ver `en.subscribableTemplatesLabel`. */
+    subscribableTemplatesLabel: "URI templates suscribibles",
+    /** Ver `en.subscribableChip`. */
+    subscribableChip: "suscribible",
+
+    /** Ver `en.catalogHead`. */
+    catalogHead: "Catálogo de acciones",
+    /** Ver `en.catalogIntro`. */
+    catalogIntro:
+      "Detrás de las tools de arriba hay un catálogo de acciones de grano fino, invocadas vía gitlab_execute_action y publicadas como el resource gitlab://tools. Esta tabla solo lo cuenta, por dominio — la lista completa es el propio resource.",
+    /** Ver `en.catalogTokenNote`. */
+    catalogTokenNote:
+      "Contado con un token Free de GitLab. El catálogo depende del token que pregunta, así que el recuento se mueve con su tier y con sus permisos: los tiers superiores exponen más acciones, y los dominios de administración solo aparecen a tokens autorizados a usarlos.",
+    /** Ver `en.catalogTableCaption`. */
+    catalogTableCaption: "Acciones por dominio",
+    /** Ver `en.catalogColDomain`. */
+    catalogColDomain: "Dominio",
+    /** Ver `en.catalogColTotal`. */
+    catalogColTotal: "Acciones",
+    /** Ver `en.catalogColDestructive`. */
+    catalogColDestructive: "Destructivas",
+    /** Ver `en.catalogColReadOnly`. */
+    catalogColReadOnly: "Solo lectura",
+    /** Ver `en.searchLabel`. */
+    searchLabel: "Buscar en el catálogo",
+    /** Ver `en.searchPlaceholder`. */
+    searchPlaceholder: "Filtra por id, título o dominio…",
+    /** Ver `en.searchLoading`. */
+    searchLoading: "Cargando índice…",
+    /** Ver `en.searchError`. */
+    searchError:
+      "No se pudo cargar el índice. La tabla de arriba sigue contando todos los dominios.",
+    /** Ver `en.searchNoResults`. */
+    searchNoResults: "Ninguna acción coincide.",
+    /** Ver `en.searchMoreResults`. */
+    searchMoreResults: "coincidencias más — afina la búsqueda",
+    /** Ver `en.searchResultsLabel`. */
+    searchResultsLabel: "Resultados de la búsqueda",
+    /** Ver el bloque `en.domainPage*`. */
+    domainPageTitleSuffix: "acciones · mcp.jmrp.io",
+    domainPageKicker: "Dominio de acciones",
+    /** Ver `en.domainMetaDescription`. */
+    domainMetaDescription:
+      "Las {count} acciones {domain} que gitlab expone vía gitlab_execute_action, cada una con su descripción completa y sus parámetros.",
+    domainPageIntro:
+      "Todas las acciones que este dominio expone vía gitlab_execute_action, del manifiesto gitlab://tools. Cada entrada se despliega a su descripción completa y sus parámetros obligatorios.",
+    domainBackToCard: "Volver a la ficha del servidor",
+    domainFilterLabel: "Filtrar las acciones de este dominio",
+    domainFilterPlaceholder: "Escribe para filtrar por id, título o descripción…",
+    domainFilterCount: "{shown} de {total} acciones",
+    domainFilterNoMatch: "Ninguna acción coincide. Borra el filtro para ver la lista completa.",
+    domainChipDestructive: "destructiva",
+    domainChipReadOnly: "solo lectura",
+    domainToggleDestructive: "Solo destructivas",
+    domainToggleReadOnly: "Solo de lectura",
+    domainParamsLabel: "Parámetros obligatorios",
+    domainNoParams: "Sin parámetros obligatorios",
+    /** Ver `en.domainAnyOfLabel`. */
+    domainAnyOfLabel: "Al menos uno de",
+    domainAnyOfJoiner: "o",
+    domainAliasOf: "alias de",
   },
 } as const;

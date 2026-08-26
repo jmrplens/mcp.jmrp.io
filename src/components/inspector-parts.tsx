@@ -2,7 +2,12 @@ import type { Lang } from "../i18n/ui";
 import { ui } from "../i18n/ui";
 import { formatBytes, formatMs } from "../lib/format";
 import type { McpPrompt, McpResource } from "../lib/mcp-catalog";
-import { type FormField, type McpTool, schemaFields } from "../lib/tool-schema";
+import {
+  type FormField,
+  type McpTool,
+  requirementGroups,
+  schemaFields,
+} from "../lib/tool-schema";
 import ArgsForm from "./ArgsForm";
 import type { Status } from "./use-mcp-call";
 
@@ -34,6 +39,7 @@ export function ToolSchema({
 
   const t = ui[lang].insp;
   const rows = schemaFields(tool.inputSchema);
+  const groups = requirementGroups(tool.inputSchema);
 
   return (
     <div className="schema" data-testid="inspector-schema">
@@ -41,6 +47,22 @@ export function ToolSchema({
         <code>{tool.name}</code>
         {tool.description ? <span> — {tool.description}</span> : null}
       </p>
+      {groups && (
+        <p className="schema-groups">
+          <strong>{groups.kind === "oneOf" ? t.groupOneOf : t.groupAnyOf}:</strong>{" "}
+          {groups.groups.map((group, gi) => (
+            <>
+              {gi > 0 && ` ${t.groupJoiner} `}
+              {group.map((name, ni) => (
+                <>
+                  {ni > 0 && " + "}
+                  <code>{name}</code>
+                </>
+              ))}
+            </>
+          ))}
+        </p>
+      )}
       {rows.length === 0 ? (
         <p>{t.schemaEmpty}</p>
       ) : (
@@ -305,10 +327,17 @@ export function InvokePanel({
   blocked,
   lang,
   onRun,
+  requirementNote,
 }: Readonly<{
   kind: "tools" | "prompts";
   name: string;
   description?: string;
+  /**
+   * "Exactly one of: md5 | id | doi" — pre-formatted by the caller from
+   * requirementGroups(), because the form itself cannot mark any single
+   * field required when the requirement is a GROUP.
+   */
+  requirementNote?: string;
   fields: FormField[];
   values: Record<string, string>;
   onChange: (name: string, value: string) => void;
@@ -335,6 +364,9 @@ export function InvokePanel({
           <code>{name}</code>
           {description ? <span> — {description}</span> : null}
         </p>
+        {requirementNote ? (
+          <p className="schema-groups">{requirementNote}</p>
+        ) : null}
         {showRaw ? (
           <div className="mode">
             <button

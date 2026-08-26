@@ -18,9 +18,10 @@
  * template.
  */
 
-/** The minimal shape every icon-bearing field needs: just `src`. */
+/** The minimal shape every icon-bearing field needs: `src`, and `mimeType` when declared. */
 interface IconLike {
   src: string;
+  mimeType?: string;
 }
 
 /**
@@ -32,15 +33,33 @@ export function isSafeIconSrc(src: string): boolean {
 }
 
 /**
- * The first icon in `icons` whose `src` passes {@link isSafeIconSrc}.
+ * The icon to paint: the safe SVG if the card publishes one, else the first
+ * safe icon of any type.
+ *
+ * SEP-1649 icon arrays are ordered by the SERVER's preference and a client is
+ * meant to take the first entry it supports. Both cards happen to list a
+ * `currentColor` SVG first and 16×16 WebP theme variants after it, so taking
+ * `icons[0]` worked — but that order is the server's choice, not something
+ * this site can hold it to. If a future card led with the WebP, the ficha
+ * would silently start painting a 16px raster into a slot rendered at `1em`
+ * (blurry at 2× DPI) AND apply `ServerPage.astro`'s `filter: invert(1)` — a
+ * rule that exists to recolor monochrome `currentColor` SVGs — to an image
+ * that already ships correct for the theme, inverting it wrongly. Two visible
+ * defects, no error, nothing to notice them.
+ *
+ * Preferring the SVG explicitly makes the choice this site's own: a browser
+ * always supports SVG, so the raster fallbacks are for MCP clients that do
+ * not, and are never the right pick here. The `find` fallback stays for a
+ * card that publishes no SVG at all.
  *
  * Generic over `T` (rather than importing `CardIcon` from `server-cards.ts`)
  * so this module has no compile-time dependency on that one's exact export
- * surface — it only needs `src` to exist.
+ * surface — it only needs `src`, and `mimeType` when the card declares it.
  *
  * @param icons The card's `icons` array for a server/tool/prompt, if it has one.
  * @returns The icon to render, or `undefined` if there is none, or none is safe.
  */
 export function safeIcon<T extends IconLike>(icons: T[] | undefined): T | undefined {
-  return icons?.find((icon) => isSafeIconSrc(icon.src));
+  const safe = icons?.filter((icon) => isSafeIconSrc(icon.src));
+  return safe?.find((icon) => icon.mimeType === "image/svg+xml") ?? safe?.[0];
 }

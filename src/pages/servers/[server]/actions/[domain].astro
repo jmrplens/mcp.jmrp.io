@@ -1,0 +1,65 @@
+---
+/**
+ * Action-domain route: `/servers/<id>/actions/<domain>/`. One static page
+ * per manifest domain of every server WITH a committed catalog snapshot
+ * (today: gitlab) — data-driven like `actions.json.ts` next door, so a third
+ * MCP with a catalog gains its pages by landing a snapshot, never a route.
+ *
+ * Canonical/hreflang come from `actionsDomainPageUrl`/`Alternates` for the
+ * same reason the ficha uses `serverPageUrl`: `page="servers"` alone would
+ * canonicalize every domain page to the `/servers/` INDEX. `actionsDomain`
+ * (NOT `serverId`) is what Base forwards to the graph: these pages describe
+ * a slice of the server's API and must not re-emit its `WebAPI` node — the
+ * define-once rule the ficha owns.
+ */
+import type { GetStaticPaths } from "astro";
+
+import ActionsDomainPage from "../../../../components/pages/ActionsDomainPage.astro";
+import { servers } from "../../../../data/servers";
+import { actionsDomainPaths } from "../../../../data/surface";
+import { serversPage } from "../../../../i18n/ui/servers-page";
+import { getLangFromUrl } from "../../../../i18n/utils";
+import Base from "../../../../layouts/Base.astro";
+import {
+  actionsDomainPageAlternates,
+  actionsDomainPageUrl,
+} from "../../../../lib/seo";
+
+/** One route per (server with a catalog, domain) — shared body, see surface.ts. */
+export const getStaticPaths = (() =>
+  actionsDomainPaths()) satisfies GetStaticPaths;
+
+const { server, domain, actions, aliasDomains } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const sp = serversPage[lang];
+
+const serverMeta = servers.find((s) => s.id === server);
+if (!serverMeta) {
+  throw new Error(`[actions] "${server}" has a catalog but no entry in servers.ts`);
+}
+
+const title = `${domain} — ${serverMeta.name} ${sp.domainPageTitleSuffix}`;
+// `() =>` y no el valor directo: unicorn/no-unsafe-string-replacement — un
+// replacement de cadena interpretaría `$&` y compañía.
+const description = sp.domainMetaDescription
+  .replace("{count}", () => String(actions.length))
+  .replace("{domain}", () => domain);
+---
+
+<Base
+  title={title}
+  description={description}
+  page="servers"
+  canonicalOverride={actionsDomainPageUrl(lang, server, domain)}
+  alternatesOverride={actionsDomainPageAlternates(server, domain)}
+  actionsDomain={{ serverId: server, domain }}
+>
+  <ActionsDomainPage
+    lang={lang}
+    serverId={server}
+    domain={domain}
+    actions={actions}
+    tokenNote={sp.catalogTokenNote}
+    aliasDomains={aliasDomains}
+  />
+</Base>

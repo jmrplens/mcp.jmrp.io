@@ -6,8 +6,8 @@
   "packageManager": "pnpm@11.18.0",
   "scripts": {
     "dev": "astro dev",
-    "build": "DIST_DIR=$(node scripts/deploy-swap.mjs prepare) && astro build --outDir \"$DIST_DIR\" && node scripts/deploy-swap.mjs swap \"$DIST_DIR\" && node scripts/deploy-live-mcp.mjs",
-    "build:only": "DIST_DIR=$(node scripts/deploy-swap.mjs prepare) && astro build --outDir \"$DIST_DIR\"",
+    "build": "node scripts/sync-server-surface.mjs && DIST_DIR=$(node scripts/deploy-swap.mjs prepare) && astro build --outDir \"$DIST_DIR\" && node scripts/deploy-swap.mjs swap \"$DIST_DIR\" && node scripts/deploy-live-mcp.mjs",
+    "build:only": "node scripts/sync-server-surface.mjs && DIST_DIR=$(node scripts/deploy-swap.mjs prepare) && astro build --outDir \"$DIST_DIR\"",
     "preview": "astro preview",
     "lint": "astro sync && eslint .",
     "typecheck": "astro check",

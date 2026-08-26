@@ -1,0 +1,99 @@
+/**
+ * Estilos de la isla del filtro de las páginas de dominio.
+ *
+ * En un .css aparte por el mismo motivo que ActionSearch.css: el componente
+ * es Preact y los <style> con ámbito de Astro no lo alcanzan. Los controles
+ * calcan la forma de `.as-input` (mismo input, mismo focus ring) para que
+ * el buscador de la ficha y el filtro del dominio se lean como la misma
+ * familia de controles.
+ */
+
+.domain-filter {
+  margin: 1rem 0 1.25rem;
+}
+
+.domain-filter-input {
+  width: 100%;
+  max-width: 28rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.domain-filter-input:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.domain-filter-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.1rem;
+  align-items: center;
+  margin-top: 0.55rem;
+}
+
+.domain-toggle {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.domain-filter-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.1rem;
+  align-items: center;
+  margin-top: 0.55rem;
+}
+
+.domain-filter-count {
+  margin-left: auto;
+  white-space: nowrap;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.domain-filter-empty {
+  margin: 0.6rem 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* Leyenda junto al contador: el mismo punto que llevan las tarjetas. Con
+   clase propia (df-dot) porque las .action-dot de la página tienen ámbito
+   de componente Astro y no alcanzan al DOM cliente de la isla. */
+.domain-legend {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+
+  /* Cada pieza envuelve como unidad o no envuelve: sin esto, a 390px la
+     palabra se partía por dentro ("read-" / "only") antes que la fila. */
+  white-space: nowrap;
+}
+
+.df-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+}
+
+.df-dot--destructive {
+  background: var(--color-danger);
+}
+
+.df-dot--readonly {
+  background: var(--color-text-muted);
+}

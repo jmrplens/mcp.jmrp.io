@@ -49,12 +49,13 @@
  * is simply omitted from the curated summary.
  *
  * `resourceTemplates` (parameterized resources, e.g. `gitlab://group/{id}`)
- * is kept on the full document type because it is a real SEP-1649 field, but
- * it is deliberately left OUT of the curated summary: the spec's "what pages
- * walk" list is tools/prompts/resources only, and gitlab already has 37
- * prompts to make navigable — adding 37 more entries of a kind nobody asked
- * to list was exactly the flooding this whole exercise exists to avoid. A
- * future page can read it from `serverCardDocuments` if that changes.
+ * DOES enter the curated summary since gitlab 2.7.x: the server page was
+ * already painting every template (reaching into the full document to do
+ * it), and each entry now carries a subscribable flag this module curates —
+ * `_meta[SUBSCRIBABLE_META_KEY] === true` becomes a plain boolean, and the
+ * raw `_meta` never leaves the data layer (see `ResourceTemplateSummary`).
+ * With that flag curated, a page reads `ServerCardSummary.resourceTemplates`
+ * and no longer needs `serverCardDocuments` at all.
  *
  * ADDING A THIRD MCP: give it an entry in `scripts/sync-server-cards.sh`
  * (`CARDS`), run that script once to create `src/data/cards/<id>.json`, then
@@ -105,6 +106,36 @@ export type CardServerInfo = {
 };
 
 export type CardAuthentication = { required: boolean; schemes: string[] };
+
+/** One capability family's flags, as `capabilities.<family>` declares them. */
+export type CardCapabilityFlags = { listChanged?: boolean; subscribe?: boolean };
+
+/**
+ * Top-level `capabilities`: family → flags. `completions` arrives as `{}` —
+ * an empty object is a valid declaration, not a missing one.
+ */
+export type CardCapabilities = Record<string, CardCapabilityFlags>;
+
+/**
+ * One entry of `subscriptions.methods`. `requires`/`since_protocol` are
+ * verbatim server prose/data. The snake_case is the server's own spelling,
+ * kept exactly as published — this module never renames a card field.
+ */
+export type CardSubscriptionMethod = {
+  available: boolean;
+  requires?: string;
+  since_protocol?: string;
+};
+
+/**
+ * The top-level `subscriptions` block (gitlab publishes it since 2.7.x;
+ * libgen sends none). Keys under `methods` are JSON-RPC method names, e.g.
+ * `resources/subscribe`.
+ */
+export type CardSubscriptions = {
+  methods: Record<string, CardSubscriptionMethod>;
+  subscribable_uri_templates: string[];
+};
 
 /** Hints a resource or resource template annotates itself with. */
 export type CardResourceAnnotations = { audience?: string[]; priority?: number };
@@ -166,6 +197,8 @@ export type CardResource = {
   description: string;
   mimeType?: string;
   annotations?: CardResourceAnnotations;
+  /** 2.7.2: resources carry the same 3-icon arrays tools do. */
+  icons?: CardIcon[];
 };
 
 /** A parameterized resource, as `resourceTemplates[]` declares it. */
@@ -176,12 +209,25 @@ export type CardResourceTemplate = {
   description: string;
   mimeType?: string;
   annotations?: CardResourceAnnotations;
+  _meta?: Record<string, unknown>;
+  /** 2.7.2: templates carry icons too. */
+  icons?: CardIcon[];
 };
 
-/** The document exactly as downloaded: the full SEP-1649 shape. */
+/** The `_meta` key gitlab uses to flag a template as subscribable (26/37 carry it on 2.7.1). */
+export const SUBSCRIBABLE_META_KEY = "io.github.jmrplens/subscribable";
+
+/**
+ * The document exactly as downloaded: the full SEP-1649 shape.
+ *
+ * `capabilities`/`subscriptions` are optional on purpose: libgen publishes
+ * no `subscriptions`, and a minimal card may declare neither.
+ */
 export type ServerCardDocument = {
   serverInfo: CardServerInfo;
   authentication: CardAuthentication;
+  capabilities?: CardCapabilities;
+  subscriptions?: CardSubscriptions;
   tools: CardTool[];
   prompts: CardPrompt[];
   resources: CardResource[];
@@ -219,16 +265,32 @@ export type PromptSummary = Pick<
 export type ResourceSummary = Pick<
   CardResource,
   "uri" | "name" | "title" | "description" | "mimeType"
->;
+> & { icons?: CardIcon[] };
+
+/**
+ * What a page paints for one resource template. `subscribable` is curated
+ * from `_meta[SUBSCRIBABLE_META_KEY] === true` — the raw `_meta` never
+ * leaves the data layer.
+ */
+export type ResourceTemplateSummary = Pick<
+  CardResourceTemplate,
+  "uriTemplate" | "name" | "title" | "description" | "mimeType"
+> & { subscribable: boolean; icons?: CardIcon[] };
 
 /** The curated, page-ready view of one server's card. */
 export type ServerCardSummary = {
   id: string;
   serverInfo: CardServerInfo;
   authentication: CardAuthentication;
+  // Pass-through verbatim: both carry only strings/booleans a page prints
+  // as-is, so unlike icons/websiteUrl there is nothing to filter. Absent
+  // when the card doesn't declare them (libgen has no `subscriptions`).
+  capabilities?: CardCapabilities;
+  subscriptions?: CardSubscriptions;
   tools: ToolSummary[];
   prompts: PromptSummary[];
   resources: ResourceSummary[];
+  resourceTemplates: ResourceTemplateSummary[];
 };
 
 /**
@@ -302,6 +364,96 @@ function summarizeAnnotations(
   return { readOnlyHint, destructiveHint, idempotentHint, openWorldHint };
 }
 
+/** `serverInfo` with a non-empty `name` and `version`, or throws. */
+function validateServerInfoBlock(id: string, doc: Record<string, unknown>): void {
+  const serverInfo = doc.serverInfo;
+  if (typeof serverInfo !== "object" || serverInfo === null) {
+    throw new Error(`Server Card "${id}" is invalid: serverInfo is missing or not an object`);
+  }
+  const info = serverInfo as Record<string, unknown>;
+  if (typeof info.name !== "string" || info.name.length === 0) {
+    throw new Error(
+      `Server Card "${id}" is invalid: serverInfo.name is missing or not a non-empty string`,
+    );
+  }
+  if (typeof info.version !== "string" || info.version.length === 0) {
+    throw new Error(
+      `Server Card "${id}" is invalid: serverInfo.version is missing or not a non-empty string`,
+    );
+  }
+}
+
+/**
+ * `authentication` in the exact shape the page dereferences, or throws.
+ *
+ * `TypeError` rather than the plain `Error` the checks around it throw:
+ * these test nothing but the type of a field, which is the case the
+ * subclass exists for (`src/lib/tool-schema.ts` uses it the same way for
+ * its own external input). The message keeps the shape of its neighbours',
+ * which is all a build failure ever shows.
+ */
+function validateAuthenticationBlock(id: string, doc: Record<string, unknown>): void {
+  const authentication = doc.authentication;
+  if (typeof authentication !== "object" || authentication === null) {
+    throw new TypeError(
+      `Server Card "${id}" is invalid: authentication is missing or not an object`,
+    );
+  }
+  const auth = authentication as Record<string, unknown>;
+  if (typeof auth.required !== "boolean") {
+    throw new TypeError(
+      `Server Card "${id}" is invalid: authentication.required is missing or not a boolean`,
+    );
+  }
+  if (!Array.isArray(auth.schemes)) {
+    throw new TypeError(
+      `Server Card "${id}" is invalid: authentication.schemes is missing or not an array`,
+    );
+  }
+}
+
+/**
+ * `subscriptions`, when present, in the shape the page dereferences
+ * (`methods` with a boolean `available` each, plus the URI list), or throws.
+ * `requires`/`since_protocol` are NOT validated: a page only paints them
+ * when present — an absent optional is not a failure.
+ */
+function validateSubscriptionsBlock(id: string, doc: Record<string, unknown>): void {
+  const subscriptions = doc.subscriptions;
+  if (subscriptions === undefined) return;
+  if (
+    typeof subscriptions !== "object" ||
+    subscriptions === null ||
+    Array.isArray(subscriptions)
+  ) {
+    throw new TypeError(
+      `Server Card "${id}" is invalid: subscriptions is present but not an object`,
+    );
+  }
+  const subs = subscriptions as Record<string, unknown>;
+  if (typeof subs.methods !== "object" || subs.methods === null || Array.isArray(subs.methods)) {
+    throw new TypeError(
+      `Server Card "${id}" is invalid: subscriptions.methods is missing or not an object`,
+    );
+  }
+  for (const [methodName, method] of Object.entries(subs.methods as Record<string, unknown>)) {
+    const available =
+      typeof method === "object" && method !== null
+        ? (method as Record<string, unknown>).available
+        : undefined;
+    if (typeof available !== "boolean") {
+      throw new TypeError(
+        `Server Card "${id}" is invalid: subscriptions.methods["${methodName}"].available is missing or not a boolean`,
+      );
+    }
+  }
+  if (!Array.isArray(subs.subscribable_uri_templates)) {
+    throw new TypeError(
+      `Server Card "${id}" is invalid: subscriptions.subscribable_uri_templates is missing or not an array`,
+    );
+  }
+}
+
 /**
  * Validates the MINIMUM shape this module depends on, and throws — failing
  * the build loudly — when a committed snapshot doesn't meet it.
@@ -334,44 +486,8 @@ export function validateServerCardDocument(id: string, raw: unknown): ServerCard
   }
   const doc = raw as Record<string, unknown>;
 
-  const serverInfo = doc.serverInfo;
-  if (typeof serverInfo !== "object" || serverInfo === null) {
-    throw new Error(`Server Card "${id}" is invalid: serverInfo is missing or not an object`);
-  }
-  const info = serverInfo as Record<string, unknown>;
-  if (typeof info.name !== "string" || info.name.length === 0) {
-    throw new Error(
-      `Server Card "${id}" is invalid: serverInfo.name is missing or not a non-empty string`,
-    );
-  }
-  if (typeof info.version !== "string" || info.version.length === 0) {
-    throw new Error(
-      `Server Card "${id}" is invalid: serverInfo.version is missing or not a non-empty string`,
-    );
-  }
-
-  // `TypeError` rather than the plain `Error` the checks around it throw:
-  // these three test nothing but the type of a field, which is the case the
-  // subclass exists for (`src/lib/tool-schema.ts` uses it the same way for
-  // its own external input). The message keeps the shape of its neighbours',
-  // which is all a build failure ever shows.
-  const authentication = doc.authentication;
-  if (typeof authentication !== "object" || authentication === null) {
-    throw new TypeError(
-      `Server Card "${id}" is invalid: authentication is missing or not an object`,
-    );
-  }
-  const auth = authentication as Record<string, unknown>;
-  if (typeof auth.required !== "boolean") {
-    throw new TypeError(
-      `Server Card "${id}" is invalid: authentication.required is missing or not a boolean`,
-    );
-  }
-  if (!Array.isArray(auth.schemes)) {
-    throw new TypeError(
-      `Server Card "${id}" is invalid: authentication.schemes is missing or not an array`,
-    );
-  }
+  validateServerInfoBlock(id, doc);
+  validateAuthenticationBlock(id, doc);
 
   const families = ["tools", "prompts", "resources", "resourceTemplates"] as const;
   for (const family of families) {
@@ -380,6 +496,21 @@ export function validateServerCardDocument(id: string, raw: unknown): ServerCard
       throw new Error(`Server Card "${id}" is invalid: ${family} is present but not an array`);
     }
   }
+
+  // `capabilities` and `subscriptions` are genuinely optional (libgen sends
+  // neither `subscriptions` nor any `_meta`) — but when `subscriptions` IS
+  // present, a page dereferences `methods` and reads
+  // `subscribable_uri_templates.length` without a guard, which is the same
+  // reason `authentication` is validated above.
+  const capabilities = doc.capabilities;
+  if (
+    capabilities !== undefined &&
+    (typeof capabilities !== "object" || capabilities === null || Array.isArray(capabilities))
+  ) {
+    throw new TypeError(`Server Card "${id}" is invalid: capabilities is present but not an object`);
+  }
+
+  validateSubscriptionsBlock(id, doc);
 
   return {
     ...doc,
@@ -428,6 +559,9 @@ export function summarizeServerCardDocument(
       icons: filterIcons(doc.serverInfo.icons),
     },
     authentication: doc.authentication,
+    // Verbatim pass-through — see `ServerCardSummary` for why no filtering.
+    capabilities: doc.capabilities,
+    subscriptions: doc.subscriptions,
     tools: doc.tools.map(({ name, title, description, icons, annotations }) => ({
       name,
       title,
@@ -445,13 +579,30 @@ export function summarizeServerCardDocument(
       arguments: args ?? [],
       icons: filterIcons(icons),
     })),
-    resources: doc.resources.map(({ uri, name, title, description, mimeType }) => ({
-      uri,
-      name,
-      title,
-      description,
-      mimeType,
-    })),
+    resources: doc.resources.map(
+      ({ uri, name, title, description, mimeType, icons }) => ({
+        uri,
+        name,
+        title,
+        description,
+        mimeType,
+        icons: filterIcons(icons),
+      }),
+    ),
+    resourceTemplates: doc.resourceTemplates.map(
+      ({ uriTemplate, name, title, description, mimeType, _meta, icons }) => ({
+        uriTemplate,
+        name,
+        title,
+        description,
+        mimeType,
+        icons: filterIcons(icons),
+        // Strict `=== true` on purpose: only the server's explicit boolean
+        // marks a template subscribable — a string "true" (or any other
+        // truthy junk in `_meta`) must not.
+        subscribable: _meta?.[SUBSCRIBABLE_META_KEY] === true,
+      }),
+    ),
   };
 }
 

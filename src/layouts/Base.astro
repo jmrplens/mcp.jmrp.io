@@ -14,6 +14,7 @@ import "../styles/global.css";
 
 import { Font } from "astro:assets";
 
+import { LANGS } from "../i18n/config";
 import { type Lang, ui } from "../i18n/ui";
 import { getLangFromUrl } from "../i18n/utils";
 import { buildDate } from "../lib/build-date";
@@ -65,6 +66,13 @@ type Props = {
    */
   serverId?: string;
   /**
+   * Action-domain page under a server's ficha — forwarded verbatim to
+   * `buildSiteGraph`. See `jsonld.ts`'s `PageMeta.actionsDomain` doc:
+   * unlike `serverId`, it does NOT make this page the home of the server's
+   * nodes; it only derives the page's own URL/breadcrumb/mainEntity.
+   */
+  actionsDomain?: { serverId: string; domain: string };
+  /**
    * This page is an error body (the 404), not a real address.
    *
    * It suppresses every head element that claims an identity: canonical,
@@ -89,6 +97,7 @@ const {
   canonicalOverride,
   alternatesOverride,
   serverId,
+  actionsDomain,
   errorPage = false,
 } = Astro.props;
 // The language comes from the URL, never from a prop: that is what lets the
@@ -152,7 +161,14 @@ const jsonLd =
   errorPage
     ? undefined
     : safeJsonLd(
-        await buildSiteGraph({ lang, title, description, page, serverId }),
+        await buildSiteGraph({
+          lang,
+          title,
+          description,
+          page,
+          serverId,
+          actionsDomain,
+        }),
       );
 const t = ui[lang];
 
@@ -434,7 +450,10 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
         <div class="header-controls">
           {/* Two-segment `EN | ES` pill, jmrp.io's LanguageSwitcher.astro
               design (`.lang-pill`/`.lang-seg`): the current locale is a
-              non-interactive active segment, the other is a link. Unlike
+              non-interactive active segment, the other is a link. Rendered
+              in FIXED `LANGS` order like the original — each label keeps
+              its side and only the highlight moves; painting active-first
+              made the TEXTS swap places on switch instead. Unlike
               jmrp.io's version, `alternate` is NOT a naive locale-prefix
               swap — it already comes from `pageUrl(otherLang, page)`, so
               from `/es/internals/` this goes to `/internals/`, never to the
@@ -451,17 +470,27 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
             role="group"
             aria-label={t.langSwitchLabel}
           >
-            <span class="lang-seg lang-seg--active" aria-current="true">
-              {lang.toUpperCase()}
-            </span>
-            <a
-              class="lang-seg"
-              href={alternate}
-              lang={otherLang}
-              aria-label={`${t.switchTo} ${t.other}`}
-            >
-              {otherLang.toUpperCase()}
-            </a>
+            {
+              LANGS.map((code) =>
+                code === lang ? (
+                  <span
+                    class="lang-seg lang-seg--active"
+                    aria-current="true"
+                  >
+                    {code.toUpperCase()}
+                  </span>
+                ) : (
+                  <a
+                    class="lang-seg"
+                    href={alternate}
+                    lang={otherLang}
+                    aria-label={`${t.switchTo} ${t.other}`}
+                  >
+                    {code.toUpperCase()}
+                  </a>
+                ),
+              )
+            }
           </div>
 
           <button
@@ -566,17 +595,27 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
             role="group"
             aria-label={t.langSwitchLabel}
           >
-            <span class="lang-seg lang-seg--active" aria-current="true">
-              {lang.toUpperCase()}
-            </span>
-            <a
-              class="lang-seg"
-              href={alternate}
-              lang={otherLang}
-              aria-label={`${t.switchTo} ${t.other}`}
-            >
-              {otherLang.toUpperCase()}
-            </a>
+            {
+              LANGS.map((code) =>
+                code === lang ? (
+                  <span
+                    class="lang-seg lang-seg--active"
+                    aria-current="true"
+                  >
+                    {code.toUpperCase()}
+                  </span>
+                ) : (
+                  <a
+                    class="lang-seg"
+                    href={alternate}
+                    lang={otherLang}
+                    aria-label={`${t.switchTo} ${t.other}`}
+                  >
+                    {code.toUpperCase()}
+                  </a>
+                ),
+              )
+            }
           </div>
         </div>
       </div>

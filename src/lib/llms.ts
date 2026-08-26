@@ -15,9 +15,16 @@
  * lo que espera la herramienta que lo consuma), pero enlazan y nombran la
  * versión española del sitio.
  */
-import { serverCardDocuments, serverCards } from "../data/server-cards";
+import type { ServerCardSummary } from "../data/server-cards";
+import {
+  serverCardDocuments,
+  serverCards,
+  SUBSCRIBABLE_META_KEY,
+} from "../data/server-cards";
 import type { McpHeader, McpServer } from "../data/servers";
 import { servers } from "../data/servers";
+import type { GitlabActionsSnapshot } from "../data/surface";
+import { getGitlabActions } from "../data/surface";
 import type { Lang } from "../i18n/config";
 import { ui } from "../i18n/ui";
 import { internals } from "../i18n/ui/internals";
@@ -31,6 +38,16 @@ import { DEFAULT_LANG, LANGS, pageUrl, serverPageUrl, SITE_NAME, SITE_ORIGIN } f
 
 /** Nombre humano de cada idioma, para los enlaces del índice. */
 const LANG_NAMES: Record<string, string> = { en: "English", es: "Spanish" };
+
+/**
+ * Catálogos de acciones dinámicas con snapshot committeado en
+ * `src/data/surface/` (hoy solo gitlab) — la misma fuente que emite
+ * `/servers.json` y el índice `/servers/<id>/actions.json`, para que las
+ * tres superficies citen la misma cifra.
+ */
+const actionCatalogs: Record<string, GitlabActionsSnapshot | undefined> = {
+  gitlab: getGitlabActions(),
+};
 
 /**
  * Title and one-line description of one page, in one language.
@@ -137,6 +154,23 @@ export function buildLlmsTxt(): string {
     )
     .join("\n");
 
+  // Una línea por servidor con catálogo de acciones committeado, generada
+  // del mismo snapshot que `/servers.json` y el propio índice: un tercer MCP
+  // con catálogo entra aquí solo, sin tocar la plantilla de abajo. El matiz
+  // "Free-tier" viaja SIEMPRE junto al recuento: el manifiesto se lee con
+  // `cacheScope: "private"`, así que la cifra es la superficie de ese token,
+  // no la universal.
+  const catalogLines = servers
+    .flatMap((server) => {
+      const catalog = actionCatalogs[server.id];
+      if (!catalog) return [];
+      const path = `/servers/${server.id}/actions.json`;
+      return [
+        `\n- [${path}](${SITE_ORIGIN}${path}): ${server.id}'s action catalog index — ${catalog.meta.actionCount} actions counted with a Free-tier token (tier and token permissions both move the count).`,
+      ];
+    })
+    .join("");
+
   return `# ${SITE_NAME}
 
 > ${ui.en.lede}
@@ -159,7 +193,7 @@ ${pages}
 
 ## Machine-readable
 
-- [/servers.json](${SITE_ORIGIN}/servers.json): endpoint index as JSON.
+- [/servers.json](${SITE_ORIGIN}/servers.json): endpoint index as JSON.${catalogLines}
 - [/llms-full.txt](${SITE_ORIGIN}/llms-full.txt): required headers, example calls and the credential policy of every server.
 - [/sitemap-index.xml](${SITE_ORIGIN}/sitemap-index.xml): sitemap.
 
@@ -207,6 +241,67 @@ function capabilityBlock(
     .map((entry) => `- \`${entry.key}\` — ${entry.what}`)
     .join("\n");
   return `\n\n${lead}\n\n${lines}`;
+}
+
+/**
+ * Renderiza el bloque de suscripciones de un servidor, si su card declara el
+ * contrato (`subscriptions`).
+ *
+ * La disponibilidad de cada método se genera de `card.subscriptions.methods`
+ * y el recuento de plantillas suscribibles sale del flag `subscribable` que
+ * server-cards.ts cura desde `_meta` — el `_meta` crudo no sale de la capa de
+ * datos, así que nada de este bloque puede desviarse del snapshot committeado
+ * ni de las demás superficies que leen el mismo flag. El texto emitido sí
+ * nombra la clave `_meta` original: es la que un cliente MCP verá en
+ * `resources/templates/list`.
+ *
+ * @param card Resumen curado del card, si existe.
+ * @returns El bloque en Markdown, o cadena vacía si no hay contrato.
+ */
+function subscriptionsBlock(card: ServerCardSummary | undefined): string {
+  if (!card?.subscriptions) return "";
+  const lines = Object.entries(card.subscriptions.methods).map(
+    ([method, info]) => {
+      const since = info.since_protocol
+        ? ` (since protocol ${info.since_protocol})`
+        : "";
+      const requires = info.requires ? `: requires ${info.requires}` : "";
+      const status = info.available
+        ? `available${since}`
+        : `not available here${requires}`;
+      return `- \`${method}\` — ${status}`;
+    },
+  );
+  const count = card.resourceTemplates.filter(
+    (template) => template.subscribable,
+  ).length;
+  lines.push(
+    `- ${count} of the resource templates above are subscribable — the ones whose \`resources/templates/list\` entry carries \`_meta["${SUBSCRIBABLE_META_KEY}"]: true\`.`,
+  );
+  return `\n\nSubscriptions — watch a resource and be notified when it changes:\n\n${lines.join("\n")}`;
+}
+
+/**
+ * Renderiza el bloque del catálogo de acciones de un servidor, si tiene
+ * snapshot committeado en `src/data/surface/`.
+ *
+ * Las cifras, los dominios de ejemplo y la URI de origen salen del snapshot,
+ * nunca de literales; el matiz "Free-tier" viaja SIEMPRE junto al recuento
+ * (mismo motivo que en `buildLlmsTxt`: `cacheScope: "private"`).
+ *
+ * @param serverId Id del servidor en `src/data/servers.ts`.
+ * @returns El bloque en Markdown, o cadena vacía si no hay catálogo.
+ */
+function actionCatalogBlock(serverId: string): string {
+  const catalog = actionCatalogs[serverId];
+  if (!catalog) return "";
+  const top = [...catalog.domains]
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 4)
+    .map((domain) => domain.domain)
+    .join(", ");
+  const source = `\`${catalog.meta.resourceUri}\``;
+  return `\n\nAction catalog — the tools above front a catalog of ${catalog.meta.actionCount} actions across ${catalog.domains.length} domains (${top}, …), counted with a Free-tier token — tier and token permissions both move the count. Browse the index at ${SITE_ORIGIN}/servers/${serverId}/actions.json, or read ${source} with \`resources/read\`.`;
 }
 
 /**
@@ -281,7 +376,7 @@ ${server.description.en}
 
 Tools:
 
-${server.tools.map((tool) => `- \`${tool.name}\` — ${tool.what.en}`).join("\n")}${promptBlock}${resourceBlock}${templateBlock}
+${server.tools.map((tool) => `- \`${tool.name}\` — ${tool.what.en}`).join("\n")}${promptBlock}${resourceBlock}${templateBlock}${subscriptionsBlock(serverCards[server.id])}${actionCatalogBlock(server.id)}
 
 Verify the live list with:
 

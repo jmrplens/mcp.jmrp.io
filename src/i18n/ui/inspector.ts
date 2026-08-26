@@ -99,6 +99,13 @@ export const inspector = {
       toolListHint: "Run tools/list and the server's catalogue fills this list.",
       schemaTitle: "Arguments this tool accepts",
       schemaEmpty: "This tool declares no arguments.",
+      /**
+       * Identifier-group line (libgen 1.7.1 encodes "at least/exactly one
+       * of" as anyOf/oneOf of required-branches — see requirementGroups).
+       */
+      groupAnyOf: "At least one of",
+      groupOneOf: "Exactly one of",
+      groupJoiner: "or",
       colName: "Name",
       colType: "Type",
       colWhat: "What it is",
@@ -182,6 +189,10 @@ export const inspector = {
       toolListHint: "Lanza tools/list y el catálogo del servidor llena esta lista.",
       schemaTitle: "Argumentos que acepta esta tool",
       schemaEmpty: "Esta tool no declara argumentos.",
+      /** Ver `en.groupAnyOf`. */
+      groupAnyOf: "Al menos uno de",
+      groupOneOf: "Exactamente uno de",
+      groupJoiner: "o",
       colName: "Nombre",
       colType: "Tipo",
       colWhat: "Qué es",
