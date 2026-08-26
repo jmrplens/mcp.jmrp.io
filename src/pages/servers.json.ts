@@ -1,7 +1,22 @@
 import type { APIRoute } from "astro";
 
-import { serverCardDocuments } from "../data/server-cards";
+import {
+  serverCardDocuments,
+  SUBSCRIBABLE_META_KEY,
+} from "../data/server-cards";
 import { servers } from "../data/servers";
+import type { GitlabActionsSnapshot } from "../data/surface";
+import { getGitlabActions } from "../data/surface";
+import { SITE_ORIGIN } from "../lib/seo";
+
+/**
+ * Catálogos de acciones dinámicas con snapshot committeado en
+ * `src/data/surface/` (hoy solo gitlab). El loader memoiza y nunca lanza: un
+ * checkout sin snapshot simplemente no emite la clave `actionCatalog`.
+ */
+const actionCatalogs: Record<string, GitlabActionsSnapshot | undefined> = {
+  gitlab: getGitlabActions(),
+};
 
 /**
  * Índice para máquinas. Sustituye al JSON que servía `location = /` en nginx
@@ -33,6 +48,7 @@ export const GET: APIRoute = () =>
           // Se comprueba en vez de indexar a secas: un servidor puede estar
           // dado de alta antes de que aterrice su snapshot.
           const card = serverCardDocuments[s.id];
+          const catalog = actionCatalogs[s.id];
           const prompts = s.prompts?.length
             ? s.prompts.map((prompt) => prompt.name)
             : (card?.prompts ?? []).map((prompt) => prompt.name);
@@ -58,6 +74,39 @@ export const GET: APIRoute = () =>
             ...(prompts.length > 0 && { prompts }),
             ...(resources.length > 0 && { resources }),
             ...(resourceTemplates.length > 0 && { resourceTemplates }),
+            // Suscripciones: solo si el card declara el contrato (gitlab
+            // desde 2.7.x; libgen no lo trae y conserva su juego de claves
+            // exacto). `methods` viaja tal cual (available/requires/
+            // since_protocol); la lista de plantillas suscribibles se deriva
+            // de `_meta[SUBSCRIBABLE_META_KEY] === true`, la clave
+            // comprobable a máquina — nunca de la prosa del bloque.
+            ...(card?.subscriptions && {
+              subscriptions: {
+                methods: card.subscriptions.methods,
+                subscribableUriTemplates: card.resourceTemplates
+                  .filter((t) => t._meta?.[SUBSCRIBABLE_META_KEY] === true)
+                  .map((t) => t.uriTemplate),
+              },
+            }),
+            // Catálogo de acciones dinámicas: solo para servidores con
+            // snapshot committeado en `src/data/surface/`. Las cifras salen
+            // SIEMPRE del snapshot — el catálogo es la superficie del token
+            // con que se leyó (`cacheScope: "private"`), así que el recuento
+            // se mueve con el token y con cada release; de ahí la nota
+            // "Free-tier" pegada al número.
+            ...(catalog && {
+              actionCatalog: {
+                source: catalog.meta.resourceUri,
+                // Mismo nombre que el campo del snapshot del que sale
+                // (`meta.actionCount`, solo acciones): el `entryCount`
+                // upstream incluye además las entradas visible_tool y
+                // publicarlo bajo otro nombre invitaba a confundirlos.
+                actionCount: catalog.meta.actionCount,
+                domainCount: catalog.domains.length,
+                note: "Counted with a Free-tier token; the catalog is scoped to the token that asks, so tier and token permissions both move the count.",
+                index: `${SITE_ORIGIN}/servers/${s.id}/actions.json`,
+              },
+            }),
             requiredHeaders: s.requiredHeaders.map((h) => h.name),
             optionalHeaders: s.optionalHeaders.map((h) => h.name),
             repository: s.repo,
