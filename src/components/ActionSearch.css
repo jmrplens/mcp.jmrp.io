@@ -92,3 +92,19 @@
   background: var(--danger-dim);
   border-color: var(--color-danger);
 }
+
+/* El id del resultado es ahora un enlace a la página de su dominio; hereda
+   el aspecto mono del <code> interior y solo añade la señal de enlace. */
+.as-id-link {
+  text-decoration: none;
+}
+
+.as-id-link:hover .as-id,
+.as-id-link:focus-visible .as-id {
+  text-decoration: underline;
+}
+
+.as-id-link:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

@@ -65,12 +65,15 @@ function isIndexEntry(value: unknown): value is ActionIndexEntry {
  *
  * @param props.lang Idioma de la página que monta la isla.
  * @param props.indexUrl URL same-origin del snapshot con las entradas.
+ * @param props.domainPageBase Prefijo localizado de las páginas por dominio
+ *   (`/servers/<id>/actions/`); el dominio del resultado se concatena tal cual.
  * @returns El buscador hidratado, o `null` en el pase SSR.
  */
 export default function ActionSearch({
   lang,
   indexUrl,
-}: Readonly<{ lang: Lang; indexUrl: string }>) {
+  domainPageBase,
+}: Readonly<{ lang: Lang; indexUrl: string; domainPageBase: string }>) {
   const sp = serversPage[lang];
   /**
    * `mounted` separa el pase SSR del render hidratado: el efecto solo corre
@@ -150,7 +153,15 @@ export default function ActionSearch({
           <ul className="as-list">
             {shown.map((entry) => (
               <li key={entry.id} className="as-item">
-                <code className="as-id">{entry.id}</code>
+                {/* El id enlaza a su ficha de referencia: la página del
+                    dominio, con el ancla de la acción (la isla de allí lo
+                    abre; sin JS el navegador salta igual). */}
+                <a
+                  className="as-id-link"
+                  href={`${domainPageBase}${entry.domain}/#${entry.id}`}
+                >
+                  <code className="as-id">{entry.id}</code>
+                </a>
                 <span className="as-title">{entry.title}</span>
                 <span className="chip as-chip--domain">{entry.domain}</span>
                 {entry.destructive && (
