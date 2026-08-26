@@ -568,3 +568,16 @@
   width: auto;
   justify-self: start;
 }
+
+/* Línea de grupos de identificadores ("Exactly one of: md5 | id | doi"):
+   el formulario no puede marcar un campo suelto como required cuando el
+   requisito es un grupo anyOf/oneOf, así que se enuncia encima. */
+.schema-groups {
+  margin: 0.15rem 0 0.5rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.schema-groups code {
+  font-size: var(--text-sm);
+}

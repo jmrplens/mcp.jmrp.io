@@ -15,6 +15,7 @@ import {
 import {
   formFields,
   type McpTool,
+  requirementGroups,
   skeletonFor,
   toolsFrom,
   valuesToArgs,
@@ -166,6 +167,20 @@ export default function Inspector({
     tab === "prompts"
       ? formFields(promptSchema(selectedPrompt?.arguments ?? []))
       : formFields(selectedTool?.inputSchema);
+
+  // "Exactly one of: md5 | id | doi" — el formulario no puede marcar ningún
+  // campo suelto como obligatorio cuando el requisito es un GRUPO (libgen
+  // 1.7.1 los declara como anyOf/oneOf de ramas required), así que se
+  // enuncia encima, con las palabras del idioma de la página.
+  const groups =
+    tab === "tools" ? requirementGroups(selectedTool?.inputSchema) : undefined;
+  let requirementNote: string | undefined;
+  if (groups) {
+    const label = groups.kind === "oneOf" ? t.groupOneOf : t.groupAnyOf;
+    const joiner = ` ${t.groupJoiner} `;
+    const spelled = groups.groups.map((group) => group.join(" + ")).join(joiner);
+    requirementNote = `${label}: ${spelled}`;
+  }
 
 
   /** Solo las cabeceras del servidor activo, y solo las que tienen valor. */
@@ -546,6 +561,7 @@ export default function Inspector({
                   : selectedPrompt?.description
               }
               fields={argFields}
+              requirementNote={requirementNote}
               values={argValues}
               onChange={setArg}
               rawMode={rawMode}

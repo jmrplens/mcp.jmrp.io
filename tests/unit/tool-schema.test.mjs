@@ -9,7 +9,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { schemaFields, skeletonFor, toolsFrom } from "../../src/lib/tool-schema.ts";
+import {
+  requirementGroups,
+  schemaFields,
+  skeletonFor,
+  toolsFrom,
+} from "../../src/lib/tool-schema.ts";
 
 const LIBGEN_SEARCH = {
   type: "object",
@@ -114,4 +119,40 @@ test("skeletonFor da {} cuando la tool no exige nada", () => {
 
 test("el esqueleto sale indentado, que es lo que se pega en el textarea", () => {
   assert.equal(skeletonFor(LIBGEN_SEARCH), '{\n  "query": ""\n}');
+});
+
+test("requirementGroups: anyOf de ramas required → grupos con su clase", () => {
+  // La forma exacta que libgen 1.7.1 publica: ramas con required y un
+  // refinamiento non-blank en properties, que el lector debe ignorar.
+  const groups = requirementGroups({
+    type: "object",
+    properties: { md5: { type: "string" }, doi: { type: "string" } },
+    anyOf: [
+      { required: ["md5"], properties: { md5: { pattern: String.raw`\S` } } },
+      { required: ["doi"], properties: { doi: { pattern: String.raw`\S` } } },
+    ],
+  });
+  assert.deepEqual(groups, { kind: "anyOf", groups: [["md5"], ["doi"]] });
+});
+
+test("requirementGroups: oneOf gana la clase, y las ramas multi-campo se conservan", () => {
+  const groups = requirementGroups({
+    oneOf: [{ required: ["file_name", "content"] }, { required: ["files"] }],
+  });
+  assert.deepEqual(groups, {
+    kind: "oneOf",
+    groups: [["file_name", "content"], ["files"]],
+  });
+});
+
+test("requirementGroups: composición que no es de ramas-required → undefined, no media verdad", () => {
+  // Una rama sin required legible invalida el conjunto entero: enseñar solo
+  // parte de los grupos afirmaría un requisito distinto del real.
+  assert.equal(
+    requirementGroups({ anyOf: [{ required: ["md5"] }, { type: "string" }] }),
+    undefined,
+  );
+  assert.equal(requirementGroups({ anyOf: [] }), undefined);
+  assert.equal(requirementGroups({ type: "object" }), undefined);
+  assert.equal(requirementGroups(undefined), undefined);
 });

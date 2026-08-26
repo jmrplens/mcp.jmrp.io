@@ -27,6 +27,9 @@ export type JsonSchema = {
   items?: JsonSchema;
   enum?: unknown[];
   default?: unknown;
+  /** Composición: libgen 1.7.1 declara sus grupos de identificadores así. */
+  anyOf?: JsonSchema[];
+  oneOf?: JsonSchema[];
 };
 
 /** Una tool tal y como la declara `tools/list`. */
@@ -45,6 +48,44 @@ export type SchemaField = {
   required: boolean;
   description: string;
 };
+
+/**
+ * Grupos de requisitos alternativos del esquema, si los declara.
+ *
+ * libgen 1.7.1 (a petición de la auditoría de este sitio) codifica el
+ * "al menos uno de md5/isbn/doi" como `anyOf` de ramas `{required: [...]}`,
+ * y el "exactamente uno" de get_details como `oneOf`. Este lector extrae
+ * SOLO esa forma: ramas cuyo `required` sea una lista no vacía de strings.
+ * Cualquier otra composición devuelve undefined y el formulario calla —
+ * media verdad sobre un esquema es peor que enseñarlo tal cual (la regla
+ * del módulo: no se valida, se pinta lo legible).
+ *
+ * @param schema El `inputSchema` de la tool.
+ * @returns Las ramas con su clase, o undefined si no hay grupos legibles.
+ */
+export function requirementGroups(
+  schema: JsonSchema | undefined,
+): { kind: "anyOf" | "oneOf"; groups: string[][] } | undefined {
+  if (!schema) return undefined;
+  let kind: "anyOf" | "oneOf" | undefined;
+  if (schema.oneOf) kind = "oneOf";
+  else if (schema.anyOf) kind = "anyOf";
+  if (!kind) return undefined;
+  const branches = (kind === "oneOf" ? schema.oneOf : schema.anyOf) ?? [];
+  const groups: string[][] = [];
+  for (const branch of branches) {
+    const req = branch.required;
+    if (
+      !Array.isArray(req) ||
+      req.length === 0 ||
+      req.some((x) => typeof x !== "string")
+    ) {
+      return undefined;
+    }
+    groups.push(req);
+  }
+  return groups.length > 0 ? { kind, groups } : undefined;
+}
 
 /** `true` si el valor es un objeto plano (no null, no array). */
 function isRecord(value: unknown): value is Record<string, unknown> {
