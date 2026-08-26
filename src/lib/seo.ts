@@ -197,3 +197,54 @@ export function serverPageAlternates(id: string): Alternate[] {
     { hreflang: "x-default", href: serverPageUrl(DEFAULT_LANG, id) },
   ];
 }
+
+/**
+ * Path of one action-domain page under a server's ficha, e.g.
+ * `servers/gitlab/actions/project/`. Same rationale as {@link serverPagePath}:
+ * built on `PAGE_PATHS.servers` so the two can never drift, and not a
+ * `PageId` because the route is data-driven (one page per manifest domain).
+ *
+ * @param id Server id.
+ * @param domain Manifest domain, verbatim (`access`, `merge_request`…).
+ * @returns Path with a trailing slash.
+ */
+export function actionsDomainPagePath(id: string, domain: string): string {
+  return `${serverPagePath(id)}actions/${domain}/`;
+}
+
+/**
+ * Absolute canonical URL of one action-domain page in one language.
+ *
+ * @param lang Language of the page.
+ * @param id Server id.
+ * @param domain Manifest domain.
+ * @returns URL with a trailing slash.
+ */
+export function actionsDomainPageUrl(
+  lang: Lang,
+  id: string,
+  domain: string,
+): string {
+  return `${SITE_ORIGIN}${LOCALE_PATHS[lang]}${actionsDomainPagePath(id, domain)}`;
+}
+
+/**
+ * hreflang cluster of ONE action-domain page — the per-domain equivalent of
+ * {@link serverPageAlternates}.
+ *
+ * @param id Server id.
+ * @param domain Manifest domain.
+ * @returns Alternates including `x-default`.
+ */
+export function actionsDomainPageAlternates(
+  id: string,
+  domain: string,
+): Alternate[] {
+  return [
+    ...LANGS.map((lang) => ({
+      hreflang: lang,
+      href: actionsDomainPageUrl(lang, id, domain),
+    })),
+    { hreflang: "x-default", href: actionsDomainPageUrl(DEFAULT_LANG, id, domain) },
+  ];
+}

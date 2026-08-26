@@ -42,6 +42,7 @@ import { ui } from "../i18n/ui";
 import { buildDate, publishedDate } from "./build-date";
 import { loadPersonNode, PERSON_ID } from "./identity";
 import {
+  actionsDomainPageUrl,
   LANGS,
   OG_IMAGE_SIZE,
   ogImageUrl,
@@ -413,6 +414,18 @@ export interface PageMeta {
    * `page: "servers"` (for nav/breadcrumb) but NOT this `@id`.
    */
   serverId?: string;
+  /**
+   * Action-domain page under a server's ficha
+   * (`/servers/<id>/actions/<domain>/`).
+   *
+   * Deliberately NOT `serverId`: that prop makes a page the HOME of the
+   * server's `WebAPI`/`SoftwareSourceCode` nodes, and those live on the ficha
+   * alone — define-once is the rule the 2026-08-22 audit restored. A domain
+   * page merely DESCRIBES a slice of that API, so it gets `partialApi` as its
+   * `mainEntity` (the same shape every other mentioning page uses) and its
+   * own URL/breadcrumb derived here.
+   */
+  actionsDomain?: { serverId: string; domain: string };
 }
 
 /**
@@ -455,8 +468,19 @@ function resolvePageUrls(
   lang: Lang,
   page: PageId,
   targetServer: McpServer | undefined,
+  actionsDomain?: PageMeta["actionsDomain"],
 ): { url: string; otherUrl: string } {
   const otherLang: Lang = lang === "en" ? "es" : "en";
+  if (actionsDomain) {
+    return {
+      url: actionsDomainPageUrl(lang, actionsDomain.serverId, actionsDomain.domain),
+      otherUrl: actionsDomainPageUrl(
+        otherLang,
+        actionsDomain.serverId,
+        actionsDomain.domain,
+      ),
+    };
+  }
   if (targetServer) {
     return {
       url: serverPageUrl(lang, targetServer.id),
@@ -494,8 +518,16 @@ function resolvePageUrls(
 function selectMainEntity(
   page: PageId,
   targetServer: McpServer | undefined,
+  actionsDomain?: PageMeta["actionsDomain"],
 ): Record<string, unknown>[] | undefined {
   if (targetServer) return [ref(apiId(targetServer))];
+  if (actionsDomain) {
+    // Una página de dominio describe una PORCIÓN de un único servidor: la
+    // descripción parcial de ese servidor, con la misma forma que usan las
+    // demás páginas que lo mencionan sin definirlo.
+    const server = servers.find((s) => s.id === actionsDomain.serverId);
+    return server ? [partialApi(server)] : undefined;
+  }
   const describesEveryServer = page === "home" || page === "servers";
   return describesEveryServer
     ? servers.map((server) => partialApi(server))
@@ -563,9 +595,26 @@ function breadcrumbSteps(
   lang: Lang,
   page: PageId,
   targetServer: McpServer | undefined,
+  actionsDomain?: PageMeta["actionsDomain"],
 ): { name: string; url: string }[] | undefined {
   if (page === "home") return undefined;
   const labels = pageLabels(lang);
+  if (actionsDomain) {
+    // Cuatro niveles reales: raíz → índice → ficha → dominio. El nombre del
+    // dominio es DATO del manifiesto (como los ids), no se traduce.
+    return [
+      { name: labels.home, url: pageUrl(lang, "home") },
+      { name: labels.servers, url: pageUrl(lang, "servers") },
+      {
+        name: actionsDomain.serverId,
+        url: serverPageUrl(lang, actionsDomain.serverId),
+      },
+      {
+        name: actionsDomain.domain,
+        url: actionsDomainPageUrl(lang, actionsDomain.serverId, actionsDomain.domain),
+      },
+    ];
+  }
   const steps = [
     { name: labels.home, url: pageUrl(lang, "home") },
     { name: labels[page], url: pageUrl(lang, page) },
@@ -589,10 +638,10 @@ function breadcrumbSteps(
 export async function buildSiteGraph(
   meta: PageMeta,
 ): Promise<Record<string, unknown>> {
-  const { lang, title, description, page = "home", serverId } = meta;
+  const { lang, title, description, page = "home", serverId, actionsDomain } = meta;
 
   const targetServer = resolveTargetServer(serverId);
-  const { url, otherUrl } = resolvePageUrls(lang, page, targetServer);
+  const { url, otherUrl } = resolvePageUrls(lang, page, targetServer, actionsDomain);
 
   // The FAQ (and its speakable pointer) describes the notice cards, and those
   // only render on the home page — see HomePage.astro / ServerCard. Emitting
@@ -618,13 +667,13 @@ export async function buildSiteGraph(
   // identidad, que ya declara los `#software` de estos dos repos; `sameAs`
   // lleva al repositorio, que es el sujeto de aquellos nodos.
   const apiRefs = servers.map((server) => ref(apiId(server)));
-  const mainEntity = selectMainEntity(page, targetServer);
+  const mainEntity = selectMainEntity(page, targetServer, actionsDomain);
 
   // La miga de pan, como nodo propio al que el `WebPage` apunta por `@id`
   // (igual que el `FAQPage`). Se construye ANTES que `webpage` porque ese la
   // referencia.
   const breadcrumbId = `${url}#breadcrumb`;
-  const steps = breadcrumbSteps(lang, page, targetServer);
+  const steps = breadcrumbSteps(lang, page, targetServer, actionsDomain);
   const breadcrumb = steps
     ? {
         "@type": "BreadcrumbList",

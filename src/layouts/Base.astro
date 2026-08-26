@@ -65,6 +65,13 @@ type Props = {
    */
   serverId?: string;
   /**
+   * Action-domain page under a server's ficha — forwarded verbatim to
+   * `buildSiteGraph`. See `jsonld.ts`'s `PageMeta.actionsDomain` doc:
+   * unlike `serverId`, it does NOT make this page the home of the server's
+   * nodes; it only derives the page's own URL/breadcrumb/mainEntity.
+   */
+  actionsDomain?: { serverId: string; domain: string };
+  /**
    * This page is an error body (the 404), not a real address.
    *
    * It suppresses every head element that claims an identity: canonical,
@@ -89,6 +96,7 @@ const {
   canonicalOverride,
   alternatesOverride,
   serverId,
+  actionsDomain,
   errorPage = false,
 } = Astro.props;
 // The language comes from the URL, never from a prop: that is what lets the
@@ -152,7 +160,14 @@ const jsonLd =
   errorPage
     ? undefined
     : safeJsonLd(
-        await buildSiteGraph({ lang, title, description, page, serverId }),
+        await buildSiteGraph({
+          lang,
+          title,
+          description,
+          page,
+          serverId,
+          actionsDomain,
+        }),
       );
 const t = ui[lang];
 
