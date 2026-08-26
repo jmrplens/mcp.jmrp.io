@@ -1206,10 +1206,15 @@ const MATCHED_NODE_INDEX = 0;
     }
 
     14%,
-    97% {
+    84% {
       opacity: 0%;
     }
 
+    /* 84→87%: the same window the box uses to fade back in at stage 1, so the
+       caption and the highlight reappear together. It used to wait until 97%,
+       which was fine while the box spent that time crawling backwards across
+       the diagram; with the crawl gone it was just four seconds of nothing. */
+    87%,
     100% {
       opacity: 100%;
     }
@@ -1472,15 +1477,15 @@ const MATCHED_NODE_INDEX = 0;
       width: 21.429%;
       opacity: 0%;
     }
-    84.1% {
+    84.01% {
       left: 0.0%;
       width: 14.286%;
       opacity: 0%;
     }
-    97% {
+    87% {
       left: 0.0%;
       width: 14.286%;
-      opacity: 0%;
+      opacity: 100%;
     }
     100% {
       left: 0.0%;
