@@ -254,8 +254,12 @@ const wires = {
   ssh: nodes.map((node, i) =>
     wire(COL_X[3], nodeY(i), COL_X[4], egressY(egressKeys.indexOf(node.egressCountry))),
   ),
-  // each exit → the destination: TLS again.
-  tls_out: egressKeys.map((_, i) => wire(COL_X[4], egressY(i), COL_X[5], MID_Y)),
+  // each exit → the destination: TLS again, and STRAIGHT. An earlier cut
+  // curved both exits into a single bead, which drew a claim the routing
+  // never makes: that the two exits share a destination. They do not — each
+  // request goes wherever its caller pointed it, so the destination is a
+  // region, not a host, and every exit enters it on its own line.
+  tls_out: egressKeys.map((_, i) => wire(COL_X[4], egressY(i), COL_X[5], egressY(i))),
 };
 
 // The node the reduced-motion frozen frame rings as "the chosen one" (see
@@ -364,7 +368,7 @@ const MATCHED_NODE_INDEX = 0;
       </div>
 
       <div class="stage stage--destination">
-        <span class="stage-icon" aria-hidden="true"></span>
+        <span class="stage-icon stage-icon--zone" aria-hidden="true"></span>
         <span class="stage-label">{t.diagramStageDestination}</span>
       </div>
 
@@ -882,6 +886,17 @@ const MATCHED_NODE_INDEX = 0;
   /* nginx: where the decision happens, drawn "in focus" even at rest — a
      thicker accent ring and a tinted fill, not just a highlight during its
      own bubble's window. */
+  /* The destination is not a host: it is whatever each caller pointed its
+     client at, which is why the two exits enter it on separate straight lines
+     instead of meeting at a bead. A tall block reads as a region the way a
+     circle cannot — and, being opaque like every other icon, it also masks
+     the wire ends that stop behind it. */
+  .stage-icon--zone {
+    width: 14px;
+    height: calc(var(--track-h) - 8px);
+    border-radius: var(--radius-md);
+  }
+
   .stage-icon--nginx {
     border-width: 2.5px;
     border-color: var(--color-accent);
