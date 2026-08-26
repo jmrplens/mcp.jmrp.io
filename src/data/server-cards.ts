@@ -360,6 +360,96 @@ function summarizeAnnotations(
   return { readOnlyHint, destructiveHint, idempotentHint, openWorldHint };
 }
 
+/** `serverInfo` with a non-empty `name` and `version`, or throws. */
+function validateServerInfoBlock(id: string, doc: Record<string, unknown>): void {
+  const serverInfo = doc.serverInfo;
+  if (typeof serverInfo !== "object" || serverInfo === null) {
+    throw new Error(`Server Card "${id}" is invalid: serverInfo is missing or not an object`);
+  }
+  const info = serverInfo as Record<string, unknown>;
+  if (typeof info.name !== "string" || info.name.length === 0) {
+    throw new Error(
+      `Server Card "${id}" is invalid: serverInfo.name is missing or not a non-empty string`,
+    );
+  }
+  if (typeof info.version !== "string" || info.version.length === 0) {
+    throw new Error(
+      `Server Card "${id}" is invalid: serverInfo.version is missing or not a non-empty string`,
+    );
+  }
+}
+
+/**
+ * `authentication` in the exact shape the page dereferences, or throws.
+ *
+ * `TypeError` rather than the plain `Error` the checks around it throw:
+ * these test nothing but the type of a field, which is the case the
+ * subclass exists for (`src/lib/tool-schema.ts` uses it the same way for
+ * its own external input). The message keeps the shape of its neighbours',
+ * which is all a build failure ever shows.
+ */
+function validateAuthenticationBlock(id: string, doc: Record<string, unknown>): void {
+  const authentication = doc.authentication;
+  if (typeof authentication !== "object" || authentication === null) {
+    throw new TypeError(
+      `Server Card "${id}" is invalid: authentication is missing or not an object`,
+    );
+  }
+  const auth = authentication as Record<string, unknown>;
+  if (typeof auth.required !== "boolean") {
+    throw new TypeError(
+      `Server Card "${id}" is invalid: authentication.required is missing or not a boolean`,
+    );
+  }
+  if (!Array.isArray(auth.schemes)) {
+    throw new TypeError(
+      `Server Card "${id}" is invalid: authentication.schemes is missing or not an array`,
+    );
+  }
+}
+
+/**
+ * `subscriptions`, when present, in the shape the page dereferences
+ * (`methods` with a boolean `available` each, plus the URI list), or throws.
+ * `requires`/`since_protocol` are NOT validated: a page only paints them
+ * when present — an absent optional is not a failure.
+ */
+function validateSubscriptionsBlock(id: string, doc: Record<string, unknown>): void {
+  const subscriptions = doc.subscriptions;
+  if (subscriptions === undefined) return;
+  if (
+    typeof subscriptions !== "object" ||
+    subscriptions === null ||
+    Array.isArray(subscriptions)
+  ) {
+    throw new TypeError(
+      `Server Card "${id}" is invalid: subscriptions is present but not an object`,
+    );
+  }
+  const subs = subscriptions as Record<string, unknown>;
+  if (typeof subs.methods !== "object" || subs.methods === null || Array.isArray(subs.methods)) {
+    throw new TypeError(
+      `Server Card "${id}" is invalid: subscriptions.methods is missing or not an object`,
+    );
+  }
+  for (const [methodName, method] of Object.entries(subs.methods as Record<string, unknown>)) {
+    const available =
+      typeof method === "object" && method !== null
+        ? (method as Record<string, unknown>).available
+        : undefined;
+    if (typeof available !== "boolean") {
+      throw new TypeError(
+        `Server Card "${id}" is invalid: subscriptions.methods["${methodName}"].available is missing or not a boolean`,
+      );
+    }
+  }
+  if (!Array.isArray(subs.subscribable_uri_templates)) {
+    throw new TypeError(
+      `Server Card "${id}" is invalid: subscriptions.subscribable_uri_templates is missing or not an array`,
+    );
+  }
+}
+
 /**
  * Validates the MINIMUM shape this module depends on, and throws — failing
  * the build loudly — when a committed snapshot doesn't meet it.
@@ -392,44 +482,8 @@ export function validateServerCardDocument(id: string, raw: unknown): ServerCard
   }
   const doc = raw as Record<string, unknown>;
 
-  const serverInfo = doc.serverInfo;
-  if (typeof serverInfo !== "object" || serverInfo === null) {
-    throw new Error(`Server Card "${id}" is invalid: serverInfo is missing or not an object`);
-  }
-  const info = serverInfo as Record<string, unknown>;
-  if (typeof info.name !== "string" || info.name.length === 0) {
-    throw new Error(
-      `Server Card "${id}" is invalid: serverInfo.name is missing or not a non-empty string`,
-    );
-  }
-  if (typeof info.version !== "string" || info.version.length === 0) {
-    throw new Error(
-      `Server Card "${id}" is invalid: serverInfo.version is missing or not a non-empty string`,
-    );
-  }
-
-  // `TypeError` rather than the plain `Error` the checks around it throw:
-  // these three test nothing but the type of a field, which is the case the
-  // subclass exists for (`src/lib/tool-schema.ts` uses it the same way for
-  // its own external input). The message keeps the shape of its neighbours',
-  // which is all a build failure ever shows.
-  const authentication = doc.authentication;
-  if (typeof authentication !== "object" || authentication === null) {
-    throw new TypeError(
-      `Server Card "${id}" is invalid: authentication is missing or not an object`,
-    );
-  }
-  const auth = authentication as Record<string, unknown>;
-  if (typeof auth.required !== "boolean") {
-    throw new TypeError(
-      `Server Card "${id}" is invalid: authentication.required is missing or not a boolean`,
-    );
-  }
-  if (!Array.isArray(auth.schemes)) {
-    throw new TypeError(
-      `Server Card "${id}" is invalid: authentication.schemes is missing or not an array`,
-    );
-  }
+  validateServerInfoBlock(id, doc);
+  validateAuthenticationBlock(id, doc);
 
   const families = ["tools", "prompts", "resources", "resourceTemplates"] as const;
   for (const family of families) {
@@ -452,42 +506,7 @@ export function validateServerCardDocument(id: string, raw: unknown): ServerCard
     throw new TypeError(`Server Card "${id}" is invalid: capabilities is present but not an object`);
   }
 
-  const subscriptions = doc.subscriptions;
-  if (subscriptions !== undefined) {
-    if (
-      typeof subscriptions !== "object" ||
-      subscriptions === null ||
-      Array.isArray(subscriptions)
-    ) {
-      throw new TypeError(
-        `Server Card "${id}" is invalid: subscriptions is present but not an object`,
-      );
-    }
-    const subs = subscriptions as Record<string, unknown>;
-    if (typeof subs.methods !== "object" || subs.methods === null || Array.isArray(subs.methods)) {
-      throw new TypeError(
-        `Server Card "${id}" is invalid: subscriptions.methods is missing or not an object`,
-      );
-    }
-    for (const [methodName, method] of Object.entries(subs.methods as Record<string, unknown>)) {
-      const available =
-        typeof method === "object" && method !== null
-          ? (method as Record<string, unknown>).available
-          : undefined;
-      if (typeof available !== "boolean") {
-        throw new TypeError(
-          `Server Card "${id}" is invalid: subscriptions.methods["${methodName}"].available is missing or not a boolean`,
-        );
-      }
-    }
-    // `requires`/`since_protocol` are NOT validated: a page only paints them
-    // when present — an absent optional is not a failure.
-    if (!Array.isArray(subs.subscribable_uri_templates)) {
-      throw new TypeError(
-        `Server Card "${id}" is invalid: subscriptions.subscribable_uri_templates is missing or not an array`,
-      );
-    }
-  }
+  validateSubscriptionsBlock(id, doc);
 
   return {
     ...doc,

@@ -270,7 +270,12 @@ function buildDiscoverSnapshot(endpoint, result, generatedAt) {
  * `sourceVersion` ata el catálogo a la release del discover de la MISMA
  * extracción. Lanza si la forma no cuadra (el llamador lo degrada a blando).
  */
-function buildActionsSnapshot(endpoint, result, sourceVersion, generatedAt) {
+/**
+ * Valida el envoltorio JSON-RPC de resources/read y devuelve el manifiesto
+ * parseado de contents[0].text. Extraído de buildActionsSnapshot por S3776:
+ * cada capa de validación con su nombre en vez de una función de 29.
+ */
+function parseManifestEnvelope(result) {
   if (!isPlainObject(result)) throw new Error("result no es un objeto");
   const content = Array.isArray(result.contents)
     ? result.contents[0]
@@ -288,7 +293,16 @@ function buildActionsSnapshot(endpoint, result, sourceVersion, generatedAt) {
   ) {
     throw new Error("envoltorio sin ttlMs/cacheScope");
   }
-  const manifest = JSON.parse(content.text);
+  return {
+    manifest: JSON.parse(content.text),
+    resourceUri: content.uri,
+    ttlMs: result.ttlMs,
+    cacheScope: result.cacheScope,
+  };
+}
+
+/** Forma mínima del manifiesto: claves de cabecera y recuentos coherentes. */
+function validateManifestHeader(manifest) {
   if (
     !isNonEmptyString(manifest.surface) ||
     !isNonEmptyString(manifest.uri_template)
@@ -309,7 +323,31 @@ function buildActionsSnapshot(endpoint, result, sourceVersion, generatedAt) {
   if (!Array.isArray(manifest.visible_tools)) {
     throw new TypeError("manifiesto sin visible_tools");
   }
+}
 
+/** `required_params` es opcional; presente, debe ser array de strings no vacíos. */
+function hasValidRequiredParams(entry) {
+  if (entry.required_params === undefined) return true;
+  return (
+    Array.isArray(entry.required_params) &&
+    entry.required_params.every((x) => isNonEmptyString(x))
+  );
+}
+
+/** Una entrada dynamic_action con todos sus campos bien tipados. */
+function isWellTypedAction(entry) {
+  return (
+    isNonEmptyString(entry.title) &&
+    isNonEmptyString(entry.domain) &&
+    isNonEmptyString(entry.description) &&
+    typeof entry.destructive === "boolean" &&
+    typeof entry.read_only === "boolean" &&
+    hasValidRequiredParams(entry)
+  );
+}
+
+/** Valida entries (ids únicos, kinds conocidos, campos) y visible_tools. */
+function validateManifestEntries(manifest) {
   const seenIds = new Set();
   for (const entry of manifest.entries) {
     if (!isPlainObject(entry)) throw new Error("entrada que no es un objeto");
@@ -320,18 +358,9 @@ function buildActionsSnapshot(endpoint, result, sourceVersion, generatedAt) {
       throw new Error(`id ausente o duplicado ${JSON.stringify(entry.id)}`);
     }
     seenIds.add(entry.id);
-    if (entry.kind === "dynamic_action" && (
-        !isNonEmptyString(entry.title) ||
-        !isNonEmptyString(entry.domain) ||
-        !isNonEmptyString(entry.description) ||
-        typeof entry.destructive !== "boolean" ||
-        typeof entry.read_only !== "boolean" ||
-        (entry.required_params !== undefined &&
-          !(Array.isArray(entry.required_params) &&
-            entry.required_params.every((x) => isNonEmptyString(x))))
-      )) {
-        throw new Error(`entrada ${entry.id} con campos mal tipados`);
-      }
+    if (entry.kind === "dynamic_action" && !isWellTypedAction(entry)) {
+      throw new Error(`entrada ${entry.id} con campos mal tipados`);
+    }
   }
   for (const tool of manifest.visible_tools) {
     if (
@@ -344,6 +373,12 @@ function buildActionsSnapshot(endpoint, result, sourceVersion, generatedAt) {
       throw new Error("visible_tools con forma inesperada");
     }
   }
+}
+
+function buildActionsSnapshot(endpoint, result, sourceVersion, generatedAt) {
+  const { manifest, resourceUri, ttlMs, cacheScope } = parseManifestEnvelope(result);
+  validateManifestHeader(manifest);
+  validateManifestEntries(manifest);
 
   // Proyección: campos verbatim upstream (snake_case read_only incluido — es
   // una proyección, no una transformación) y orden estable por id.
@@ -403,7 +438,7 @@ function buildActionsSnapshot(endpoint, result, sourceVersion, generatedAt) {
   return {
     meta: {
       endpoint,
-      resourceUri: content.uri,
+      resourceUri,
       surface: manifest.surface,
       // El UI deriva cada detail_uri de esta plantilla, no lo hardcodea.
       uriTemplate: manifest.uri_template,
@@ -411,8 +446,8 @@ function buildActionsSnapshot(endpoint, result, sourceVersion, generatedAt) {
       entryCount: manifest.entry_count,
       actionCount: entries.length,
       visibleTools,
-      ttlMs: result.ttlMs,
-      cacheScope: result.cacheScope,
+      ttlMs,
+      cacheScope,
       generatedAt,
     },
     domains,
@@ -467,13 +502,8 @@ function writeIfChanged(target, snapshot) {
  * separado (como sync-server-cards.sh: un MCP caído no bloquea al otro);
  * solo la guardia anti-fuga es fallo duro, y corre ANTES de escribir nada.
  */
-async function main() {
-  fs.mkdirSync(SURFACE_DIR, { recursive: true });
-  const generatedAt = nowIso();
-  // Candidatos acumulados: nada se escribe hasta pasar la guardia anti-fuga.
-  const pending = [];
-
-  // libgen — server/discover, sin autenticación.
+/** libgen — server/discover, sin autenticación. Fallo blando por separado. */
+async function collectLibgenDiscover(pending, generatedAt) {
   try {
     const endpoint = `${BASE}/libgen/mcp`;
     const { raw, rpc } = await postRpc(
@@ -491,94 +521,115 @@ async function main() {
   } catch (error) {
     softWarn("libgen-discover.json", error.message);
   }
+}
+
+/**
+ * gitlab · discover. Devuelve el sourceVersion de ESTA pasada (ata el
+ * catálogo a la release) o undefined si degradó a blando.
+ */
+async function collectGitlabDiscover(pending, endpoint, generatedAt) {
+  try {
+    const { raw, rpc } = await postRpc(
+      endpoint,
+      "server/discover",
+      discoverParams(),
+      {
+        "PRIVATE-TOKEN": GITLAB_TOKEN,
+        "GITLAB-URL": GITLAB_URL,
+      },
+    );
+    if (rpc.error)
+      throw new Error(`JSON-RPC ${rpc.error.code}: ${rpc.error.message}`);
+    const snapshot = buildDiscoverSnapshot(endpoint, rpc.result, generatedAt);
+    pending.push({
+      target: path.join(SURFACE_DIR, "gitlab-discover.json"),
+      snapshot,
+      raws: [raw],
+    });
+    return snapshot.serverInfo.version;
+  } catch (error) {
+    softWarn("gitlab-discover.json", error.message);
+    return; // eslint quiere el return desnudo: mismo undefined para el llamador
+  }
+}
+
+/** gitlab · manifiesto gitlab://tools, atado al sourceVersion del discover. */
+async function collectGitlabActions(pending, endpoint, sourceVersion, generatedAt) {
+  try {
+    // resources/read exige, además del token, params._meta con las mismas
+    // tres claves que discover y la cabecera Mcp-Name con la URI del recurso
+    // (sin ella el edge responde -32020, verificado).
+    const uri = "gitlab://tools";
+    const { raw, rpc } = await postRpc(
+      endpoint,
+      "resources/read",
+      { uri, _meta: discoverParams()._meta },
+      {
+        "PRIVATE-TOKEN": GITLAB_TOKEN,
+        "GITLAB-URL": GITLAB_URL,
+        "Mcp-Name": uri,
+      },
+    );
+    if (rpc.error) {
+      // -32601 = el método/recurso no existe en esta release: no es un
+      // error, simplemente aún no hay nada nuevo que snapshotear.
+      if (rpc.error.code === -32_601) {
+        console.log(
+          `${TAG} = gitlab-actions.json: resources/read no disponible (-32601)`,
+        );
+        return;
+      }
+      throw new Error(`JSON-RPC ${rpc.error.code}: ${rpc.error.message}`);
+    }
+    pending.push({
+      target: path.join(SURFACE_DIR, "gitlab-actions.json"),
+      snapshot: buildActionsSnapshot(
+        endpoint,
+        rpc.result,
+        sourceVersion,
+        generatedAt,
+      ),
+      raws: [raw],
+    });
+  } catch (error) {
+    softWarn("gitlab-actions.json", error.message);
+  }
+}
+
+/**
+ * Orquesta las tres extracciones. Cada una degrada a fallo blando por
+ * separado (como sync-server-cards.sh: un MCP caído no bloquea al otro);
+ * solo la guardia anti-fuga es fallo duro, y corre ANTES de escribir nada.
+ * Plano a propósito (S3776): cada fase vive en su collect* con nombre.
+ */
+async function main() {
+  fs.mkdirSync(SURFACE_DIR, { recursive: true });
+  const generatedAt = nowIso();
+  // Candidatos acumulados: nada se escribe hasta pasar la guardia anti-fuga.
+  const pending = [];
+
+  await collectLibgenDiscover(pending, generatedAt);
 
   // gitlab — discover y manifiesto exigen token Y cabecera GITLAB-URL
   // (sin ella el edge sirve la superficie de su instancia por defecto, no
-  // la documentada), y sin MCP_SURFACE_GITLAB_URL la guardia anti-fuga queda además
-  // desarmada: no se escribe nada derivado de gitlab sin poder
+  // la documentada), y sin MCP_SURFACE_GITLAB_URL la guardia anti-fuga queda
+  // además desarmada: no se escribe nada derivado de gitlab sin poder
   // inspeccionarlo antes. En CI sin secretos se conservan ambos snapshots:
   // esa ES la semántica de respaldo.
-  if (!GITLAB_TOKEN || !GITLAB_URL) {
+  if (GITLAB_TOKEN && GITLAB_URL) {
+    const endpoint = `${BASE}/gitlab/mcp`;
+    const sourceVersion = await collectGitlabDiscover(pending, endpoint, generatedAt);
+    if (sourceVersion) {
+      await collectGitlabActions(pending, endpoint, sourceVersion, generatedAt);
+    } else {
+      softWarn("gitlab-actions.json", "sin discover del que atar sourceVersion");
+    }
+  } else {
     const reason = GITLAB_TOKEN
       ? "falta MCP_SURFACE_GITLAB_URL y sin ella la guardia anti-fuga no puede armarse"
       : "falta MCP_SURFACE_GITLAB_TOKEN";
     softWarn("gitlab-discover.json", reason);
     softWarn("gitlab-actions.json", reason);
-  } else {
-    const endpoint = `${BASE}/gitlab/mcp`;
-    let sourceVersion;
-    try {
-      const { raw, rpc } = await postRpc(
-        endpoint,
-        "server/discover",
-        discoverParams(),
-        {
-          "PRIVATE-TOKEN": GITLAB_TOKEN,
-          "GITLAB-URL": GITLAB_URL,
-        },
-      );
-      if (rpc.error)
-        throw new Error(`JSON-RPC ${rpc.error.code}: ${rpc.error.message}`);
-      const snapshot = buildDiscoverSnapshot(endpoint, rpc.result, generatedAt);
-      sourceVersion = snapshot.serverInfo.version;
-      pending.push({
-        target: path.join(SURFACE_DIR, "gitlab-discover.json"),
-        snapshot,
-        raws: [raw],
-      });
-    } catch (error) {
-      softWarn("gitlab-discover.json", error.message);
-    }
-
-    // El manifiesto necesita el sourceVersion del discover de ESTA misma
-    // pasada (ata catálogo a release): sin discover no se refresca.
-    if (sourceVersion) {
-      try {
-        // resources/read exige, además del token, params._meta con las
-        // mismas tres claves que discover y la cabecera Mcp-Name con la URI
-        // del recurso (sin ella el edge responde -32020, verificado).
-        const uri = "gitlab://tools";
-        const { raw, rpc } = await postRpc(
-          endpoint,
-          "resources/read",
-          { uri, _meta: discoverParams()._meta },
-          {
-            "PRIVATE-TOKEN": GITLAB_TOKEN,
-            "GITLAB-URL": GITLAB_URL,
-            "Mcp-Name": uri,
-          },
-        );
-        if (rpc.error) {
-          // -32601 = el método/recurso no existe en esta release: no es un
-          // error, simplemente aún no hay nada nuevo que snapshotear.
-          if (rpc.error.code === -32_601) {
-            console.log(
-              `${TAG} = gitlab-actions.json: resources/read no disponible (-32601)`,
-            );
-          } else {
-            throw new Error(`JSON-RPC ${rpc.error.code}: ${rpc.error.message}`);
-          }
-        } else {
-          pending.push({
-            target: path.join(SURFACE_DIR, "gitlab-actions.json"),
-            snapshot: buildActionsSnapshot(
-              endpoint,
-              rpc.result,
-              sourceVersion,
-              generatedAt,
-            ),
-            raws: [raw],
-          });
-        }
-      } catch (error) {
-        softWarn("gitlab-actions.json", error.message);
-      }
-    } else {
-      softWarn(
-        "gitlab-actions.json",
-        "sin discover del que atar sourceVersion",
-      );
-    }
   }
 
   // GUARDIA ANTI-FUGA — fallo DURO antes de escribir un solo fichero. Se
