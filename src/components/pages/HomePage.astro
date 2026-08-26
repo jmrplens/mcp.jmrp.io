@@ -27,6 +27,7 @@ const t = ui[lang];
 // Site-relative, like the language switch in Base.astro: an absolute URL
 // here would jump a dev or preview server straight to production.
 const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
+const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
 ---
 
 <section class="hero">
@@ -54,6 +55,15 @@ const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
       (Ruling R6 — see the comment on `home.tryInBrowser`). */}
   <p class="try-inspector">
     <a href={inspectorHref}>{t.tryInBrowser}</a>
+    {/* Second, quieter entry to `/internals/`. The callout further down is
+        the page's real invitation, but it lands ~3 screens in on a phone —
+        measured — and "what actually happens to my request?" is a question
+        a visitor has BEFORE they scroll past two server cards and a
+        comparison table. Same string as the callout's link on purpose: two
+        entries to one page should not read as two different places. */}
+    <a
+      class="try-internals"
+      href={internalsHref}>{t.internalsLink}</a>
   </p>
 </section>
 
@@ -121,6 +131,21 @@ const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
       </tr>
     </tbody>
   </table>
+
+  {/* Callout to `/internals/`. It sits AFTER the servers block on purpose:
+      the question it answers ("what happens to my request, and to my
+      token?") is one a visitor only asks once they know what these servers
+      are, and putting it in the hero would have competed with the
+      inspector link for the one action above the fold. Before this, the
+      page never linked the page at all — only the header nav did. */}
+  <aside class="internals-callout">
+    <p class="internals-callout-eyebrow">{t.internalsEyebrow}</p>
+    <p class="internals-callout-title">{t.internalsTitle}</p>
+    <p class="internals-callout-lead">{t.internalsLead}</p>
+    <p class="internals-callout-link">
+      <a href={internalsHref}>{t.internalsLink}</a>
+    </p>
+  </aside>
 
   <p class="machine">
     <a href="/servers.json"><code>/servers.json</code></a>
@@ -258,6 +283,52 @@ const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
     gap: 1.25rem;
   }
 
+  /* ===== Internals callout =====================================================
+     Bordered block rather than another `.machine`-style one-liner: it is an
+     invitation to a whole page, not a pointer to a file, and the two must
+     not read as the same weight. The accent bar on the inline-start edge is
+     the only decoration — it marks the block as an aside without needing a
+     background fill, which at this position would compete with the server
+     cards above it. */
+  .internals-callout {
+    padding: 1rem 1.1rem;
+    margin: 2rem 0 1.5rem;
+    border: 1px solid var(--color-border);
+    border-inline-start: 3px solid var(--color-accent);
+    border-radius: var(--radius-md);
+  }
+
+  .internals-callout-eyebrow {
+    margin: 0 0 0.35rem;
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .internals-callout-title {
+    margin: 0 0 0.4rem;
+    color: var(--color-text-heading);
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .internals-callout-lead {
+    max-width: 60ch;
+    margin: 0 0 0.7rem;
+    color: var(--color-text);
+    text-wrap: pretty;
+  }
+
+  .internals-callout-link {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+
   .machine {
     margin: 1.25rem 0 0;
     color: var(--color-text-muted);
@@ -275,9 +346,15 @@ const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
     text-underline-offset: 3px;
   }
 
-  /* Same look as `.machine`: a small mono pointer out of the hero, this one
-     to the inspector's own page instead of a machine-readable file. */
+  /* Same look as `.machine`: small mono pointers out of the hero. Two of
+     them now — the inspector and `/internals/` — so this is a wrapping flex
+     row rather than a plain paragraph: at 360px the pair stacks instead of
+     pushing the second link off the line. */
   .try-inspector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.25rem;
+    align-items: baseline;
     margin: 0.9rem 0 0;
     color: var(--color-text-muted);
     font-size: 0.8125rem;
@@ -292,6 +369,13 @@ const inspectorHref = new URL(pageUrl(lang, "inspector")).pathname;
   .try-inspector a:hover {
     text-decoration: underline;
     text-underline-offset: 3px;
+  }
+
+  /* The quieter of the two: the inspector stays the hero's primary call.
+     Specificity, not `!important` — `.try-inspector a` above paints both
+     links accent, and this pair of classes simply outranks it. */
+  .try-inspector a.try-internals {
+    color: var(--color-text-muted);
   }
 
   /* Wide content scrolls inside its own container: the page body must never

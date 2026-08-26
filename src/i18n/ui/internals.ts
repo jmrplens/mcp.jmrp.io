@@ -94,6 +94,23 @@ export const internals = {
      * heading (this page's heading levels are already accounted for), just
      * enough of a sentence for the numbered list to read naturally on its
      * own, including for anyone who never saw the figure above it. */
+    /** Legend for the connector line, which is painted in one colour per
+     * transport: the strip drew five hops and said nothing about how any of
+     * them travels — the one thing a visitor asking "can anyone read my
+     * token?" needs from a picture of the path. A legend, not a label per
+     * joint: five labels riding on the wire were tried first and collided
+     * with an icon at every hop below 481px (the gap between two adjacent
+     * stage icons is ~30px there, a legible label ~27px), so the author
+     * asked for colour plus one horizontal legend instead. Colour is never
+     * the only carrier — these three words are real text, and the `wire*`
+     * section below states it all in prose. `https`/`SSH` are protocol
+     * names, identical in both languages. */
+    diagramLegendTls: "https",
+    diagramLegendLocal: "local",
+    diagramLegendSsh: "SSH tunnel",
+    /** One line under the strip: what those three colours amount to. */
+    diagramLegendNote:
+      "Every hop that crosses a network is encrypted; local is the one that never leaves the machine.",
     diagramTimelineIntro: "The same six steps, in full:",
     diagramTimelineStep1:
       "It starts on your machine: your MCP client sends the request to whichever endpoint you pointed it at, /libgen or /gitlab, carrying a PRIVATE-TOKEN header if that server needs one — gitlab does, libgen does not.",
@@ -107,6 +124,25 @@ export const internals = {
       "That instance always leaves through the same country — Spain or the United Kingdom, fixed per instance — so your calls keep appearing to come from the same place instead of alternating.",
     diagramTimelineStep6:
       "That connection reaches the actual destination: a Library Genesis mirror if you called libgen, or the GitLab instance you pointed gitlab at — the same server your client asked for back at the first step.",
+
+    /** The transport section. It exists because the diagram above now labels
+     * each hop (`diagramLink*`) and a label like `https` is a claim: this is
+     * where that claim is stated in full, INCLUDING the two points where TLS
+     * terminates by design. Saying "encrypted end to end" and stopping there
+     * would be the comfortable version and also the false one — a CDN and a
+     * reverse proxy both decrypt by definition, and this page's whole job is
+     * to say what actually happens. Every sentence here was checked against
+     * the running config, not assumed: the loopback upstreams and the
+     * http→https redirect in the vhost, TLSv1.3 on every origin hit in the
+     * access log, `HTTPS_PROXY` on the instances, and the absence of
+     * `$http_private_token` (and of the affinity hash) from every
+     * `log_format` on the box. */
+    wireEyebrow: "On the wire: what is encrypted, and where it is not",
+    wireBody: [
+      "Every hop that crosses a network is encrypted. Your client reaches Cloudflare over HTTPS; Cloudflare reaches this server over HTTPS too — plain HTTP gets a redirect and the domain is on the HSTS preload list; and the call that finally leaves for its destination is HTTPS as well, negotiated by the instance itself and only forwarded, still sealed, through the SSH tunnel that gives it its exit country. Between nginx and the instances there is no network to listen to at all: they are containers on this same machine, reachable only over loopback.",
+      "So nobody sitting between the hops can read a PRIVATE-TOKEN. Two points do see it, and by design: Cloudflare's edge, which decrypts and re-encrypts everything it proxies, as any CDN does; and this server, where nginx needs the token to compute the affinity hash and the instance needs it to make the call you asked for. Neither one writes it down — no access log on this machine records the token, and the hash derived from it is not logged either: it lives just long enough to pick an instance.",
+      "The one hop whose encryption is not this server's to promise is the last one, and only for gitlab: the request goes wherever your GITLAB-URL points, so if you point it at an instance of your own that listens on plain http://, that final hop is exactly as encrypted as the address you gave it.",
+    ],
 
     egressEyebrow: "Egress: which country a request leaves from",
     egressBody: [
@@ -173,6 +209,13 @@ export const internals = {
     diagramBubble5: "Ese nodo sale por su país fijo",
     diagramBubble6: "Esa petición sale hacia el destino al que apuntaste el MCP",
     /** Ver `en.diagramTimelineIntro`. */
+    /** Ver `en.diagramLegendTls`. */
+    diagramLegendTls: "https",
+    diagramLegendLocal: "local",
+    diagramLegendSsh: "túnel SSH",
+    /** Ver `en.diagramLegendNote`. */
+    diagramLegendNote:
+      "Todo salto que cruza una red va cifrado; local es el que no sale de la máquina.",
     diagramTimelineIntro: "Los mismos seis pasos, completos:",
     diagramTimelineStep1:
       "Empieza en tu máquina: tu cliente MCP envía la petición al endpoint al que lo apuntaste, /libgen o /gitlab, con una cabecera PRIVATE-TOKEN si ese servidor la necesita — gitlab sí, libgen no.",
@@ -186,6 +229,14 @@ export const internals = {
       "Esa instancia sale siempre por el mismo país — España o Reino Unido, fijo por instancia — así que tus llamadas siguen pareciendo venir del mismo sitio en vez de alternar.",
     diagramTimelineStep6:
       "Esa conexión llega al destino real: un mirror de Library Genesis si llamaste a libgen, o la instancia de GitLab a la que apuntaste gitlab — el mismo servidor que pedía tu cliente ya en el primer paso.",
+
+    /** Ver `en.wireEyebrow`. */
+    wireEyebrow: "Por el cable: qué va cifrado y dónde deja de estarlo",
+    wireBody: [
+      "Todo salto que cruza una red va cifrado. Tu cliente llega a Cloudflare por HTTPS; Cloudflare llega a este servidor también por HTTPS —el HTTP a secas se responde con una redirección y el dominio está en la lista de precarga de HSTS—, y la llamada que sale por fin hacia su destino es HTTPS igualmente, negociada por la propia instancia y solo reenviada, aún sellada, por el túnel SSH que le da su país de salida. Entre nginx y las instancias no hay red que escuchar: son contenedores de esta misma máquina, alcanzables solo por loopback.",
+      "Así que nadie que esté entre medias puede leer un PRIVATE-TOKEN. Sí lo ven dos puntos, y a propósito: el borde de Cloudflare, que descifra y vuelve a cifrar todo lo que proxya, como cualquier CDN; y este servidor, donde nginx necesita el token para calcular el hash de afinidad y la instancia lo necesita para hacer la llamada que le has pedido. Ninguno de los dos lo apunta: ningún log de acceso de esta máquina registra el token, y el hash que sale de él tampoco se registra — vive lo justo para elegir instancia.",
+      "El único salto cuyo cifrado no depende de este servidor es el último, y solo en gitlab: la petición va a donde apunte tu GITLAB-URL, así que si la diriges a una instancia tuya que escuche en http:// a secas, ese tramo final va tan cifrado como la dirección que le diste.",
+    ],
 
     egressEyebrow: "Egreso: de qué país sale una petición",
     egressBody: [

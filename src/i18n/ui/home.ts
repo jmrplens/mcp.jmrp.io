@@ -51,6 +51,19 @@ export const home = {
     serversEyebrow: "Servers",
     serversIntro:
       "Both servers speak streamable HTTP: one POST per JSON-RPC 2.0 call, stateless — no session header — answering JSON or an SSE stream depending on your Accept header (application/json, text/event-stream). A GET to an endpoint returns 405 by design.",
+    /** The `/internals/` callout. The page it points at is the one that
+     * answers "what actually happens to my request, and to my token" — the
+     * question a hosted endpoint owes an answer to — and nothing on this
+     * page pointed at it: it was reachable only from the header nav. The
+     * eyebrow/lead/link split matches the other blocks here rather than
+     * inventing a new shape, and the lead names the three things the page
+     * proves (encryption, three instances, exit country) instead of saying
+     * "learn more", which gives a reader nothing to decide with. */
+    internalsEyebrow: "Under the hood",
+    internalsTitle: "What happens to your request",
+    internalsLead:
+      "The whole path, drawn and explained: HTTPS all the way in and out, three instances per server with one always picked for you, and a fixed exit country — plus where a PRIVATE-TOKEN is readable, and where it never is.",
+    internalsLink: "See how it works",
     machineIndex: "Machine-readable index",
     /** Same idea as `machineIndex`, for the `/llms.txt` pointer below it. */
     machineLlms: "Context index for AI assistants",
@@ -120,6 +133,12 @@ export const home = {
     serversEyebrow: "Servidores",
     serversIntro:
       "Ambos servidores hablan streamable HTTP: un POST por llamada JSON-RPC 2.0, sin estado — sin cabecera de sesión — respondiendo JSON o un stream SSE según tu cabecera Accept (application/json, text/event-stream). Un GET al endpoint devuelve 405 a propósito.",
+    /** Ver `en.internalsEyebrow`. */
+    internalsEyebrow: "Por dentro",
+    internalsTitle: "Qué le pasa a tu petición",
+    internalsLead:
+      "El camino entero, dibujado y explicado: HTTPS a la ida y a la vuelta, tres instancias por servidor con una siempre elegida para ti y un país de salida fijo — y dónde se puede leer un PRIVATE-TOKEN y dónde no.",
+    internalsLink: "Mira cómo funciona",
     machineIndex: "Índice para máquinas",
     /** Ver `en.machineLlms`: mismo patrón para el puntero a `/llms.txt`. */
     machineLlms: "Índice de contexto para asistentes de IA",

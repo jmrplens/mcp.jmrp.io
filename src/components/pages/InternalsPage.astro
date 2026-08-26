@@ -222,23 +222,6 @@ function countryTag(country: McpInstance["egressCountry"]): string {
 <section aria-labelledby="path-h">
   <h2 class="eyebrow" id="path-h">{t.pathEyebrow}</h2>
   {t.pathBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
-</section>
-
-<section aria-labelledby="instances-h">
-  <h2 class="eyebrow" id="instances-h">{t.instancesEyebrow}</h2>
-  {t.instancesBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
-</section>
-
-<section aria-labelledby="affinity-h">
-  <h2 class="eyebrow" id="affinity-h">{t.affinityEyebrow}</h2>
-  <p class="prose-text">{t.affinityIntro}</p>
-  <p class="prose-text">{t.affinityLibgen}</p>
-  <p class="prose-text">{t.affinityGitlab}</p>
-  {t.affinityCodeIntro.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
-  <pre><code>{affinityTokens.map((tok) =>
-    tok.cls ? <span class={`snippet-${tok.cls}`}>{tok.text}</span> : tok.text,
-  )}</code></pre>
-  <p class="prose-text">{t.affinityConsequence}</p>
 
   {/* Request-path figure: a strip of six fixed stages (the "aria-hidden"
       icons are pure decoration, the stage names and node numbers/countries
@@ -261,6 +244,7 @@ function countryTag(country: McpInstance["egressCountry"]): string {
           background from ever covering a stage's icon or label text. Both
           `aria-hidden`: purely decorative, like every icon on this strip. */}
       <span class="mcp-box-fill" aria-hidden="true"></span>
+
 
       <div class="stage stage--client">
         <span class="stage-icon stage-icon--client" aria-hidden="true">
@@ -312,6 +296,19 @@ function countryTag(country: McpInstance["egressCountry"]): string {
       <span class="mcp-box-border" aria-hidden="true"></span>
     </div>
 
+    {/* Transport legend. The connector line under the strip is painted in
+        one colour per transport (see "Connector line" in the <style>
+        block); this is what those colours say, in real text — colour alone
+        never carries the meaning. It sits between the strip and the bubbles
+        because that is where the author asked for it, and because a reader
+        meets the coloured line first and the question ("what do the colours
+        mean?") immediately after. */}
+    <ul class="mcp-legend">
+      <li><span class="mcp-legend-swatch mcp-legend-swatch--tls" aria-hidden="true"></span>{t.diagramLegendTls}</li>
+      <li><span class="mcp-legend-swatch mcp-legend-swatch--local" aria-hidden="true"></span>{t.diagramLegendLocal}</li>
+      <li><span class="mcp-legend-swatch mcp-legend-swatch--ssh" aria-hidden="true"></span>{t.diagramLegendSsh}</li>
+    </ul>
+
     {/* Fixed-height annotation zone: exactly one bubble opaque at a time,
         via the `phase-N` keyframes shared with the highlight box's
         `box-travel` animation above (see the <style> block's "Bubble
@@ -347,7 +344,10 @@ function countryTag(country: McpInstance["egressCountry"]): string {
       </div>
     </div>
 
-    <figcaption class="mcp-flow-caption">{t.diagramCaption}</figcaption>
+    <figcaption class="mcp-flow-caption">
+      {t.diagramCaption}
+      <span class="mcp-legend-note">{t.diagramLegendNote}</span>
+    </figcaption>
   </figure>
 
   {/* Prose timeline: same six numbers as the bubbles above, full detail,
@@ -381,6 +381,29 @@ function countryTag(country: McpInstance["egressCountry"]): string {
       <p>{t.diagramTimelineStep6}</p>
     </li>
   </ol>
+</section>
+
+<section aria-labelledby="wire-h">
+  <h2 class="eyebrow" id="wire-h">{t.wireEyebrow}</h2>
+  {t.wireBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+</section>
+
+<section aria-labelledby="instances-h">
+  <h2 class="eyebrow" id="instances-h">{t.instancesEyebrow}</h2>
+  {t.instancesBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+</section>
+
+<section aria-labelledby="affinity-h">
+  <h2 class="eyebrow" id="affinity-h">{t.affinityEyebrow}</h2>
+  <p class="prose-text">{t.affinityIntro}</p>
+  <p class="prose-text">{t.affinityLibgen}</p>
+  <p class="prose-text">{t.affinityGitlab}</p>
+  {t.affinityCodeIntro.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+  <pre><code>{affinityTokens.map((tok) =>
+    tok.cls ? <span class={`snippet-${tok.cls}`}>{tok.text}</span> : tok.text,
+  )}</code></pre>
+  <p class="prose-text">{t.affinityConsequence}</p>
+
 </section>
 
 <section aria-labelledby="egress-h">
@@ -549,7 +572,17 @@ function countryTag(country: McpInstance["egressCountry"]): string {
      "UPDATE 2026-08-23" and "UPDATE 2026-08-23 (destination hop)", for why
      this changed from the original highlight-only version and for why it
      now reaches a sixth stage. */
+  /* `--wire-*`: the three transport colours, defined once for the connector
+     line and its legend. Site tokens, not new hex — `success` for a hop
+     encrypted with TLS, `info` for the SSH tunnel, and the muted text colour
+     for the hop that never touches a network (the same neutral this strip
+     already uses for structure rather than status). Both themes ship
+     AA-contrast values for all three. */
   .mcp-flow-figure {
+    --wire-tls: var(--color-success);
+    --wire-ssh: var(--color-info);
+    --wire-local: var(--color-text-muted);
+
     max-width: 62ch;
     margin: 1.75rem 0;
     padding: 1rem;
@@ -593,14 +626,92 @@ function countryTag(country: McpInstance["egressCountry"]): string {
      element is always painted before its element's real children, so the
      opaque icon/badge circles sitting on top of it read as beads on a wire
      with no z-index bookkeeping needed. */
+  /* One element, four hard-stopped colour bands: how each hop travels, which
+     the strip used to leave unsaid. The stops are the six stage positions
+     (`--pos`: 5.81/19.19/32.56/55.81/79.07/92.44% of the strip) re-expressed
+     as percentages of THIS line, which spans 4%→96% — a stage at P% of the
+     strip sits at (P-4)/92 of the line. Recomputing them by hand is what
+     keeps this to a single `background` instead of five positioned spans,
+     each needing its own `--pos` bookkeeping.
+
+       you → Cloudflare → nginx   https  (TLS in, TLS on to the origin)
+       nginx → instances          local  (loopback; no network to listen to)
+       instances → egress         SSH    (the tunnel that sets the exit country)
+       egress → destination       https  (negotiated by the instance itself)
+
+     2px rather than the 1px it was: at 1px the bands were present but not
+     legible AS bands. `top: 8px` keeps the thicker line centred on the same
+     9px axis the 18px icons and badges share. */
   .mcp-strip::before {
     position: absolute;
-    top: 9px; /* half of the 18px icon/badge diameter used throughout */
+    top: 8px;
     left: 4%;
     content: "";
     right: 4%;
-    height: 1px;
-    background: var(--color-border);
+    height: 2px;
+    background: linear-gradient(
+      to right,
+      var(--wire-tls) 0 31.04%,
+      var(--wire-local) 31.04% 56.32%,
+      var(--wire-ssh) 56.32% 81.6%,
+      var(--wire-tls) 81.6% 100%
+    );
+  }
+
+  /* ===== Transport legend ======================================================
+     Three swatches in a row, above the bubbles. The swatch colours are the
+     line's own, defined ONCE as `--wire-*` on the figure and consumed by
+     both — a legend that can drift from the thing it explains is worse than
+     no legend. Colour never carries the meaning alone: each swatch is
+     followed by its word, and the `wire*` section below the figure says all
+     of it again in prose, which is what a screen reader or a crawler reads.
+
+     This replaced a label-per-joint version (five words riding on the wire).
+     It read fine from 600px up and collided with an icon at every hop below
+     481px — the gap between two adjacent stage icons is ~30px there and a
+     legible label ~27px wide — so the author asked for colour plus one
+     horizontal legend instead. */
+  .mcp-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    justify-content: center;
+    padding: 0;
+    margin: 0.9rem 0 0;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    list-style: none;
+  }
+
+  .mcp-legend li {
+    display: inline-flex;
+    gap: 0.35rem;
+    align-items: center;
+    white-space: nowrap; /* each pair wraps as a unit, never mid-word */
+  }
+
+  .mcp-legend-swatch {
+    width: 1.1rem;
+    height: 2px;
+    border-radius: 1px;
+  }
+
+  .mcp-legend-swatch--tls {
+    background: var(--wire-tls);
+  }
+
+  .mcp-legend-swatch--local {
+    background: var(--wire-local);
+  }
+
+  .mcp-legend-swatch--ssh {
+    background: var(--wire-ssh);
+  }
+
+  .mcp-legend-note {
+    display: block;
+    margin-top: 0.2rem;
   }
 
   .stage {
