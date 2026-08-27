@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { inspector, loadButton, passSameOriginToMcp, serverSelect } from "./helpers";
+import { inspector, loadButton, serverSelect } from "./helpers";
 
 // Estos tests llaman al endpoint real de producción: es intencionado, validan
 // el camino completo (navegador -> POST -> parseo SSE -> pintado). Si el
@@ -12,13 +12,6 @@ test.skip(
   !!process.env.E2E_NO_NETWORK,
   "requiere salida a Internet contra mcp.jmrp.io",
 );
-
-// Registrada ANTES que cualquier `stubMcp` de un test: en Playwright gana la
-// última ruta añadida, así que los tests que sí simulan al servidor siguen
-// mandando sobre esta.
-test.beforeEach(async ({ page }) => {
-  await passSameOriginToMcp(page);
-});
 
 test("tools/list contra libgen devuelve las herramientas", async ({ page }) => {
   await page.goto("/inspector/");

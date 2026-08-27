@@ -4,7 +4,7 @@
     "resourceUri": "gitlab://tools",
     "surface": "dynamic",
     "uriTemplate": "gitlab://tools/{id}",
-    "sourceVersion": "2.7.3",
+    "sourceVersion": "2.7.4",
     "entryCount": 852,
     "actionCount": 851,
     "visibleTools": [
@@ -23,7 +23,7 @@
     ],
     "ttlMs": 300000,
     "cacheScope": "private",
-    "generatedAt": "2026-08-26T15:32:40Z"
+    "generatedAt": "2026-08-27T15:05:16Z"
   },
   "domains": [
     {
