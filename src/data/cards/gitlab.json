@@ -3457,7 +3457,7 @@
     ],
     "name": "gitlab-mcp-server",
     "title": "GitLab MCP Server",
-    "version": "2.7.3",
+    "version": "2.7.5",
     "websiteUrl": "https://jmrp.io/docs/gitlab-mcp-server"
   },
   "subscriptions": {
@@ -3542,7 +3542,7 @@
           "action": {
             "description": "Canonical action ID returned by gitlab_find_action, or a supported compatibility alias, such as project.list, issue.update, or issue.close.",
             "type": "string",
-            "x-mcp-header": "Mcp-Param-Action"
+            "x-mcp-header": "Action"
           },
           "confirm": {
             "description": "Set top-level confirm=true to explicitly approve destructive actions; do not put confirm inside params for gitlab_execute_action.",

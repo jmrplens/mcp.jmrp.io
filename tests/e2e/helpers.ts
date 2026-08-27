@@ -104,54 +104,6 @@ const CORS = {
  * @returns El array donde se van anotando las peticiones que salen.
  */
 /**
- * Lets the specs that call the REAL endpoint through its origin check.
- *
- * Both MCP servers refuse any request whose `Sec-Fetch-Site` is `cross-site`
- * ("cross-origin request detected from Sec-Fetch-Site header", HTTP 403).
- * This is NOT a misconfiguration to route around: each server wraps its
- * handler in Go's `http.NewCrossOriginProtection()` on purpose
- * (`crossOriginProtected` in libgen-mcp's `cmd/server/main.go`,
- * `crossOriginProtectionMiddleware` in gitlab-mcp-server's), because the
- * 2026-07-28 streamable-HTTP transport requires servers to validate Origin
- * against DNS rebinding. Reproduced straight against a container IP on the
- * Docker network, so neither nginx nor Cloudflare is involved; the rule is
- * Go's: safe methods pass, a request with no browser headers passes, a
- * `Sec-Fetch-Site` of `same-site` or `cross-site` is refused, and with no
- * `Sec-Fetch-Site` the `Origin` must match the request's `Host`.
- *
- * On the real site the check never fires: the inspector page and
- * the endpoint share an origin, so the browser stamps `same-origin`. Under
- * Playwright the same build is served from `localhost:4321` while the island
- * still calls the absolute `https://mcp.jmrp.io/...` from `servers.ts`, so the
- * browser correctly stamps `cross-site` and every one of these tests times out
- * waiting for output that will never come.
- *
- * Rewriting that ONE header restores production conditions instead of faking a
- * result: the request, the server, the SSE stream and the painting are all
- * real, and the only thing corrected is the artefact of serving the page from
- * a different host than production. Scoped to the two endpoint URLs so a page
- * load — or any other request a test makes — keeps the browser's own value.
- * It does not weaken the protection anywhere it runs: this is test-process
- * plumbing, and the deployed servers keep refusing the same requests.
- *
- * @param page Página bajo test.
- * @returns Nada; registra la ruta en la página.
- */
-export async function passSameOriginToMcp(page: Page): Promise<void> {
-  await page.route(/mcp\.jmrp\.io\/(gitlab|libgen)$/, async (route) => {
-    // `route.fetch` (Playwright's own request context, not the browser) is what
-    // actually applies the override: `route.continue({ headers })` leaves
-    // `Sec-Fetch-Site` untouched — the browser owns that one — and the request
-    // still arrives marked `cross-site`. Verified against the live endpoint:
-    // `continue` keeps returning 403, `fetch` returns the catalog.
-    const response = await route.fetch({
-      headers: { ...route.request().headers(), "sec-fetch-site": "same-origin" },
-    });
-    await route.fulfill({ response });
-  });
-}
-
-/**
  *
  */
 export async function stubMcp(

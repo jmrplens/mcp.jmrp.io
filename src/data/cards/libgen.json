@@ -234,7 +234,7 @@
     ],
     "name": "libgen-mcp",
     "title": "Books & Papers MCP Server",
-    "version": "1.7.1",
+    "version": "1.7.2",
     "websiteUrl": "https://jmrp.io/docs/libgen-mcp"
   },
   "tools": [
