@@ -29,18 +29,29 @@
  *
  *   - `serverCards` / `getServerCard(id)` — the CURATED view: `name`,
  *     `title`, `description`, icons, and (for tools) the behavioural
- *     `annotations` hints, and (for prompts) `arguments`. This is what a
- *     page should render. Nothing here is invented — every field is a direct
- *     pass-through of what the card already contains, just without the
- *     schemas. Icons are filtered for safety first — see `filterIcons` — and
- *     so is `serverInfo.websiteUrl` — see `filterWebsiteUrl`.
+ *     `annotations` hints plus BOTH schemas, and (for prompts) `arguments`.
+ *     This is what a page should render. Nothing here is invented — every
+ *     field is a direct pass-through of what the card already contains.
+ *     Icons are filtered for safety first — see `filterIcons` — and so is
+ *     `serverInfo.websiteUrl` — see `filterWebsiteUrl`.
+ *
+ *     The schemas used to stop here, on the argument that ~2.5 KB per tool
+ *     of raw JSON was noise. It was the wrong cut: a tool page showed what a
+ *     tool was FOR and never what to send it or what came back, while a
+ *     prompt directly below listed every argument it takes. The author put
+ *     it plainly — "las tools no muestran qué campos tienen ni qué
+ *     devuelven". What the page renders is not the raw schema either way:
+ *     `ServerPage.astro` runs both through `schemaFields`, the same reader
+ *     the inspector uses on the live `tools/list`, and paints name, type,
+ *     required and description — so a field reads identically on the ficha
+ *     and in the live catalog, and the weight is the part worth reading.
  *   - `serverCardDocuments` / `getServerCardDocument(id)` — the FULL parsed
  *     document, schemas and all, for the rare case something genuinely needs
  *     them (it is still sitting right there in the committed JSON either
- *     way). Nothing in this site currently renders `inputSchema` or
- *     `outputSchema` — that job belongs to the inspector's live
- *     `tools/list` call (`src/lib/tool-schema.ts`), which reads it from the
- *     running server, not from this static snapshot.
+ *     way) — a raw `$ref`, a composition keyword, anything `schemaFields`
+ *     deliberately does not try to read. The inspector still prefers its
+ *     own live `tools/list` over this static snapshot, which is the honest
+ *     source when a server is actually running.
  *
  * `serverInfo.title`/`description`/`websiteUrl`/`icons`, and every tool's or
  * prompt's `icons`, are all genuinely optional: gitlab 2.6.6 sends none of
@@ -246,7 +257,10 @@ export type ToolAnnotationsSummary = Pick<
 >;
 
 /** What a page paints for one tool: no schema, icons filtered for safety. */
-export type ToolSummary = Pick<CardTool, "name" | "title" | "description"> & {
+export type ToolSummary = Pick<
+  CardTool,
+  "name" | "title" | "description" | "inputSchema" | "outputSchema"
+> & {
   icons?: CardIcon[];
   annotations?: ToolAnnotationsSummary;
 };
@@ -562,13 +576,21 @@ export function summarizeServerCardDocument(
     // Verbatim pass-through — see `ServerCardSummary` for why no filtering.
     capabilities: doc.capabilities,
     subscriptions: doc.subscriptions,
-    tools: doc.tools.map(({ name, title, description, icons, annotations }) => ({
-      name,
-      title,
-      description,
-      icons: filterIcons(icons),
-      annotations: summarizeAnnotations(annotations),
-    })),
+    tools: doc.tools.map(
+      ({ name, title, description, icons, annotations, inputSchema, outputSchema }) => ({
+        name,
+        title,
+        description,
+        icons: filterIcons(icons),
+        annotations: summarizeAnnotations(annotations),
+        // Passed through, not summarized: the page runs them through the same
+        // `schemaFields` the inspector uses, so a field reads identically on
+        // the ficha and in the live catalog. See this module's header comment
+        // for why they used to stop here.
+        inputSchema,
+        outputSchema,
+      }),
+    ),
     prompts: doc.prompts.map(({ name, title, description, arguments: args, icons }) => ({
       name,
       title,

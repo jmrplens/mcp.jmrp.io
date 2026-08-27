@@ -35,6 +35,7 @@ import { getLangFromUrl } from "../../i18n/utils";
 import { safeIcon } from "../../lib/card-icons";
 import { pageUrl, serverPagePath } from "../../lib/seo";
 import { anchorSlug } from "../../lib/slug";
+import { schemaFields } from "../../lib/tool-schema";
 import ActionSearch from "../ActionSearch";
 import ServerEntryChips from "../ServerEntryChips.astro";
 import ServerToc from "../ServerToc.astro";
@@ -502,6 +503,63 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                       ))}
                     </p>
                   ))}
+                  {/* What to send. The same `schemaFields` the inspector uses
+                      on the LIVE `tools/list`, run here over the card's
+                      committed copy — one reader, so a field is described the
+                      same way whichever page you meet it on. Collapsed, like
+                      the return below it: a tool carries two lists where a
+                      prompt carries one, and both open at once buried the
+                      description they belong to. */}
+                  {(() => {
+                    const args = schemaFields(entry.data.inputSchema);
+                    return args.length > 0 ? (
+                      <details class="returns">
+                        <summary>
+                          {sp.toolArgsHead}{" "}
+                          <span class="count">({args.length} {sp.toolFieldsToggle})</span>
+                        </summary>
+                        <dl class="args">
+                          {args.map((field) => (
+                            <>
+                              <dt>
+                                <code>{field.name}</code>
+                                {field.type && <span class="arg-type"> {field.type}</span>}
+                                {field.required && <span class="req"> · {sp.requiredArg}</span>}
+                              </dt>
+                              <dd>{field.description}</dd>
+                            </>
+                          ))}
+                        </dl>
+                      </details>
+                    ) : (
+                      <p class="entry-desc entry-desc--muted">{sp.toolNoArgs}</p>
+                    );
+                  })()}
+                  {/* What comes back, collapsed: `read` answers with 19 fields,
+                      and what you need to CALL a tool is not what you need to
+                      READ its answer. Zero JS — a plain <details>. */}
+                  {(() => {
+                    const out = schemaFields(entry.data.outputSchema);
+                    return out.length > 0 ? (
+                      <details class="returns">
+                        <summary>
+                          {sp.toolReturnsHead}{" "}
+                          <span class="count">({out.length} {sp.toolFieldsToggle})</span>
+                        </summary>
+                        <dl class="args">
+                          {out.map((field) => (
+                            <>
+                              <dt>
+                                <code>{field.name}</code>
+                                {field.type && <span class="arg-type"> {field.type}</span>}
+                              </dt>
+                              <dd>{field.description}</dd>
+                            </>
+                          ))}
+                        </dl>
+                      </details>
+                    ) : null;
+                  })()}
                   <p class="entry-cta">
                     <a href={inspectorHref("tools", entry.data.name)}>{sp.tryInInspector}</a>
                   </p>
@@ -1098,9 +1156,66 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
     font-family: var(--font-mono);
   }
 
+  /* Heading over a tool's argument list. Prompts do not need one — a prompt
+     has arguments and nothing else — but a tool now shows two lists, and
+     unlabelled they would read as one. */
+  .schema-head {
+    margin: 0.9rem 0 0;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* The declared type, beside the field name: `string`, `string[]`,
+     `"a" | "b"` — whatever `schemaFields` could read. Quieter than the name,
+     which is what a reader scans for. */
+  .arg-type {
+    color: var(--color-text-muted);
+    font-weight: var(--fw-normal);
+  }
+
+  /* Both schema lists, collapsed. Same list inside, one summary line outside.
+     (Class name kept from when only the return used it — both use it now.) */
+  .returns {
+    margin-top: 0.9rem;
+  }
+
+  .returns > summary {
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .returns > summary:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  .returns[open] > summary {
+    margin-bottom: 0.2rem;
+  }
+
+  /* Inside a <details> the list already has the summary above it, so it does
+     not need the rule the standalone one uses to separate itself. */
+  .returns .args {
+    padding-top: 0;
+    border-top: none;
+  }
+
   .args {
     display: grid;
-    grid-template-columns: auto 1fr;
+
+    /* Capped, not `auto`. A tool's type can be a long enum union — libgen's
+       `source` lists sixteen alternatives — and an `auto` track sizes itself
+       to that, which measured 630px of an 843px list and squeezed every
+       description into the remaining sliver. Bounded, the union wraps inside
+       its own column and the descriptions keep their width. */
+    grid-template-columns: minmax(0, 40%) 1fr;
     gap: 0.3rem 0.85rem;
     margin: 0.75rem 0 0;
     padding-top: 0.75rem;
@@ -1109,6 +1224,7 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
   }
 
   .args dt {
+    overflow-wrap: anywhere; /* so a long union breaks inside the capped column */
     color: var(--color-text-heading);
     font-family: var(--font-mono);
     font-size: 0.8rem;

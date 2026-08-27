@@ -80,6 +80,18 @@ export const serversPage = {
     tocClose: "Close",
 
     requiredArg: "required",
+    /** Tool schema headings. Tools carried `inputSchema`/`outputSchema` in the
+     * card all along and the page threw both away, so a tool showed what it
+     * was for and never what to send it — while a prompt right below listed
+     * every argument. The counts go in the heading because they are the first
+     * thing anyone wants ("is this a one-field call or a twelve-field one?"). */
+    toolArgsHead: "Arguments",
+    toolNoArgs: "This tool takes no arguments.",
+    toolReturnsHead: "What it returns",
+    /** Both lists are collapsed and both count their fields in the summary:
+     * a tool carries two of them where a prompt carries one, and open at once
+     * they buried the description they belong to. */
+    toolFieldsToggle: "fields",
     noArguments: "This prompt takes no arguments.",
     mimeTypeLabel: "Type",
     /** aria-label prefix for the compact chip index inside a long family. */
@@ -264,6 +276,11 @@ export const serversPage = {
     tocClose: "Cerrar",
 
     requiredArg: "obligatorio",
+    /** Ver `en.toolArgsHead`. */
+    toolArgsHead: "Argumentos",
+    toolNoArgs: "Esta tool no lleva argumentos.",
+    toolReturnsHead: "Qué devuelve",
+    toolFieldsToggle: "campos",
     noArguments: "Este prompt no lleva argumentos.",
     mimeTypeLabel: "Tipo",
     /** Ver `en.chipIndexLabel`. */
