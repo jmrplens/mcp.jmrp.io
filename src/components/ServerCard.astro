@@ -327,6 +327,10 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
      hairline-topped rhythm as those folds had, so removing them does not
      leave an odd gap in the card's vertical spacing. */
   .server-card-link {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    align-items: center;
     padding-top: 0.9rem;
     margin: 0;
     border-top: 1px solid var(--color-hair);
@@ -334,14 +338,39 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
     font-size: 0.8125rem;
   }
 
+  /* Filled, not a link. This card is dense — endpoint, chips, counts, headers,
+     a collapsed client config — and the one action that matters most (go read
+     what this server actually does) was a text link with the same weight as
+     everything around it. A solid block is the one thing on the card that
+     cannot be mistaken for prose. */
   .server-card-link a {
-    color: var(--color-accent);
+    display: inline-flex;
+    gap: 0.4rem;
+    align-items: center;
+    padding: 0.45rem 0.9rem;
+    color: var(--color-on-primary);
+    font-weight: var(--fw-semibold);
     text-decoration: none;
+    background: var(--color-primary);
+    border-radius: var(--radius-md);
   }
 
   .server-card-link a:hover {
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    background: var(--color-primary-hover);
+  }
+
+  /* The ring, not an underline: on a filled control an underline reads as a
+     link that lost its button. */
+  .server-card-link a:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  /* The arrow belongs to the button and says "this goes somewhere", so it is
+     decorative: a screen reader already has the label. */
+  .server-card-link a::after {
+    content: "→";
+    font-weight: var(--fw-normal);
   }
 
   .server-card-counts {
