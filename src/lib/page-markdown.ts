@@ -1,4 +1,5 @@
 import { serverCards } from "../data/server-cards";
+import type { GitlabActionEntry, GitlabActionParam } from "../data/surface";
 import type { McpServer } from "../data/servers";
 import { servers } from "../data/servers";
 import type { Lang } from "../i18n/config";
@@ -270,5 +271,78 @@ export function serverMarkdown(server: McpServer, lang: Lang): string {
       `Every tool, prompt, resource and template of this server — with what each one takes and returns — is listed in ${SITE_ORIGIN}/llms-full.txt, and served live by the server itself at \`${server.endpoint}/server-card\`.`,
     ]) +
     "\n"
+  );
+}
+
+/** `name (type)`, or the bare name when the manifest declares no type. */
+function paramLabel(param: GitlabActionParam): string {
+  return param.type ? `${param.name} (${param.type})` : param.name;
+}
+
+/**
+ * One action-domain page as markdown.
+ *
+ * These are the twins worth having most, and the reason is volume: the domain
+ * pages carry the whole 851-action catalog, thirty pages of reference that an
+ * agent would otherwise have to read through the HTML of a filter island. The
+ * prose pages describe the service; these ARE the data.
+ *
+ * Every field the page paints is here — behaviour, description, required
+ * parameters with their types, the any-of groups, and where an alias points —
+ * because a reader that cannot see the page has no second place to look for
+ * them. The alias target names its domain when it lives in another one, the
+ * same as on the page: `issue.list_group` resolves into `group`, and a bare
+ * id would send a reader to the wrong file.
+ *
+ * @param server The server that owns the catalog.
+ * @param domain The domain being rendered.
+ * @param actions Its actions, in catalog order.
+ * @param aliasDomains Domain of each id an `alias_of` in this page points at.
+ * @param lang Locale to render.
+ * @returns The markdown.
+ */
+export function domainMarkdown(
+  server: string,
+  domain: string,
+  actions: GitlabActionEntry[],
+  aliasDomains: Record<string, string>,
+  lang: Lang,
+): string {
+  const t = serversPage[lang];
+  const url = `${SITE_ORIGIN}${lang === "es" ? "/es" : ""}/servers/${server}/actions/${domain}/`;
+  const body = actions
+    .map((action) => {
+      const flags = [
+        action.destructive ? t.domainChipDestructive : undefined,
+        action.read_only ? t.domainChipReadOnly : undefined,
+      ].filter(Boolean);
+      const lines = [`### \`${action.id}\`${action.title ? ` — ${action.title}` : ""}`];
+      if (flags.length > 0) lines.push(`_${flags.join(" · ")}_`);
+      lines.push(action.description);
+      if (action.required_params?.length) {
+        lines.push(
+          `**${t.domainParamsLabel}:** ${action.required_params.map((p) => `\`${paramLabel(p)}\``).join(", ")}`,
+        );
+      }
+      if (action.required_params_any_of?.length) {
+        const groups = action.required_params_any_of
+          .map((group) => group.map((p) => `\`${paramLabel(p)}\``).join(" + "))
+          .join(` ${t.domainAnyOfJoiner} `);
+        lines.push(`**${t.domainAnyOfLabel}:** ${groups}`);
+      }
+      if (action.alias_of) {
+        const target = aliasDomains[action.alias_of];
+        lines.push(`**${t.domainAliasOf}:** \`${action.alias_of}\`${target ? ` (${target})` : ""}`);
+      }
+      return lines.join("\n\n");
+    })
+    .join("\n\n");
+  return (
+    head(
+      `${domain} — ${server}`,
+      `${actions.length} ${lang === "es" ? "acciones" : "actions"}`,
+      url,
+    ) +
+    `\n\n## ${lang === "es" ? "Acciones" : "Actions"}\n\n${body}\n`
   );
 }

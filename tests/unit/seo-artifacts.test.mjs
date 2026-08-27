@@ -190,10 +190,20 @@ test("cada gemelo en markdown tiene su location y su canónico", (t) => {
   walk(root);
 
   assert.ok(twins.length > 0, "el build no emitió ningún gemelo en markdown");
+  // Dos formas válidas de estar servido, y la segunda es imprescindible: los
+  // sesenta gemelos de dominio no pueden llevar una `location` exacta cada uno,
+  // así que caen en el bloque `^~` de su prefijo, que anida una `location ~
+  // \.md$`. Se exige que ese anidado exista, no basta con que el prefijo esté:
+  // sin él nginx probaría `$uri/index.html` sobre un fichero .md y daría 404.
+  const prefixes = [...vhost.matchAll(/location \^~ (\S+) \{([\s\S]*?)\n {4}\}/g)]
+    .filter(([, , block]) => block.includes("\\.md$"))
+    .map(([, prefix]) => prefix);
   for (const twin of twins) {
+    const exact = vhost.includes(`location = ${twin} `);
+    const covered = prefixes.some((prefix) => twin.startsWith(prefix));
     assert.ok(
-      vhost.includes(`location = ${twin} `),
-      `${twin} no tiene 'location' en el vhost: dará 404 en producción`,
+      exact || covered,
+      `${twin} no está servido: ni 'location = ${twin}' ni un prefijo '^~' que trate .md`,
     );
   }
   // Y que el map del canónico exista: sin él los gemelos se sirven huérfanos,
