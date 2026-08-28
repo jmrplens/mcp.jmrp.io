@@ -419,14 +419,26 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
           )
         }
         <p class="server-meta-links">
-          <a href={inspectorOverviewHref}>{sp.tryInInspector}</a>{" "}
-          <a href={serverMeta.repo}>{t.repository}</a>{" "}
-          <a href={serverMeta.docsSite ?? serverMeta.docs}>{t.documentation}</a>
+          <a href={inspectorOverviewHref}>
+            <span class="link-icon i-mdi:console-line" aria-hidden="true" />
+            {sp.tryInInspector}
+          </a>{" "}
+          <a href={serverMeta.repo}>
+            <span class="link-icon i-simple-icons:github" aria-hidden="true" />
+            {t.repository}
+          </a>{" "}
+          <a href={serverMeta.docsSite ?? serverMeta.docs}>
+            <span class="link-icon i-mdi:book-open-variant" aria-hidden="true" />
+            {t.documentation}
+          </a>
           {
             websiteUrl && (
               <>
                 {" "}
-                <a href={websiteUrl}>{sp.websiteLabel}</a>
+                <a href={websiteUrl}>
+                  <span class="link-icon i-mdi:web" aria-hidden="true" />
+                  {sp.websiteLabel}
+                </a>
               </>
             )
           }
@@ -1037,7 +1049,11 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
   }
 
   .server-meta-links a {
+    display: inline-flex;
+    gap: 0.3rem;
+    align-items: center;
     color: var(--color-accent);
+    font-weight: var(--fw-semibold);
     text-decoration: none;
   }
 
@@ -1056,7 +1072,11 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
     font-size: var(--text-sm);
     line-height: 1.6;
     text-wrap: pretty;
-    background: var(--color-bg-subtle);
+    /* Superficie, no tinte: `--color-bg-subtle` es un 5% translúcido y aquí
+       este bloque se apoya en el fondo de página, así que la rejilla lo
+       cruzaba. Donde ese token SÍ vale es encima de una tarjeta ya opaca
+       (los chips, el verbo POST): ahí es un matiz, no la superficie. */
+background: var(--color-bg-secondary);
     border-radius: var(--radius-md);
   }
 
@@ -1090,6 +1110,13 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
     background: var(--color-bg-secondary);
     border: 1px solid var(--color-hair);
     border-radius: var(--radius-md);
+    /* SIN sombra, y es deliberado. jmrp.io/projects tampoco la lleva en sus
+       tarjetas (cero `box-shadow` en esa página): las separa la superficie
+       opaca y el filete, nada más. Y los dos únicos tokens de sombra que
+       existen aquí —`--sh-card` y `--sh-pop`— son caídas de 60-70px pensadas
+       para una tarjeta grande y sola; repetidas en cientos de fichas seguidas
+       ensuciarían la columna entera. Inventar un tercer token para esto sería
+       ampliar el sistema de diseño sin mandato. */
     /* Anchor target offset: without this, jumping to #tool-x lands the
        entry's top edge flush under the sticky site header. */
     scroll-margin-top: calc(var(--header-height) + 1rem);

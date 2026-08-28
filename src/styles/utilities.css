@@ -328,3 +328,20 @@
     transition: none;
   }
 }
+
+/* ===== Filas de enlaces con icono ===========================================
+   El patrón de jmrp.io/projects: cada enlace de una fila lleva su icono
+   delante, en ámbar y con la etiqueta en negrita. Sin él, "Repository
+   Documentation" se lee como una sola frase gris y ninguno de los dos parece
+   un enlace — que es lo que pasaba aquí.
+
+   El icono se alinea con `em` y no con px para que siga al tamaño de letra
+   del sitio donde se use: la ficha de la portada y la página del servidor
+   usan cuerpos distintos. */
+.link-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+}

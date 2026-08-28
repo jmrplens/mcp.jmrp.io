@@ -182,8 +182,14 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
   }
 
   <p class="links">
-    <a href={server.repo}>{t.repository}</a>{" "}
-    <a href={server.docsSite ?? server.docs}>{t.documentation}</a>
+    <a href={server.repo}>
+      <span class="link-icon i-simple-icons:github" aria-hidden="true" />
+      {t.repository}
+    </a>{" "}
+    <a href={server.docsSite ?? server.docs}>
+      <span class="link-icon i-mdi:book-open-variant" aria-hidden="true" />
+      {t.documentation}
+    </a>
   </p>
 </article>
 

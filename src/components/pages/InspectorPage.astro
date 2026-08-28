@@ -211,7 +211,9 @@ const noscriptCurl = noscriptServer
     margin: 0;
     padding: 0.6rem 0.75rem;
     overflow-x: auto;
-    background: var(--color-bg-subtle);
+    /* Superficie, no tinte: `--color-bg-subtle` es un 5% translúcido y este
+       bloque se apoya en el fondo de página, así que la rejilla lo cruzaba. */
+    background: var(--color-bg-secondary);
     border: var(--border-hair);
     border-radius: var(--radius-sm);
   }
