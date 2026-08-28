@@ -211,10 +211,16 @@ test("cada gemelo en markdown tiene su location y su canónico", (t) => {
   }
   // Y que el map del canónico exista: sin él los gemelos se sirven huérfanos,
   // sin decir de qué página son.
+  // The variable is domain-prefixed on purpose: nginx maps are GLOBAL to the
+  // http context, and an unprefixed `$md_link_header` here collided with the
+  // identically named one in jmrp.io's vhost — every .md twin of that domain
+  // briefly advertised a canonical pointing at mcp.jmrp.io, with `nginx -t`
+  // green throughout, because the collision is silent. Asserting the prefixed
+  // name is what stops that from coming back unnoticed.
   assert.match(
     vhost,
-    /map \$uri \$md_link_header/,
-    "falta el map que pone el Link rel=canonical en los gemelos",
+    /map \$uri \$mcp_md_link_header/,
+    "the map that sets Link rel=canonical on the twins is missing or unprefixed",
   );
 });
 
