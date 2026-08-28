@@ -86,6 +86,8 @@ export const home = {
      * OAuth primero porque es lo que el despliegue hace, y el token pegado a
      * mano después porque es la salida para lo que no puede abrir un navegador.
      */
+    clientCopy: "Copy",
+    clientCopied: "Copied",
     clientOauthHead: "Sign in with OAuth (recommended)",
     clientOauthHint:
       "Your client opens gitlab.com in the browser, you authorize it there, and it stores the token itself — you never paste one. The client ID has to be configured explicitly: without it these clients fall back to dynamic registration, which GitLab answers with a scope this server cannot use.",
@@ -147,6 +149,8 @@ export const home = {
     /** Ver `en.clientHead`: `{server}` lo sustituye ServerCard. */
     clientHead: "¿Cómo añado {server} a un cliente MCP?",
     /** Ver `en.clientOauthHead`: el orden de los dos caminos es deliberado. */
+    clientCopy: "Copiar",
+    clientCopied: "Copiado",
     clientOauthHead: "Entrar con OAuth (recomendado)",
     clientOauthHint:
       "Tu cliente abre gitlab.com en el navegador, autorizas ahí y él guarda el token: no pegas ninguno. El client ID hay que configurarlo sí o sí — sin él estos clientes caen al registro dinámico, que GitLab responde con un alcance que este servidor no puede usar.",

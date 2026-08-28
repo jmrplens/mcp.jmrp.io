@@ -197,6 +197,8 @@ const tocFamilies = [
   { id: "connect-h", label: sp.connectHead },
   // No count: it is prose, not a family of entries — see `TocFamily.count`.
   { id: "context-h", label: sp.contextHead },
+  // `overview-h` no aparece aquí: ServerToc lo pinta aparte, con
+  // `overviewLabel`. Ver la llamada al componente más abajo.
   ...(instructions
     ? [{ id: "instructions-h", label: sp.instructionsHead }]
     : []),
@@ -369,6 +371,22 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
         <ClientSetup server={serverMeta} lang={lang} />
       </section>
 
+      <section class="server-family" aria-labelledby="context-title" id="context-h">
+        <h2 class="subsection-title" id="context-title">{sp.contextHead}</h2>
+        <p class="prose-text">{sp.contextService}</p>
+        {/* The one sentence here that differs per server, so it comes from
+            `servers.ts` and not from the i18n module. */}
+        <p class="prose-text">{serverMeta.rateLimit[lang]}</p>
+        <p class="prose-text">
+          {sp.contextRouting}{" "}
+          <a href={internalsHref}>{sp.contextRoutingLink}</a>
+        </p>
+        <p class="prose-text">
+          {sp.contextPolicies}{" "}
+          <a href={policiesHref}>{sp.contextPoliciesLink}</a>
+        </p>
+      </section>
+
       <section class="server-family" aria-labelledby="overview-title" id="overview-h">
         <h2 class="subsection-title" id="overview-title">{sp.overviewHead}</h2>
         <dl class="meta-grid">
@@ -423,21 +441,6 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
           them, the caveats are read by nobody who did not already go looking.
           See `serversPage.contextHead` for why it links out instead of
           repeating `/policies/`. */}
-      <section class="server-family" aria-labelledby="context-title" id="context-h">
-        <h2 class="subsection-title" id="context-title">{sp.contextHead}</h2>
-        <p class="prose-text">{sp.contextService}</p>
-        {/* The one sentence here that differs per server, so it comes from
-            `servers.ts` and not from the i18n module. */}
-        <p class="prose-text">{serverMeta.rateLimit[lang]}</p>
-        <p class="prose-text">
-          {sp.contextRouting}{" "}
-          <a href={internalsHref}>{sp.contextRoutingLink}</a>
-        </p>
-        <p class="prose-text">
-          {sp.contextPolicies}{" "}
-          <a href={policiesHref}>{sp.contextPoliciesLink}</a>
-        </p>
-      </section>
 
       {/* The server's own connect-time instructions (`server/discover`),
           quoted verbatim from the committed surface snapshot — data, not

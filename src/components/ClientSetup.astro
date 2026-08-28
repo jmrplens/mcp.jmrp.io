@@ -62,10 +62,20 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
         <h4 class="setup-head">{t.clientOauthHead}</h4>
         <p class="hint hint--lead">{t.clientOauthHint}</p>
         {oauthBlocks.map((block) => (
-          <figure>
-            <figcaption>{block.label}</figcaption>
-            <pre><code>{block.code}</code></pre>
-          </figure>
+          <details class="snippet">
+            <summary>{block.label}</summary>
+            <div class="snippet-body">
+              <button
+                type="button"
+                class="snippet-copy"
+                data-copy
+                data-copied={t.clientCopied}
+              >
+                {t.clientCopy}
+              </button>
+              <pre><code>{block.code}</code></pre>
+            </div>
+          </details>
         ))}
         <h4 class="setup-head">{t.clientTokenHead}</h4>
         <p class="hint hint--lead">{t.clientTokenHint}</p>
@@ -74,14 +84,53 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
   }
   {
     tokenBlocks.map((block) => (
-      <figure>
-        <figcaption>{block.label}</figcaption>
-        <pre><code>{block.code}</code></pre>
-      </figure>
+      <details class="snippet">
+        <summary>{block.label}</summary>
+        <div class="snippet-body">
+          <button
+            type="button"
+            class="snippet-copy"
+            data-copy
+            data-copied={t.clientCopied}
+          >
+            {t.clientCopy}
+          </button>
+          <pre><code>{block.code}</code></pre>
+        </div>
+      </details>
     ))
   }
   {hasSecret && <p class="hint">{t.clientEnvHint}</p>}
 </div>
+
+{/* Copiar al portapapeles. Delegado en `document` y no un listener por botón:
+    la página pinta seis, y con delegación el coste es uno.
+
+    La página YA envía JavaScript (arranque de tema, su toggle y el cargador de
+    islas de Astro), así que esto no estrena una excepción — sigue el mismo
+    patrón que el toggle, y el nonce de la CSP se lo pone el post-build.
+
+    Si el navegador no expone `navigator.clipboard` (contexto no seguro, o
+    permiso denegado) el botón no desaparece ni miente: se queda sin efecto y
+    el texto sigue estando seleccionable a mano, que es como se copiaba antes
+    de que existiera este botón. */}
+<script>
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const button = target.closest("[data-copy]");
+    if (!(button instanceof HTMLButtonElement)) return;
+    const code = button.parentElement?.querySelector("code")?.textContent;
+    if (!code || !navigator.clipboard) return;
+    navigator.clipboard.writeText(code).then(() => {
+      const previous = button.textContent;
+      button.textContent = button.dataset.copied ?? previous;
+      setTimeout(() => {
+        button.textContent = previous;
+      }, 1500);
+    });
+  });
+</script>
 
 <style>
   .client-setup {
@@ -104,17 +153,63 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
     margin-bottom: 0.7rem;
   }
 
-  figure {
-    margin: 0 0 0.8rem;
+  /* Cada fragmento va plegado y nombra su fichero: con dos caminos (OAuth y
+     token) y tres clientes son SEIS bloques, y desplegados convertían la
+     sección de apertura de la página en un muro de JSON. Plegados, la sección
+     se lee como prosa con seis etiquetas y cada quien abre el suyo. */
+  .snippet {
+    margin: 0 0 0.45rem;
+    border: 1px solid var(--color-hair);
+    border-radius: var(--radius-sm);
   }
 
-  figcaption {
-    margin-bottom: 0.3rem;
+  .snippet summary {
+    padding: 0.4rem 0.6rem;
     color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: 0.7rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .snippet[open] summary {
+    border-bottom: 1px solid var(--color-hair);
+  }
+
+  .snippet-body {
+    position: relative;
+  }
+
+  /* Encima del código, en su esquina. `opacity` y no `display` para que siga
+     siendo alcanzable con el teclado: aparece igualmente al recibir el foco. */
+  .snippet-copy {
+    position: absolute;
+    top: 0.35rem;
+    right: 0.35rem;
+    padding: 0.15rem 0.45rem;
+    border: 1px solid var(--color-hair);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    opacity: 0;
+    cursor: pointer;
+    transition: opacity 0.12s ease;
+  }
+
+  .snippet-body:hover .snippet-copy,
+  .snippet-copy:focus-visible {
+    opacity: 1;
+  }
+
+  /* Sin puntero fino (móvil, táctil) no hay hover que revele el botón, así que
+     ahí vive siempre visible. */
+  @media (hover: none) {
+    .snippet-copy {
+      opacity: 1;
+    }
   }
 
   /* El bloque desborda en horizontal DENTRO de sí mismo: la ficha vive en una

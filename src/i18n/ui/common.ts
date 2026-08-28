@@ -39,7 +39,13 @@ export const common = {
      * in the merged `ui` object — the collision guard forced a rename instead
      * of the obvious fix. One string, one home.
      */
-    backToHome: "Back to the servers",
+    /**
+     * Dice «la portada» y no «los servidores» desde que existe `/servers/`:
+     * en esa página el texto viejo prometía volver a los servidores y llevaba
+     * a otro sitio que también los lista, que es la peor clase de enlace —
+     * el que no miente sobre su destino sino sobre cuál de dos es.
+     */
+    backToHome: "Back to the home page",
     skip: "Skip to content",
     source: "Source",
     other: "Español",
@@ -96,7 +102,7 @@ export const common = {
     /** Ver `en.updatedIn`: lo lee el componente compartido de la fecha. */
     updatedIn: "Esta página se actualizó por última vez el",
     /** Ver `en.backToHome`: enlace de vuelta a la portada, en las tres. */
-    backToHome: "Volver a los servidores",
+    backToHome: "Volver a la portada",
     skip: "Saltar al contenido",
     source: "Código",
     other: "English",
