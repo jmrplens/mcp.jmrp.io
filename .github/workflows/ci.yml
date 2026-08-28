@@ -56,7 +56,7 @@ jobs:
         run: node scripts/ci/calculate-jsdoc-coverage.mjs
 
       - name: Typecheck
-        run: pnpm typecheck
+        run: pnpm typecheck --minimumFailingSeverity warning
 
       # Antes del build: si el snapshot de la identidad está obsoleto, el build
       # lo usaría en silencio ante cualquier fallo de red y publicaría datos
@@ -72,6 +72,23 @@ jobs:
 
       - name: Validar HTML
         run: npx html-validate dist
+
+      # The last gate `pnpm verify` had that CI did not. The action runs lychee
+      # directly, so it does its own globbing — `**` here is recursive, unlike
+      # the same pattern handed to a shell without `globstar`.
+      - name: Restore lychee cache
+        uses: actions/cache@v6
+        with:
+          path: .lycheecache
+          key: cache-lychee-${{ github.sha }}
+          restore-keys: cache-lychee-
+      - name: Broken links (Lychee)
+        uses: lycheeverse/lychee-action@v2.9.0
+        with:
+          args: --config lychee.toml --root-dir ${{ github.workspace }}/dist ./dist/**/*.html
+          fail: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Los e2e llaman a los endpoints REALES en producción. En CI no se
       # ejecutan los que dependen de la red: un fallo del runner o un mirror
