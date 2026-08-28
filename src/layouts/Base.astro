@@ -14,10 +14,14 @@ import "../styles/global.css";
 
 import { Font } from "astro:assets";
 
+import ServerMark from "../components/ServerMark.astro";
+import { getServerCard } from "../data/server-cards";
+import { servers } from "../data/servers";
 import { LANGS } from "../i18n/config";
 import { type Lang, ui } from "../i18n/ui";
 import { getLangFromUrl } from "../i18n/utils";
 import { buildDate } from "../lib/build-date";
+import { safeIcon } from "../lib/card-icons";
 import { humanDate } from "../lib/format";
 import { buildSiteGraph, safeJsonLd } from "../lib/jsonld";
 import {
@@ -27,9 +31,9 @@ import {
   OG_LOCALES,
   ogImageAlt,
   ogImageUrl,
-  PAGE_PATHS,
   type PageId,
   pageUrl,
+  serverPageUrl,
   SITE_NAME,
 } from "../lib/seo";
 
@@ -187,11 +191,40 @@ const NAV_LABELS: Record<PageId, string> = {
   policies: t.navPolicies,
   servers: t.navServers,
 };
-const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
+/**
+ * El orden del menú, explícito y no el de `Object.keys(PAGE_PATHS)`.
+ *
+ * Importa más de lo que parece: en móvil el menú ES una lista vertical, así
+ * que este orden es la jerarquía declarada del sitio. Va de qué hay → pruébalo
+ * → cómo funciona → letra pequeña, y no alfabético, que es lo que salía de
+ * heredar el orden de las claves del objeto.
+ */
+const NAV_ORDER: PageId[] = [
+  "home",
+  "servers",
+  "inspector",
+  "internals",
+  "policies",
+];
+const navItems = NAV_ORDER.map((id) => ({
   id,
   href: new URL(pageUrl(lang, id)).pathname,
   label: NAV_LABELS[id],
   current: id === page,
+}));
+
+/**
+ * Los servidores, colgando de «Servers» en el menú.
+ *
+ * El icono sale de la tarjeta que publica cada servidor —el mismo que su
+ * propia página— y viaja como `data:` dentro de ella, así que no añade una
+ * petición. Un servidor sin icono simplemente no lo pinta: la lista no
+ * depende de que exista.
+ */
+const serverSubItems = servers.map((server) => ({
+  href: new URL(serverPageUrl(lang, server.id)).pathname,
+  name: server.name,
+  icon: safeIcon(getServerCard(server.id)?.serverInfo?.icons)?.src,
 }));
 ---
 
@@ -441,6 +474,25 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
                     )}
                     {item.label}
                   </a>
+                  {/* Los servidores cuelgan de «Servers» sin quitarle su
+                      enlace: el `<a>` de arriba sigue llevando al índice, y
+                      esta lista solo aparece al pasar el ratón o al entrar con
+                      el teclado (`:focus-within`, que es lo que la hace
+                      alcanzable sin ratón). Cero JavaScript. */}
+                  {item.id === "servers" && serverSubItems.length > 0 && (
+                    <ul class="nav-sub">
+                      {serverSubItems.map((sub) => (
+                        <li>
+                          <a href={sub.href}>
+                            {sub.icon && (
+                              <ServerMark src={sub.icon} class="nav-sub-icon" />
+                            )}
+                            {sub.name}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </li>
               ))
             }
@@ -497,6 +549,7 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
             type="button"
             id="theme-toggle"
             class="theme-toggle"
+            data-theme-toggle
             aria-label={t.themeToggle}
             data-label-light={t.themeToLight}
             data-label-dark={t.themeToDark}
@@ -511,12 +564,8 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
             />
           </button>
 
-          <a
-            class="gh-link"
-            href="https://github.com/jmrplens/mcp.jmrp.io"
-            aria-label={t.source}
-          >
-            <span class="i-simple-icons:github" aria-hidden="true" />
+          <a class="gh-link" href="https://jmrp.io" aria-label={t.authorSite}>
+            <span class="i-mdi:account-circle-outline" aria-hidden="true" />
           </a>
 
           <label for="nav-open" id="menu-toggle" class="menu-toggle">
@@ -568,15 +617,28 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
                 >
                   {item.label}
                 </a>
+                {/* Aquí SIEMPRE desplegados, sin hover: el cajón es una lista
+                    vertical y no hay puntero que pasar por encima. */}
+                {item.id === "servers" && serverSubItems.length > 0 && (
+                  <ul class="drawer-sub">
+                    {serverSubItems.map((sub) => (
+                      <li>
+                        <a href={sub.href}>
+                          {sub.icon && (
+                            <ServerMark src={sub.icon} class="nav-sub-icon" />
+                          )}
+                          {sub.name}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))
           }
           <li>
-            <a
-              class="drawer-gh"
-              href="https://github.com/jmrplens/mcp.jmrp.io"
-            >
-              {t.source}
+            <a class="drawer-gh" href="https://jmrp.io">
+              {t.authorSite}
             </a>
           </li>
         </ul>
@@ -617,6 +679,30 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
               )
             }
           </div>
+
+          {/* El toggle de tema, duplicado aquí igual que la píldora de idioma
+              y por el mismo motivo: al abrir el cajón, los botones de la barra
+              quedan detrás del panel, así que en móvil no había forma de
+              cambiar de tema con el menú abierto. El de la barra se queda
+              donde está; esto es un segundo mando para el mismo estado, no un
+              reemplazo. */}
+          <button
+            type="button"
+            class="theme-toggle"
+            data-theme-toggle
+            aria-label={t.themeToggle}
+            data-label-light={t.themeToLight}
+            data-label-dark={t.themeToDark}
+          >
+            <span
+              class="i-mdi:white-balance-sunny icon-sun"
+              aria-hidden="true"
+            />
+            <span
+              class="i-mdi:moon-waning-crescent icon-moon"
+              aria-hidden="true"
+            />
+          </button>
         </div>
       </div>
     </header>
@@ -655,20 +741,28 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
         // Theme button: reflect the live theme in aria-label and dispatch
         // the toggle. One instance on this site, so plain `getElementById`
         // is enough — no need for jmrp.io's class-based multi-instance sync.
-        var themeBtn = document.getElementById("theme-toggle");
-        if (themeBtn) {
+        // Todos los que lleven el gancho, no uno por id: desde que el cajón
+        // tiene su propia copia hay DOS, y con `getElementById` el segundo se
+        // quedaba mudo — sin etiqueta que anunciara el estado y sin reaccionar
+        // al clic.
+        var themeBtns = document.querySelectorAll("[data-theme-toggle]");
+        if (themeBtns.length) {
           var updateThemeLabel = function () {
             var isDark = document.documentElement.dataset.theme !== "light";
-            var label = themeBtn.getAttribute(
-              isDark ? "data-label-light" : "data-label-dark",
-            );
-            if (label) themeBtn.setAttribute("aria-label", label);
+            themeBtns.forEach(function (btn) {
+              var label = btn.getAttribute(
+                isDark ? "data-label-light" : "data-label-dark",
+              );
+              if (label) btn.setAttribute("aria-label", label);
+            });
           };
           updateThemeLabel();
-          themeBtn.addEventListener("click", function () {
-            if (typeof window.toggleTheme === "function") {
-              window.toggleTheme();
-            }
+          themeBtns.forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              if (typeof window.toggleTheme === "function") {
+                window.toggleTheme();
+              }
+            });
           });
           window.addEventListener("theme-changed", updateThemeLabel);
         }
@@ -886,6 +980,62 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
   }
 
   /* ===== Desktop page nav — hidden below 40rem, replaced by the drawer === */
+  /* ===== Submenú de servidores ===============================================
+     Cuelga de «Servers» sin quitarle el enlace: el elemento padre sigue
+     llevando al índice y esto solo se despliega al pasar el ratón o al entrar
+     con el teclado. `:focus-within` es lo que lo hace alcanzable sin ratón —
+     sin él, tabular por el menú se saltaría los servidores enteros.
+
+     Cero JavaScript, como el resto de la navegación. */
+  .nav-links > li {
+    position: relative;
+  }
+
+  .nav-sub {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: var(--z-header, 100);
+    display: none;
+    min-width: 12rem;
+    padding: 0.35rem;
+    margin: 0;
+    list-style: none;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-hair);
+    border-radius: var(--radius-md);
+    box-shadow: var(--sh-pop);
+  }
+
+  .nav-links > li:hover > .nav-sub,
+  .nav-links > li:focus-within > .nav-sub {
+    display: block;
+  }
+
+  .nav-sub a,
+  .drawer-sub a {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.4rem 0.5rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .nav-sub-icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+
+  /* En el cajón no hay hover que valga: la lista va siempre desplegada,
+     sangrada bajo su padre. */
+  .drawer-sub {
+    padding: 0 0 0 0.9rem;
+    margin: 0.2rem 0 0;
+    list-style: none;
+    border-left: 1px solid var(--color-hair);
+  }
+
   .nav-links {
     display: flex;
     gap: 2px;
@@ -1119,7 +1269,12 @@ const navItems = (Object.keys(PAGE_PATHS) as PageId[]).map((id) => ({
     display: flex;
     flex-direction: column;
     width: var(--drawer-w);
-    background: color-mix(in srgb, var(--color-bg-secondary) 88%, transparent);
+    /* OPACO. Estaba al 88% con desenfoque detrás, y el texto de la página se
+       leía a través del panel: un menú superpuesto por el que se ve lo que
+       tapa no se lee como una capa, se lee como suciedad. El cajón de jmrp.io
+       —que es de donde sale este patrón— es opaco. El desenfoque se queda
+       para el borde y la sombra, que sí ayudan a despegarlo. */
+    background: var(--color-bg-secondary);
     border-inline-start: 1px solid var(--color-border);
     box-shadow: -30px 0 60px -30px rgb(0 0 0 / 55%);
     backdrop-filter: blur(16px);

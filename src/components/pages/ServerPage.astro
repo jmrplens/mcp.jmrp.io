@@ -39,6 +39,7 @@ import { schemaFields } from "../../lib/tool-schema";
 import ActionSearch from "../ActionSearch";
 import ClientSetup from "../ClientSetup.astro";
 import ServerEntryChips from "../ServerEntryChips.astro";
+import ServerMark from "../ServerMark.astro";
 import ServerToc from "../ServerToc.astro";
 import UpdatedLine from "../UpdatedLine.astro";
 
@@ -333,9 +334,7 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
     <p class="section-title">{sp.eyebrowServer}</p>
     <h1 class="subpage-title">
       {
-        serverIcon && (
-          <img src={serverIcon.src} alt="" aria-hidden="true" class="server-icon" />
-        )
+        serverIcon && <ServerMark src={serverIcon.src} class="server-icon" />
       }
       {serverMeta.name}
     </h1>

@@ -47,6 +47,13 @@ export const common = {
      */
     backToHome: "Back to the home page",
     skip: "Skip to content",
+    /**
+     * El enlace del encabezado dejó de apuntar al repositorio de ESTE sitio y
+     * apunta a la web del autor: quien llega a un endpoint alojado no viene a
+     * leer el código del sitio que lo documenta — para eso está el enlace al
+     * repo de cada SERVIDOR, en su ficha, que sí es el que se busca.
+     */
+    authorSite: "Author's site",
     source: "Source",
     other: "Español",
     /**
@@ -104,6 +111,8 @@ export const common = {
     /** Ver `en.backToHome`: enlace de vuelta a la portada, en las tres. */
     backToHome: "Volver a la portada",
     skip: "Saltar al contenido",
+    /** Ver `en.authorSite`. */
+    authorSite: "Web del autor",
     source: "Código",
     other: "English",
     /** Ver `en.switchTo`. */

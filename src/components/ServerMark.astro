@@ -1,0 +1,62 @@
+---
+/**
+ * El logo que cada servidor declara en su tarjeta, legible en los dos temas.
+ *
+ * El problema que resuelve: esos SVG están dibujados con `currentColor`, y
+ * dentro de un `<img>` eso no hereda nada — la imagen es un documento
+ * aislado, así que `currentColor` cae a su valor por defecto, NEGRO. En tema
+ * oscuro el logo quedaba invisible sobre el fondo, tanto en el submenú de
+ * servidores como en el `<h1>` de cada ficha.
+ *
+ * La solución es invertirlo cuando el tema es oscuro. Es correcto justamente
+ * porque son monocromos por construcción: invertir negro da blanco y no hay
+ * ningún otro color al que estropear.
+ *
+ * DESCARTADO, y merece quedar escrito: usarlo como `mask-image` con el color
+ * de la página, que es lo que hace UnoCSS con sus iconos. No sobrevive al
+ * post-build — el extractor de data-URIs reescribe la ruta AÑADIENDO comillas,
+ * que dentro del atributo acaban escapadas como `\22` y quedan literalmente
+ * dentro de la URL: 404 silencioso y elemento enmascarado a nada. Se ve como
+ * "el icono desapareció", sin un solo error en consola.
+ */
+interface Props {
+  /** `src` del icono, tal cual viene de la tarjeta. */
+  src: string;
+  /** Clase extra de quien lo usa, para el tamaño. */
+  class?: string;
+}
+const { src, class: extra } = Astro.props;
+---
+
+<img
+  src={src}
+  alt=""
+  aria-hidden="true"
+  class={["server-mark", extra].filter(Boolean).join(" ")}
+  width="16"
+  height="16"
+/>
+
+<style>
+  .server-mark {
+    display: inline-block;
+    flex: none;
+    width: 1em;
+    height: 1em;
+    /* Por defecto el sitio es oscuro, así que por defecto se invierte. Las dos
+       reglas de abajo lo deshacen en claro, siguiendo el mismo patrón que
+       `tokens.css`: la media query para el tema del sistema y el atributo para
+       la elección explícita. */
+    filter: invert(1);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) .server-mark {
+      filter: none;
+    }
+  }
+
+  :root[data-theme="light"] .server-mark {
+    filter: none;
+  }
+</style>
