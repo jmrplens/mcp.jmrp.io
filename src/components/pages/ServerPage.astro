@@ -531,7 +531,7 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                   {(() => {
                     const args = schemaFields(entry.data.inputSchema);
                     return args.length > 0 ? (
-                      <details class="returns">
+                      <details class="returns disclosure">
                         <summary>
                           {sp.toolArgsHead}{" "}
                           <span class="count">({args.length} {sp.toolFieldsToggle})</span>
@@ -559,7 +559,7 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                   {(() => {
                     const out = schemaFields(entry.data.outputSchema);
                     return out.length > 0 ? (
-                      <details class="returns">
+                      <details class="returns disclosure">
                         <summary>
                           {sp.toolReturnsHead}{" "}
                           <span class="count">({out.length} {sp.toolFieldsToggle})</span>
@@ -1200,13 +1200,14 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
     margin-top: 0.9rem;
   }
 
+  /* Ver `.disclosure` en utilities.css: de ahí salen el chevron, el color y el
+     hover. Estos <details> nacieron sin ellos y por eso no se distinguían de
+     una etiqueta muerta. */
   .returns > summary {
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: 0.7rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    cursor: pointer;
   }
 
   .returns > summary:focus-visible {

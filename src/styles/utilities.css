@@ -277,3 +277,54 @@
 .lab-grid--page {
   z-index: -1;
 }
+
+/* ===== Desplegables: el marcador compartido =================================
+   `.fold` de la ficha ya marcaba sus <details> como jmrp.io: chevron en ámbar
+   que gira al abrir y etiqueta que se ilumina al pasar por encima. Los otros
+   dos —los argumentos de cada tool y los fragmentos de configuración— nacieron
+   sin él y se quedaban en gris apagado con el triangulito nativo, que a simple
+   vista no se distingue de una etiqueta muerta: en móvil la página entera
+   parecía texto plano sin nada accionable.
+
+   Vive aquí y no en el <style> de cada componente precisamente por eso: la
+   duplicación fue lo que dejó que dos de los tres se quedaran atrás. Un
+   componente que quiera este aspecto añade `disclosure` a su <details>.
+
+   El marcador es `::before` propio y no el nativo: el nativo no se puede
+   colorear, y quitándole `list-style` desaparece en algunos navegadores. */
+.disclosure > summary {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  color: var(--color-text-heading);
+  cursor: pointer;
+  list-style: none;
+}
+
+.disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.disclosure > summary::before {
+  content: "›";
+  display: inline-block;
+  flex-shrink: 0;
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  transition: transform 0.15s ease;
+}
+
+.disclosure[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.disclosure > summary:hover,
+.disclosure > summary:focus-visible {
+  color: var(--color-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .disclosure > summary::before {
+    transition: none;
+  }
+}

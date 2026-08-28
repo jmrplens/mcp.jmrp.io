@@ -62,7 +62,7 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
         <h4 class="setup-head">{t.clientOauthHead}</h4>
         <p class="hint hint--lead">{t.clientOauthHint}</p>
         {oauthBlocks.map((block) => (
-          <details class="snippet">
+          <details class="snippet disclosure">
             <summary>{block.label}</summary>
             <div class="snippet-body">
               <button
@@ -84,7 +84,7 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
   }
   {
     tokenBlocks.map((block) => (
-      <details class="snippet">
+      <details class="snippet disclosure">
         <summary>{block.label}</summary>
         <div class="snippet-body">
           <button
@@ -163,14 +163,15 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
     border-radius: var(--radius-sm);
   }
 
+  /* Color, chevron y hover vienen de `.disclosure` (utilities.css). Aquí solo
+     lo propio de este bloque: la caja táctil y la voz monoespaciada, porque la
+     etiqueta es un nombre de fichero. */
   .snippet summary {
-    padding: 0.4rem 0.6rem;
-    color: var(--color-text-muted);
+    padding: 0.45rem 0.6rem;
     font-family: var(--font-mono);
     font-size: 0.7rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    cursor: pointer;
   }
 
   .snippet[open] summary {
