@@ -81,6 +81,69 @@ function requirementNoteFor(
   return `${label}: ${spelled}`;
 }
 
+/** What the sign-in flow is doing, if anything. */
+type SignInState = "idle" | "busy" | "denied" | "failed";
+
+/**
+ * The GitLab sign-in block: the button, what the flow is doing, and the note
+ * that says where the token ends up.
+ *
+ * At module level for the same reason as `requirementNoteFor` above (S3776):
+ * it holds no state of its own, only what the panel hands it, and leaving its
+ * branches inline pushed the component over the complexity ceiling.
+ *
+ * @param props.t Inspector strings in the page's language.
+ * @param props.signIn What the flow is doing right now.
+ * @param props.busy Whether a call is in flight, which also disables the button.
+ * @param props.storageHref Where the note sends a reader who wants to check it.
+ * @param props.onSignIn Starts the flow.
+ * @returns The block.
+ */
+function SignInBlock({
+  t,
+  signIn,
+  busy,
+  storageHref,
+  onSignIn,
+}: Readonly<{
+  t: (typeof ui)[Lang]["insp"];
+  signIn: SignInState;
+  busy: boolean;
+  storageHref: string;
+  onSignIn: () => void;
+}>) {
+  const failed = signIn === "denied" || signIn === "failed";
+  return (
+    <div className="signin">
+      <button
+        type="button"
+        className="signin-button"
+        onClick={onSignIn}
+        disabled={busy || signIn === "busy"}
+      >
+        {/* GitLab's own mark, from `simple-icons`, which reproduces official
+            brand marks. It is not decoration: the point of the button is that
+            the visitor authorises at gitlab.com with nobody in between, and
+            the mark is what says so before the popup opens. Brand orange, not
+            the site accent — this one destination is deliberately not ours. */}
+        <span className="i-simple-icons:gitlab signin-mark" aria-hidden="true" />
+        {signIn === "busy" ? t.signInBusy : t.signInWith}
+      </button>
+      {/* `<output>` rather than a paragraph with role="status": same live
+          announcement, and it is the element the role was named after. */}
+      {failed && (
+        <output className="signin-error">
+          {signIn === "denied" ? t.signInDenied : t.signInFailed}
+        </output>
+      )}
+      <p className="signin-note">
+        {t.signInNote} <a href={storageHref}>{t.signInVerify}</a>
+      </p>
+      <p className="signin-or">{t.signInOr}</p>
+    </div>
+  );
+}
+
 /**
  * Isla interactiva que habla con los servidores MCP desde el navegador del
  * visitante: introspección (initialize, tools/list, prompts/list,
@@ -131,9 +194,7 @@ export default function Inspector({
    * state, same lifetime, same rule. This only tracks the flow so the button
    * can say what happened instead of failing silently.
    */
-  const [signIn, setSignIn] = useState<"idle" | "busy" | "denied" | "failed">(
-    "idle",
-  );
+  const [signIn, setSignIn] = useState<SignInState>("idle");
   /** Catálogos del servidor activo. Se llenan con cada `list`. */
   const [tools, setTools] = useState<McpTool[]>([]);
   const [prompts, setPrompts] = useState<McpPrompt[]>([]);
@@ -507,36 +568,13 @@ export default function Inspector({
               without it there would be a button that mints a read/write token,
               which is a worse deal than the field beside it. */}
           {server?.oauth?.inspector && (
-            <div className="signin">
-              <button
-                type="button"
-                className="signin-button"
-                onClick={() => void startSignIn()}
-                disabled={busy || signIn === "busy"}
-              >
-                {/* GitLab's own mark, from `simple-icons`, which reproduces
-                    official brand marks. It is not decoration: the point of
-                    the button is that the visitor authorises at gitlab.com
-                    with nobody in between, and the mark is what says so before
-                    the popup opens. Brand orange, not the site accent — this
-                    one destination is deliberately not ours. */}
-                <span
-                  className="i-simple-icons:gitlab signin-mark"
-                  aria-hidden="true"
-                />
-                {signIn === "busy" ? t.signInBusy : t.signInWith}
-              </button>
-              {signIn === "denied" || signIn === "failed" ? (
-                <p className="signin-error" role="status">
-                  {signIn === "denied" ? t.signInDenied : t.signInFailed}
-                </p>
-              ) : null}
-              <p className="signin-note">
-                {t.signInNote}{" "}
-                <a href={inspectorStorageHref}>{t.signInVerify}</a>
-              </p>
-              <p className="signin-or">{t.signInOr}</p>
-            </div>
+            <SignInBlock
+              t={t}
+              signIn={signIn}
+              busy={busy}
+              storageHref={inspectorStorageHref}
+              onSignIn={() => void startSignIn()}
+            />
           )}
 
           {fields.map((field) => (

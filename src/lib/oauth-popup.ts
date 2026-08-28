@@ -30,7 +30,12 @@ export interface OauthConfig {
 /** URL-safe base64 with no padding, which is what RFC 7636 asks for. */
 function base64url(bytes: ArrayBuffer): string {
   const binary = String.fromCodePoint(...new Uint8Array(bytes));
-  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+  // Padding only ever appears at the end of base64, so dropping every "="
+  // is the same as trimming the tail — without a regex that can backtrack.
+  return btoa(binary)
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replaceAll("=", "");
 }
 
 /** A high-entropy random string, used for both the verifier and the state. */
@@ -80,7 +85,7 @@ export async function signInWithPopup(
       // did not start (CSRF, RFC 6749 §10.12).
       if (event.origin !== globalThis.location.origin) return;
       const data = event.data as Record<string, unknown> | null;
-      if (!data || data.source !== "mcp-inspector-oauth") return;
+      if (data?.source !== "mcp-inspector-oauth") return;
       if (data.state !== state) return;
       cleanup();
       resolve(typeof data.code === "string" ? data.code : null);

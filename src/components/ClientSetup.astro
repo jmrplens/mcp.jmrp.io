@@ -59,7 +59,7 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
   {
     oauthBlocks.length > 0 && (
       <>
-        <h4 class="setup-head">{t.clientOauthHead}</h4>
+        <h3 class="setup-head">{t.clientOauthHead}</h3>
         <p class="hint hint--lead">{t.clientOauthHint}</p>
         {oauthBlocks.map((block) => (
           <details class="snippet disclosure">
@@ -77,7 +77,7 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
             </div>
           </details>
         ))}
-        <h4 class="setup-head">{t.clientTokenHead}</h4>
+        <h3 class="setup-head">{t.clientTokenHead}</h3>
         <p class="hint hint--lead">{t.clientTokenHint}</p>
       </>
     )
