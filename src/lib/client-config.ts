@@ -28,6 +28,23 @@ function required(server: McpServer): McpHeader[] {
 }
 
 /**
+ * El valor que va DENTRO de la cabecera, esquema incluido.
+ *
+ * Existe desde que gitlab pasó a OAuth: su credencial viaja en
+ * `Authorization`, cuyo valor es `Bearer ` + el token, no el token a secas.
+ * Los tres generadores de abajo pegaban el valor crudo detrás de
+ * `<nombre>: `, así que sin esto emitirían `Authorization: <your token>` —
+ * sintaxis inválida, y un 401 para quien copiara el fragmento.
+ *
+ * @param header La cabecera de `src/data/servers.ts`.
+ * @param value Lo que aporta el visitante (o su marcador).
+ * @returns El valor completo de la cabecera.
+ */
+function headerValue(header: McpHeader, value: string): string {
+  return `${header.valuePrefix ?? ""}${value}`;
+}
+
+/**
  * Alta por línea de comandos en Claude Code.
  *
  * El valor va como marcador literal `<your token>` y no como `${VAR}`: dentro
@@ -39,7 +56,7 @@ function required(server: McpServer): McpHeader[] {
  */
 export function claudeCodeCommand(server: McpServer): string {
   const headers = required(server)
-    .map((header) => ` --header "${header.name}: <your token>"`)
+    .map((header) => ` --header "${header.name}: ${headerValue(header, "<your token>")}"`)
     .join("");
   return `claude mcp add --transport http ${server.id} ${server.endpoint}${headers}`;
 }
@@ -62,7 +79,10 @@ export function cursorJson(server: McpServer): string {
           url: server.endpoint,
           ...(headers.length > 0 && {
             headers: Object.fromEntries(
-              headers.map((h) => [h.name, `\${env:${tokenEnv(server)}}`]),
+              headers.map((h) => [
+                h.name,
+                headerValue(h, `\${env:${tokenEnv(server)}}`),
+              ]),
             ),
           }),
         },
@@ -86,15 +106,18 @@ export function cursorJson(server: McpServer): string {
  */
 export function vscodeJson(server: McpServer, lang: Lang): string {
   const headers = required(server);
-  const inputId = (header: McpHeader) =>
-    `${server.id}-${header.name.toLowerCase()}`;
+  // Deliberadamente NO se deriva del nombre de la cabecera: con `Authorization`
+  // el id saldría `gitlab-authorization`, que nombra el sobre en vez de lo que
+  // se le pide al usuario. `-token` describe lo que hay que teclear, y además
+  // no cambia si la cabecera se renombra otra vez.
+  const inputId = (): string => `${server.id}-token`;
 
   return JSON.stringify(
     {
       ...(headers.length > 0 && {
         inputs: headers.map((header) => ({
           type: "promptString",
-          id: inputId(header),
+          id: inputId(),
           description: header.description[lang],
           password: header.secret === true,
         })),
@@ -105,9 +128,88 @@ export function vscodeJson(server: McpServer, lang: Lang): string {
           url: server.endpoint,
           ...(headers.length > 0 && {
             headers: Object.fromEntries(
-              headers.map((h) => [h.name, `\${input:${inputId(h)}}`]),
+              headers.map((h) => [h.name, headerValue(h, `\${input:${inputId()}}`)]),
             ),
           }),
+        },
+      },
+    },
+    null,
+    2,
+  );
+}
+
+/* ===== Alta por OAuth ========================================================
+   Las tres formas de arriba pegan la credencial a mano. Estas tres son el
+   camino que el despliegue recomienda cuando el servidor delega en OAuth: el
+   cliente hace el baile (Authorization Code + PKCE) contra el servidor de
+   autorización que anuncia el documento RFC 9728, y el visitante no llega a
+   ver un token.
+
+   El `clientId` es OBLIGATORIO y no un adorno: sin él estos clientes caen al
+   registro dinámico, que en GitLab entrega un token con alcance `mcp` — un
+   alcance que no puede mover la API REST sobre la que está construido este
+   servidor, así que todas las acciones fallarían. Lo dice su propia guía y por
+   eso el campo viaja en `servers.ts` en vez de dejarse al lector.
+
+   Las formas salen de docs/guides/ide-configuration.md del propio servidor, no
+   de deducción: Cursor es un fork de VS Code y comparte el objeto `oauth`,
+   pero la clave de nivel superior NO es la misma (`mcpServers` frente a
+   `servers`), que es el error clásico de copiar el bloque de un cliente a
+   otro. */
+
+/**
+ * Alta por OAuth en Claude Code.
+ *
+ * @param server Servidor de `src/data/servers.ts`.
+ * @returns El comando, o `undefined` si el servidor no delega en OAuth.
+ */
+export function claudeCodeOauthCommand(server: McpServer): string | undefined {
+  const oauth = server.oauth;
+  if (!oauth) return undefined;
+  return `claude mcp add ${server.id} --transport http --client-id ${oauth.clientId} --callback-port ${oauth.callbackPort} ${server.endpoint}`;
+}
+
+/**
+ * Bloque OAuth para `.cursor/mcp.json`.
+ *
+ * @param server Servidor de `src/data/servers.ts`.
+ * @returns JSON indentado, o `undefined` si el servidor no delega en OAuth.
+ */
+export function cursorOauthJson(server: McpServer): string | undefined {
+  const oauth = server.oauth;
+  if (!oauth) return undefined;
+  return JSON.stringify(
+    {
+      mcpServers: {
+        [server.id]: {
+          type: "http",
+          url: server.endpoint,
+          oauth: { clientId: oauth.clientId, scopes: oauth.scopes },
+        },
+      },
+    },
+    null,
+    2,
+  );
+}
+
+/**
+ * Bloque OAuth para `.vscode/mcp.json`.
+ *
+ * @param server Servidor de `src/data/servers.ts`.
+ * @returns JSON indentado, o `undefined` si el servidor no delega en OAuth.
+ */
+export function vscodeOauthJson(server: McpServer): string | undefined {
+  const oauth = server.oauth;
+  if (!oauth) return undefined;
+  return JSON.stringify(
+    {
+      servers: {
+        [server.id]: {
+          type: "http",
+          url: server.endpoint,
+          oauth: { clientId: oauth.clientId, scopes: oauth.scopes },
         },
       },
     },

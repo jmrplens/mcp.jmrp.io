@@ -12,6 +12,7 @@ import {
   promptsFrom,
   resourcesFrom,
 } from "../lib/mcp-catalog";
+import { signInWithPopup } from "../lib/oauth-popup";
 import {
   formFields,
   type JsonSchema,
@@ -80,6 +81,87 @@ function requirementNoteFor(
   return `${label}: ${spelled}`;
 }
 
+/** What the sign-in flow is doing, if anything. */
+type SignInState = "idle" | "busy" | "denied" | "failed";
+
+/**
+ * The GitLab sign-in block: the button, what the flow is doing, and the note
+ * that says where the token ends up.
+ *
+ * At module level for the same reason as `requirementNoteFor` above (S3776):
+ * it holds no state of its own, only what the panel hands it, and leaving its
+ * branches inline pushed the component over the complexity ceiling.
+ *
+ * @param props.t Inspector strings in the page's language.
+ * @param props.signIn What the flow is doing right now.
+ * @param props.busy Whether a call is in flight, which also disables the button.
+ * @param props.storageHref Where the note sends a reader who wants to check it.
+ * @param props.onSignIn Starts the flow.
+ * @returns The block.
+ */
+function SignInBlock({
+  t,
+  signIn,
+  busy,
+  storageHref,
+  onSignIn,
+}: Readonly<{
+  t: (typeof ui)[Lang]["insp"];
+  signIn: SignInState;
+  busy: boolean;
+  storageHref: string;
+  onSignIn: () => void;
+}>) {
+  const failed = signIn === "denied" || signIn === "failed";
+  return (
+    <div className="signin">
+      <button
+        type="button"
+        className="signin-button"
+        onClick={onSignIn}
+        disabled={busy || signIn === "busy"}
+      >
+        {/* GitLab's own mark, from `simple-icons`, which reproduces official
+            brand marks. It is not decoration: the point of the button is that
+            the visitor authorises at gitlab.com with nobody in between, and
+            the mark is what says so before the popup opens. Brand orange, not
+            the site accent — this one destination is deliberately not ours. */}
+        <span className="i-simple-icons:gitlab signin-mark" aria-hidden="true" />
+        {signIn === "busy" ? t.signInBusy : t.signInWith}
+      </button>
+      {/* `<output>` rather than a paragraph with role="status": same live
+          announcement, and it is the element the role was named after. */}
+      {failed && (
+        <output className="signin-error">
+          {signIn === "denied" ? t.signInDenied : t.signInFailed}
+        </output>
+      )}
+      <p className="signin-note">
+        {t.signInNote} <a href={storageHref}>{t.signInVerify}</a>
+      </p>
+      <p className="signin-or">{t.signInOr}</p>
+    </div>
+  );
+}
+
+/**
+ * Classes for the output panel: stale while a call is in flight, error when
+ * the last one failed.
+ *
+ * At module level for the same reason as `requirementNoteFor` above (S3776):
+ * two ternaries inline in an attribute counted against the component for what
+ * is a lookup table with two flags.
+ *
+ * @param busy Whether a call is in flight.
+ * @param failed Whether the last call failed.
+ * @returns The class attribute.
+ */
+function outputClass(busy: boolean, failed: boolean): string {
+  const stale = busy ? " is-stale" : "";
+  const error = failed ? " is-error" : "";
+  return `term-out${stale}${error}`;
+}
+
 /**
  * Isla interactiva que habla con los servidores MCP desde el navegador del
  * visitante: introspección (initialize, tools/list, prompts/list,
@@ -98,6 +180,16 @@ export default function Inspector({
   lang,
 }: Readonly<{ servers: McpServer[]; lang: Lang }>) {
   const t = ui[lang].insp;
+  /**
+   * Where the privacy note sends a reader who wants to check it rather than
+   * believe it: the section of /internals/ that describes what the inspector
+   * keeps, and how to see for yourself with the browser's own tools.
+   *
+   * Built here rather than passed in because it is the only link this island
+   * makes off its own page, and threading a prop through for one string would
+   * be more moving parts than the string.
+   */
+  const inspectorStorageHref = `${lang === "es" ? "/es" : ""}/internals/#inspector-storage-h`;
   const call = useMcpCall({
     networkError: t.networkError,
     timedOut: t.timedOut,
@@ -113,6 +205,14 @@ export default function Inspector({
    */
   const [headerValues, setHeaderValues] = useState<Record<string, string>>({});
   const [tab, setTab] = useState<Tab>("tools");
+  /**
+   * What the sign-in button is doing, if anything.
+   *
+   * The token it obtains goes into `headerValues` like a pasted one — same
+   * state, same lifetime, same rule. This only tracks the flow so the button
+   * can say what happened instead of failing silently.
+   */
+  const [signIn, setSignIn] = useState<SignInState>("idle");
   /** Catálogos del servidor activo. Se llenan con cada `list`. */
   const [tools, setTools] = useState<McpTool[]>([]);
   const [prompts, setPrompts] = useState<McpPrompt[]>([]);
@@ -199,12 +299,49 @@ export default function Inspector({
   const requirementNote = requirementNoteFor(tab, selectedTool?.inputSchema, t);
 
 
-  /** Solo las cabeceras del servidor activo, y solo las que tienen valor. */
+  /**
+   * Runs the OAuth popup and puts the resulting token where a pasted one goes.
+   *
+   * Nothing is persisted: the token lands in component state, so it dies on
+   * reload, on navigating anywhere (this site has no client router, so every
+   * navigation is a fresh document) and with the tab.
+   */
+  async function startSignIn(): Promise<void> {
+    const oauth = server?.oauth?.inspector;
+    const credential = server?.requiredHeaders[0];
+    if (!oauth || !credential) return;
+    setSignIn("busy");
+    const result = await signInWithPopup(
+      {
+        clientId: oauth.clientId,
+        authorizationServer: server.oauth?.authorizationServer ?? "",
+        scopes: oauth.scopes,
+      },
+      oauth.redirectUri,
+    );
+    if (result.ok) {
+      setHeaderValues((prev) => ({
+        ...prev,
+        [keyOf(credential.name)]: result.token,
+      }));
+      setSignIn("idle");
+      return;
+    }
+    setSignIn(result.reason === "cancelled" ? "idle" : result.reason);
+  }
+
+  /**
+   * Solo las cabeceras del servidor activo, y solo las que tienen valor.
+   *
+   * El esquema (`valuePrefix`, hoy `"Bearer "` en gitlab) lo pone AQUÍ y no el
+   * visitante: lo que se teclea es el token, y pedirle además que escriba
+   * `Bearer ` delante convierte un espacio de más en un 401 sin explicación.
+   */
   function authHeaders(): Record<string, string> {
     const headers: Record<string, string> = {};
     for (const field of fields) {
       const value = headerValues[keyOf(field.name)]?.trim();
-      if (value) headers[field.name] = value;
+      if (value) headers[field.name] = `${field.valuePrefix ?? ""}${value}`;
     }
     return headers;
   }
@@ -441,6 +578,23 @@ export default function Inspector({
             </select>
           </label>
 
+          {/* The sign-in button sits ABOVE the credential field, not instead
+              of it: both paths stay open. The button is the better one when it
+              is available — read-only and short-lived — but a visitor with a
+              token already in hand should not have to use a popup to get in.
+              It renders only when the read-only application is configured;
+              without it there would be a button that mints a read/write token,
+              which is a worse deal than the field beside it. */}
+          {server?.oauth?.inspector && (
+            <SignInBlock
+              t={t}
+              signIn={signIn}
+              busy={busy}
+              storageHref={inspectorStorageHref}
+              onSignIn={() => void startSignIn()}
+            />
+          )}
+
           {fields.map((field) => (
             <label className="field" key={keyOf(field.name)}>
               <span>{field.name}</span>
@@ -602,7 +756,7 @@ export default function Inspector({
           propio, esté SIEMPRE en el orden de tabulación y con nombre — Chrome
           lo hacía enfocable solo cuando el contenido desbordaba. */}
       <pre
-        className={`term-out${busy ? " is-stale" : ""}${failed ? " is-error" : ""}`}
+        className={outputClass(busy, failed)}
         data-testid="inspector-output"
         aria-live="off"
         // Contenedor con scroll propio: sin tabIndex, quien navega con teclado

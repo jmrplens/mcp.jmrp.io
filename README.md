@@ -11,7 +11,7 @@ inspector to try them from the browser.
 | Endpoint | Repository | Credentials |
 |---|---|---|
 | `https://mcp.jmrp.io/libgen` | [libgen-mcp](https://github.com/jmrplens/libgen-mcp) | None |
-| `https://mcp.jmrp.io/gitlab` | [gitlab-mcp-server](https://github.com/jmrplens/gitlab-mcp-server) | `PRIVATE-TOKEN` per request |
+| `https://mcp.jmrp.io/gitlab` | [gitlab-mcp-server](https://github.com/jmrplens/gitlab-mcp-server) | `Authorization: Bearer` per request (OAuth or a PAT) |
 
 Transport is **streamable HTTP**. `https://mcp.jmrp.io/servers.json` returns
 the same list as JSON for automated clients.
@@ -25,13 +25,18 @@ the same list as JSON for automated clients.
     "gitlab": {
       "type": "http",
       "url": "https://mcp.jmrp.io/gitlab",
-      "headers": { "PRIVATE-TOKEN": "glpat-xxxxxxxxxxxx" }
+      "headers": { "Authorization": "Bearer glpat-xxxxxxxxxxxx" }
     }
   }
 }
 ```
 
-`GITLAB-URL` is optional: without it, the server targets `https://gitlab.com`.
+The endpoint runs in OAuth mode and is fixed to `https://gitlab.com`: an
+unauthenticated call answers `401` with a `WWW-Authenticate` challenge naming
+[`/.well-known/oauth-protected-resource/gitlab`](https://mcp.jmrp.io/.well-known/oauth-protected-resource/gitlab),
+the RFC 9728 document that says which authorization server issues its tokens. A
+personal access token sent as `Authorization: Bearer` works the same way, which
+is the path for headless and CI use.
 
 > Tokens travel with each request and are **never stored on the server**. The
 > inspector on this site keeps them in browser memory only: it touches neither

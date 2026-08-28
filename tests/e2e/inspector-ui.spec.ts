@@ -223,15 +223,15 @@ test("una cabecera obligatoria vacía bloquea el envío y dice por qué", async 
   // Sin esto el visitante recibía un 400 con el texto del upstream, «no server
   // available», que se lee como «el servidor está caído».
   await expect(page.getByTestId("inspector-missing-header")).toContainText(
-    "PRIVATE-TOKEN",
+    "Authorization",
   );
   await expect(loadButton(page)).toBeDisabled();
-  await expect(mcp.getByLabel("PRIVATE-TOKEN")).toHaveAttribute(
+  await expect(mcp.getByLabel("Authorization")).toHaveAttribute(
     "aria-required",
     "true",
   );
 
-  await mcp.getByLabel("PRIVATE-TOKEN").fill("glpat-de-mentira");
+  await mcp.getByLabel("Authorization").fill("glpat-de-mentira");
   await expect(loadButton(page)).toBeEnabled();
   await expect(page.getByTestId("inspector-missing-header")).toHaveCount(0);
 });

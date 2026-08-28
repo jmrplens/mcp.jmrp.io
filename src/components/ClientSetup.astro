@@ -12,8 +12,11 @@ import type { Lang } from "../i18n/ui";
 import { ui } from "../i18n/ui";
 import {
   claudeCodeCommand,
+  claudeCodeOauthCommand,
   cursorJson,
+  cursorOauthJson,
   vscodeJson,
+  vscodeOauthJson,
 } from "../lib/client-config";
 
 interface Props {
@@ -25,8 +28,25 @@ const { server, lang } = Astro.props;
 const t = ui[lang];
 
 // Cada bloque nombra su fichero porque ahí está el error clásico: Cursor lee
-// `mcpServers` sin `type`; VS Code lee `servers` con `type: "http"`.
-const blocks = [
+// `mcpServers`, VS Code lee `servers`.
+//
+// Dos grupos, y el orden no es cosmético: primero el flujo OAuth, que es lo
+// que este despliegue hace de verdad y lo que evita que nadie tenga que
+// manejar un token; después el token pegado a mano, que sigue siendo la única
+// salida para lo que no puede abrir un navegador. Un servidor sin `oauth` (o
+// sin credenciales, como libgen) sólo enseña el segundo grupo, sin encabezados
+// que anuncien una elección que no existe.
+const oauthBlocks = server.oauth
+  ? [
+      { label: "Claude Code", code: claudeCodeOauthCommand(server) },
+      { label: "Cursor — ~/.cursor/mcp.json", code: cursorOauthJson(server) },
+      { label: "VS Code — .vscode/mcp.json", code: vscodeOauthJson(server) },
+    ].filter((block): block is { label: string; code: string } =>
+      Boolean(block.code),
+    )
+  : [];
+
+const tokenBlocks = [
   { label: "Claude Code", code: claudeCodeCommand(server) },
   { label: "Cursor — ~/.cursor/mcp.json", code: cursorJson(server) },
   { label: "VS Code — .vscode/mcp.json", code: vscodeJson(server, lang) },
@@ -37,32 +57,165 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
 
 <div class="client-setup">
   {
-    blocks.map((block) => (
-      <figure>
-        <figcaption>{block.label}</figcaption>
-        <pre><code>{block.code}</code></pre>
-      </figure>
+    oauthBlocks.length > 0 && (
+      <>
+        <h3 class="setup-head">{t.clientOauthHead}</h3>
+        <p class="hint hint--lead">{t.clientOauthHint}</p>
+        {oauthBlocks.map((block) => (
+          <details class="snippet disclosure">
+            <summary>{block.label}</summary>
+            <div class="snippet-body">
+              <button
+                type="button"
+                class="snippet-copy"
+                data-copy
+                data-copied={t.clientCopied}
+              >
+                {t.clientCopy}
+              </button>
+              <pre><code>{block.code}</code></pre>
+            </div>
+          </details>
+        ))}
+        <h3 class="setup-head">{t.clientTokenHead}</h3>
+        <p class="hint hint--lead">{t.clientTokenHint}</p>
+      </>
+    )
+  }
+  {
+    tokenBlocks.map((block) => (
+      <details class="snippet disclosure">
+        <summary>{block.label}</summary>
+        <div class="snippet-body">
+          <button
+            type="button"
+            class="snippet-copy"
+            data-copy
+            data-copied={t.clientCopied}
+          >
+            {t.clientCopy}
+          </button>
+          <pre><code>{block.code}</code></pre>
+        </div>
+      </details>
     ))
   }
   {hasSecret && <p class="hint">{t.clientEnvHint}</p>}
 </div>
+
+{/* Copiar al portapapeles. Delegado en `document` y no un listener por botón:
+    la página pinta seis, y con delegación el coste es uno.
+
+    La página YA envía JavaScript (arranque de tema, su toggle y el cargador de
+    islas de Astro), así que esto no estrena una excepción — sigue el mismo
+    patrón que el toggle, y el nonce de la CSP se lo pone el post-build.
+
+    Si el navegador no expone `navigator.clipboard` (contexto no seguro, o
+    permiso denegado) el botón no desaparece ni miente: se queda sin efecto y
+    el texto sigue estando seleccionable a mano, que es como se copiaba antes
+    de que existiera este botón. */}
+<script>
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const button = target.closest("[data-copy]");
+    if (!(button instanceof HTMLButtonElement)) return;
+    const code = button.parentElement?.querySelector("code")?.textContent;
+    if (!code || !navigator.clipboard) return;
+    navigator.clipboard.writeText(code).then(() => {
+      const previous = button.textContent;
+      button.textContent = button.dataset.copied ?? previous;
+      setTimeout(() => {
+        button.textContent = previous;
+      }, 1500);
+    });
+  });
+</script>
 
 <style>
   .client-setup {
     padding-top: 0.25rem;
   }
 
-  figure {
-    margin: 0 0 0.8rem;
+  .setup-head {
+    margin: 1.1rem 0 0.35rem;
+    color: var(--color-text);
+    font-size: 0.86rem;
+    font-weight: var(--fw-semibold);
   }
 
-  figcaption {
-    margin-bottom: 0.3rem;
-    color: var(--color-text-muted);
+  .setup-head:first-child {
+    margin-top: 0;
+  }
+
+  .hint--lead {
+    margin-top: 0;
+    margin-bottom: 0.7rem;
+  }
+
+  /* Cada fragmento va plegado y nombra su fichero: con dos caminos (OAuth y
+     token) y tres clientes son SEIS bloques, y desplegados convertían la
+     sección de apertura de la página en un muro de JSON. Plegados, la sección
+     se lee como prosa con seis etiquetas y cada quien abre el suyo. */
+  .snippet {
+    margin: 0 0 0.45rem;
+    /* Superficie OPACA, como las tarjetas de jmrp.io: con solo borde, la
+       rejilla del fondo atraviesa la caja y en tema claro deja de leerse como
+       una superficie. `--color-bg-subtle` tampoco vale para esto — es un 5%
+       translúcido, así que la rejilla se ve igual. */
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-hair);
+    border-radius: var(--radius-sm);
+  }
+
+  /* Color, chevron y hover vienen de `.disclosure` (utilities.css). Aquí solo
+     lo propio de este bloque: la caja táctil y la voz monoespaciada, porque la
+     etiqueta es un nombre de fichero. */
+  .snippet summary {
+    padding: 0.45rem 0.6rem;
     font-family: var(--font-mono);
     font-size: 0.7rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
+  }
+
+  .snippet[open] summary {
+    border-bottom: 1px solid var(--color-hair);
+  }
+
+  .snippet-body {
+    position: relative;
+  }
+
+  /* Encima del código, en su esquina. `opacity` y no `display` para que siga
+     siendo alcanzable con el teclado: aparece igualmente al recibir el foco. */
+  .snippet-copy {
+    position: absolute;
+    top: 0.35rem;
+    right: 0.35rem;
+    padding: 0.15rem 0.45rem;
+    border: 1px solid var(--color-hair);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    opacity: 0;
+    cursor: pointer;
+    transition: opacity 0.12s ease;
+  }
+
+  .snippet-body:hover .snippet-copy,
+  .snippet-copy:focus-visible {
+    opacity: 1;
+  }
+
+  /* Sin puntero fino (móvil, táctil) no hay hover que revele el botón, así que
+     ahí vive siempre visible. */
+  @media (hover: none) {
+    .snippet-copy {
+      opacity: 1;
+    }
   }
 
   /* El bloque desborda en horizontal DENTRO de sí mismo: la ficha vive en una
@@ -74,7 +227,10 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
     overflow-x: auto;
     border: 1px solid var(--color-hair);
     border-radius: 6px;
-    background: var(--color-bg-subtle);
+    /* El fondo de PÁGINA sobre la superficie de la tarjeta: así el bloque de
+       código se distingue de ella sin recurrir a una translucidez que dejaría
+       pasar la rejilla. */
+    background: var(--color-bg);
   }
 
   code {

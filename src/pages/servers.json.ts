@@ -103,8 +103,28 @@ export const GET: APIRoute = () =>
                 index: `${SITE_ORIGIN}/servers/${s.id}/actions.json`,
               },
             }),
-            requiredHeaders: s.requiredHeaders.map((h) => h.name),
+            // Nombre Y forma del valor. Con solo el nombre, una máquina que
+            // leyera esto mandaría `Authorization: <token>` — sin `Bearer `,
+            // que es sintaxis inválida y otro 401. El índice para máquinas es
+            // justo donde esa diferencia no se puede dar por sabida.
+            requiredHeaders: s.requiredHeaders.map((h) =>
+              h.valuePrefix ? `${h.name}: ${h.valuePrefix}<token>` : h.name,
+            ),
             optionalHeaders: s.optionalHeaders.map((h) => h.name),
+            // Cómo se consigue la credencial, no solo dónde se pone. Sin esto
+            // el índice decía que hace falta una cabecera y se callaba el
+            // flujo entero: el Application ID que hay que configurar en cada
+            // cliente, quién emite los tokens y dónde está el documento que lo
+            // declara. Ausente en un servidor que no delega en OAuth.
+            ...(s.oauth && {
+              oauth: {
+                clientId: s.oauth.clientId,
+                authorizationServer: s.oauth.authorizationServer,
+                scopes: s.oauth.scopes,
+                protectedResourceMetadata: s.oauth.metadataUrl,
+                callbackPort: s.oauth.callbackPort,
+              },
+            }),
             repository: s.repo,
             documentation: s.docsSite ?? s.docs,
             health: `${s.endpoint}/health`,

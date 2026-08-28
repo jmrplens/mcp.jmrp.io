@@ -303,7 +303,7 @@ test("llms.txt y llms-full.txt describen los servidores de verdad", () => {
     "el índice tiene que enlazar el documento largo",
   );
   assert.ok(
-    full.includes("PRIVATE-TOKEN"),
+    full.includes("Authorization"),
     "la ficha larga tiene que decir qué cabecera pide gitlab",
   );
   assert.ok(full.length > short.length, "el documento largo no es más largo");
@@ -762,8 +762,15 @@ test("el catálogo de descubrimiento y las server cards son coherentes", () => {
     for (const header of card.remotes[0].headers ?? []) {
       if (!header.isRequired) continue;
       const declared = index.servers.find((s) => s.endpoint === url);
+      // Compared by NAME, not by whole string: since servers.json started
+      // carrying the value's shape too ("Authorization: Bearer <token>"),
+      // an exact match would fail on a difference that is deliberate. What
+      // has to hold is that the header the card requires is one the index
+      // declares — not that both surfaces phrase it identically.
       assert.ok(
-        declared.requiredHeaders.includes(header.name),
+        declared.requiredHeaders.some(
+          (h) => h === header.name || h.startsWith(`${header.name}:`),
+        ),
         `${path}: cabecera ${header.name} no declarada en servers.json`,
       );
     }

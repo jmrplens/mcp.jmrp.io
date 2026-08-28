@@ -17,6 +17,15 @@ export type McpHeader = {
   secret?: boolean;
   /** Ejemplo que se muestra en el campo del inspector. Nunca un valor real. */
   placeholder?: string;
+  /**
+   * Prefijo fijo del valor, cuando la cabecera lo lleva (p. ej. `"Bearer "`).
+   *
+   * Existe porque el valor de la cabecera dejó de ser la credencial a secas:
+   * con `Authorization` es el esquema más el token. Lo antepone quien EMITE
+   * (los fragmentos por cliente y el inspector); lo que teclea el visitante
+   * sigue siendo solo el token, y por eso el `placeholder` no lo repite.
+   */
+  valuePrefix?: string;
 };
 
 /** Texto en los dos idiomas del sitio. */
@@ -94,6 +103,15 @@ export type McpServer = {
    */
   version: string;
   endpoint: string;
+  /**
+   * What a plain GET to `endpoint` answers.
+   *
+   * Per server, because the two binaries disagree: libgen rejects the method
+   * (405), while gitlab checks credentials before it checks the method and so
+   * answers 401. Neither ever serves a page, which is the point every surface
+   * needs to make — but stating one number for both was simply false.
+   */
+  getStatus: number;
   repo: string;
   /**
    * README del repositorio, y FALLBACK de `docsSite`.
@@ -137,6 +155,61 @@ export type McpServer = {
    * same thing — the very distinction this file maintains.
    */
   sameAs?: string[];
+  /**
+   * Cómo se obtiene la credencial cuando el servidor delega en OAuth, y no
+   * sólo qué cabecera la transporta.
+   *
+   * Ausente = no hay flujo que documentar y el visitante aporta su propia
+   * credencial (es el caso de libgen, que no pide ninguna). Presente = los
+   * fragmentos por cliente emiten PRIMERO el flujo OAuth y dejan el token
+   * pegado a mano como alternativa para headless y CI.
+   *
+   * `clientId` es público POR DISEÑO: viaja en la URL de autorización, a la
+   * vista del navegador de cualquiera. Lo que nunca sale de aquí es el secreto
+   * de la aplicación, que además esta no usa: es una app pública (PKCE).
+   */
+  oauth?: {
+    /** Application ID de la aplicación OAuth registrada. */
+    clientId: string;
+    /** Quién emite los tokens. Es el `authorization_servers` del RFC 9728. */
+    authorizationServer: string;
+    /** Alcances que pide la aplicación. Los fija ella, no quien la usa. */
+    scopes: string[];
+    /** El documento RFC 9728 del recurso, para quien quiera comprobarlo. */
+    metadataUrl: string;
+    /**
+     * Puerto de callback que hay que fijar en los clientes que lo permiten.
+     * No es libre: tiene que coincidir con un redirect URI registrado en la
+     * aplicación, y el de Claude Code es `http://localhost:<puerto>/callback`.
+     */
+    callbackPort: number;
+    /**
+     * A SECOND OAuth application, used by nothing but the inspector's sign-in
+     * button, and registered with a read-only scope.
+     *
+     * It exists because the two callers want opposite things. An MCP client
+     * needs `api`: it is there to do work, including writing. The inspector is
+     * a page for looking at an endpoint, and handing a web page a token that
+     * can write to someone's whole GitLab is a worse deal than the pasted
+     * personal access token it would replace — a visitor can at least scope
+     * that one to `read_api` themselves.
+     *
+     * With its own application the button becomes strictly the better option:
+     * read-only, and gone in two hours, with nothing to create by hand.
+     *
+     * Absent = the button does not render at all. That is deliberate: a
+     * half-configured sign-in is worse than none, and this way the feature can
+     * ship before the application exists.
+     */
+    inspector?: {
+      /** Application ID of the read-only app. Public, like the other one. */
+      clientId: string;
+      /** Registered redirect URI, matched character for character. */
+      redirectUri: string;
+      /** What it asks for. `read_api` — see the note above. */
+      scopes: string[];
+    };
+  };
   /** Cabeceras que el cliente DEBE enviar. Vacío = sin credenciales. */
   requiredHeaders: McpHeader[];
   optionalHeaders: McpHeader[];
@@ -200,6 +273,7 @@ export type McpServer = {
 export const servers: McpServer[] = [
   {
     id: "libgen",
+    getStatus: 405,
     name: "libgen",
     registryName: "io.github.jmrplens/libgen-mcp",
     // libgen-mcp 1.6.3 (2026-08-22) started serving its own SEP-1649 Server
@@ -300,7 +374,7 @@ export const servers: McpServer[] = [
           },
           {
             en: "What you do with those links is your responsibility, and the rules that apply depend on where you are.",
-            es: "Lo que hagas con esos enlaces es responsabilidad tuya, y las normas que apliquen dependen de dónde estés.",
+            es: "Lo que hagas con esos enlaces es responsabilidad tuya, y las normas aplicables dependen de dónde estés.",
           },
         ],
       },
@@ -319,8 +393,8 @@ export const servers: McpServer[] = [
             es: "libgen en mcp.jmrp.io es un servicio personal, ofrecido tal cual y sin SLA. Puede cambiar o desaparecer sin aviso, así que no montes nada crítico encima — levanta tu propia instancia: el servidor es open source y un único binario estático.",
           },
           {
-            en: "Requests towards the Library Genesis mirrors are rate-limited to about 2 per second per instance (3 instances, so roughly 6 per second in total). That ceiling is deliberately low: it points at third-party mirrors, and going faster would spend their capacity, not ours.",
-            es: "Las peticiones hacia los mirrors de Library Genesis están limitadas a unas 2 por segundo por instancia (hay 3 instancias, así que unas 6 por segundo en total). Ese techo es deliberadamente bajo: apunta a mirrors de terceros, y correr más gastaría su capacidad, no la nuestra.",
+            en: "Its outbound requests are rate-limited to about 2 per second per instance (3 instances, so roughly 6 per second in total) — one limiter for the whole process, covering catalogue queries and downloads alike, whichever source they reach. That ceiling is deliberately low: it points at third-party mirrors, and going faster would spend their capacity, not ours.",
+            es: "Sus peticiones salientes están limitadas a unas 2 por segundo por instancia (hay 3 instancias, así que unas 6 por segundo en total) — un único limitador para todo el proceso, que cubre igual las consultas al catálogo y las descargas, sea cual sea la fuente a la que lleguen. Ese techo es deliberadamente bajo: apunta a servicios de terceros, y correr más gastaría su capacidad, no la nuestra.",
           },
         ],
       },
@@ -328,8 +402,8 @@ export const servers: McpServer[] = [
     // Concuerda con el aviso `limits` de arriba (2/s por instancia, 3
     // instancias): si cambia el techo, cambian los dos.
     rateLimit: {
-      en: "Its calls out to the Library Genesis mirrors are capped at about 2 per second per instance, three instances in all. The ceiling is deliberately low: the capacity it spends there belongs to a third party, not to this site.",
-      es: "Sus llamadas hacia los mirrors de Library Genesis están limitadas a unas 2 por segundo por instancia, tres instancias en total. El techo es deliberadamente bajo: la capacidad que gasta ahí es de un tercero, no de este sitio.",
+      en: "Its outbound calls are capped at about 2 per second per instance, three instances in all — a single limiter per process, spanning catalogue queries and downloads whichever source they reach. The ceiling is deliberately low: the capacity it spends there belongs to a third party, not to this site.",
+      es: "Sus llamadas salientes están limitadas a unas 2 por segundo por instancia, tres instancias en total — un solo limitador por proceso, que abarca las consultas al catálogo y las descargas sea cual sea la fuente. El techo es deliberadamente bajo: la capacidad que gastan ahí es de un tercero, no de este sitio.",
     },
     requiredHeaders: [],
     optionalHeaders: [],
@@ -354,6 +428,7 @@ export const servers: McpServer[] = [
   },
   {
     id: "gitlab",
+    getStatus: 401,
     name: "gitlab",
     registryName: "io.github.jmrplens/gitlab-mcp-server",
     nativeCard: true,
@@ -393,8 +468,8 @@ export const servers: McpServer[] = [
         },
         body: [
           {
-            en: "Your token stays in your browser's memory only. It is not written to localStorage or cookies, never travels in the URL, and is gone on reload. It is sent solely as a PRIVATE-TOKEN header to mcp.jmrp.io/gitlab, which neither stores nor logs it: the server uses it for that request and forgets it.",
-            es: "Tu token se queda solo en la memoria de tu navegador. No se guarda en localStorage ni en cookies, no viaja en la URL y desaparece al recargar. Se envía únicamente como cabecera PRIVATE-TOKEN a mcp.jmrp.io/gitlab, que no lo almacena ni lo registra: el servidor lo usa para esa petición y lo olvida.",
+            en: "Your token stays in your browser's memory only. It is not written to localStorage or cookies, never travels in the URL, and is gone on reload. It is sent solely as an Authorization: Bearer header to mcp.jmrp.io/gitlab, which neither stores nor logs it: the server uses it for that request and forgets it.",
+            es: "Tu token se queda solo en la memoria de tu navegador. No se guarda en localStorage ni en cookies, no viaja en la URL y desaparece al recargar. Se envía únicamente como cabecera Authorization: Bearer a mcp.jmrp.io/gitlab, que no lo almacena ni lo registra: el servidor lo usa para esa petición y lo olvida.",
           },
           // Cada afirmación con su respaldo real: la CSP prueba el DESTINO
           // (el navegador la aplica); lo que el servidor haga después no lo
@@ -402,8 +477,8 @@ export const servers: McpServer[] = [
           // único verificable. La versión anterior presentaba las dos cosas
           // bajo el mismo "no hace falta que te fíes", y eso sobre-vendía.
           {
-            en: "The destination is not a matter of trust: this page's Content-Security-Policy declares connect-src 'self' and form-action 'self', so the browser itself refuses to send the token anywhere but this domain. What the server then does — use it for that request and discard it — you can verify in its source code, which is public.",
-            es: "El destino no es cuestión de confianza: la Content-Security-Policy de esta página declara connect-src 'self' y form-action 'self', así que es el propio navegador el que impide enviar el token a ningún sitio que no sea este dominio. Lo que el servidor haga después — usarlo para esa petición y descartarlo — puedes comprobarlo en su código fuente, que es público.",
+            en: "The destination is not a matter of trust: this page's Content-Security-Policy declares connect-src 'self' https://gitlab.com and form-action 'self', so the browser itself refuses to send the token anywhere but this domain and the one that issues it. gitlab.com is on that list for exactly one reason — a sign-in button exchanging an authorization code for a token, currently disabled — and for nothing else. What the server then does with it, use it for that request and discard it, you can verify in its source code, which is public.",
+            es: "El destino no es cuestión de confianza: la Content-Security-Policy de esta página declara connect-src 'self' https://gitlab.com y form-action 'self', así que es el propio navegador el que impide enviar el token a ningún sitio que no sea este dominio y el que lo emite. gitlab.com está en esa lista por una única razón —un botón de acceso canjeando un código de autorización por un token, ahora mismo desactivado— y por ninguna otra. Lo que el servidor haga después con él, usarlo para esa petición y descartarlo, puedes comprobarlo en su código fuente, que es público.",
           },
           {
             en: "Even so, be suspicious of any site asking for a token — this one included. The sensible habits are:",
@@ -416,8 +491,8 @@ export const servers: McpServer[] = [
             es: "Comprobarlo tú mismo: el código de esta página es público, y el del servidor también.",
           },
           {
-            en: "Use the narrowest scope possible (read_api is enough to try it) and a short expiry.",
-            es: "Usar un token con el mínimo alcance posible (read_api basta para probar) y caducidad corta.",
+            en: "Use the narrowest credential the server accepts, which here is a personal access token scoped to api, sent as Bearer. A read_api token is refused: this deployment checks the scope once, against what its full tool set could need, not per call — so read-only credentials do not get a read-only subset, they get an error.",
+            es: "Usar la credencial más estrecha que el servidor acepte, que aquí es un personal access token con alcance api, enviado como Bearer. Un token read_api se rechaza: este despliegue comprueba el alcance una vez, contra lo que podría necesitar su conjunto entero de herramientas, y no llamada a llamada — así que una credencial de solo lectura no obtiene un subconjunto de solo lectura, obtiene un error.",
           },
           {
             en: "Revoke it when you are done testing.",
@@ -441,51 +516,93 @@ export const servers: McpServer[] = [
             es: "El endpoint gitlab de mcp.jmrp.io es igualmente personal, sin SLA ni garantía de continuidad. Para algo crítico, levanta tu propia instancia — el servidor es open source y un único binario estático.",
           },
           {
-            en: "Whatever quota applies is your GitLab instance's, spent with your own token: this server adds no limit of its own beyond the site-wide one.",
-            es: "La cuota que aplique es la de tu instancia de GitLab, gastada con tu propio token: este servidor no añade más límite que el general del sitio.",
+            en: "Whatever quota applies is gitlab.com's, spent with your own token: this server adds no limit of its own beyond the site-wide one.",
+            es: "La cuota que rige es la de gitlab.com, gastada con tu propio token: este servidor no añade más límite que el general del sitio.",
           },
         ],
       },
     ],
     // Concuerda con el aviso `limits` de arriba: el techo que aplica es el de
-    // la instancia de GitLab del propio visitante.
+    // gitlab.com, que desde --auth-mode=oauth es la única instancia posible.
     rateLimit: {
-      en: "It adds no quota of its own beyond the site-wide one: every call is spent against your own GitLab instance's limits, with your own token.",
-      es: "No añade cuota propia más allá de la general del sitio: cada llamada se gasta contra los límites de tu propia instancia de GitLab, con tu propio token.",
+      en: "It adds no quota of its own beyond the site-wide one: every call is spent against gitlab.com's limits, under your own token.",
+      es: "No añade cuota propia más allá de la general del sitio: cada llamada se descuenta de los límites de gitlab.com, con tu propio token.",
+    },
+    oauth: {
+      clientId:
+        "c9431f281376dab9390349f60bed0503285786e19577df14a9c291c588b85941",
+      authorizationServer: "https://gitlab.com",
+      scopes: ["api"],
+      metadataUrl:
+        "https://mcp.jmrp.io/.well-known/oauth-protected-resource/gitlab",
+      callbackPort: 8090,
+      // DISABLED, not removed. The read-only application exists and is
+      // registered correctly — the sign-in flow itself works end to end, and
+      // GitLab issues the token — but this deployment refuses it at the door:
+      //
+      //   -40300  "This token does not carry the api scope that this
+      //            deployment requires. Reauthorize the application
+      //            requesting it."
+      //
+      // The scope the server demands is a property of the DEPLOYMENT, not of
+      // the call. Its own guide says so: it asks for `read_api` "whenever
+      // --read-only or --safe-mode is set", and this one is neither, because
+      // MCP clients need to write. So a read-only token is refused even for
+      // `initialize`, let alone `tools/list`.
+      //
+      // The three ways out, none of them ours alone:
+      //   1. The server accepts `read_api` and gates per action — it already
+      //      knows which ones are destructive, it publishes that flag for all
+      //      747. Requested in the handoff to that repo.
+      //   2. Give this application `api`, which is exactly the read/write
+      //      token in a web page that the second application existed to avoid.
+      //   3. A second, read-only deployment on its own path, just for the
+      //      inspector. More moving parts than the feature is worth today.
+      //
+      // Uncommenting this line is all it takes once (1) ships.
+      //
+      // inspector: {
+      //   clientId: "94649066fed1c053ad503a1addd3a86150e8f5eeb917965e713bcd2d662ace47",
+      //   redirectUri: "https://mcp.jmrp.io/inspector/callback/",
+      //   scopes: ["read_api"],
+      // },
     },
     requiredHeaders: [
       {
-        name: "PRIVATE-TOKEN",
+        name: "Authorization",
         secret: true,
+        valuePrefix: "Bearer ",
+        placeholder: "glpat-…",
         description: {
-          en: "Your GitLab Personal Access Token. Never stored on the server.",
-          es: "Tu Personal Access Token de GitLab. Nunca se guarda en el servidor.",
+          en: "Your gitlab.com credential, sent as Bearer: an OAuth access token, or a personal access token used the same way. Never stored on the server.",
+          es: "Tu credencial de gitlab.com, enviada como Bearer: un token de acceso OAuth, o un personal access token usado igual. Nunca se guarda en el servidor.",
         },
       },
     ],
-    optionalHeaders: [
-      {
-        name: "GITLAB-URL",
-        placeholder: "https://gitlab.com",
-        description: {
-          en: "Another GitLab instance. Defaults to https://gitlab.com.",
-          es: "Otra instancia de GitLab. Por defecto https://gitlab.com.",
-        },
-      },
-    ],
+    // Vacío desde que el despliegue pasó a --auth-mode=oauth: ese modo exige
+    // una instancia FIJA (el documento RFC 9728 nombra un único servidor de
+    // autorización), así que la cabecera `GITLAB-URL` por petición dejó de
+    // honrarse. Anunciarla sería peor que no tenerla: quien la mandara no
+    // recibiría error, simplemente se ignoraría.
+    optionalHeaders: [],
     // Coverage goes in the description on purpose: "which GitLab MCP server
     // should I use?" is answered by comparing coverage, and it is the citable
     // fact that sets this one apart. From here the description reaches the
     // card, servers.json, the JSON-LD and llms.txt in one go.
     //
-    // It says "over 1,000" rather than an exact figure for two reasons the
-    // 2026-08-22 audit caught: the real number DEPENDS ON THE TIER (~847 on
-    // Community Edition, up to 1071 on Ultimate), so a fixed one is false for
-    // the "against any GitLab instance" this very sentence promises; and the
-    // 1006 that used to be here came from the v1.0.x description in the MCP
-    // registry, which upstream no longer publishes — its README and docs site
-    // now say "1000+". A wrong citable figure is worse than none, because it
-    // is precisely the one assistants repeat.
+    // It says "over 700" rather than an exact figure, and the number moved
+    // DOWN from "over 1,000" when the endpoint went OAuth-only. The reason is
+    // not that the server lost anything: the catalog is scoped to the token
+    // that asks, and this deployment now publishes what a gitlab.com token
+    // sees. Measured on the day of the switch, the manifest went from 851
+    // actions to 747 — the 104 that vanished are the administration domains a
+    // gitlab.com account without admin rights simply cannot call.
+    //
+    // So 700 is a FLOOR that holds for every reader, where "over 1,000" was
+    // only true on Ultimate and was contradicted by this site's own published
+    // manifest (`/servers/gitlab/`, 747). A citable figure that the same site
+    // refutes two clicks away is worse than a smaller one that never does —
+    // and it is precisely the figure assistants repeat.
     //
     // It is also the page's META DESCRIPTION, so the hard ceiling is 155
     // characters — past that Google truncates and picks the cut itself. The
@@ -494,8 +611,8 @@ export const servers: McpServer[] = [
     // `what`, so that EN and ES could carry the SAME four. Re-count the
     // characters on any rewrite: Spanish is the one that runs out of room.
     description: {
-      en: "Over 1,000 GitLab operations — projects, merge requests, issues, pipelines — on any instance. Your token travels per request, never stored.",
-      es: "Más de 1.000 operaciones de GitLab — proyectos, merge requests, incidencias, pipelines — en cualquier instancia. Token por petición, nunca se guarda.",
+      en: "Over 700 GitLab operations on gitlab.com — projects, merge requests, issues, pipelines. OAuth or a PAT as Bearer, per request, never stored.",
+      es: "Más de 700 operaciones de GitLab en gitlab.com — proyectos, merge requests, incidencias, pipelines. OAuth o PAT como Bearer, por petición, nunca se guarda.",
     },
   },
 ];

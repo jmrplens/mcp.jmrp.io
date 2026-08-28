@@ -277,3 +277,71 @@
 .lab-grid--page {
   z-index: -1;
 }
+
+/* ===== Desplegables: el marcador compartido =================================
+   `.fold` de la ficha ya marcaba sus <details> como jmrp.io: chevron en ámbar
+   que gira al abrir y etiqueta que se ilumina al pasar por encima. Los otros
+   dos —los argumentos de cada tool y los fragmentos de configuración— nacieron
+   sin él y se quedaban en gris apagado con el triangulito nativo, que a simple
+   vista no se distingue de una etiqueta muerta: en móvil la página entera
+   parecía texto plano sin nada accionable.
+
+   Vive aquí y no en el <style> de cada componente precisamente por eso: la
+   duplicación fue lo que dejó que dos de los tres se quedaran atrás. Un
+   componente que quiera este aspecto añade `disclosure` a su <details>.
+
+   El marcador es `::before` propio y no el nativo: el nativo no se puede
+   colorear, y quitándole `list-style` desaparece en algunos navegadores. */
+.disclosure > summary {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  color: var(--color-text-heading);
+  cursor: pointer;
+  list-style: none;
+}
+
+.disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.disclosure > summary::before {
+  content: "›";
+  display: inline-block;
+  flex-shrink: 0;
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  transition: transform 0.15s ease;
+}
+
+.disclosure[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.disclosure > summary:hover,
+.disclosure > summary:focus-visible {
+  color: var(--color-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .disclosure > summary::before {
+    transition: none;
+  }
+}
+
+/* ===== Filas de enlaces con icono ===========================================
+   El patrón de jmrp.io/projects: cada enlace de una fila lleva su icono
+   delante, en ámbar y con la etiqueta en negrita. Sin él, "Repository
+   Documentation" se lee como una sola frase gris y ninguno de los dos parece
+   un enlace — que es lo que pasaba aquí.
+
+   El icono se alinea con `em` y no con px para que siga al tamaño de letra
+   del sitio donde se use: la ficha de la portada y la página del servidor
+   usan cuerpos distintos. */
+.link-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+}

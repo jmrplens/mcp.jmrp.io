@@ -3,7 +3,7 @@
  *
  * La instancia GitLab del autor no puede aparecer en NADA publicado ni en
  * NADA commiteado: el repo es público y su hostname solo vive en `.env`
- * (MCP_SURFACE_GITLAB_URL). Por eso este fichero no contiene el valor por ningún lado
+ * (MCP_SURFACE_FORBIDDEN_HOSTS). Por eso este fichero no contiene el valor por ningún lado
  * —ni en fixtures, ni en comentarios, ni en mensajes de fallo—: se lee de
  * `process.env` en el momento de ejecutar y, cuando algo falla, el assert
  * lista RUTAS de ficheros, nunca lo que se estaba buscando.
@@ -44,37 +44,45 @@ try {
 }
 
 /**
- * Agujas a buscar: el host de MCP_SURFACE_GITLAB_URL en minúsculas, con y sin puerto
+ * Agujas a buscar: los hosts de MCP_SURFACE_FORBIDDEN_HOSTS en minúsculas, con y sin puerto
  * (hoy el valor no lleva puerto, pero la guardia no debe depender de eso).
  * Devuelve `null` si la variable no está — el llamante decide saltarse.
  *
  * @returns {string[] | null} Subcadenas a detectar, o `null` sin variable.
  */
 function resolveNeedles() {
-  const raw = process.env.MCP_SURFACE_GITLAB_URL;
+  // MISMA variable que FORBIDDEN_HOSTS en scripts/sync-server-surface.mjs, y no
+  // por gusto: si el build y su red de seguridad resuelven agujas distintas,
+  // inspeccionan cosas distintas y una fuga puede publicarse con los dos en
+  // verde. Cuando la guardia del build se desacopló del transporte (pasó de
+  // derivar el host de la instancia a la que llamaba a leer su propia
+  // variable), este resolutor se quedó atrás leyendo la vieja — exactamente el
+  // fallo que avisaba el comentario de allí. Si cambia una, cambia la otra.
+  const raw = process.env.MCP_SURFACE_FORBIDDEN_HOSTS;
   if (!raw) return null;
-  let host = "";
-  let hostname = "";
-  try {
-    const parsed = new URL(raw);
-    host = parsed.host;
-    hostname = parsed.hostname;
-  } catch {
-    // Sin esquema y sin dos puntos: new URL lanza; cae al crudo, abajo.
+  const needles = new Set();
+  for (const item of raw.split(",")) {
+    const entry = item.trim();
+    if (!entry) continue;
+    let parsed = [];
+    try {
+      const u = new URL(entry.includes("://") ? entry : `https://${entry}`);
+      parsed = [u.host, u.hostname];
+    } catch {
+      // Sin esquema y sin dos puntos: new URL lanza; cae al crudo, abajo.
+    }
+    if (parsed.filter(Boolean).length === 0) {
+      // Valor sin esquema, O con dos puntos y sin esquema ("host:8443"): a este
+      // último new URL NO le lanza — lo parsea como esquema + ruta opaca con
+      // host VACÍO, y sin este respaldo los tests de escaneo se saltarían justo
+      // con la variable puesta.
+      parsed = [entry, entry.split(":", 1)[0]];
+    }
+    for (const h of parsed) {
+      if (h) needles.add(h.toLowerCase());
+    }
   }
-  if (!host && !hostname) {
-    // Valor sin esquema, O con dos puntos y sin esquema ("host:8443"): a este
-    // último new URL NO le lanza — lo parsea como esquema + ruta opaca con
-    // host VACÍO, y sin este fallback los tests de escaneo se saltarían justo
-    // con la variable puesta. El crudo tal cual, y recortado por si llevara
-    // puerto. MISMO fallback que FORBIDDEN_HOSTS en sync-server-surface.mjs.
-    host = raw;
-    hostname = raw.split(":", 1)[0];
-  }
-  const needles = [
-    ...new Set([host.toLowerCase(), hostname.toLowerCase()]),
-  ].filter(Boolean);
-  return needles.length > 0 ? needles : null;
+  return needles.size > 0 ? [...needles] : null;
 }
 
 // Fuera del escaneo solo binarios (imágenes, fuentes) y los precomprimidos:
@@ -111,7 +119,7 @@ function scanForNeedles(rootDir, needles) {
 }
 
 const SKIP_NOTE =
-  "MCP_SURFACE_GITLAB_URL no está ni en el entorno ni en .env: no hay host que buscar " +
+  "MCP_SURFACE_FORBIDDEN_HOSTS no está ni en el entorno ni en .env: no hay host que buscar " +
   "(en CI es lo esperado)";
 
 test("ninguna superficie publicada contiene el host de la instancia GitLab", (t) => {
@@ -124,7 +132,7 @@ test("ninguna superficie publicada contiene el host de la instancia GitLab", (t)
   assert.deepEqual(
     leaks,
     [],
-    `el host de MCP_SURFACE_GITLAB_URL aparece en ${leaks.length} fichero(s) publicados: ` +
+    `un host prohibido aparece en ${leaks.length} fichero(s) publicados: ` +
       `${leaks.join(", ")} — el valor buscado no se imprime a propósito`,
   );
 });
@@ -141,7 +149,7 @@ test("los snapshots de src/data/surface/ tampoco contienen el host", (t) => {
   assert.deepEqual(
     leaks,
     [],
-    `el host de MCP_SURFACE_GITLAB_URL aparece en ${leaks.length} snapshot(s) commiteados: ` +
+    `un host prohibido aparece en ${leaks.length} snapshot(s) commiteados: ` +
       `${leaks.join(", ")} — el valor buscado no se imprime a propósito`,
   );
 });

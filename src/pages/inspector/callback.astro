@@ -1,0 +1,70 @@
+---
+/**
+ * OAuth callback for the inspector's "sign in with GitLab" button.
+ *
+ * This page exists so the authorization code never touches the inspector's own
+ * URL. The flow runs in a POPUP: this page opens inside it, hands the code
+ * back to the tab that started it via `postMessage`, and closes itself. The
+ * inspector island is never unmounted, so the PKCE `code_verifier` can stay in
+ * memory — which is what keeps the component's written rule intact ("no
+ * localStorage, no sessionStorage, no cookies, no query string").
+ *
+ * A whole-page redirect back into `/inspector/` would break that rule twice
+ * over: the island would be torn down, forcing the verifier into
+ * sessionStorage to survive, and the `code` would land in the address bar of
+ * a page whose deep-link parser explicitly refuses credential parameters.
+ *
+ * NOT locale-prefixed on purpose. The redirect URI has to match, character for
+ * character, one entry registered in the GitLab application; a second locale
+ * would mean a second registration for a page with no visible content.
+ *
+ * `prerender` is the site default (static). Nothing here reads the query
+ * string on the server — it is read in the browser, where it arrives.
+ */
+import Base from "../../layouts/Base.astro";
+import { SITE_ORIGIN } from "../../lib/seo";
+---
+
+<Base
+  title="Signing in…"
+  description="OAuth callback for the inspector."
+  page="inspector"
+  noindex
+>
+  <p class="callback-note" data-origin={SITE_ORIGIN}>
+    Signing you in… you can close this window.
+  </p>
+</Base>
+
+<script>
+  // The opener is the inspector tab. `postMessage` is targeted at this site's
+  // own origin, never "*": a wildcard would hand the authorization code to any
+  // document that happened to open this page.
+  const note = document.querySelector<HTMLElement>(".callback-note");
+  const origin = note?.dataset.origin;
+  const params = new URLSearchParams(window.location.search);
+  const payload = {
+    source: "mcp-inspector-oauth",
+    code: params.get("code"),
+    state: params.get("state"),
+    error: params.get("error"),
+  };
+  if (window.opener && origin) {
+    window.opener.postMessage(payload, origin);
+    window.close();
+  } else if (note) {
+    // Opened directly, with no opener to answer: say so rather than leaving a
+    // page that claims to be signing someone in and never will.
+    note.textContent =
+      "This page only works as the popup of the inspector's sign-in button.";
+  }
+</script>
+
+<style>
+  .callback-note {
+    padding: var(--space-lg) 0;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    text-align: center;
+  }
+</style>

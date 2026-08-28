@@ -151,21 +151,35 @@ const affinityTokens: SnippetToken[] = [
   { text: "$mcp_affinity", cls: "var" },
   { text: " {\n    " },
   { text: "local", cls: "kw" },
-  { text: " token = " },
-  { text: "ngx.var.http_private_token", cls: "var" },
+  { text: " auth = " },
+  { text: "ngx.var.http_authorization", cls: "var" },
   { text: "\n    " },
   { text: "if", cls: "kw" },
-  { text: " token " },
+  { text: " auth " },
+  { text: "then", cls: "kw" },
+  { text: "\n        " },
+  { text: "local", cls: "kw" },
+  { text: " scheme, token = auth:match(" },
+  { text: '"^(%a+)%s+([^%s]+)"', cls: "str" },
+  { text: ")\n        " },
+  { text: "if", cls: "kw" },
+  { text: " scheme " },
+  { text: "and", cls: "kw" },
+  { text: " scheme:lower() == " },
+  { text: '"bearer"', cls: "str" },
+  { text: " " },
   { text: "and", cls: "kw" },
   { text: " token ~= " },
   { text: '""', cls: "str" },
   { text: " " },
   { text: "then", cls: "kw" },
-  { text: "\n        " },
+  { text: "\n            " },
   { text: "return", cls: "kw" },
   { text: " ngx.md5(" },
   { text: "ngx.var.mcp_affinity_salt", cls: "var" },
-  { text: " .. token)\n    " },
+  { text: " .. token)\n        " },
+  { text: "end", cls: "kw" },
+  { text: "\n    " },
   { text: "end", cls: "kw" },
   { text: "\n    " },
   { text: "return", cls: "kw" },
@@ -220,7 +234,7 @@ const nodes: McpInstance[] = topology.libgen.slice(0, MAX_DRAWN_NODES);
 // stretches with the grid), y in the px of a track every column shares.
 const TRACK_H = 74;
 /** Column centers as percentages, for grid tracks of 1 1.5 1 1 1 1.5 (=7). */
-const COL_X = [7.143, 25, 42.857, 57.143, 71.429, 89.286];
+const COL_X = [4.643, 20, 37.143, 52.321, 69.821, 89.286];
 const MID_Y = TRACK_H / 2;
 
 /** Vertical center of node `i`, spread evenly over the shared track. */
@@ -230,10 +244,29 @@ const nodeY = (i: number): number =>
 // The exits, in first-seen order, and which one each node uses. Two today
 // (two countries), and the code never assumes that number.
 const egressKeys = [...new Set(nodes.map((n) => n.egressCountry))];
-const EGRESS_GAP = 26;
+// KEEP-IN-SYNC con `.egress-stack` y `.stage-icon--egress` del <style>: las
+// salidas se colocan con flexbox, así que este número no es libre — es el
+// diámetro del círculo más el hueco de la pila (22px + 8px). Si se separan,
+// los círculos del HTML dejan de caer sobre los extremos que dibuja el SVG.
+const EGRESS_GAP = 30;
 /** Vertical center of exit `i`, centred as a group on the same track. */
 const egressY = (i: number): number =>
   MID_Y + (i - (egressKeys.length - 1) / 2) * EGRESS_GAP;
+
+/**
+ * Where node `i` enters the exit zone: partway between its own row and the
+ * middle, never AT the middle.
+ *
+ * `K` is how much of the way it travels. At 1 the three curves meet in a
+ * single vertex and read as three things becoming one — which is a claim the
+ * routing never makes: the exits are two, the nodes are three, and nothing
+ * merges anywhere. At 0 they arrive flat and the fan does not close at all.
+ * At 0.4 they visibly lean toward each other while still landing on three
+ * distinct points of the frame's face, which is what actually happens.
+ */
+const EGRESS_ENTRY_K = 0.4;
+const egressEntryY = (i: number): number =>
+  MID_Y + (nodeY(i) - MID_Y) * EGRESS_ENTRY_K;
 
 /**
  * One connector, as a cubic with horizontal tangents at both ends — the
@@ -257,10 +290,16 @@ const wires = {
   tls_in: [wire(COL_X[0], MID_Y, COL_X[2], MID_Y)],
   // nginx → each node: the fork. Loopback, never on a network.
   local: nodes.map((_, i) => wire(COL_X[2], MID_Y, COL_X[3], nodeY(i))),
-  // each node → its exit: the join. Inside the SSH tunnel.
-  ssh: nodes.map((node, i) =>
-    wire(COL_X[3], nodeY(i), COL_X[4], egressY(egressKeys.indexOf(node.egressCountry))),
-  ),
+  // each node → the exit zone: the join. Inside the SSH tunnel.
+  //
+  // Every node lands on the frame, each on its own point of it (see
+  // `egressEntryY`), instead of on the circle of the country it uses.
+  // Node→country is a real, fixed property (see `topology.ts`), so the earlier
+  // per-country curves were not wrong — but six curves crossing into two beads
+  // read as noise at this size, and what the fan is for is showing that traffic
+  // leaves through a controlled exit at all. The two lines LEAVING the frame
+  // still say there are exactly two of them, which is the part a reader needs.
+  ssh: nodes.map((_, i) => wire(COL_X[3], nodeY(i), COL_X[4], egressEntryY(i))),
   // each exit → the destination: TLS again, and STRAIGHT. An earlier cut
   // curved both exits into a single bead, which drew a claim the routing
   // never makes: that the two exits share a destination. They do not — each
@@ -305,6 +344,7 @@ const MATCHED_NODE_INDEX = 0;
       reduced-motion frozen frame, defined entirely inside that media query
       below. */}
   <figure class="mcp-flow-figure">
+    <div class="mcp-scale">
     <div class="mcp-strip">
       {/* Traveling highlight box — see the <style> block's "Traveling
           highlight box" section. Two elements sharing one animation: the
@@ -353,7 +393,9 @@ const MATCHED_NODE_INDEX = 0;
       </div>
 
       <div class="stage stage--cloudflare">
-        <span class="stage-icon" aria-hidden="true"></span>
+        <span class="stage-icon stage-icon--cloudflare" aria-hidden="true">
+          <span class="i-simple-icons:cloudflare"></span>
+        </span>
         <span class="stage-label">Cloudflare</span>
       </div>
 
@@ -376,8 +418,14 @@ const MATCHED_NODE_INDEX = 0;
       </div>
 
       <div class="stage stage--egress">
-        <div class="egress-stack">
-          {egressKeys.map(() => <span class="stage-icon" aria-hidden="true" />)}
+        <div class="egress-zone">
+          <div class="egress-stack">
+            {
+              egressKeys.map((code) => (
+                <span class="stage-icon stage-icon--egress">{code}</span>
+              ))
+            }
+          </div>
         </div>
         <span class="stage-label">{t.diagramStageEgress}</span>
       </div>
@@ -387,7 +435,14 @@ const MATCHED_NODE_INDEX = 0;
         <span class="stage-label">{t.diagramStageDestination}</span>
       </div>
 
+      {/* nginx y las instancias corren en UNA máquina, y esa máquina está en
+          España: el recuadro lo dice en vez de dejarlo implícito. El código de
+          país es texto real, no decoración — responde a «dónde se procesa de
+          verdad mi petición», que es distinto de por dónde sale después. */}
+      <div class="mcp-region"><span class="mcp-region-tag">ES</span></div>
+
       <span class="mcp-box-border" aria-hidden="true"></span>
+    </div>
     </div>
 
     {/* Transport legend. The connector line under the strip is painted in
@@ -475,6 +530,15 @@ const MATCHED_NODE_INDEX = 0;
       <p>{t.diagramTimelineStep6}</p>
     </li>
   </ol>
+</section>
+
+{/* The inspector's storage sits right before the wire section: both are
+    about what happens to a credential, and this one answers the question the
+    inspector's own privacy note raises — "how would I know?". The anchor id is
+    linked from that note, so it is part of the contract. */}
+<section aria-labelledby="inspector-storage-h">
+  <h2 class="eyebrow" id="inspector-storage-h">{t.storageEyebrow}</h2>
+  {t.storageBody.map((paragraph: string) => <p class="prose-text">{paragraph}</p>)}
 </section>
 
 <section aria-labelledby="wire-h">
@@ -608,7 +672,10 @@ const MATCHED_NODE_INDEX = 0;
     overflow-x: auto;
     border: 1px solid var(--color-hair);
     border-radius: 6px;
-    background: var(--color-bg-subtle);
+    /* Opaco, no `--color-bg-subtle`: ese token es un 5% translúcido, así que
+       la rejilla del fondo cruzaba la caja y en claro dejaba de leerse como
+       una superficie. Mismo criterio que las tarjetas de jmrp.io. */
+    background: var(--color-bg);
   }
 
   pre code {
@@ -676,7 +743,6 @@ const MATCHED_NODE_INDEX = 0;
     /* The shared icon track, in px. Also the SVG's viewBox height, set from
        `TRACK_H` in the frontmatter — the two MUST stay equal or the curves
        stop landing on the icons. */
-    --track-h: 74px;
     --wire-tls: var(--color-success);
     --wire-ssh: var(--color-info);
     --wire-local: var(--color-text-muted);
@@ -686,7 +752,10 @@ const MATCHED_NODE_INDEX = 0;
     padding: 1rem;
     border: 1px solid var(--color-hair);
     border-radius: var(--radius-md);
-    background: var(--color-bg-subtle);
+    /* Opaco, no `--color-bg-subtle`: ese token es un 5% translúcido, así que
+       la rejilla del fondo cruzaba la caja y en claro dejaba de leerse como
+       una superficie. Mismo criterio que las tarjetas de jmrp.io. */
+background: var(--color-bg-secondary);
   }
 
   /* ===== The strip =============================================================
@@ -701,7 +770,33 @@ const MATCHED_NODE_INDEX = 0;
      keeps the strip horizontal with zero horizontal scroll at 360px, the
      hard requirement that sank neither, but almost sank, both earlier
      attempts. */
+  /* ===== Escala proporcional ====================================================
+     La figura se DISEÑA a un ancho de 380.44px (la franja a un viewport de
+     440px, medido en el navegador) y desde ahí escala como un bloque: `--u`
+     vale 1 px de diseño, y toda la geometría de aquí abajo es un múltiplo suyo.
+
+     El motivo no es estético. Con tamaños en px fijos, las columnas se estrechan
+     al bajar de ancho pero las etiquetas no, así que "Cloudflare" y
+     "destination" —las dos palabras largas— acaban partiéndose, y cada reparto
+     de columnas hay que volver a comprobarlo a 360, 390 y 440. Escalando, las
+     proporciones son las mismas a cualquier ancho y NADA puede partirse: la
+     figura solo se hace más pequeña o más grande.
+
+     `container-type: inline-size` va en el envoltorio y no aquí porque las
+     unidades `cq*` se resuelven contra un contenedor ANTECESOR: un elemento no
+     es contenedor de sí mismo, y definirlas aquí las resolvería contra el
+     viewport.
+
+     El tope de `.mcp-scale` existe porque sin él la figura crecería con la
+     columna de texto: a 1280px sería casi el triple que en el diseño. */
+  .mcp-scale {
+    container-type: inline-size;
+    max-width: 46rem;
+  }
+
   .mcp-strip {
+    --u: calc(100cqw / 380.44);
+    --track-h: calc(74 * var(--u));
     position: relative;
     display: grid;
     /* Cloudflare/destination get a bit more than client/nginx/egress: they
@@ -712,9 +807,9 @@ const MATCHED_NODE_INDEX = 0;
     /* The nodes column no longer holds a row of badges (they stack now), so
        it needs no more room than any other; the width goes instead to the two
        longest words, which used to break mid-word at 390px. */
-    grid-template-columns: 1fr 1.5fr 1fr 1fr 1fr 1.5fr;
+    grid-template-columns: 0.65fr 1.5fr 0.9fr 1.225fr 1.225fr 1.5fr;
     align-items: start;
-    column-gap: 2px;
+    column-gap: calc(2 * var(--u));
     /* Gives `.mcp-box-fill`'s negative `z-index` (below) somewhere to land:
        without this, a negative `z-index` on a descendant escapes past
        `.mcp-strip` itself and paints behind `.mcp-flow-figure`'s own
@@ -737,7 +832,7 @@ const MATCHED_NODE_INDEX = 0;
      stages read as beads threaded on the lines. */
   .mcp-wires {
     position: absolute;
-    top: 0.2rem; /* the stage's own padding: aligns the track with the icons */
+    top: calc(3.2 * var(--u)); /* the stage's own padding: aligns the track with the icons */
     left: 0;
     z-index: -1;
     width: 100%;
@@ -746,7 +841,7 @@ const MATCHED_NODE_INDEX = 0;
 
   .wire {
     fill: none;
-    stroke-width: 2;
+    stroke-width: calc(2 * var(--u));
     stroke-linecap: round;
   }
 
@@ -770,7 +865,7 @@ const MATCHED_NODE_INDEX = 0;
   .flow {
     fill: none;
     stroke: var(--color-accent);
-    stroke-width: 3;
+    stroke-width: calc(3 * var(--u));
     stroke-linecap: round;
     stroke-dasharray: 0 16;
     animation: flow-dots 1.6s linear infinite;
@@ -850,7 +945,7 @@ const MATCHED_NODE_INDEX = 0;
     grid-template-rows: var(--track-h) auto;
     place-items: center;
     min-width: 0; /* see this block's header comment */
-    padding: 0.2rem;
+    padding: calc(3.2 * var(--u));
     border-radius: var(--radius-md);
   }
 
@@ -896,10 +991,10 @@ const MATCHED_NODE_INDEX = 0;
   .mcp-box-fill,
   .mcp-box-border {
     position: absolute;
-    top: -4px;
+    top: calc(-4 * var(--u));
     /* The shared track plus the label under it, plus 4px of air each side —
        every column is the same height now, so one value fits all six. */
-    height: calc(var(--track-h) + 30px);
+    height: calc(var(--track-h) + calc(30 * var(--u)));
     border-radius: var(--radius-md);
     /* `linear` here is a harmless default: every dwell segment below holds
        its value constant (no interpolation needed) and every travel segment
@@ -921,9 +1016,9 @@ const MATCHED_NODE_INDEX = 0;
 
   .stage-icon {
     box-sizing: border-box;
-    width: 18px;
-    height: 18px;
-    border: 1.5px solid var(--color-border);
+    width: calc(18 * var(--u));
+    height: calc(18 * var(--u));
+    border: calc(1.5 * var(--u)) solid var(--color-border);
     border-radius: 50%;
     background: var(--color-bg-secondary);
   }
@@ -937,15 +1032,105 @@ const MATCHED_NODE_INDEX = 0;
      circle cannot — and, being opaque like every other icon, it also masks
      the wire ends that stop behind it. */
   .stage-icon--zone {
-    width: 14px;
-    height: calc(var(--track-h) - 8px);
+    width: calc(14 * var(--u));
+    height: calc(var(--track-h) - calc(8 * var(--u)));
     border-radius: var(--radius-md);
   }
 
   .stage-icon--nginx {
-    border-width: 2.5px;
+    border-width: calc(2.5 * var(--u));
     border-color: var(--color-accent);
-    background: var(--accent-dim);
+    /* Relleno macizo, no el tinte de antes: es la única pieza del dibujo que
+       DECIDE algo, y a 18px un aro con relleno translúcido se lee igual que
+       cualquier otra cuenta del hilo. */
+    background: var(--color-accent);
+  }
+
+  /* Cloudflare: el único salto que no es de este operador, en su naranja de
+     marca para que se vea de un vistazo dónde acaba el control propio. Disco
+     macizo con la marca calada en blanco, y no un glifo naranja sobre el fondo
+     de la página: a 18px un logo monocromo fino se queda por debajo del 3:1 de
+     contraste para gráficos en tema claro, mientras que el disco pasa holgado
+     en los dos temas. */
+  .stage-icon--cloudflare {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-color: #f6821f;
+    background: #f6821f;
+    color: #fff;
+  }
+
+  .stage-icon--cloudflare > span {
+    width: calc(11 * var(--u));
+    height: calc(11 * var(--u));
+  }
+
+  /* Las salidas, dentro de un solo marco: las curvas de los nodos aterrizan en
+     el marco, y solo las dos líneas que SALEN son por país. Opaco a propósito,
+     como el resto de iconos: tapa los extremos de los hilos que mueren detrás. */
+  .egress-zone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    height: calc(var(--track-h) - calc(4 * var(--u)));
+    padding: 0 calc(6 * var(--u));
+    border: calc(1.5 * var(--u)) solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-secondary);
+  }
+
+  /* Más grandes que el resto de cuentas porque llevan dentro el código ISO del
+     país de salida — dato real de `topology.ts`, no adorno. */
+  .stage-icon--egress {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(22 * var(--u));
+    height: calc(22 * var(--u));
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: calc(8 * var(--u));
+    font-weight: var(--fw-semibold);
+  }
+
+  /* La zona española: nginx y las instancias, o sea las columnas 3 y 4 de
+     `grid-template-columns`.
+
+     GENERADO junto a `COL_X`, los `--pos` de los globos y las paradas de
+     box-travel: `left` es el borde izquierdo de la columna 3 y `width` la suma
+     de las dos, ambos en % del total de `fr`. Se quedó fuera del generador en
+     el primer reparto y acabó cinco puntos a la derecha de lo que encierra
+     —desplazado, no roto, que es justo el fallo que nadie ve en una revisión
+     de código—; por eso ahora sale de la misma fuente que el resto.
+
+     Va por DETRÁS de los hilos (`z-index: -2`) para no cortar ninguna línea. */
+  .mcp-region {
+    position: absolute;
+    top: calc(3.2 * var(--u));
+    left: 30.714%;
+    z-index: -2;
+    box-sizing: border-box;
+    width: 30.357%;
+    height: var(--track-h);
+    /* Discontinuo y SIN relleno, a diferencia del marco de egress, que sí es
+       una caja opaca: los dos son rectángulos y dicen cosas distintas — este
+       marca DÓNDE está lo de dentro, aquel agrupa dos salidas. Con relleno
+       ambos se leían igual, y además ensuciaba el paso de la caja de resalte. */
+    border: calc(1 * var(--u)) dashed var(--color-text-muted);
+    border-radius: var(--radius-md);
+    opacity: 0.55;
+  }
+
+  .mcp-region-tag {
+    position: absolute;
+    top: calc(2 * var(--u));
+    left: calc(5 * var(--u));
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: calc(8 * var(--u));
+    line-height: 1;
   }
 
   /* Client: three small dots instead of a ring — "you", not a server. */
@@ -958,12 +1143,12 @@ const MATCHED_NODE_INDEX = 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: calc(2 * var(--u));
   }
 
   .stage-icon--client span {
-    width: 3px;
-    height: 3px;
+    width: calc(3 * var(--u));
+    height: calc(3 * var(--u));
     border-radius: 50%;
     background: var(--color-text-muted);
   }
@@ -973,7 +1158,7 @@ const MATCHED_NODE_INDEX = 0;
     hyphens: auto; /* "destination" breaks as "desti-nation", not "destinatio-n", if it still has to wrap at all */
     color: var(--color-text-muted);
     font-family: var(--font-mono);
-    font-size: 0.62rem;
+    font-size: calc(9.92 * var(--u));
     line-height: 1.15;
     text-align: center;
   }
@@ -1009,7 +1194,7 @@ const MATCHED_NODE_INDEX = 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: calc(8 * var(--u));
   }
 
   .node-badge {
@@ -1022,14 +1207,14 @@ const MATCHED_NODE_INDEX = 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 18px;
-    height: 18px;
-    border: 1.5px solid var(--color-border);
+    width: calc(18 * var(--u));
+    height: calc(18 * var(--u));
+    border: calc(1.5 * var(--u)) solid var(--color-border);
     border-radius: 50%;
     background: var(--color-bg-secondary);
     color: var(--color-text);
     font-family: var(--font-mono);
-    font-size: 0.55rem;
+    font-size: calc(8.8 * var(--u));
     font-weight: var(--fw-semibold);
   }
 
@@ -1044,27 +1229,27 @@ const MATCHED_NODE_INDEX = 0;
      its box's speech-bubble tail below — one shared value instead of
      repeating the same percentage three times per bubble. */
   .bubble--1 {
-    --pos: 5.81%;
+    --pos: 4.643%;
   }
 
   .bubble--2 {
-    --pos: 19.19%;
+    --pos: 20%;
   }
 
   .bubble--3 {
-    --pos: 32.56%;
+    --pos: 37.143%;
   }
 
   .bubble--4 {
-    --pos: 55.81%;
+    --pos: 52.321%;
   }
 
   .bubble--5 {
-    --pos: 79.07%;
+    --pos: 69.821%;
   }
 
   .bubble--6 {
-    --pos: 92.44%;
+    --pos: 89.286%;
   }
 
   /* ===== The fixed-height bubble zone ==========================================
@@ -1334,190 +1519,156 @@ const MATCHED_NODE_INDEX = 0;
   }
 
   /* ===== Traveling highlight box: the `box-travel` animation ===================
-     Drives `.mcp-box-fill`/`.mcp-box-border`'s `left`/`width` (see the
-     "Traveling highlight box" section above) across the SAME six dwells
-     and six travel windows as the bubble cycle's `phase-N` keyframes
-     above — same percentages, same 30s duration, so the box is always
-     parked exactly under the stage whose bubble is currently showing.
 
-     Each of the six DWELLS holds `left`/`width` constant at that stage's
-     column bounds (center-of-column values match the `--pos` custom
-     properties above: e.g. client is 5.81% center → 0%–11.628% bounds;
-     destination is 92.44% center → 84.884%–100% bounds). Each TRAVEL
-     window is split into three equal-length sub-segments with
-     `animation-timing-function` set per keyframe — `ease-in`, then
-     `linear`, then `ease-out` — because a single `cubic-bezier` cannot
-     produce a genuine constant-speed middle: easing curves are smooth
-     start-to-end, they don't have a truly linear plateau. Three keyframes
-     per hop (built at the hop's own 1/3 and 2/3 points, in both `left` and
-     `width`) is the standard way around that: accelerate through the first
-     third, cruise at constant speed through the middle third, decelerate
-     through the last third. Verified on screen (not just computed on
-     paper) — see the SDD report for the rendered check.
+     GENERADO, no escrito a mano. Los números salen de `grid-template-columns`
+     de `.mcp-strip` — hoy `0.65fr 1.5fr 0.9fr 1.225fr 1.225fr 1.5fr`, 7fr en total — de esta
+     forma, y cualquier cambio de columnas obliga a rehacerlos los tres a la vez
+     (estas paradas, `COL_X` en el frontmatter y los `--pos` de los globos):
 
-     Hop 5 (egress → destination, 67–70%) mirrors hop 1's shape exactly:
-     egress and client are both 1fr columns (11.628% wide) and Cloudflare
-     and destination are both 1.3fr (15.116% wide), so the two hops share
-     the same left/width deltas, just shifted along the strip.
+       borde_i  = (suma de anchos anteriores) / total
+       centro_i = borde_i + ancho_i / 2
+       caja_i   = max(ancho_i × 0.90, etiqueta_i + 4px), tope el ancho de columna
 
-     The long RETURN hop (81–100%, destination → client) uses the same
-     three-segment shape over a much longer window: it covers roughly 7.3×
-     the distance of a short forward hop (destination at 84.884% back to
-     client at 0%, versus e.g. client→Cloudflare's 11.628 points), so it
-     also gets roughly 7.3× a forward hop's travel time (19% vs. 3%,
-     minus rounding) — the box crosses it at a comparable, not wildly
-     different, apparent speed. Unlike the pre-destination-hop version,
-     `width` DOES change here (15.116% → 11.628%, destination's column is
-     wider than client's): still a straight interpolation split into the
-     same three sub-segments, not a special case. Sub-segment marks land
-     at 87.333%/93.667% (exact thirds of the 19%-wide window) rather than
-     whole numbers — the window is not evenly divisible by 3 in whole
-     percent, and an exact third is more correct than a rounded one for an
-     accelerate/cruise/decelerate split. */
+     Esa última línea es el motivo de que las cajas NO midan lo mismo que su
+     columna. Se estrechan un 10% para que el resalte abrace a la etapa en vez
+     de a su columna — salvo en Cloudflare y destination, donde el suelo gana:
+     a 360px sus etiquetas (50px y 55px, medidas en el navegador, no estimadas)
+     ya llenan la columna, y encogerlas les cortaría el texto.
+
+     El reparto de columnas tampoco es libre: el hueco entre dos etapas es la
+     semisuma de sus anchos, así que separar nodos de egress obliga a quitarlo
+     de otro sitio. Se quitó de los dos primeros tramos (usuario→Cloudflare y
+     Cloudflare→nginx), que no dicen nada que necesite espacio, y nodos→egress
+     pasó de 14.286% a 17.5% de la franja.
+
+     Las paradas duran 14% del ciclo cada una (11% quieta, 3% de viaje en tres
+     sub-tramos ease-in / linear / ease-out), y el retorno largo del final
+     (81–100%) se hace con opacidad en vez de con un viaje de vuelta: cruzar
+     la figura entera hacia atrás leía como un séptimo paso que no existe. */
   @keyframes box-travel {
     0% {
-      left: 0.0%;
-      width: 14.286%;
+      left: 0.464%;
+      width: 8.357%;
       opacity: 100%;
     }
     11% {
-      left: 0.0%;
-      width: 14.286%;
+      left: 0.464%;
+      width: 8.357%;
       animation-timing-function: ease-in;
     }
     12% {
-      left: 4.762%;
-      width: 16.667%;
+      left: 3.762%;
+      width: 12%;
       animation-timing-function: linear;
     }
     13% {
-      left: 9.524%;
-      width: 19.048%;
+      left: 7.06%;
+      width: 15.643%;
       animation-timing-function: ease-out;
     }
     14% {
-      left: 14.286%;
-      width: 21.429%;
-    }
-    14% {
-      left: 14.286%;
-      width: 21.429%;
+      left: 10.357%;
+      width: 19.286%;
     }
     25% {
-      left: 14.286%;
-      width: 21.429%;
+      left: 10.357%;
+      width: 19.286%;
       animation-timing-function: ease-in;
     }
     26% {
-      left: 21.429%;
-      width: 19.048%;
+      left: 17.357%;
+      width: 16.714%;
       animation-timing-function: linear;
     }
     27% {
-      left: 28.571%;
-      width: 16.667%;
+      left: 24.357%;
+      width: 14.143%;
       animation-timing-function: ease-out;
     }
     28% {
-      left: 35.714%;
-      width: 14.286%;
-    }
-    28% {
-      left: 35.714%;
-      width: 14.286%;
+      left: 31.357%;
+      width: 11.571%;
     }
     39% {
-      left: 35.714%;
-      width: 14.286%;
+      left: 31.357%;
+      width: 11.571%;
       animation-timing-function: ease-in;
     }
     40% {
-      left: 40.476%;
-      width: 14.286%;
+      left: 35.72%;
+      width: 12.964%;
       animation-timing-function: linear;
     }
     41% {
-      left: 45.238%;
-      width: 14.286%;
+      left: 40.083%;
+      width: 14.357%;
       animation-timing-function: ease-out;
     }
     42% {
-      left: 50.0%;
-      width: 14.286%;
-    }
-    42% {
-      left: 50.0%;
-      width: 14.286%;
+      left: 44.446%;
+      width: 15.75%;
     }
     53% {
-      left: 50.0%;
-      width: 14.286%;
+      left: 44.446%;
+      width: 15.75%;
       animation-timing-function: ease-in;
     }
     54% {
-      left: 54.762%;
-      width: 14.286%;
+      left: 50.28%;
+      width: 15.75%;
       animation-timing-function: linear;
     }
     55% {
-      left: 59.524%;
-      width: 14.286%;
+      left: 56.113%;
+      width: 15.75%;
       animation-timing-function: ease-out;
     }
     56% {
-      left: 64.286%;
-      width: 14.286%;
-    }
-    56% {
-      left: 64.286%;
-      width: 14.286%;
+      left: 61.946%;
+      width: 15.75%;
     }
     67% {
-      left: 64.286%;
-      width: 14.286%;
+      left: 61.946%;
+      width: 15.75%;
       animation-timing-function: ease-in;
     }
     68% {
-      left: 69.048%;
-      width: 16.667%;
+      left: 67.731%;
+      width: 17.158%;
       animation-timing-function: linear;
     }
     69% {
-      left: 73.809%;
-      width: 19.048%;
+      left: 73.515%;
+      width: 18.566%;
       animation-timing-function: ease-out;
     }
     70% {
-      left: 78.571%;
-      width: 21.429%;
-    }
-    70% {
-      left: 78.571%;
-      width: 21.429%;
+      left: 79.299%;
+      width: 19.973%;
     }
     81% {
-      left: 78.571%;
-      width: 21.429%;
+      left: 79.299%;
+      width: 19.973%;
       opacity: 100%;
     }
     84% {
-      left: 78.571%;
-      width: 21.429%;
+      left: 79.299%;
+      width: 19.973%;
       opacity: 0%;
     }
     84.01% {
-      left: 0.0%;
-      width: 14.286%;
+      left: 0.464%;
+      width: 8.357%;
       opacity: 0%;
     }
     87% {
-      left: 0.0%;
-      width: 14.286%;
+      left: 0.464%;
+      width: 8.357%;
       opacity: 100%;
     }
     100% {
-      left: 0.0%;
-      width: 14.286%;
+      left: 0.464%;
+      width: 8.357%;
       opacity: 100%;
     }
   }
@@ -1567,16 +1718,10 @@ const MATCHED_NODE_INDEX = 0;
      rest — verified rendered at 360px, see the SDD report. */
   @media (width <= 480px) {
 
-    .stage-label {
-      font-size: 0.64rem;
-    }
-
-    .node-badge-num {
-      width: 16px;
-      height: 16px;
-      font-size: 0.5rem;
-    }
-
+    /* Aquí vivían un `.stage-label` más pequeño y un `.node-badge-num`
+       encogido a mano para que las etiquetas largas cupieran por debajo de
+       480px. Con la figura escalando en bloque no hacen falta: encogerlos
+       otra vez rompería la proporción justo donde se acaba de arreglar. */
 
     .mcp-bubbles {
       height: 5.75rem;

@@ -45,11 +45,23 @@ export async function finalizeCspConfig(
       ? `img-src 'self' data: ${imgSrc} https://*.jmrp.io`
       : "img-src 'self' data: https://*.jmrp.io",
     "font-src 'self'",
-    // Solo 'self': el inspector únicamente habla con `/libgen` y `/gitlab`,
-    // que son mismo origen. Las APIs de terceros que lista jmrp.io (GitHub,
-    // Cloudflare Insights, certspotter, crt.sh) no las usa ninguna página de
-    // este sitio, así que dejarlas aquí solo ampliaría la superficie.
-    "connect-src 'self'",
+    // 'self' plus exactly one third party: gitlab.com's token endpoint.
+    //
+    // It is there for one call and one only — the inspector's "sign in with
+    // GitLab" button exchanging an authorization code for an access token
+    // (RFC 7636, Authorization Code + PKCE). Everything else the inspector
+    // does is same-origin, against `/libgen` and `/gitlab`.
+    //
+    // This IS a widening, and it is worth naming what it costs: with a bare
+    // 'self', an injected script could not send the visitor's token anywhere
+    // at all, because the browser had no permitted destination. Now there is
+    // one, and gitlab.com is not a passive host — anyone can open an account
+    // and receive data there. What keeps it narrow: no third-party scripts on
+    // this site, a nonce-only CSP, and a single origin rather than a wildcard.
+    //
+    // The security notice on gitlab's card states this in the same terms; if
+    // this line changes, that copy has to change with it.
+    "connect-src 'self' https://gitlab.com",
     "media-src 'self'",
     "manifest-src 'self'",
     "frame-src 'none'",
@@ -132,7 +144,16 @@ add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 
 # Cross-Origin Policies (COOP, COEP, CORP)
 add_header Cross-Origin-Embedder-Policy "require-corp" always;
-add_header Cross-Origin-Opener-Policy "same-origin" always;
+# COOP is per-path, not a constant: $mcp_coop comes from a map in the vhost.
+# Everything is same-origin except the inspector and its OAuth callback.
+#
+# The reason is not preference, it is that same-origin BREAKS the popup flow:
+# when a popup navigates to a cross-origin document (gitlab.com), that value
+# puts it in a new browsing context group and severs window.opener. The
+# callback then comes back with no opener to hand the authorization code to,
+# and the sign-in dies silently with the code already spent. Measured on a
+# phone, where the popup opens as a tab and the failure is plain to see.
+add_header Cross-Origin-Opener-Policy $mcp_coop always;
 add_header Cross-Origin-Resource-Policy "same-origin" always;
 
 # Security Cookie (Optional demo cookie)
@@ -177,7 +198,16 @@ add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 
 # Cross-Origin Policies
 add_header Cross-Origin-Embedder-Policy "require-corp" always;
-add_header Cross-Origin-Opener-Policy "same-origin" always;
+# COOP is per-path, not a constant: $mcp_coop comes from a map in the vhost.
+# Everything is same-origin except the inspector and its OAuth callback.
+#
+# The reason is not preference, it is that same-origin BREAKS the popup flow:
+# when a popup navigates to a cross-origin document (gitlab.com), that value
+# puts it in a new browsing context group and severs window.opener. The
+# callback then comes back with no opener to hand the authorization code to,
+# and the sign-in dies silently with the code already spent. Measured on a
+# phone, where the popup opens as a tab and the failure is plain to see.
+add_header Cross-Origin-Opener-Policy $mcp_coop always;
 # CORP: 'cross-origin' allows other sites to embed these assets (e.g., social media previews,
 # CDN sharing). This is intentional for static assets like images and fonts.
 # For HTML pages, the main security_headers_mcp.conf uses stricter policies.

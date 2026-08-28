@@ -37,7 +37,9 @@ import { pageUrl, serverPagePath } from "../../lib/seo";
 import { anchorSlug } from "../../lib/slug";
 import { schemaFields } from "../../lib/tool-schema";
 import ActionSearch from "../ActionSearch";
+import ClientSetup from "../ClientSetup.astro";
 import ServerEntryChips from "../ServerEntryChips.astro";
+import ServerMark from "../ServerMark.astro";
 import ServerToc from "../ServerToc.astro";
 import UpdatedLine from "../UpdatedLine.astro";
 
@@ -190,8 +192,14 @@ const subs = card.subscriptions;
 const subscribableCount = subs?.subscribable_uri_templates.length ?? 0;
 
 const tocFamilies = [
+  // Primero lo NUESTRO, después lo que se lee del binario. `connect-h` abre la
+  // lista porque es la única sección que el visitante necesita ANTES de poder
+  // usar nada de lo que viene detrás.
+  { id: "connect-h", label: sp.connectHead },
   // No count: it is prose, not a family of entries — see `TocFamily.count`.
   { id: "context-h", label: sp.contextHead },
+  // `overview-h` no aparece aquí: ServerToc lo pinta aparte, con
+  // `overviewLabel`. Ver la llamada al componente más abajo.
   ...(instructions
     ? [{ id: "instructions-h", label: sp.instructionsHead }]
     : []),
@@ -326,9 +334,7 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
     <p class="section-title">{sp.eyebrowServer}</p>
     <h1 class="subpage-title">
       {
-        serverIcon && (
-          <img src={serverIcon.src} alt="" aria-hidden="true" class="server-icon" />
-        )
+        serverIcon && <ServerMark src={serverIcon.src} class="server-icon" />
       }
       {serverMeta.name}
     </h1>
@@ -354,6 +360,32 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
     />
 
     <div class="server-content">
+      {/* NUESTRO contenido primero, el del binario después: la página empieza
+          contestando «cómo conecto esto» y sólo entonces pasa a describir lo
+          que el servidor declara de sí mismo. Antes el orden era el inverso y
+          la respuesta ni siquiera estaba aquí — vivía plegada en una tarjeta
+          de la portada. */}
+      <section class="server-family" aria-labelledby="connect-title" id="connect-h">
+        <h2 class="subsection-title" id="connect-title">{sp.connectHead}</h2>
+        <ClientSetup server={serverMeta} lang={lang} />
+      </section>
+
+      <section class="server-family" aria-labelledby="context-title" id="context-h">
+        <h2 class="subsection-title" id="context-title">{sp.contextHead}</h2>
+        <p class="prose-text">{sp.contextService}</p>
+        {/* The one sentence here that differs per server, so it comes from
+            `servers.ts` and not from the i18n module. */}
+        <p class="prose-text">{serverMeta.rateLimit[lang]}</p>
+        <p class="prose-text">
+          {sp.contextRouting}{" "}
+          <a href={internalsHref}>{sp.contextRoutingLink}</a>
+        </p>
+        <p class="prose-text">
+          {sp.contextPolicies}{" "}
+          <a href={policiesHref}>{sp.contextPoliciesLink}</a>
+        </p>
+      </section>
+
       <section class="server-family" aria-labelledby="overview-title" id="overview-h">
         <h2 class="subsection-title" id="overview-title">{sp.overviewHead}</h2>
         <dl class="meta-grid">
@@ -386,14 +418,26 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
           )
         }
         <p class="server-meta-links">
-          <a href={inspectorOverviewHref}>{sp.tryInInspector}</a>{" "}
-          <a href={serverMeta.repo}>{t.repository}</a>{" "}
-          <a href={serverMeta.docsSite ?? serverMeta.docs}>{t.documentation}</a>
+          <a href={inspectorOverviewHref}>
+            <span class="link-icon i-mdi:console-line" aria-hidden="true" />
+            {sp.tryInInspector}
+          </a>{" "}
+          <a href={serverMeta.repo}>
+            <span class="link-icon i-simple-icons:github" aria-hidden="true" />
+            {t.repository}
+          </a>{" "}
+          <a href={serverMeta.docsSite ?? serverMeta.docs}>
+            <span class="link-icon i-mdi:book-open-variant" aria-hidden="true" />
+            {t.documentation}
+          </a>
           {
             websiteUrl && (
               <>
                 {" "}
-                <a href={websiteUrl}>{sp.websiteLabel}</a>
+                <a href={websiteUrl}>
+                  <span class="link-icon i-mdi:web" aria-hidden="true" />
+                  {sp.websiteLabel}
+                </a>
               </>
             )
           }
@@ -408,21 +452,6 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
           them, the caveats are read by nobody who did not already go looking.
           See `serversPage.contextHead` for why it links out instead of
           repeating `/policies/`. */}
-      <section class="server-family" aria-labelledby="context-title" id="context-h">
-        <h2 class="subsection-title" id="context-title">{sp.contextHead}</h2>
-        <p class="prose-text">{sp.contextService}</p>
-        {/* The one sentence here that differs per server, so it comes from
-            `servers.ts` and not from the i18n module. */}
-        <p class="prose-text">{serverMeta.rateLimit[lang]}</p>
-        <p class="prose-text">
-          {sp.contextRouting}{" "}
-          <a href={internalsHref}>{sp.contextRoutingLink}</a>
-        </p>
-        <p class="prose-text">
-          {sp.contextPolicies}{" "}
-          <a href={policiesHref}>{sp.contextPoliciesLink}</a>
-        </p>
-      </section>
 
       {/* The server's own connect-time instructions (`server/discover`),
           quoted verbatim from the committed surface snapshot — data, not
@@ -513,7 +542,7 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                   {(() => {
                     const args = schemaFields(entry.data.inputSchema);
                     return args.length > 0 ? (
-                      <details class="returns">
+                      <details class="returns disclosure">
                         <summary>
                           {sp.toolArgsHead}{" "}
                           <span class="count">({args.length} {sp.toolFieldsToggle})</span>
@@ -541,7 +570,7 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                   {(() => {
                     const out = schemaFields(entry.data.outputSchema);
                     return out.length > 0 ? (
-                      <details class="returns">
+                      <details class="returns disclosure">
                         <summary>
                           {sp.toolReturnsHead}{" "}
                           <span class="count">({out.length} {sp.toolFieldsToggle})</span>
@@ -1019,7 +1048,11 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
   }
 
   .server-meta-links a {
+    display: inline-flex;
+    gap: 0.3rem;
+    align-items: center;
     color: var(--color-accent);
+    font-weight: var(--fw-semibold);
     text-decoration: none;
   }
 
@@ -1038,7 +1071,11 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
     font-size: var(--text-sm);
     line-height: 1.6;
     text-wrap: pretty;
-    background: var(--color-bg-subtle);
+    /* Superficie, no tinte: `--color-bg-subtle` es un 5% translúcido y aquí
+       este bloque se apoya en el fondo de página, así que la rejilla lo
+       cruzaba. Donde ese token SÍ vale es encima de una tarjeta ya opaca
+       (los chips, el verbo POST): ahí es un matiz, no la superficie. */
+background: var(--color-bg-secondary);
     border-radius: var(--radius-md);
   }
 
@@ -1065,8 +1102,20 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
 
   .entry {
     padding: 1rem 1.1rem;
+    /* Superficie OPACA, como las tarjetas de jmrp.io: con solo borde, la
+       rejilla del fondo atraviesa la caja y en tema claro deja de leerse como
+       una superficie. `--color-bg-subtle` tampoco vale para esto — es un 5%
+       translúcido, así que la rejilla se ve igual. */
+    background: var(--color-bg-secondary);
     border: 1px solid var(--color-hair);
     border-radius: var(--radius-md);
+    /* SIN sombra, y es deliberado. jmrp.io/projects tampoco la lleva en sus
+       tarjetas (cero `box-shadow` en esa página): las separa la superficie
+       opaca y el filete, nada más. Y los dos únicos tokens de sombra que
+       existen aquí —`--sh-card` y `--sh-pop`— son caídas de 60-70px pensadas
+       para una tarjeta grande y sola; repetidas en cientos de fichas seguidas
+       ensuciarían la columna entera. Inventar un tercer token para esto sería
+       ampliar el sistema de diseño sin mandato. */
     /* Anchor target offset: without this, jumping to #tool-x lands the
        entry's top edge flush under the sticky site header. */
     scroll-margin-top: calc(var(--header-height) + 1rem);
@@ -1182,13 +1231,14 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
     margin-top: 0.9rem;
   }
 
+  /* Ver `.disclosure` en utilities.css: de ahí salen el chevron, el color y el
+     hover. Estos <details> nacieron sin ellos y por eso no se distinguían de
+     una etiqueta muerta. */
   .returns > summary {
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: 0.7rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    cursor: pointer;
   }
 
   .returns > summary:focus-visible {

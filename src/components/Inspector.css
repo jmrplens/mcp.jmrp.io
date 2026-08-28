@@ -581,3 +581,66 @@
 .schema-groups code {
   font-size: var(--text-sm);
 }
+
+/* ===== Sign in with GitLab ==================================================
+   Sits above the credential field, not instead of it: both paths stay open.
+
+   The brand orange is deliberate and is the one colour on this page that is
+   NOT the site accent. The whole point of the button is that the visitor
+   authorises at gitlab.com with nobody in between, so the destination has to
+   be recognisable before the popup opens — an amber button that said "sign in"
+   would look like this site asking for the credential itself. */
+.signin {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.signin-button {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  align-self: flex-start;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--color-hair);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-heading);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.signin-button:hover:not(:disabled) {
+  border-color: #fc6d26;
+}
+
+.signin-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.signin-mark {
+  width: 1.05em;
+  height: 1.05em;
+  color: #fc6d26;
+}
+
+.signin-note,
+.signin-or,
+.signin-error {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.signin-error {
+  display: block;
+  color: var(--color-danger);
+}
+
+.signin-or {
+  font-family: var(--font-mono);
+}

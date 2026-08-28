@@ -12,17 +12,17 @@ test("lista los dos servidores MCP con su endpoint", async ({ page }) => {
   await expect(libgen).toContainText("https://mcp.jmrp.io/libgen");
   await expect(gitlab).toContainText("https://mcp.jmrp.io/gitlab");
 
-  // Ocultar que gitlab exige PRIVATE-TOKEN es un defecto de contenido. Da igual
+  // Ocultar que gitlab exige Authorization es un defecto de contenido. Da igual
   // con qué markup se cuente —antes una línea de texto, ahora una insignia más
   // una <dl>—: la ficha de gitlab tiene que decir que hay cabecera obligatoria
   // y cuál es.
   await expect(gitlab).toContainText(ui.en.credentialsRequired);
-  await expect(gitlab).toContainText("PRIVATE-TOKEN");
+  await expect(gitlab).toContainText("Authorization");
 
   // Y la contraria: callar que libgen no pide nada deja al visitante buscando
   // unas credenciales que no existen.
   await expect(libgen).toContainText("No credentials required");
-  await expect(libgen).not.toContainText("PRIVATE-TOKEN");
+  await expect(libgen).not.toContainText("Authorization");
 });
 
 test("el enlace de vuelta a jmrp.io es absoluto", async ({ page }) => {

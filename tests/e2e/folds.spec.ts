@@ -57,7 +57,11 @@ test("el resumen de un plegable que queda es alcanzable por teclado y tiene áre
   page,
 }) => {
   await page.goto("/");
-  const client = page.locator("details.fold-client").first();
+  // Not `.fold-client`: the client snippets moved to /servers/{id}/, so that
+  // fold no longer exists here. What this test is about is the affordance,
+  // not one particular fold — so it takes whichever one the home page still
+  // has (legal, limits, security), all of which arrive closed.
+  const client = page.locator("details.fold").first();
   await expect(client).not.toHaveAttribute("open", /.*/);
 
   const summary = client.locator("summary");

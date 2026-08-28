@@ -74,7 +74,25 @@ function htmlPages() {
     // `https://mcp.jmrp.io/#webpage` with `name: "Page not found"`, exactly
     // the entity split the rest of the code avoids. Pinned by
     // `el 404 no declara identidad`.
-    .filter((f) => f.endsWith(".html") && f !== "404.html");
+    .filter((f) => f.endsWith(".html") && f !== "404.html")
+    // Same reasoning as the 404, one step further: a page marked `noindex`
+    // emits no graph either. The OAuth callback is the case — it is a popup
+    // that closes itself, and it borrows the inspector's chrome, so a graph
+    // there would assert the inspector's `@id` from a second URL. That is the
+    // entity split every comment in `jsonld.ts` exists to prevent, and it is
+    // why the layout skips the block rather than inventing an identity for a
+    // page that has none.
+    .filter(
+      (f) =>
+        // Attribute ORDER cannot be assumed: the post-build minifier
+        // alphabetises them, so the tag ships as
+        // `<meta content="noindex, follow" name="robots">`. Matching on the
+        // pair rather than on a fixed order is what keeps this from silently
+        // matching nothing — which is exactly how it failed first.
+        !/<meta[^>]*content="noindex[^>]*name="robots"/.test(
+          fs.readFileSync(new URL(f, DIST), "utf8"),
+        ),
+    );
   assert.ok(pages.length > 1, "el sitio tiene al menos la raíz y /es/");
   return pages;
 }

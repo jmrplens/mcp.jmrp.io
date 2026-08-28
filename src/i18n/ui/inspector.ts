@@ -3,7 +3,7 @@
  * island's own labels (`insp.*`).
  *
  * Los identificadores del protocolo (`initialize`, `tools/list`,
- * `PRIVATE-TOKEN`, `tools`, `prompts`…) NO están aquí y no se traducen: son
+ * `Authorization`, `tools`, `prompts`…) NO están aquí y no se traducen: son
  * exactamente lo que hay que teclear en un cliente MCP de verdad, y
  * traducirlos le enseñaría al visitante un nombre que no existe.
  */
@@ -67,7 +67,21 @@ export const inspector = {
     },
     insp: {
       server: "Endpoint",
-      needHeader: "Fill in this header before calling the server:",
+      needHeader: "Paste your credential before calling the server:",
+      /**
+       * The sign-in button and the note beside it. The note is not decoration:
+       * this is the moment a visitor decides whether to hand a token to a web
+       * page, so it says where the token goes, what it can do, and how to
+       * check the claim rather than take it.
+       */
+      signInWith: "Sign in with GitLab",
+      signInBusy: "Waiting for GitLab…",
+      signInDenied: "GitLab refused the sign-in. Nothing was stored.",
+      signInFailed: "The sign-in did not complete. Nothing was stored.",
+      signInOr: "or paste one:",
+      signInNote:
+        "The token is read-only, expires in two hours, and lives in this tab's memory alone — no localStorage, no cookies, never in the address bar, gone on reload. It travels to gitlab.com to be issued and to this site's own endpoint to be used, nowhere else.",
+      signInVerify: "How to check that yourself",
       noArgs: "This tool takes no arguments.",
       pickOne: "— choose —",
       omit: "— omit —",
@@ -157,7 +171,16 @@ export const inspector = {
     /** Ver `en.insp`: los identificadores del protocolo se quedan en inglés. */
     insp: {
       server: "Servidor",
-      needHeader: "Rellena esta cabecera antes de llamar al servidor:",
+      needHeader: "Pega tu credencial antes de llamar al servidor:",
+      /** Ver `en.signInWith`: el momento en que alguien decide entregar un token. */
+      signInWith: "Entrar con GitLab",
+      signInBusy: "Esperando a GitLab…",
+      signInDenied: "GitLab rechazó el acceso. No se ha guardado nada.",
+      signInFailed: "El acceso no se completó. No se ha guardado nada.",
+      signInOr: "o pega uno:",
+      signInNote:
+        "El token es de solo lectura, caduca a las dos horas y vive únicamente en la memoria de esta pestaña — sin localStorage, sin cookies, nunca en la barra de direcciones, y desaparece al recargar. Viaja a gitlab.com para que lo emitan y al endpoint de este sitio para usarlo, a ningún otro sitio.",
+      signInVerify: "Cómo comprobarlo tú mismo",
       noArgs: "Esta tool no admite argumentos.",
       pickOne: "— elige —",
       omit: "— omitir —",

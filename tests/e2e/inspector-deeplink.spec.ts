@@ -39,7 +39,7 @@ const RESOURCES_LIST = {
 
 /** Fills GitLab's only required header so its catalogs can load. */
 async function unblockGitlab(page: Parameters<typeof inspector>[0]) {
-  await inspector(page).getByLabel("PRIVATE-TOKEN").fill("glpat-de-mentira");
+  await inspector(page).getByLabel("Authorization").fill("glpat-de-mentira");
 }
 
 test("server+tab+name válidos: la pestaña y el servidor ya están puestos al entrar", async ({
@@ -138,12 +138,12 @@ test("un name que no existe en el catálogo real no selecciona nada, pero el cat
   await expect(picker.locator("option")).toHaveText([/pick a tool/, "search", "download"]);
 });
 
-test("un parámetro ajeno como PRIVATE-TOKEN en la URL no rellena el campo del token", async ({
+test("un parámetro ajeno como Authorization en la URL no rellena el campo del token", async ({
   page,
 }) => {
   // Este es el caso que la regla "nunca un parámetro de credencial" existe
   // para evitar: alguien pega un enlace con un token de mentira (o de
   // verdad) esperando que "ya venga puesto", y el inspector NO debe leerlo.
-  await page.goto("/inspector/?server=gitlab&PRIVATE-TOKEN=glpat-deberia-ignorarse");
-  await expect(inspector(page).getByLabel("PRIVATE-TOKEN")).toHaveValue("");
+  await page.goto("/inspector/?server=gitlab&Authorization=glpat-deberia-ignorarse");
+  await expect(inspector(page).getByLabel("Authorization")).toHaveValue("");
 });

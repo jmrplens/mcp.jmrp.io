@@ -33,7 +33,7 @@ export const serversPage = {
      * characters on it pushed the primitive names toward the cut.
      */
     ledeIndex:
-      "Every tool, prompt, resource and resource template each MCP server publishes, one page per server, each entry linking straight into the inspector.",
+      "Every tool, prompt, resource and resource template each MCP server publishes, one page per server; the callable ones link into the inspector.",
     indexEntryCta: "View the full server card",
     /** Link from a server's detail page back to this index. */
     backToServers: "Back to all servers",
@@ -46,10 +46,31 @@ export const serversPage = {
      */
     metaTitleServerSuffix: "— MCP server card · mcp.jmrp.io",
 
+    /**
+     * La sección que abre la página, y la única que no describe al servidor
+     * sino cómo llegar a él. Está PRIMERO a propósito: lo que sigue es lo que
+     * el binario declara de sí mismo, y no sirve de nada hasta poder llamarlo.
+     */
+    connectHead: "Connect it to your client",
     overviewHead: "Overview",
     serverInfoLabel: "Server name",
     versionLabel: "Version",
     endpointLabel: "Endpoint",
+    transportLabel: "Transport",
+    transportValue: "streamable HTTP, stateless JSON-RPC 2.0",
+    getNoteLabel: "POST only; GET answers",
+    healthLabel: "Health",
+    repositoryLabel: "Repository",
+    documentationLabel: "Documentation",
+    noneLabel: "none",
+    countTools: "tools",
+    countPrompts: "prompts",
+    countResources: "resources",
+    countTemplates: "resource templates",
+    fullCatalogHead: "Full catalog",
+    mdPageLabel: "Page",
+    fullCatalogBody:
+      "Every tool, prompt, resource and template of this server — with what each one takes and returns — is listed in {corpus}, and served live by the server itself at {card}.",
     authLabel: "Authentication",
 
     resourcesHead: "Resources",
@@ -245,7 +266,7 @@ export const serversPage = {
     titleIndex: "Directorio de servidores",
     /** Ver `en.ledeIndex`: es también la meta description, de ahí la brevedad. */
     ledeIndex:
-      "Todas las tools, prompts, resources y resource templates que publica cada servidor MCP, una página por servidor, con enlace directo al inspector.",
+      "Todas las tools, prompts, resources y resource templates que publica cada servidor MCP, una página por servidor; las invocables enlazan al inspector.",
     indexEntryCta: "Ver la ficha completa",
     /** Ver `en.backToServers`. */
     backToServers: "Volver a todos los servidores",
@@ -254,10 +275,41 @@ export const serversPage = {
     /** Ver `en.metaTitleServerSuffix`. */
     metaTitleServerSuffix: "— ficha de servidor MCP · mcp.jmrp.io",
 
+    /** Ver `en.connectHead`: abre la página, antes de lo que declara el binario. */
+    connectHead: "Conectarlo a tu cliente",
     overviewHead: "Resumen",
     serverInfoLabel: "Nombre del servidor",
     versionLabel: "Versión",
     endpointLabel: "Endpoint",
+    /** Ver `en.transportLabel`. */
+    transportLabel: "Transporte",
+    /** Ver `en.transportValue`. */
+    transportValue: "HTTP streamable, JSON-RPC 2.0 sin estado",
+    /** Ver `en.getNoteLabel`. */
+    getNoteLabel: "solo POST; un GET responde",
+    /** Ver `en.healthLabel`. */
+    healthLabel: "Salud",
+    /** Ver `en.repositoryLabel`. */
+    repositoryLabel: "Repositorio",
+    /** Ver `en.documentationLabel`. */
+    documentationLabel: "Documentación",
+    /** Ver `en.noneLabel`. */
+    noneLabel: "ninguna",
+    /** Ver `en.countTools`. */
+    countTools: "tools",
+    /** Ver `en.countPrompts`. */
+    countPrompts: "prompts",
+    /** Ver `en.countResources`. */
+    countResources: "resources",
+    /** Ver `en.countTemplates`. */
+    countTemplates: "resource templates",
+    /** Ver `en.fullCatalogHead`. */
+    fullCatalogHead: "Catálogo completo",
+    /** Ver `en.mdPageLabel`. */
+    mdPageLabel: "Página",
+    /** Ver `en.fullCatalogBody`. */
+    fullCatalogBody:
+      "Todas las herramientas, prompts, recursos y plantillas de este servidor —con lo que cada una recibe y devuelve— están listadas en {corpus}, y el propio servidor las sirve en vivo en {card}.",
     authLabel: "Autenticación",
 
     resourcesHead: "Resources",
@@ -375,7 +427,7 @@ export const serversPage = {
     domainPageKicker: "Dominio de acciones",
     /** Ver `en.domainMetaDescription`. */
     domainMetaDescription:
-      "Las {count} acciones {domain} que gitlab expone vía gitlab_execute_action, cada una con su descripción completa y sus parámetros.",
+      "Las {count} acciones de {domain} que gitlab expone vía gitlab_execute_action, cada una con su descripción completa y sus parámetros obligatorios.",
     domainPageIntro:
       "Todas las acciones que este dominio expone vía gitlab_execute_action, del manifiesto gitlab://tools. Cada entrada se despliega a su descripción completa y sus parámetros obligatorios.",
     domainBackToCard: "Volver a la ficha del servidor",
