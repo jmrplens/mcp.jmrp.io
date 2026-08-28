@@ -51,6 +51,15 @@ type CanonicalOverride =
 type Props = {
   title: string;
   description: string;
+  /**
+   * Keep this page out of search results.
+   *
+   * For pages that exist to be used by machinery rather than read: the OAuth
+   * callback, which is a popup that closes itself. Without it, a page whose
+   * only content is "signing you in…" would compete in the index with the
+   * pages that matter.
+   */
+  noindex?: boolean;
   /** Which page this is, for the canonical URL and the hreflang cluster. */
   page?: PageId;
   /**
@@ -103,6 +112,7 @@ const {
   serverId,
   actionsDomain,
   errorPage = false,
+  noindex = false,
 } = Astro.props;
 // The language comes from the URL, never from a prop: that is what lets the
 // mirrored route files under `src/pages/es/` be identical to their English
@@ -161,8 +171,12 @@ const otherLocales = Object.entries(OG_LOCALES)
 // `serverId` is passed straight through — see the prop doc above for why a
 // per-server detail page cannot just be handed a different `page` value
 // instead.
+// A `noindex` page is not part of the site's entity graph either. The OAuth
+// callback is the case: it borrows `page="inspector"` for its chrome, and if
+// it emitted a graph it would assert the inspector's own `@id` from a second
+// URL — the entity split every comment in `jsonld.ts` exists to prevent.
 const jsonLd =
-  errorPage
+  errorPage || noindex
     ? undefined
     : safeJsonLd(
         await buildSiteGraph({
@@ -295,7 +309,7 @@ const serverSubItems = servers.map((server) => ({
     <meta
       name="robots"
       content={
-        errorPage
+        errorPage || noindex
           ? "noindex, follow"
           : "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
       }

@@ -174,6 +174,32 @@ export type McpServer = {
      * aplicación, y el de Claude Code es `http://localhost:<puerto>/callback`.
      */
     callbackPort: number;
+    /**
+     * A SECOND OAuth application, used by nothing but the inspector's sign-in
+     * button, and registered with a read-only scope.
+     *
+     * It exists because the two callers want opposite things. An MCP client
+     * needs `api`: it is there to do work, including writing. The inspector is
+     * a page for looking at an endpoint, and handing a web page a token that
+     * can write to someone's whole GitLab is a worse deal than the pasted
+     * personal access token it would replace — a visitor can at least scope
+     * that one to `read_api` themselves.
+     *
+     * With its own application the button becomes strictly the better option:
+     * read-only, and gone in two hours, with nothing to create by hand.
+     *
+     * Absent = the button does not render at all. That is deliberate: a
+     * half-configured sign-in is worse than none, and this way the feature can
+     * ship before the application exists.
+     */
+    inspector?: {
+      /** Application ID of the read-only app. Public, like the other one. */
+      clientId: string;
+      /** Registered redirect URI, matched character for character. */
+      redirectUri: string;
+      /** What it asks for. `read_api` — see the note above. */
+      scopes: string[];
+    };
   };
   /** Cabeceras que el cliente DEBE enviar. Vacío = sin credenciales. */
   requiredHeaders: McpHeader[];
@@ -440,8 +466,8 @@ export const servers: McpServer[] = [
           // único verificable. La versión anterior presentaba las dos cosas
           // bajo el mismo "no hace falta que te fíes", y eso sobre-vendía.
           {
-            en: "The destination is not a matter of trust: this page's Content-Security-Policy declares connect-src 'self' and form-action 'self', so the browser itself refuses to send the token anywhere but this domain. What the server then does — use it for that request and discard it — you can verify in its source code, which is public.",
-            es: "El destino no es cuestión de confianza: la Content-Security-Policy de esta página declara connect-src 'self' y form-action 'self', así que es el propio navegador el que impide enviar el token a ningún sitio que no sea este dominio. Lo que el servidor haga después — usarlo para esa petición y descartarlo — puedes comprobarlo en su código fuente, que es público.",
+            en: "The destination is not a matter of trust: this page's Content-Security-Policy declares connect-src 'self' https://gitlab.com and form-action 'self', so the browser itself refuses to send the token anywhere but this domain and the one that issues it. gitlab.com is on that list for exactly one reason — the sign-in button exchanging an authorization code for a token — and for nothing else. What the server then does with it, use it for that request and discard it, you can verify in its source code, which is public.",
+            es: "El destino no es cuestión de confianza: la Content-Security-Policy de esta página declara connect-src 'self' https://gitlab.com y form-action 'self', así que es el propio navegador el que impide enviar el token a ningún sitio que no sea este dominio y el que lo emite. gitlab.com está en esa lista por una única razón —el botón de acceso canjeando un código de autorización por un token— y por ninguna otra. Lo que el servidor haga después con él, usarlo para esa petición y descartarlo, puedes comprobarlo en su código fuente, que es público.",
           },
           {
             en: "Even so, be suspicious of any site asking for a token — this one included. The sensible habits are:",
@@ -499,6 +525,12 @@ export const servers: McpServer[] = [
       metadataUrl:
         "https://mcp.jmrp.io/.well-known/oauth-protected-resource/gitlab",
       callbackPort: 8090,
+      inspector: {
+        clientId:
+          "94649066fed1c053ad503a1addd3a86150e8f5eeb917965e713bcd2d662ace47",
+        redirectUri: "https://mcp.jmrp.io/inspector/callback/",
+        scopes: ["read_api"],
+      },
     },
     requiredHeaders: [
       {

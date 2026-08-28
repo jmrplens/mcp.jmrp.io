@@ -137,6 +137,20 @@ export const internals = {
      * access log, `HTTPS_PROXY` on the instances, and the absence of
      * `$http_authorization` (and of the affinity hash) from every
      * `log_format` on the box. */
+    /**
+     * The inspector's storage, and how to check it rather than believe it.
+     *
+     * It lives on this page and not beside the button because a claim about
+     * what a site does NOT keep is worth only as much as the way to verify it,
+     * and that takes more room than a form allows.
+     */
+    storageEyebrow: "What the inspector keeps, and how to check",
+    storageBody: [
+      "Nothing. The token you paste, or the one the sign-in button obtains, lives in the memory of the page's component and nowhere else: no localStorage, no sessionStorage, no cookies, no query string, no logs. Reloading drops it, navigating anywhere drops it — this site has no client-side router, so every link is a fresh document — and closing the tab drops it.",
+      "That is a claim about an absence, which is exactly the kind you should never take on trust. Here is how to see it for yourself, with the browser you already have open.",
+      "In Chrome or Edge, press F12 and go to Application → Storage. Paste a token in the inspector, call something, and look again: Local Storage, Session Storage and Cookies for this site stay empty. In Firefox that panel is called Storage; in Safari it is Develop → Show Web Inspector → Storage.",
+      "Then look at where it goes. In the Network tab, run a call and open the request to /gitlab: the Authorization header is on that request and on no other. The only other place the token appears is the sign-in exchange with gitlab.com, and only if you used the button — the browser itself enforces that, because this page's Content-Security-Policy names those two destinations and no others. Everything in this paragraph is visible in that panel, without taking anyone's word for it.",
+    ],
     wireEyebrow: "On the wire: what is encrypted, and where it is not",
     wireBody: [
       "Every hop that crosses a network is encrypted. Your client reaches Cloudflare over HTTPS; Cloudflare reaches this server over HTTPS too — plain HTTP gets a redirect and the domain is on the HSTS preload list; and the call that finally leaves for its destination is HTTPS as well, negotiated by the instance itself and only forwarded, still sealed, through the SSH tunnel that gives it its exit country. Between nginx and the instances nothing leaves this machine, though it is worth being exact about what that means: nginx dials 127.0.0.1 and Docker's proxy hands the connection to a container on a private bridge. That segment is not loopback, so the honest claim is not that there is no network but that nobody is on it — the eight containers sharing the bridge are the six MCP instances and the two egress tunnels, every one of them running with all Linux capabilities dropped, so none can open the raw socket that reading it would take.",
@@ -230,6 +244,14 @@ export const internals = {
     diagramTimelineStep6:
       "Esa conexión llega al destino real: un mirror de Library Genesis si llamaste a libgen, o gitlab.com si llamaste a gitlab — fijo en este despliegue desde que pasó a OAuth, no un host que elija quien llama.",
 
+    /** Ver `en.storageEyebrow`. */
+    storageEyebrow: "Qué guarda el inspector, y cómo comprobarlo",
+    storageBody: [
+      "Nada. El token que pegas, o el que consigue el botón de acceso, vive en la memoria del componente de la página y en ningún sitio más: sin localStorage, sin sessionStorage, sin cookies, sin barra de direcciones y sin logs. Al recargar desaparece, al navegar a cualquier sitio desaparece —este sitio no lleva enrutador de cliente, así que cada enlace es un documento nuevo— y al cerrar la pestaña desaparece.",
+      "Eso es una afirmación sobre una ausencia, que es justo la clase que nunca deberías creerte por las buenas. Así puedes verlo tú mismo, con el navegador que ya tienes abierto.",
+      "En Chrome o Edge, pulsa F12 y ve a Aplicación → Almacenamiento. Pega un token en el inspector, llama a algo y vuelve a mirar: Local Storage, Session Storage y Cookies de este sitio siguen vacíos. En Firefox ese panel se llama Almacenamiento; en Safari es Desarrollo → Mostrar inspector web → Almacenamiento.",
+      "Después mira a dónde va. En la pestaña Red, lanza una llamada y abre la petición a /gitlab: la cabecera Authorization está en esa petición y en ninguna otra. El único otro sitio donde aparece el token es el intercambio de acceso con gitlab.com, y solo si usaste el botón — eso lo impone el propio navegador, porque la Content-Security-Policy de esta página nombra esos dos destinos y ningún otro. Todo lo de este párrafo se ve en ese panel, sin fiarte de nadie.",
+    ],
     /** Ver `en.wireEyebrow`. */
     wireEyebrow: "Por el cable: qué va cifrado y dónde deja de estarlo",
     wireBody: [

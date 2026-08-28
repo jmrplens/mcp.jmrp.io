@@ -45,11 +45,23 @@ export async function finalizeCspConfig(
       ? `img-src 'self' data: ${imgSrc} https://*.jmrp.io`
       : "img-src 'self' data: https://*.jmrp.io",
     "font-src 'self'",
-    // Solo 'self': el inspector únicamente habla con `/libgen` y `/gitlab`,
-    // que son mismo origen. Las APIs de terceros que lista jmrp.io (GitHub,
-    // Cloudflare Insights, certspotter, crt.sh) no las usa ninguna página de
-    // este sitio, así que dejarlas aquí solo ampliaría la superficie.
-    "connect-src 'self'",
+    // 'self' plus exactly one third party: gitlab.com's token endpoint.
+    //
+    // It is there for one call and one only — the inspector's "sign in with
+    // GitLab" button exchanging an authorization code for an access token
+    // (RFC 7636, Authorization Code + PKCE). Everything else the inspector
+    // does is same-origin, against `/libgen` and `/gitlab`.
+    //
+    // This IS a widening, and it is worth naming what it costs: with a bare
+    // 'self', an injected script could not send the visitor's token anywhere
+    // at all, because the browser had no permitted destination. Now there is
+    // one, and gitlab.com is not a passive host — anyone can open an account
+    // and receive data there. What keeps it narrow: no third-party scripts on
+    // this site, a nonce-only CSP, and a single origin rather than a wildcard.
+    //
+    // The security notice on gitlab's card states this in the same terms; if
+    // this line changes, that copy has to change with it.
+    "connect-src 'self' https://gitlab.com",
     "media-src 'self'",
     "manifest-src 'self'",
     "frame-src 'none'",

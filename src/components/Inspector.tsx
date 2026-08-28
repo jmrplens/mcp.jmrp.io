@@ -12,6 +12,7 @@ import {
   promptsFrom,
   resourcesFrom,
 } from "../lib/mcp-catalog";
+import { signInWithPopup } from "../lib/oauth-popup";
 import {
   formFields,
   type JsonSchema,
@@ -98,6 +99,16 @@ export default function Inspector({
   lang,
 }: Readonly<{ servers: McpServer[]; lang: Lang }>) {
   const t = ui[lang].insp;
+  /**
+   * Where the privacy note sends a reader who wants to check it rather than
+   * believe it: the section of /internals/ that describes what the inspector
+   * keeps, and how to see for yourself with the browser's own tools.
+   *
+   * Built here rather than passed in because it is the only link this island
+   * makes off its own page, and threading a prop through for one string would
+   * be more moving parts than the string.
+   */
+  const inspectorStorageHref = `${lang === "es" ? "/es" : ""}/internals/#inspector-storage-h`;
   const call = useMcpCall({
     networkError: t.networkError,
     timedOut: t.timedOut,
@@ -113,6 +124,16 @@ export default function Inspector({
    */
   const [headerValues, setHeaderValues] = useState<Record<string, string>>({});
   const [tab, setTab] = useState<Tab>("tools");
+  /**
+   * What the sign-in button is doing, if anything.
+   *
+   * The token it obtains goes into `headerValues` like a pasted one — same
+   * state, same lifetime, same rule. This only tracks the flow so the button
+   * can say what happened instead of failing silently.
+   */
+  const [signIn, setSignIn] = useState<"idle" | "busy" | "denied" | "failed">(
+    "idle",
+  );
   /** Catálogos del servidor activo. Se llenan con cada `list`. */
   const [tools, setTools] = useState<McpTool[]>([]);
   const [prompts, setPrompts] = useState<McpPrompt[]>([]);
@@ -198,6 +219,37 @@ export default function Inspector({
 
   const requirementNote = requirementNoteFor(tab, selectedTool?.inputSchema, t);
 
+
+  /**
+   * Runs the OAuth popup and puts the resulting token where a pasted one goes.
+   *
+   * Nothing is persisted: the token lands in component state, so it dies on
+   * reload, on navigating anywhere (this site has no client router, so every
+   * navigation is a fresh document) and with the tab.
+   */
+  async function startSignIn(): Promise<void> {
+    const oauth = server?.oauth?.inspector;
+    const credential = server?.requiredHeaders[0];
+    if (!oauth || !credential) return;
+    setSignIn("busy");
+    const result = await signInWithPopup(
+      {
+        clientId: oauth.clientId,
+        authorizationServer: server.oauth?.authorizationServer ?? "",
+        scopes: oauth.scopes,
+      },
+      oauth.redirectUri,
+    );
+    if (result.ok) {
+      setHeaderValues((prev) => ({
+        ...prev,
+        [keyOf(credential.name)]: result.token,
+      }));
+      setSignIn("idle");
+      return;
+    }
+    setSignIn(result.reason === "cancelled" ? "idle" : result.reason);
+  }
 
   /**
    * Solo las cabeceras del servidor activo, y solo las que tienen valor.
@@ -446,6 +498,46 @@ export default function Inspector({
               ))}
             </select>
           </label>
+
+          {/* The sign-in button sits ABOVE the credential field, not instead
+              of it: both paths stay open. The button is the better one when it
+              is available — read-only and short-lived — but a visitor with a
+              token already in hand should not have to use a popup to get in.
+              It renders only when the read-only application is configured;
+              without it there would be a button that mints a read/write token,
+              which is a worse deal than the field beside it. */}
+          {server?.oauth?.inspector && (
+            <div className="signin">
+              <button
+                type="button"
+                className="signin-button"
+                onClick={() => void startSignIn()}
+                disabled={busy || signIn === "busy"}
+              >
+                {/* GitLab's own mark, from `simple-icons`, which reproduces
+                    official brand marks. It is not decoration: the point of
+                    the button is that the visitor authorises at gitlab.com
+                    with nobody in between, and the mark is what says so before
+                    the popup opens. Brand orange, not the site accent — this
+                    one destination is deliberately not ours. */}
+                <span
+                  className="i-simple-icons:gitlab signin-mark"
+                  aria-hidden="true"
+                />
+                {signIn === "busy" ? t.signInBusy : t.signInWith}
+              </button>
+              {signIn === "denied" || signIn === "failed" ? (
+                <p className="signin-error" role="status">
+                  {signIn === "denied" ? t.signInDenied : t.signInFailed}
+                </p>
+              ) : null}
+              <p className="signin-note">
+                {t.signInNote}{" "}
+                <a href={inspectorStorageHref}>{t.signInVerify}</a>
+              </p>
+              <p className="signin-or">{t.signInOr}</p>
+            </div>
+          )}
 
           {fields.map((field) => (
             <label className="field" key={keyOf(field.name)}>

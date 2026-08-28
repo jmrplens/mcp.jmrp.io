@@ -532,6 +532,15 @@ const MATCHED_NODE_INDEX = 0;
   </ol>
 </section>
 
+{/* The inspector's storage sits right before the wire section: both are
+    about what happens to a credential, and this one answers the question the
+    inspector's own privacy note raises — "how would I know?". The anchor id is
+    linked from that note, so it is part of the contract. */}
+<section aria-labelledby="inspector-storage-h">
+  <h2 class="eyebrow" id="inspector-storage-h">{t.storageEyebrow}</h2>
+  {t.storageBody.map((paragraph: string) => <p class="prose-text">{paragraph}</p>)}
+</section>
+
 <section aria-labelledby="wire-h">
   <h2 class="eyebrow" id="wire-h">{t.wireEyebrow}</h2>
   {t.wireBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
