@@ -224,6 +224,42 @@ test("cada gemelo en markdown tiene su location y su canónico", (t) => {
   );
 });
 
+test("cada fichero de .well-known tiene su location en el vhost", (t) => {
+  // Fourth sibling of the guards above, and the one with the longest history
+  // of biting silently: these files are dropped into `public/.well-known/` by
+  // hand, so nobody adding one is thinking about nginx. `glama.json` sat there
+  // answering 404 to 133 requests before a log analysis found it, and
+  // `owners.json` was found the same way: by reading 404s, not by a test.
+  //
+  // It walks what the build emitted rather than a hand-kept list: the
+  // directory is copied verbatim from `public/`, so the build already knows
+  // the full set and a fixed list here would only be a second thing to forget.
+  if (!fs.existsSync(VHOST)) {
+    t.skip("el vhost no es legible en esta máquina");
+    return;
+  }
+  const vhost = fs.readFileSync(VHOST, "utf8");
+  const dir = `${fileURLToPath(DIST)}.well-known`;
+  const files = fs
+    .readdirSync(dir)
+    // Pre-compressed twins are served by gzip_static/brotli_static off the
+    // original's location, so they never get one of their own.
+    .filter((name) => !name.endsWith(".gz") && !name.endsWith(".br"));
+
+  assert.ok(
+    files.length > 0,
+    "el build no emitió ningún fichero en .well-known",
+  );
+  for (const name of files) {
+    const url = `/.well-known/${name}`;
+    assert.ok(
+      vhost.includes(`location = ${url} `) ||
+        vhost.includes(`location = ${url}\n`),
+      `${url} no tiene 'location' en el vhost: dará 404 en producción`,
+    );
+  }
+});
+
 test("robots.txt deja pasar a todo el mundo y anuncia el sitemap", () => {
   const robots = read("robots.txt");
   assert.match(robots, /^User-agent: \*$/m, "sin bloque comodín");
