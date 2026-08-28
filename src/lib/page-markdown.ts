@@ -265,7 +265,7 @@ export function serverMarkdown(server: McpServer, lang: Lang): string {
   return (
     head(server.name, server.description[lang], serverPageUrl(lang, server.id)) +
     section(t.overviewHead, [facts.join("\n")]) +
-    // `toolsHead` vive en `common` (a través de `ui`), no en `serversPage`.
+    // `toolsHead` lives in `common` (through `ui`), not in `serversPage`.
     (surface.length > 0 ? section(ui[lang].toolsHead, [surface.join("\n")]) : "") +
     section("Full catalog", [
       `Every tool, prompt, resource and template of this server — with what each one takes and returns — is listed in ${SITE_ORIGIN}/llms-full.txt, and served live by the server itself at \`${server.endpoint}/server-card\`.`,
@@ -274,8 +274,8 @@ export function serverMarkdown(server: McpServer, lang: Lang): string {
   );
 }
 
-/** Envuelve en comillas invertidas sin anidar plantillas: tres niveles de
- * backtick en una sola expresión es donde se esconde un fallo de comillas. */
+/** Wraps a string in backticks without nesting templates: three levels of
+ * backtick in one expression is where a quoting bug hides. */
 function code(text: string): string {
   return "`" + text + "`";
 }

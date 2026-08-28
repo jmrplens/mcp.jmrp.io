@@ -51,8 +51,8 @@ function respond(): Response {
         jsonrpc: "2.0",
         id: null,
         error: {
-          // Código del spec JSON-RPC, no una cantidad: `-32_601` no existe
-          // como constante en ninguna parte y buscarlo no encontraría nada.
+          // A JSON-RPC spec code, not a quantity: `-32_601` exists as a
+          // constant nowhere, and searching for it would find nothing.
           // eslint-disable-next-line unicorn/numeric-separators-style
           code: -32601,
           message: "No MCP server is mounted at /mcp on this host.",
