@@ -124,6 +124,20 @@ export type McpServer = {
    * endpoint; se enlaza vía `isBasedOn`.
    */
   sameAs?: string[];
+  /**
+   * Dónde está PUBLICADO el software de este servidor: npm, un registro de
+   * paquetes, una imagen… No es lo mismo que `sameAs`, y por eso no comparte
+   * campo: `sameAs` describe el ENDPOINT alojado aquí, mientras que un
+   * paquete es el software que cualquiera puede ejecutar en su máquina. Son
+   * dos entidades distintas y el grafo las separa igual que ya separa el
+   * repositorio (que va por `isBasedOn` → `codeRepository`).
+   *
+   * Van al `sameAs` del nodo `SoftwareSourceCode`, que es de quien SÍ son
+   * página autorizada. Ojo: el `#software` del documento de identidad NO se
+   * toca desde aquí — ese nodo es contrato compartido y este sitio solo lo
+   * referencia por `@id`, nunca lo redefine.
+   */
+  packages?: string[];
   /** Cabeceras que el cliente DEBE enviar. Vacío = sin credenciales. */
   requiredHeaders: McpHeader[];
   optionalHeaders: McpHeader[];
@@ -345,6 +359,10 @@ export const servers: McpServer[] = [
     version: "2.7.5",
     endpoint: "https://mcp.jmrp.io/gitlab",
     repo: "https://github.com/jmrplens/gitlab-mcp-server",
+    // Publicado en npm desde 2.7.5. Verificado contra el registro antes de
+    // entrar aquí (`registry.npmjs.org` responde con el paquete y su última
+    // versión): una URL rota en datos estructurados es peor que no tenerlos.
+    packages: ["https://www.npmjs.com/package/@jmrp.io/gitlab-mcp-server"],
     docs: "https://github.com/jmrplens/gitlab-mcp-server#readme",
     docsSite: "https://jmrp.io/docs/gitlab-mcp-server",
     sameAs: [

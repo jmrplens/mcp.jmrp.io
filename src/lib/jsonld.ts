@@ -382,6 +382,12 @@ function buildSourceNode(server: McpServer): Record<string, unknown> {
       programmingLanguage: facts.programmingLanguage,
     }),
     codeRepository: server.repo,
+    // Dónde se publica el paquete. Va aquí y no en el `sameAs` del endpoint
+    // porque no es el endpoint: un paquete de npm es el software que
+    // cualquiera puede ejecutar, y el endpoint es esta instancia concreta.
+    // Del nodo del código SÍ es página autorizada — ver `packages` en
+    // `servers.ts`.
+    ...(server.packages?.length ? { sameAs: server.packages } : {}),
     license: MIT_LICENSE,
     // Referencia, nunca sus datos: el documento de identidad es la única
     // fuente de verdad de quién es el autor.
