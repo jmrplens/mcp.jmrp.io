@@ -117,11 +117,24 @@ export type McpServer = {
    */
   docsSite?: string;
   /**
-   * Fichas de directorios MCP que describen ESTE servidor (Glama,
-   * mcpservers.org…). Van al `sameAs` del nodo del endpoint: son los sitios
-   * que los modelos ya rastrean, y enlazarlos une la entidad con sus
-   * menciones. El repositorio NO va aquí — no es la misma entidad que el
-   * endpoint; se enlaza vía `isBasedOn`.
+   * Fichas que describen ESTE DESPLIEGUE, no el software. Van al `sameAs` del
+   * nodo del endpoint: son los sitios que los modelos ya rastrean, y
+   * enlazarlos une la entidad con sus menciones.
+   *
+   * LA PRUEBA PARA ENTRAR AQUÍ, y hay que medirla, no suponerla: la ficha
+   * tiene que nombrar `mcp.jmrp.io`. Un `sameAs` que la página enlazada no
+   * corrobora es peor que no ponerlo — afirma una identidad que cualquiera
+   * puede comprobar que no está ahí. Medido con un NAVEGADOR, nunca con curl:
+   * mcp.so, cursor.directory y mcpservers.org renderizan en cliente, y curl
+   * dio 0 en las tres cuando mcpservers.org sí menciona el endpoint 6 veces.
+   *
+   * Lo que NO va aquí, aunque describa al servidor: el repositorio (se enlaza
+   * por `isBasedOn`), los registros de paquetes (npm, Docker Hub, winget, el
+   * registro de MCP) y las fichas que solo hablan del software. Eso pertenece
+   * al nodo `#software`, que define jmrp.io/projects/ y al que este grafo
+   * llega por `targetProduct`. Reclamar la misma URL desde dos `@id` distintos
+   * le dice a un rastreador que el endpoint y el software son la misma cosa,
+   * que es justo la distinción que este fichero mantiene.
    */
   sameAs?: string[];
   /** Cabeceras que el cliente DEBE enviar. Vacío = sin credenciales. */
@@ -202,7 +215,6 @@ export const servers: McpServer[] = [
     docsSite: "https://jmrp.io/docs/libgen-mcp",
     sameAs: [
       "https://glama.ai/mcp/servers/jmrplens/libgen-mcp",
-      "https://cursor.directory/plugins/libgen-mcp",
       // Comprobado, no supuesto: su ficha nombra mcp.jmrp.io 21 veces, así que
       // describe ESTE despliegue y no solo el software.
       "https://lobehub.com/mcp/jmrplens-libgen-mcp",
@@ -353,8 +365,6 @@ export const servers: McpServer[] = [
     sameAs: [
       "https://glama.ai/mcp/servers/jmrplens/gitlab-mcp-server",
       "https://mcpservers.org/servers/jmrplens/gitlab-mcp-server",
-      "https://mcp.so/server/gitlab-mcp-server/jmrplens",
-      "https://cursor.directory/plugins/gitlab-mcp-server",
       // Idem: 26 menciones de mcp.jmrp.io en su ficha.
       "https://lobehub.com/mcp/jmrplens-gitlab-mcp-server",
     ],
