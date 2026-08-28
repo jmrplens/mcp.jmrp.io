@@ -138,3 +138,82 @@ export function vscodeJson(server: McpServer, lang: Lang): string {
     2,
   );
 }
+
+/* ===== Alta por OAuth ========================================================
+   Las tres formas de arriba pegan la credencial a mano. Estas tres son el
+   camino que el despliegue recomienda cuando el servidor delega en OAuth: el
+   cliente hace el baile (Authorization Code + PKCE) contra el servidor de
+   autorización que anuncia el documento RFC 9728, y el visitante no llega a
+   ver un token.
+
+   El `clientId` es OBLIGATORIO y no un adorno: sin él estos clientes caen al
+   registro dinámico, que en GitLab entrega un token con alcance `mcp` — un
+   alcance que no puede mover la API REST sobre la que está construido este
+   servidor, así que todas las acciones fallarían. Lo dice su propia guía y por
+   eso el campo viaja en `servers.ts` en vez de dejarse al lector.
+
+   Las formas salen de docs/guides/ide-configuration.md del propio servidor, no
+   de deducción: Cursor es un fork de VS Code y comparte el objeto `oauth`,
+   pero la clave de nivel superior NO es la misma (`mcpServers` frente a
+   `servers`), que es el error clásico de copiar el bloque de un cliente a
+   otro. */
+
+/**
+ * Alta por OAuth en Claude Code.
+ *
+ * @param server Servidor de `src/data/servers.ts`.
+ * @returns El comando, o `undefined` si el servidor no delega en OAuth.
+ */
+export function claudeCodeOauthCommand(server: McpServer): string | undefined {
+  const oauth = server.oauth;
+  if (!oauth) return undefined;
+  return `claude mcp add ${server.id} --transport http --client-id ${oauth.clientId} --callback-port ${oauth.callbackPort} ${server.endpoint}`;
+}
+
+/**
+ * Bloque OAuth para `.cursor/mcp.json`.
+ *
+ * @param server Servidor de `src/data/servers.ts`.
+ * @returns JSON indentado, o `undefined` si el servidor no delega en OAuth.
+ */
+export function cursorOauthJson(server: McpServer): string | undefined {
+  const oauth = server.oauth;
+  if (!oauth) return undefined;
+  return JSON.stringify(
+    {
+      mcpServers: {
+        [server.id]: {
+          type: "http",
+          url: server.endpoint,
+          oauth: { clientId: oauth.clientId, scopes: oauth.scopes },
+        },
+      },
+    },
+    null,
+    2,
+  );
+}
+
+/**
+ * Bloque OAuth para `.vscode/mcp.json`.
+ *
+ * @param server Servidor de `src/data/servers.ts`.
+ * @returns JSON indentado, o `undefined` si el servidor no delega en OAuth.
+ */
+export function vscodeOauthJson(server: McpServer): string | undefined {
+  const oauth = server.oauth;
+  if (!oauth) return undefined;
+  return JSON.stringify(
+    {
+      servers: {
+        [server.id]: {
+          type: "http",
+          url: server.endpoint,
+          oauth: { clientId: oauth.clientId, scopes: oauth.scopes },
+        },
+      },
+    },
+    null,
+    2,
+  );
+}

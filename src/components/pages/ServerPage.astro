@@ -37,6 +37,7 @@ import { pageUrl, serverPagePath } from "../../lib/seo";
 import { anchorSlug } from "../../lib/slug";
 import { schemaFields } from "../../lib/tool-schema";
 import ActionSearch from "../ActionSearch";
+import ClientSetup from "../ClientSetup.astro";
 import ServerEntryChips from "../ServerEntryChips.astro";
 import ServerToc from "../ServerToc.astro";
 import UpdatedLine from "../UpdatedLine.astro";
@@ -190,6 +191,10 @@ const subs = card.subscriptions;
 const subscribableCount = subs?.subscribable_uri_templates.length ?? 0;
 
 const tocFamilies = [
+  // Primero lo NUESTRO, después lo que se lee del binario. `connect-h` abre la
+  // lista porque es la única sección que el visitante necesita ANTES de poder
+  // usar nada de lo que viene detrás.
+  { id: "connect-h", label: sp.connectHead },
   // No count: it is prose, not a family of entries — see `TocFamily.count`.
   { id: "context-h", label: sp.contextHead },
   ...(instructions
@@ -354,6 +359,16 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
     />
 
     <div class="server-content">
+      {/* NUESTRO contenido primero, el del binario después: la página empieza
+          contestando «cómo conecto esto» y sólo entonces pasa a describir lo
+          que el servidor declara de sí mismo. Antes el orden era el inverso y
+          la respuesta ni siquiera estaba aquí — vivía plegada en una tarjeta
+          de la portada. */}
+      <section class="server-family" aria-labelledby="connect-title" id="connect-h">
+        <h2 class="subsection-title" id="connect-title">{sp.connectHead}</h2>
+        <ClientSetup server={serverMeta} lang={lang} />
+      </section>
+
       <section class="server-family" aria-labelledby="overview-title" id="overview-h">
         <h2 class="subsection-title" id="overview-title">{sp.overviewHead}</h2>
         <dl class="meta-grid">

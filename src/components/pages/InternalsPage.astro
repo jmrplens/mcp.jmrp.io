@@ -1080,17 +1080,24 @@ const MATCHED_NODE_INDEX = 0;
     font-weight: var(--fw-semibold);
   }
 
-  /* La zona española: nginx (columna 3) y las instancias (columna 4) de la
-     rejilla `1fr 1.5fr 1fr 1fr 1fr 1.5fr` — 7fr en total, así que el par va de
-     2.5/7 a 4/7. Va por DETRÁS de los hilos (`z-index: -2`) para no cortar
-     ninguna línea. */
+  /* La zona española: nginx y las instancias, o sea las columnas 3 y 4 de
+     `grid-template-columns`.
+
+     GENERADO junto a `COL_X`, los `--pos` de los globos y las paradas de
+     box-travel: `left` es el borde izquierdo de la columna 3 y `width` la suma
+     de las dos, ambos en % del total de `fr`. Se quedó fuera del generador en
+     el primer reparto y acabó cinco puntos a la derecha de lo que encierra
+     —desplazado, no roto, que es justo el fallo que nadie ve en una revisión
+     de código—; por eso ahora sale de la misma fuente que el resto.
+
+     Va por DETRÁS de los hilos (`z-index: -2`) para no cortar ninguna línea. */
   .mcp-region {
     position: absolute;
     top: calc(3.2 * var(--u));
-    left: 35.714%;
+    left: 30.714%;
     z-index: -2;
     box-sizing: border-box;
-    width: 28.572%;
+    width: 30.357%;
     height: var(--track-h);
     /* Discontinuo y SIN relleno, a diferencia del marco de egress, que sí es
        una caja opaca: los dos son rectángulos y dicen cosas distintas — este

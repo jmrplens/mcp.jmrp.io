@@ -12,8 +12,11 @@ import type { Lang } from "../i18n/ui";
 import { ui } from "../i18n/ui";
 import {
   claudeCodeCommand,
+  claudeCodeOauthCommand,
   cursorJson,
+  cursorOauthJson,
   vscodeJson,
+  vscodeOauthJson,
 } from "../lib/client-config";
 
 interface Props {
@@ -25,8 +28,25 @@ const { server, lang } = Astro.props;
 const t = ui[lang];
 
 // Cada bloque nombra su fichero porque ahí está el error clásico: Cursor lee
-// `mcpServers` sin `type`; VS Code lee `servers` con `type: "http"`.
-const blocks = [
+// `mcpServers`, VS Code lee `servers`.
+//
+// Dos grupos, y el orden no es cosmético: primero el flujo OAuth, que es lo
+// que este despliegue hace de verdad y lo que evita que nadie tenga que
+// manejar un token; después el token pegado a mano, que sigue siendo la única
+// salida para lo que no puede abrir un navegador. Un servidor sin `oauth` (o
+// sin credenciales, como libgen) sólo enseña el segundo grupo, sin encabezados
+// que anuncien una elección que no existe.
+const oauthBlocks = server.oauth
+  ? [
+      { label: "Claude Code", code: claudeCodeOauthCommand(server) },
+      { label: "Cursor — ~/.cursor/mcp.json", code: cursorOauthJson(server) },
+      { label: "VS Code — .vscode/mcp.json", code: vscodeOauthJson(server) },
+    ].filter((block): block is { label: string; code: string } =>
+      Boolean(block.code),
+    )
+  : [];
+
+const tokenBlocks = [
   { label: "Claude Code", code: claudeCodeCommand(server) },
   { label: "Cursor — ~/.cursor/mcp.json", code: cursorJson(server) },
   { label: "VS Code — .vscode/mcp.json", code: vscodeJson(server, lang) },
@@ -37,7 +57,23 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
 
 <div class="client-setup">
   {
-    blocks.map((block) => (
+    oauthBlocks.length > 0 && (
+      <>
+        <h4 class="setup-head">{t.clientOauthHead}</h4>
+        <p class="hint hint--lead">{t.clientOauthHint}</p>
+        {oauthBlocks.map((block) => (
+          <figure>
+            <figcaption>{block.label}</figcaption>
+            <pre><code>{block.code}</code></pre>
+          </figure>
+        ))}
+        <h4 class="setup-head">{t.clientTokenHead}</h4>
+        <p class="hint hint--lead">{t.clientTokenHint}</p>
+      </>
+    )
+  }
+  {
+    tokenBlocks.map((block) => (
       <figure>
         <figcaption>{block.label}</figcaption>
         <pre><code>{block.code}</code></pre>
@@ -50,6 +86,22 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
 <style>
   .client-setup {
     padding-top: 0.25rem;
+  }
+
+  .setup-head {
+    margin: 1.1rem 0 0.35rem;
+    color: var(--color-text);
+    font-size: 0.86rem;
+    font-weight: var(--fw-semibold);
+  }
+
+  .setup-head:first-child {
+    margin-top: 0;
+  }
+
+  .hint--lead {
+    margin-top: 0;
+    margin-bottom: 0.7rem;
   }
 
   figure {

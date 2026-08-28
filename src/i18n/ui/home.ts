@@ -81,6 +81,17 @@ export const home = {
      * estáticas y el nombre del servidor no se traduce.
      */
     clientHead: "How do I add {server} to an MCP client?",
+    /**
+     * Los dos caminos del bloque de alta. El orden importa y es deliberado:
+     * OAuth primero porque es lo que el despliegue hace, y el token pegado a
+     * mano después porque es la salida para lo que no puede abrir un navegador.
+     */
+    clientOauthHead: "Sign in with OAuth (recommended)",
+    clientOauthHint:
+      "Your client opens gitlab.com in the browser, you authorize it there, and it stores the token itself — you never paste one. The client ID has to be configured explicitly: without it these clients fall back to dynamic registration, which GitLab answers with a scope this server cannot use.",
+    clientTokenHead: "Or paste a token",
+    clientTokenHint:
+      "For anything that cannot open a browser — headless, CI — a gitlab.com personal access token sent as Bearer is verified exactly like an OAuth one.",
     clientEnvHint:
       "In the JSON files the ${…} placeholders read the token from your environment — VS Code prompts for it and stores it itself — so the credential never lives in the file. In the command, replace <your token> by hand.",
     optionalHeaders: "Optional headers",
@@ -135,6 +146,13 @@ export const home = {
       "Planes listos que un cliente puede renderizar, además de las herramientas de arriba. Pídeselos a tu asistente por su nombre.",
     /** Ver `en.clientHead`: `{server}` lo sustituye ServerCard. */
     clientHead: "¿Cómo añado {server} a un cliente MCP?",
+    /** Ver `en.clientOauthHead`: el orden de los dos caminos es deliberado. */
+    clientOauthHead: "Entrar con OAuth (recomendado)",
+    clientOauthHint:
+      "Tu cliente abre gitlab.com en el navegador, autorizas ahí y él guarda el token: no pegas ninguno. El client ID hay que configurarlo sí o sí — sin él estos clientes caen al registro dinámico, que GitLab responde con un alcance que este servidor no puede usar.",
+    clientTokenHead: "O pegar un token",
+    clientTokenHint:
+      "Para lo que no puede abrir un navegador —headless, CI— un personal access token de gitlab.com enviado como Bearer se verifica igual que uno de OAuth.",
     clientEnvHint:
       "En los ficheros JSON, los marcadores ${…} leen el token de tu entorno — VS Code lo pide y lo guarda él mismo — así que la credencial nunca vive en el fichero. En el comando, sustituye <your token> a mano.",
     optionalHeaders: "Cabeceras opcionales",

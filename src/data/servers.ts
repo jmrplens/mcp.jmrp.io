@@ -146,6 +146,35 @@ export type McpServer = {
    * same thing — the very distinction this file maintains.
    */
   sameAs?: string[];
+  /**
+   * Cómo se obtiene la credencial cuando el servidor delega en OAuth, y no
+   * sólo qué cabecera la transporta.
+   *
+   * Ausente = no hay flujo que documentar y el visitante aporta su propia
+   * credencial (es el caso de libgen, que no pide ninguna). Presente = los
+   * fragmentos por cliente emiten PRIMERO el flujo OAuth y dejan el token
+   * pegado a mano como alternativa para headless y CI.
+   *
+   * `clientId` es público POR DISEÑO: viaja en la URL de autorización, a la
+   * vista del navegador de cualquiera. Lo que nunca sale de aquí es el secreto
+   * de la aplicación, que además esta no usa: es una app pública (PKCE).
+   */
+  oauth?: {
+    /** Application ID de la aplicación OAuth registrada. */
+    clientId: string;
+    /** Quién emite los tokens. Es el `authorization_servers` del RFC 9728. */
+    authorizationServer: string;
+    /** Alcances que pide la aplicación. Los fija ella, no quien la usa. */
+    scopes: string[];
+    /** El documento RFC 9728 del recurso, para quien quiera comprobarlo. */
+    metadataUrl: string;
+    /**
+     * Puerto de callback que hay que fijar en los clientes que lo permiten.
+     * No es libre: tiene que coincidir con un redirect URI registrado en la
+     * aplicación, y el de Claude Code es `http://localhost:<puerto>/callback`.
+     */
+    callbackPort: number;
+  };
   /** Cabeceras que el cliente DEBE enviar. Vacío = sin credenciales. */
   requiredHeaders: McpHeader[];
   optionalHeaders: McpHeader[];
@@ -461,6 +490,15 @@ export const servers: McpServer[] = [
     rateLimit: {
       en: "It adds no quota of its own beyond the site-wide one: every call is spent against gitlab.com's limits, under your own token.",
       es: "No añade cuota propia más allá de la general del sitio: cada llamada se gasta contra los límites de gitlab.com, con tu propio token.",
+    },
+    oauth: {
+      clientId:
+        "c9431f281376dab9390349f60bed0503285786e19577df14a9c291c588b85941",
+      authorizationServer: "https://gitlab.com",
+      scopes: ["api"],
+      metadataUrl:
+        "https://mcp.jmrp.io/.well-known/oauth-protected-resource/gitlab",
+      callbackPort: 8090,
     },
     requiredHeaders: [
       {

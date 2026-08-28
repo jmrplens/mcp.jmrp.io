@@ -46,6 +46,12 @@ export const serversPage = {
      */
     metaTitleServerSuffix: "— MCP server card · mcp.jmrp.io",
 
+    /**
+     * La sección que abre la página, y la única que no describe al servidor
+     * sino cómo llegar a él. Está PRIMERO a propósito: lo que sigue es lo que
+     * el binario declara de sí mismo, y no sirve de nada hasta poder llamarlo.
+     */
+    connectHead: "Connect it to your client",
     overviewHead: "Overview",
     serverInfoLabel: "Server name",
     versionLabel: "Version",
@@ -254,6 +260,8 @@ export const serversPage = {
     /** Ver `en.metaTitleServerSuffix`. */
     metaTitleServerSuffix: "— ficha de servidor MCP · mcp.jmrp.io",
 
+    /** Ver `en.connectHead`: abre la página, antes de lo que declara el binario. */
+    connectHead: "Conectarlo a tu cliente",
     overviewHead: "Resumen",
     serverInfoLabel: "Nombre del servidor",
     versionLabel: "Versión",
