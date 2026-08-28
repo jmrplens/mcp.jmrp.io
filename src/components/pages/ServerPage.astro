@@ -1083,6 +1083,11 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
 
   .entry {
     padding: 1rem 1.1rem;
+    /* Superficie OPACA, como las tarjetas de jmrp.io: con solo borde, la
+       rejilla del fondo atraviesa la caja y en tema claro deja de leerse como
+       una superficie. `--color-bg-subtle` tampoco vale para esto — es un 5%
+       translúcido, así que la rejilla se ve igual. */
+    background: var(--color-bg-secondary);
     border: 1px solid var(--color-hair);
     border-radius: var(--radius-md);
     /* Anchor target offset: without this, jumping to #tool-x lands the
