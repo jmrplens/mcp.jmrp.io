@@ -55,11 +55,18 @@ const SERVED_AT_ROOT = [
   // demostrar control del dominio.
   "8b3b0f3c6a883bd7d274f2cf7645921a.txt",
   "apple-touch-icon.png",
+  // El nombre que iOS anterior a 7 pide ANTES que el de arriba. Mismo dibujo:
+  // su ruta reexporta el handler de la otra, no lo copia.
+  "apple-touch-icon-precomposed.png",
   "favicon.svg",
   "humans.txt",
   "index.html",
   "llms-full.txt",
   "llms.txt",
+  // La ruta que adivinan los clientes MCP. No hay servidor aquí —este
+  // despliegue monta dos— y se sirve un error JSON-RPC con ambos endpoints
+  // dentro, que es lo que un cliente sabe leer. Ver src/pages/mcp.ts.
+  "mcp",
   "og-en.png",
   "og-es.png",
   "robots.txt",
