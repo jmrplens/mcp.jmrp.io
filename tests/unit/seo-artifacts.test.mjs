@@ -56,20 +56,20 @@ const SERVED_AT_ROOT = [
   // demostrar control del dominio.
   "8b3b0f3c6a883bd7d274f2cf7645921a.txt",
   "apple-touch-icon.png",
-  // El nombre que iOS anterior a 7 pide ANTES que el de arriba. Mismo dibujo:
-  // su ruta reexporta el handler de la otra, no lo copia.
+  // The name iOS before 7 asks for BEFORE the one above. Same drawing: its
+  // route re-exports the other's handler rather than copying it.
   "apple-touch-icon-precomposed.png",
   "favicon.svg",
   "humans.txt",
   "index.html",
-  // El gemelo de la portada. Es el ÚNICO que cae en la raíz: los demás viven
-  // en el directorio de su página (internals/index.md), fuera de este test.
+  // The home page's twin. The ONLY one landing at the root: the rest live in
+  // their page's directory (internals/index.md), outside this test.
   "index.md",
   "llms-full.txt",
   "llms.txt",
-  // La ruta que adivinan los clientes MCP. No hay servidor aquí —este
-  // despliegue monta dos— y se sirve un error JSON-RPC con ambos endpoints
-  // dentro, que es lo que un cliente sabe leer. Ver src/pages/mcp.ts.
+  // The path MCP clients guess. No server is mounted here — this deployment
+  // hosts two — so it serves a JSON-RPC error carrying both endpoints, which
+  // is what a client knows how to read. See src/pages/mcp.ts.
   "mcp",
   "og-en.png",
   "og-es.png",
@@ -163,23 +163,23 @@ test("cada página generada tiene su location en el vhost", (t) => {
 });
 
 test("cada gemelo en markdown tiene su location y su canónico", (t) => {
-  // Tercer hermano de los dos guardianes de arriba, y el que más falta hacía:
-  // un gemelo vive en `<página>/index.md`, así que no es fichero de la raíz
-  // (SERVED_AT_ROOT no lo ve) ni está en SERVED_PAGES (que lista index.html).
-  // Sin esto, añadir una página con gemelo y olvidar su `location` publica un
-  // 404 en la ruta que un agente va a DERIVAR sola, que es justo el caso que
-  // los gemelos existen para cubrir.
+  // Third sibling of the two guards above, and the one most needed: a twin
+  // lives at `<page>/index.md`, so it is neither a root file (SERVED_AT_ROOT
+  // cannot see it) nor an entry in SERVED_PAGES, which lists index.html.
+  // Without this, adding a page with a twin and forgetting its `location`
+  // publishes a 404 on the very path an agent DERIVES by itself, which is the
+  // case twins exist to cover.
   //
-  // Se recorren los generados, no una lista escrita a mano: aquí la lista
-  // fija sería el error, porque el build ya sabe cuáles hay.
+  // It walks what the build emitted rather than a hand-kept list: here a fixed
+  // list would be the bug, because the build already knows which ones exist.
   if (!fs.existsSync(VHOST)) {
     t.skip("el vhost no es legible en esta máquina");
     return;
   }
   const vhost = fs.readFileSync(VHOST, "utf8");
   const twins = [];
-  // `DIST` es una URL file://, que readdirSync acepta pero de la que no se
-  // puede derivar una subruta concatenando: hay que pasar a ruta real una vez.
+  // `DIST` is a file:// URL: readdirSync accepts it, but a subpath cannot be
+  // derived by concatenation, so it is converted to a real path once.
   const root = fileURLToPath(DIST);
   const walk = (dir, prefix = "") => {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -190,14 +190,14 @@ test("cada gemelo en markdown tiene su location y su canónico", (t) => {
   walk(root);
 
   assert.ok(twins.length > 0, "el build no emitió ningún gemelo en markdown");
-  // Dos formas válidas de estar servido, y la segunda es imprescindible: los
-  // sesenta gemelos de dominio no pueden llevar una `location` exacta cada uno,
-  // así que caen en el bloque `^~` de su prefijo, que anida una `location ~
-  // \.md$`. Se exige que ese anidado exista, no basta con que el prefijo esté:
-  // sin él nginx probaría `$uri/index.html` sobre un fichero .md y daría 404.
-  // Nombrados, no posicionales: `[, , block]` con dos huecos seguidos es
-  // ilegible y el linter lo rechaza con razón — al leerlo nadie sabe cuál de
-  // los dos grupos se está saltando.
+  // Two valid ways of being served, and the second is essential: the sixty
+  // domain twins cannot each carry an exact `location`, so they fall into
+  // their prefix's `^~` block, which nests a `location ~ \.md$`. That nested
+  // block is required, not merely the prefix: without it nginx would try
+  // `$uri/index.html` against a .md file and answer 404.
+  // Named, not positional: `[, , block]` skips two slots in a row, which is
+  // unreadable and the linter rightly refuses — nobody reading it can tell
+  // which group is being dropped.
   const prefixes = [...vhost.matchAll(/location \^~ (?<prefix>\S+) \{(?<block>[\s\S]*?)\n {4}\}/g)]
     .filter((match) => match.groups.block.includes(String.raw`\.md$`))
     .map((match) => match.groups.prefix);

@@ -117,24 +117,24 @@ export type McpServer = {
    */
   docsSite?: string;
   /**
-   * Fichas que describen ESTE DESPLIEGUE, no el software. Van al `sameAs` del
-   * nodo del endpoint: son los sitios que los modelos ya rastrean, y
-   * enlazarlos une la entidad con sus menciones.
+   * Listings that describe THIS DEPLOYMENT, not the software. They go in the
+   * endpoint node's `sameAs`: these are the sites the models already crawl,
+   * and linking them ties the entity to its mentions.
    *
-   * LA PRUEBA PARA ENTRAR AQUÍ, y hay que medirla, no suponerla: la ficha
-   * tiene que nombrar `mcp.jmrp.io`. Un `sameAs` que la página enlazada no
-   * corrobora es peor que no ponerlo — afirma una identidad que cualquiera
-   * puede comprobar que no está ahí. Medido con un NAVEGADOR, nunca con curl:
-   * mcp.so, cursor.directory y mcpservers.org renderizan en cliente, y curl
-   * dio 0 en las tres cuando mcpservers.org sí menciona el endpoint 6 veces.
+   * THE TEST FOR ENTRY, and it has to be measured rather than assumed: the
+   * listing must name `mcp.jmrp.io`. A `sameAs` the linked page does not
+   * corroborate is worse than none — it asserts an identity anyone can check
+   * is absent. Measure with a BROWSER, never with curl: mcp.so,
+   * cursor.directory and mcpservers.org all render client-side, and curl
+   * reported 0 for the three when mcpservers.org names the endpoint six times.
    *
-   * Lo que NO va aquí, aunque describa al servidor: el repositorio (se enlaza
-   * por `isBasedOn`), los registros de paquetes (npm, Docker Hub, winget, el
-   * registro de MCP) y las fichas que solo hablan del software. Eso pertenece
-   * al nodo `#software`, que define jmrp.io/projects/ y al que este grafo
-   * llega por `targetProduct`. Reclamar la misma URL desde dos `@id` distintos
-   * le dice a un rastreador que el endpoint y el software son la misma cosa,
-   * que es justo la distinción que este fichero mantiene.
+   * What does NOT belong here, however well it describes the server: the
+   * repository (linked through `isBasedOn`), package registries (npm, Docker
+   * Hub, winget, the MCP registry) and listings that only cover the software.
+   * Those belong to the `#software` node, which jmrp.io/projects/ defines and
+   * which this graph reaches through `targetProduct`. Claiming one URL from
+   * two different `@id`s tells a crawler the endpoint and the software are the
+   * same thing — the very distinction this file maintains.
    */
   sameAs?: string[];
   /** Cabeceras que el cliente DEBE enviar. Vacío = sin credenciales. */
@@ -215,8 +215,8 @@ export const servers: McpServer[] = [
     docsSite: "https://jmrp.io/docs/libgen-mcp",
     sameAs: [
       "https://glama.ai/mcp/servers/jmrplens/libgen-mcp",
-      // Comprobado, no supuesto: su ficha nombra mcp.jmrp.io 21 veces, así que
-      // describe ESTE despliegue y no solo el software.
+      // Checked, not assumed: its listing names mcp.jmrp.io 21 times, so it
+      // describes THIS deployment and not only the software.
       "https://lobehub.com/mcp/jmrplens-libgen-mcp",
     ],
     tools: [
@@ -365,7 +365,7 @@ export const servers: McpServer[] = [
     sameAs: [
       "https://glama.ai/mcp/servers/jmrplens/gitlab-mcp-server",
       "https://mcpservers.org/servers/jmrplens/gitlab-mcp-server",
-      // Idem: 26 menciones de mcp.jmrp.io en su ficha.
+      // Same: 26 mentions of mcp.jmrp.io on its listing.
       "https://lobehub.com/mcp/jmrplens-gitlab-mcp-server",
     ],
     tools: [
