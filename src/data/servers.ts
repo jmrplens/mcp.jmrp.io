@@ -525,12 +525,36 @@ export const servers: McpServer[] = [
       metadataUrl:
         "https://mcp.jmrp.io/.well-known/oauth-protected-resource/gitlab",
       callbackPort: 8090,
-      inspector: {
-        clientId:
-          "94649066fed1c053ad503a1addd3a86150e8f5eeb917965e713bcd2d662ace47",
-        redirectUri: "https://mcp.jmrp.io/inspector/callback/",
-        scopes: ["read_api"],
-      },
+      // DISABLED, not removed. The read-only application exists and is
+      // registered correctly — the sign-in flow itself works end to end, and
+      // GitLab issues the token — but this deployment refuses it at the door:
+      //
+      //   -40300  "This token does not carry the api scope that this
+      //            deployment requires. Reauthorize the application
+      //            requesting it."
+      //
+      // The scope the server demands is a property of the DEPLOYMENT, not of
+      // the call. Its own guide says so: it asks for `read_api` "whenever
+      // --read-only or --safe-mode is set", and this one is neither, because
+      // MCP clients need to write. So a read-only token is refused even for
+      // `initialize`, let alone `tools/list`.
+      //
+      // The three ways out, none of them ours alone:
+      //   1. The server accepts `read_api` and gates per action — it already
+      //      knows which ones are destructive, it publishes that flag for all
+      //      747. Requested in the handoff to that repo.
+      //   2. Give this application `api`, which is exactly the read/write
+      //      token in a web page that the second application existed to avoid.
+      //   3. A second, read-only deployment on its own path, just for the
+      //      inspector. More moving parts than the feature is worth today.
+      //
+      // Uncommenting this line is all it takes once (1) ships.
+      //
+      // inspector: {
+      //   clientId: "94649066fed1c053ad503a1addd3a86150e8f5eeb917965e713bcd2d662ace47",
+      //   redirectUri: "https://mcp.jmrp.io/inspector/callback/",
+      //   scopes: ["read_api"],
+      // },
     },
     requiredHeaders: [
       {
