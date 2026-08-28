@@ -303,7 +303,7 @@ test("llms.txt y llms-full.txt describen los servidores de verdad", () => {
     "el índice tiene que enlazar el documento largo",
   );
   assert.ok(
-    full.includes("PRIVATE-TOKEN"),
+    full.includes("Authorization"),
     "la ficha larga tiene que decir qué cabecera pide gitlab",
   );
   assert.ok(full.length > short.length, "el documento largo no es más largo");

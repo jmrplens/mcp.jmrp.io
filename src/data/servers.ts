@@ -17,6 +17,15 @@ export type McpHeader = {
   secret?: boolean;
   /** Ejemplo que se muestra en el campo del inspector. Nunca un valor real. */
   placeholder?: string;
+  /**
+   * Prefijo fijo del valor, cuando la cabecera lo lleva (p. ej. `"Bearer "`).
+   *
+   * Existe porque el valor de la cabecera dejó de ser la credencial a secas:
+   * con `Authorization` es el esquema más el token. Lo antepone quien EMITE
+   * (los fragmentos por cliente y el inspector); lo que teclea el visitante
+   * sigue siendo solo el token, y por eso el `placeholder` no lo repite.
+   */
+  valuePrefix?: string;
 };
 
 /** Texto en los dos idiomas del sitio. */
@@ -393,8 +402,8 @@ export const servers: McpServer[] = [
         },
         body: [
           {
-            en: "Your token stays in your browser's memory only. It is not written to localStorage or cookies, never travels in the URL, and is gone on reload. It is sent solely as a PRIVATE-TOKEN header to mcp.jmrp.io/gitlab, which neither stores nor logs it: the server uses it for that request and forgets it.",
-            es: "Tu token se queda solo en la memoria de tu navegador. No se guarda en localStorage ni en cookies, no viaja en la URL y desaparece al recargar. Se envía únicamente como cabecera PRIVATE-TOKEN a mcp.jmrp.io/gitlab, que no lo almacena ni lo registra: el servidor lo usa para esa petición y lo olvida.",
+            en: "Your token stays in your browser's memory only. It is not written to localStorage or cookies, never travels in the URL, and is gone on reload. It is sent solely as an Authorization: Bearer header to mcp.jmrp.io/gitlab, which neither stores nor logs it: the server uses it for that request and forgets it.",
+            es: "Tu token se queda solo en la memoria de tu navegador. No se guarda en localStorage ni en cookies, no viaja en la URL y desaparece al recargar. Se envía únicamente como cabecera Authorization: Bearer a mcp.jmrp.io/gitlab, que no lo almacena ni lo registra: el servidor lo usa para esa petición y lo olvida.",
           },
           // Cada afirmación con su respaldo real: la CSP prueba el DESTINO
           // (el navegador la aplica); lo que el servidor haga después no lo
@@ -416,8 +425,8 @@ export const servers: McpServer[] = [
             es: "Comprobarlo tú mismo: el código de esta página es público, y el del servidor también.",
           },
           {
-            en: "Use the narrowest scope possible (read_api is enough to try it) and a short expiry.",
-            es: "Usar un token con el mínimo alcance posible (read_api basta para probar) y caducidad corta.",
+            en: "Use the narrowest credential you can: a personal access token scoped to read_api, sent as Bearer, is enough to try it. The OAuth app asks for api, because the same server also writes.",
+            es: "Usar la credencial más estrecha que puedas: un personal access token con alcance read_api, enviado como Bearer, basta para probar. La aplicación OAuth pide api, porque el mismo servidor también escribe.",
           },
           {
             en: "Revoke it when you are done testing.",
@@ -441,51 +450,54 @@ export const servers: McpServer[] = [
             es: "El endpoint gitlab de mcp.jmrp.io es igualmente personal, sin SLA ni garantía de continuidad. Para algo crítico, levanta tu propia instancia — el servidor es open source y un único binario estático.",
           },
           {
-            en: "Whatever quota applies is your GitLab instance's, spent with your own token: this server adds no limit of its own beyond the site-wide one.",
-            es: "La cuota que aplique es la de tu instancia de GitLab, gastada con tu propio token: este servidor no añade más límite que el general del sitio.",
+            en: "Whatever quota applies is gitlab.com's, spent with your own token: this server adds no limit of its own beyond the site-wide one.",
+            es: "La cuota que aplique es la de gitlab.com, gastada con tu propio token: este servidor no añade más límite que el general del sitio.",
           },
         ],
       },
     ],
     // Concuerda con el aviso `limits` de arriba: el techo que aplica es el de
-    // la instancia de GitLab del propio visitante.
+    // gitlab.com, que desde --auth-mode=oauth es la única instancia posible.
     rateLimit: {
-      en: "It adds no quota of its own beyond the site-wide one: every call is spent against your own GitLab instance's limits, with your own token.",
-      es: "No añade cuota propia más allá de la general del sitio: cada llamada se gasta contra los límites de tu propia instancia de GitLab, con tu propio token.",
+      en: "It adds no quota of its own beyond the site-wide one: every call is spent against gitlab.com's limits, under your own token.",
+      es: "No añade cuota propia más allá de la general del sitio: cada llamada se gasta contra los límites de gitlab.com, con tu propio token.",
     },
     requiredHeaders: [
       {
-        name: "PRIVATE-TOKEN",
+        name: "Authorization",
         secret: true,
+        valuePrefix: "Bearer ",
+        placeholder: "glpat-…",
         description: {
-          en: "Your GitLab Personal Access Token. Never stored on the server.",
-          es: "Tu Personal Access Token de GitLab. Nunca se guarda en el servidor.",
+          en: "Your gitlab.com credential, sent as Bearer: an OAuth access token, or a personal access token used the same way. Never stored on the server.",
+          es: "Tu credencial de gitlab.com, enviada como Bearer: un token de acceso OAuth, o un personal access token usado igual. Nunca se guarda en el servidor.",
         },
       },
     ],
-    optionalHeaders: [
-      {
-        name: "GITLAB-URL",
-        placeholder: "https://gitlab.com",
-        description: {
-          en: "Another GitLab instance. Defaults to https://gitlab.com.",
-          es: "Otra instancia de GitLab. Por defecto https://gitlab.com.",
-        },
-      },
-    ],
+    // Vacío desde que el despliegue pasó a --auth-mode=oauth: ese modo exige
+    // una instancia FIJA (el documento RFC 9728 nombra un único servidor de
+    // autorización), así que la cabecera `GITLAB-URL` por petición dejó de
+    // honrarse. Anunciarla sería peor que no tenerla: quien la mandara no
+    // recibiría error, simplemente se ignoraría.
+    optionalHeaders: [],
     // Coverage goes in the description on purpose: "which GitLab MCP server
     // should I use?" is answered by comparing coverage, and it is the citable
     // fact that sets this one apart. From here the description reaches the
     // card, servers.json, the JSON-LD and llms.txt in one go.
     //
-    // It says "over 1,000" rather than an exact figure for two reasons the
-    // 2026-08-22 audit caught: the real number DEPENDS ON THE TIER (~847 on
-    // Community Edition, up to 1071 on Ultimate), so a fixed one is false for
-    // the "against any GitLab instance" this very sentence promises; and the
-    // 1006 that used to be here came from the v1.0.x description in the MCP
-    // registry, which upstream no longer publishes — its README and docs site
-    // now say "1000+". A wrong citable figure is worse than none, because it
-    // is precisely the one assistants repeat.
+    // It says "over 700" rather than an exact figure, and the number moved
+    // DOWN from "over 1,000" when the endpoint went OAuth-only. The reason is
+    // not that the server lost anything: the catalog is scoped to the token
+    // that asks, and this deployment now publishes what a gitlab.com token
+    // sees. Measured on the day of the switch, the manifest went from 851
+    // actions to 747 — the 104 that vanished are the administration domains a
+    // gitlab.com account without admin rights simply cannot call.
+    //
+    // So 700 is a FLOOR that holds for every reader, where "over 1,000" was
+    // only true on Ultimate and was contradicted by this site's own published
+    // manifest (`/servers/gitlab/`, 747). A citable figure that the same site
+    // refutes two clicks away is worse than a smaller one that never does —
+    // and it is precisely the figure assistants repeat.
     //
     // It is also the page's META DESCRIPTION, so the hard ceiling is 155
     // characters — past that Google truncates and picks the cut itself. The
@@ -494,8 +506,8 @@ export const servers: McpServer[] = [
     // `what`, so that EN and ES could carry the SAME four. Re-count the
     // characters on any rewrite: Spanish is the one that runs out of room.
     description: {
-      en: "Over 1,000 GitLab operations — projects, merge requests, issues, pipelines — on any instance. Your token travels per request, never stored.",
-      es: "Más de 1.000 operaciones de GitLab — proyectos, merge requests, incidencias, pipelines — en cualquier instancia. Token por petición, nunca se guarda.",
+      en: "Over 700 GitLab operations on gitlab.com — projects, merge requests, issues, pipelines. OAuth or a PAT as Bearer, per request, never stored.",
+      es: "Más de 700 operaciones de GitLab en gitlab.com — proyectos, merge requests, incidencias, pipelines. OAuth o PAT como Bearer, nunca se guarda.",
     },
   },
 ];

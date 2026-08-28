@@ -19,11 +19,18 @@
  * inputSchema completos siguen fuera.
  *
  * GUARDIA ANTI-FUGA (fallo DURO, exit 1, antes de escribir un solo byte):
- * la instancia GitLab del autor no debe aparecer jamás en el repo. Si el
- * host de MCP_SURFACE_GITLAB_URL asoma en cualquier byte descargado o en cualquier
- * snapshot serializado, se aborta la cadena de build entera. Ningún mensaje
- * de este script imprime MCP_SURFACE_GITLAB_URL ni MCP_SURFACE_GITLAB_TOKEN; los textos de error del
- * servidor se sanean antes de loguearse por si lo ecoaran.
+ * la instancia GitLab del autor no debe aparecer jamás en el repo. Si alguno
+ * de los hosts de MCP_SURFACE_FORBIDDEN_HOSTS asoma en cualquier byte
+ * descargado o en cualquier snapshot serializado, se aborta la cadena de build
+ * entera. Ningún mensaje de este script imprime esa variable ni el token.
+ *
+ * La guardia tiene VARIABLE PROPIA desde que el endpoint pasó a OAuth, y el
+ * motivo importa: antes las agujas se derivaban de la instancia a la que se
+ * llamaba, así que al dejar de llamar a la instancia interna la guardia se
+ * habría desarmado sola — justo cuando ya nadie la estaría mirando. Lo que
+ * vigila no es «no filtres el host al que llamas», es «que el host interno no
+ * vuelva a colarse en el repo por ninguna vía», y eso no depende de a quién se
+ * consulte. Desacoplarla es lo que la mantiene viva.
  *
  * ESCRITURA: determinista (orden de claves fijo, listas ordenadas por
  * comparación de bytes — nunca localeCompare, que depende de ICU) y solo si
@@ -44,7 +51,8 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
-// El .env del repo (gitignorado) trae MCP_SURFACE_GITLAB_URL/_TOKEN en el
+// El .env del repo (gitignorado) trae MCP_PERSONAL_GITLAB_COM_TOKEN y
+// MCP_SURFACE_FORBIDDEN_HOSTS en el
 // servidor. Mismo patrón que deploy-live-mcp.mjs: `loadEnvFile` NO pisa lo que
 // ya venga del entorno (shell > .env; exportar vacío anula), y sin .env se
 // sigue con lo que haya.
@@ -67,49 +75,58 @@ const BASE = "https://mcp.jmrp.io";
 const SURFACE_DIR = path.join(process.cwd(), "src", "data", "surface");
 const TAG = "[sync-server-surface]";
 
-const GITLAB_TOKEN = process.env.MCP_SURFACE_GITLAB_TOKEN;
-// GITLAB_URL arma la guardia anti-fuga Y viaja como cabecera GITLAB-URL en
-// las peticiones de gitlab: sin la cabecera el edge consulta su instancia
-// por defecto, que es OTRA superficie (verificado 2026-08-26: ~100 acciones
-// menos, sin los dominios admin/storage_move). Un -40100 ("GitLab rejected
-// this token") significa que el token de .env no vale para esa instancia
-// (caducado o rotado): fallo blando, el snapshot commiteado se conserva.
+// El endpoint corre con --auth-mode=oauth y la instancia FIJADA a gitlab.com,
+// así que la credencial es un Bearer de gitlab.com y la cabecera GITLAB-URL
+// por petición ya no se honra. Un -40100 significa que el token no vale
+// (caducado o revocado): fallo blando, el snapshot commiteado se conserva.
 // JAMÁS debe acabar en un log ni en un snapshot.
-const GITLAB_URL = process.env.MCP_SURFACE_GITLAB_URL;
+const GITLAB_TOKEN = process.env.MCP_PERSONAL_GITLAB_COM_TOKEN;
 
 /**
- * Variantes en minúsculas del host de GITLAB_URL (con y sin puerto) que no
- * pueden aparecer en nada descargado, escrito ni logueado. Vacío si la
- * variable no está definida (entonces no hay nada que pueda fugarse).
+ * Hosts que no pueden aparecer en nada descargado, escrito ni logueado, en
+ * minúsculas y con sus variantes con y sin puerto. Se leen de
+ * MCP_SURFACE_FORBIDDEN_HOSTS (lista separada por comas) — su PROPIA variable,
+ * no la del transporte: ver la nota de la cabecera del módulo. Vacío si no
+ * está definida, y entonces `main()` se niega a extraer nada.
  */
 const FORBIDDEN_HOSTS = (() => {
-  if (!GITLAB_URL) return [];
-  let hosts = [];
-  try {
-    const u = new URL(GITLAB_URL);
-    hosts = [...new Set([u.host, u.hostname].filter(Boolean))];
-  } catch {
-    // Sin esquema y sin dos puntos: new URL lanza; cae al crudo, abajo.
+  const raw = process.env.MCP_SURFACE_FORBIDDEN_HOSTS;
+  if (!raw) return [];
+  const hosts = new Set();
+  for (const item of raw.split(",")) {
+    const entry = item.trim();
+    if (!entry) continue;
+    let parsed = [];
+    try {
+      const u = new URL(entry.includes("://") ? entry : `https://${entry}`);
+      parsed = [u.host, u.hostname].filter(Boolean);
+    } catch {
+      // Sin esquema y sin dos puntos: new URL lanza; cae al crudo, abajo.
+    }
+    if (parsed.length === 0) {
+      // Valor sin esquema ("host.ejemplo.com"), O con dos puntos y sin esquema
+      // ("host.ejemplo.com:8443"): a este último new URL NO le lanza — lo
+      // parsea como esquema + ruta opaca con host VACÍO, y sin este respaldo la
+      // guardia se desarmaría en silencio justo con la variable puesta. En
+      // ambos casos: el valor crudo como host, y recortado por si llevara
+      // puerto.
+      // MISMO respaldo que resolveNeedles() en
+      // tests/unit/surface-guards.test.mjs: si los dos resolutores divergen, el
+      // build y su red de seguridad inspeccionan cosas distintas y una fuga
+      // podría publicarse.
+      parsed = [entry, entry.split(":", 1)[0]];
+    }
+    for (const h of parsed) {
+      if (h) hosts.add(h.toLowerCase());
+    }
   }
-  if (hosts.length === 0) {
-    // Valor sin esquema ("host.ejemplo.com"), O con dos puntos y sin esquema
-    // ("host.ejemplo.com:8443"): a este último new URL NO le lanza — lo parsea
-    // como esquema + ruta opaca con host VACÍO, y sin este fallback la guardia
-    // se desarmaría en silencio justo con la variable puesta. En ambos casos:
-    // el valor crudo como host, y recortado por si llevara puerto.
-    // MISMO fallback que resolveNeedles() en tests/unit/surface-guards.test.mjs:
-    // si los dos resolutores divergen, el build y su red de seguridad
-    // inspeccionan cosas distintas y una fuga podría publicarse.
-    const hostname = GITLAB_URL.split(":", 1)[0];
-    hosts = [...new Set([GITLAB_URL, hostname])].filter(Boolean);
-  }
-  return hosts.map((h) => h.toLowerCase());
+  return [...hosts];
 })();
 
 /**
  * Sustituye el host prohibido en un texto destinado a un log. Los mensajes de
- * error del servidor podrían ecoar la cabecera GITLAB-URL; esto garantiza que
- * ni siquiera un log de fallo lo imprima.
+ * error del servidor podrían ecoarlo; esto garantiza que ni siquiera un log
+ * de fallo lo imprima.
  */
 function sanitizeForLog(text) {
   let out = String(text);
@@ -569,8 +586,7 @@ async function collectGitlabDiscover(pending, endpoint, generatedAt) {
       "server/discover",
       discoverParams(),
       {
-        "PRIVATE-TOKEN": GITLAB_TOKEN,
-        "GITLAB-URL": GITLAB_URL,
+        Authorization: `Bearer ${GITLAB_TOKEN}`,
       },
     );
     if (rpc.error)
@@ -600,8 +616,8 @@ async function collectGitlabActions(pending, endpoint, sourceVersion, generatedA
       "resources/read",
       { uri, _meta: discoverParams()._meta },
       {
-        "PRIVATE-TOKEN": GITLAB_TOKEN,
-        "GITLAB-URL": GITLAB_URL,
+        Authorization: `Bearer ${GITLAB_TOKEN}`,
+        // Mcp-Name sigue siendo obligatoria: identifica el recurso pedido.
         "Mcp-Name": uri,
       },
     );
@@ -645,13 +661,14 @@ async function main() {
 
   await collectLibgenDiscover(pending, generatedAt);
 
-  // gitlab — discover y manifiesto exigen token Y cabecera GITLAB-URL
-  // (sin ella el edge sirve la superficie de su instancia por defecto, no
-  // la documentada), y sin MCP_SURFACE_GITLAB_URL la guardia anti-fuga queda
-  // además desarmada: no se escribe nada derivado de gitlab sin poder
-  // inspeccionarlo antes. En CI sin secretos se conservan ambos snapshots:
-  // esa ES la semántica de respaldo.
-  if (GITLAB_TOKEN && GITLAB_URL) {
+  // gitlab — la instancia la fija el servidor (--gitlab-url=https://gitlab.com),
+  // así que ya no hay cabecera que elegirla: lo único que hace falta es el
+  // Bearer. Se sigue exigiendo ADEMÁS la variable de la guardia anti-fuga, y no
+  // porque el transporte la necesite —no la necesita— sino porque sin agujas no
+  // se puede inspeccionar lo descargado, y este script no escribe nada derivado
+  // de gitlab que no haya podido mirar antes. En CI sin secretos se conservan
+  // ambos snapshots: esa ES la semántica de respaldo.
+  if (GITLAB_TOKEN && FORBIDDEN_HOSTS.length > 0) {
     const endpoint = `${BASE}/gitlab/mcp`;
     const sourceVersion = await collectGitlabDiscover(pending, endpoint, generatedAt);
     if (sourceVersion) {
@@ -661,8 +678,8 @@ async function main() {
     }
   } else {
     const reason = GITLAB_TOKEN
-      ? "falta MCP_SURFACE_GITLAB_URL y sin ella la guardia anti-fuga no puede armarse"
-      : "falta MCP_SURFACE_GITLAB_TOKEN";
+      ? "falta MCP_SURFACE_FORBIDDEN_HOSTS y sin ella la guardia anti-fuga no puede armarse"
+      : "falta MCP_PERSONAL_GITLAB_COM_TOKEN";
     softWarn("gitlab-discover.json", reason);
     softWarn("gitlab-actions.json", reason);
   }
@@ -676,7 +693,7 @@ async function main() {
   ]);
   if (containsForbiddenHost(inspectable)) {
     console.error(
-      `${TAG} ✗ una respuesta o snapshot contiene el host de GITLAB_URL; extracción abortada sin escribir nada`,
+      `${TAG} ✗ una respuesta o snapshot contiene un host prohibido; extracción abortada sin escribir nada`,
     );
     process.exit(1);
   }

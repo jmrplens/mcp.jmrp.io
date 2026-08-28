@@ -28,6 +28,23 @@ function required(server: McpServer): McpHeader[] {
 }
 
 /**
+ * El valor que va DENTRO de la cabecera, esquema incluido.
+ *
+ * Existe desde que gitlab pasó a OAuth: su credencial viaja en
+ * `Authorization`, cuyo valor es `Bearer ` + el token, no el token a secas.
+ * Los tres generadores de abajo pegaban el valor crudo detrás de
+ * `<nombre>: `, así que sin esto emitirían `Authorization: <your token>` —
+ * sintaxis inválida, y un 401 para quien copiara el fragmento.
+ *
+ * @param header La cabecera de `src/data/servers.ts`.
+ * @param value Lo que aporta el visitante (o su marcador).
+ * @returns El valor completo de la cabecera.
+ */
+function headerValue(header: McpHeader, value: string): string {
+  return `${header.valuePrefix ?? ""}${value}`;
+}
+
+/**
  * Alta por línea de comandos en Claude Code.
  *
  * El valor va como marcador literal `<your token>` y no como `${VAR}`: dentro
@@ -39,7 +56,7 @@ function required(server: McpServer): McpHeader[] {
  */
 export function claudeCodeCommand(server: McpServer): string {
   const headers = required(server)
-    .map((header) => ` --header "${header.name}: <your token>"`)
+    .map((header) => ` --header "${header.name}: ${headerValue(header, "<your token>")}"`)
     .join("");
   return `claude mcp add --transport http ${server.id} ${server.endpoint}${headers}`;
 }
@@ -62,7 +79,10 @@ export function cursorJson(server: McpServer): string {
           url: server.endpoint,
           ...(headers.length > 0 && {
             headers: Object.fromEntries(
-              headers.map((h) => [h.name, `\${env:${tokenEnv(server)}}`]),
+              headers.map((h) => [
+                h.name,
+                headerValue(h, `\${env:${tokenEnv(server)}}`),
+              ]),
             ),
           }),
         },
@@ -86,15 +106,18 @@ export function cursorJson(server: McpServer): string {
  */
 export function vscodeJson(server: McpServer, lang: Lang): string {
   const headers = required(server);
-  const inputId = (header: McpHeader) =>
-    `${server.id}-${header.name.toLowerCase()}`;
+  // Deliberadamente NO se deriva del nombre de la cabecera: con `Authorization`
+  // el id saldría `gitlab-authorization`, que nombra el sobre en vez de lo que
+  // se le pide al usuario. `-token` describe lo que hay que teclear, y además
+  // no cambia si la cabecera se renombra otra vez.
+  const inputId = (): string => `${server.id}-token`;
 
   return JSON.stringify(
     {
       ...(headers.length > 0 && {
         inputs: headers.map((header) => ({
           type: "promptString",
-          id: inputId(header),
+          id: inputId(),
           description: header.description[lang],
           password: header.secret === true,
         })),
@@ -105,7 +128,7 @@ export function vscodeJson(server: McpServer, lang: Lang): string {
           url: server.endpoint,
           ...(headers.length > 0 && {
             headers: Object.fromEntries(
-              headers.map((h) => [h.name, `\${input:${inputId(h)}}`]),
+              headers.map((h) => [h.name, headerValue(h, `\${input:${inputId()}}`)]),
             ),
           }),
         },

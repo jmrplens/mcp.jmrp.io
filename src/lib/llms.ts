@@ -384,7 +384,7 @@ Verify the live list with:
 POST ${server.endpoint}
 Content-Type: application/json
 Accept: application/json, text/event-stream
-${server.requiredHeaders.map((h) => `${h.name}: <your value>`).join("\n")}
+${server.requiredHeaders.map((h) => `${h.name}: ${h.valuePrefix ?? ""}<your token>`).join("\n")}
 
 {"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}
 \`\`\`
@@ -433,9 +433,19 @@ ${secretHeaders.map((h) => `\`${h.name}\``).join(", ")} travels in the request t
 never stored: not by the server, which uses it for that single call and forgets
 it, and not by the web inspector, which keeps it in the tab's memory only — no
 localStorage, no cookies, no query string, no logs. Reloading the page drops it.
-Treat any site that asks for a token with suspicion, this one included: a token
-scoped to the minimum (\`read_api\` is enough), short-lived and revoked right
-after, is the sane way to try the inspector.
+
+For \`gitlab\` that credential is \`Authorization: Bearer <token>\`, and either
+kind works: an OAuth access token obtained from gitlab.com, or a personal
+access token sent the same way. An unauthenticated call answers \`401\` with a
+\`WWW-Authenticate\` challenge naming
+\`${SITE_ORIGIN}/.well-known/oauth-protected-resource/gitlab\`, the RFC 9728
+document that says which authorization server issues tokens for this endpoint.
+
+Treat any site that asks for a token with suspicion, this one included. The two
+paths differ in what they can ask for: a personal access token scoped to
+\`read_api\`, short-lived and revoked right after, is the sane way to try the
+inspector; the OAuth application asks for \`api\`, because the same server also
+writes, and that scope is fixed by the application rather than chosen per user.
 `;
 
   return `# ${SITE_NAME}

@@ -23,12 +23,12 @@ test("/es/ sirve la versión en español", async ({ page }) => {
   // Texto que viene de `src/data/servers.ts`, no de `ui.ts`: comprueba que la
   // página elige `description.es` y no `description.en`.
   await expect(page.getByText(/No requiere cuenta/)).toBeVisible();
-  // Ocultar que gitlab exige PRIVATE-TOKEN es un defecto de contenido, y en
+  // Ocultar que gitlab exige Authorization es un defecto de contenido, y en
   // español ya faltó una vez. El nombre de la cabecera no se traduce; el rótulo
   // que dice que es obligatoria, sí.
   const gitlab = serverCard(page, "gitlab");
   await expect(gitlab).toContainText(ui.es.credentialsRequired);
-  await expect(gitlab).toContainText("PRIVATE-TOKEN");
+  await expect(gitlab).toContainText("Authorization");
 });
 
 test("servers.json mantiene el índice para máquinas", async ({ request }) => {

@@ -81,7 +81,7 @@ test("un parámetro ajeno (p. ej. un token) no aparece en el resultado", () => {
   // nunca lleva el token del visitante. Esto lo comprueba desde la forma del
   // objeto devuelto, que solo puede tener estas tres claves.
   const link = parseDeepLink(
-    "?server=gitlab&token=glpat-secreto&PRIVATE-TOKEN=glpat-secreto",
+    "?server=gitlab&token=glpat-secreto&Authorization=glpat-secreto",
     servers,
   );
   assert.deepEqual(

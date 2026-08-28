@@ -32,7 +32,11 @@ export type CallMcpOptions = {
   endpoint: string;
   method: string;
   params?: unknown;
-  /** Cabeceras extra (p. ej. `PRIVATE-TOKEN`). Nunca se registran ni se guardan. */
+  /**
+   * Cabeceras extra (p. ej. `Authorization: Bearer …`). Nunca se registran ni
+   * se guardan. El esquema lo compone quien llama: aquí llega ya el valor
+   * completo de la cabecera, no la credencial suelta.
+   */
   headers?: Record<string, string>;
   fetchImpl?: typeof fetch;
   /** Para cancelar desde la interfaz y para el timeout de cliente. */

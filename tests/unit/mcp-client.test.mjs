@@ -43,7 +43,7 @@ test("callMcp hace POST con el sobre JSON-RPC y las cabeceras del transporte", a
   const result = await callMcp({
     endpoint: "https://mcp.jmrp.io/gitlab",
     method: "tools/list",
-    headers: { "PRIVATE-TOKEN": "glpat-x" },
+    headers: { Authorization: "Bearer glpat-x" },
     fetchImpl,
   });
 
@@ -55,7 +55,7 @@ test("callMcp hace POST con el sobre JSON-RPC y las cabeceras del transporte", a
   assert.equal(seen.url, "https://mcp.jmrp.io/gitlab");
   assert.equal(seen.init.method, "POST");
   assert.equal(seen.init.headers.Accept, "application/json, text/event-stream");
-  assert.equal(seen.init.headers["PRIVATE-TOKEN"], "glpat-x");
+  assert.equal(seen.init.headers.Authorization, "Bearer glpat-x");
   assert.deepEqual(JSON.parse(seen.init.body), {
     jsonrpc: "2.0",
     id: 1,
@@ -65,7 +65,18 @@ test("callMcp hace POST con el sobre JSON-RPC y las cabeceras del transporte", a
 });
 
 test("callMcp devuelve el código y el cuerpo en vez de lanzar", async () => {
-  const fetchImpl = async () => new Response("Missing PRIVATE-TOKEN header", { status: 401 });
+  // Cuerpo REAL del 401 en modo OAuth, no una frase inventada: el servidor
+  // responde JSON-RPC con code -40100 aunque lo que falle sea la autenticación.
+  const body = JSON.stringify({
+    jsonrpc: "2.0",
+    id: null,
+    error: {
+      code: -40_100,
+      message:
+        "Authentication required: send an OAuth access token as 'Authorization: Bearer <token>'.",
+    },
+  });
+  const fetchImpl = async () => new Response(body, { status: 401 });
   const res = await callMcp({
     endpoint: "https://mcp.jmrp.io/gitlab",
     method: "tools/list",
@@ -74,8 +85,13 @@ test("callMcp devuelve el código y el cuerpo en vez de lanzar", async () => {
 
   assert.equal(res.ok, false);
   assert.equal(res.status, 401);
-  assert.equal(res.text, "Missing PRIVATE-TOKEN header");
-  assert.equal(res.body, undefined);
+  assert.match(res.text, /Authorization: Bearer/);
+  // El 401 de OAuth SÍ trae JSON-RPC, y por eso esta aserción cambió de sentido:
+  // antes el cuerpo de un fallo de autenticación era texto suelto y `body`
+  // quedaba `undefined`. Ahora el servidor responde un error con código -40100,
+  // el cliente lo entrega parseado, y quien llama puede enseñar el mensaje real
+  // en vez de un "401" a secas.
+  assert.equal(res.body?.error?.code, -40_100);
 });
 
 test("callMcp pasa el signal al fetch, que es lo que permite cancelar", async () => {

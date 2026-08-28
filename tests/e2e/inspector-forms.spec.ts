@@ -115,7 +115,7 @@ test("los resources se listan con su tipo MIME y se pueden leer", async ({
 
   await page.goto("/inspector/");
   await serverSelect(page).selectOption("gitlab");
-  await inspector(page).getByLabel("PRIVATE-TOKEN").fill("glpat-falso");
+  await inspector(page).getByLabel("Authorization").fill("glpat-falso");
 
   await page.getByRole("tab", { name: "Resources" }).click();
   await page.getByTestId("load-resources").click();

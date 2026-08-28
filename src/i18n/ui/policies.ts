@@ -69,7 +69,7 @@ export const policies = {
     ],
     egressEyebrow: "Where a request appears to come from",
     egressBody: [
-      "Calls the servers make outward — to the Library Genesis mirrors, the open-access providers, or the GitLab instance you point gitlab at — leave through egress proxies hosted on VPS machines in Spain and the United Kingdom, not from wherever you or this site happen to be. To that third party, the request's source is one of those VPS addresses: neither your own IP address nor your home network's ever reaches it.",
+      "Calls the servers make outward — to the Library Genesis mirrors, the open-access providers, or gitlab.com — leave through egress proxies hosted on VPS machines in Spain and the United Kingdom, not from wherever you or this site happen to be. To that third party, the request's source is one of those VPS addresses: neither your own IP address nor your home network's ever reaches it.",
     ],
     legalEyebrow: "Legal position",
     /**
@@ -112,7 +112,7 @@ export const policies = {
     legalBody: [
       "libgen runs no catalogue and hosts nothing of its own: it is a client of indexes and libraries other people operate — the open-access providers arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed and ERIC, and the shadow-library sources: a Library Genesis mirror, randombook.org, Anna's Archive, Sci-Hub, and the SciDB article viewer Anna's Archive runs. Which of them a call reaches, and in what order, is a property of the tool you call rather than of the service as a whole: its search starts from the Library Genesis catalogue and widens to the open-access providers only when that catalogue comes up empty, while its download resolves an article through the open-access providers first and reaches a shadow-library source only when none of them serves it — a book asked for by its catalogue hash, which is the shadow libraries' own identifier, is looked up there directly. Each tool states its own order in its description, on libgen's server card.",
       "Over HTTP — the only way this endpoint is reached — its download tool never delivers a file: it resolves the identifier you gave it and hands back a link to whichever source holds the item, for your own client to fetch. Its read tool does fetch the file, but only to return the slice of text you asked for. Either way mcp.jmrp.io publishes no catalogue and offers no file for anyone else to fetch: the transfer, if you make it, is between you and that third party.",
-      "What you do with the links it returns is your responsibility, under whichever law applies to you. gitlab does nothing more than relay calls to the GitLab instance and token you supply, and grants no right beyond what that instance already grants its own user.",
+      "What you do with the links it returns is your responsibility, under whichever law applies to you. gitlab does nothing more than relay calls to gitlab.com with the credential you supply, and grants no right beyond what that instance already grants its own user.",
     ],
     // Visible freshness inside <main>: the footer carries the same date, but
     // readability prunes it and extractors saw the page as undated.
@@ -151,7 +151,7 @@ export const policies = {
     ],
     egressEyebrow: "De dónde parece venir una petición",
     egressBody: [
-      "Las llamadas que los servidores hacen hacia fuera — a los mirrors de Library Genesis, a los proveedores de acceso abierto, o a la instancia de GitLab a la que apuntes gitlab — salen por proxies de salida alojados en VPS en España y Reino Unido, no desde donde estés tú ni desde donde esté este sitio. Para ese tercero, el origen de la petición es una de esas direcciones de VPS: ni tu propia IP ni la de tu red doméstica le llegan nunca.",
+      "Las llamadas que los servidores hacen hacia fuera — a los mirrors de Library Genesis, a los proveedores de acceso abierto, o a gitlab.com — salen por proxies de salida alojados en VPS en España y Reino Unido, no desde donde estés tú ni desde donde esté este sitio. Para ese tercero, el origen de la petición es una de esas direcciones de VPS: ni tu propia IP ni la de tu red doméstica le llegan nunca.",
     ],
     legalEyebrow: "Postura legal",
     /**
@@ -162,7 +162,7 @@ export const policies = {
     legalBody: [
       "libgen no opera catálogo alguno ni aloja nada propio: es un cliente de índices y bibliotecas que gestionan otros — los proveedores de acceso abierto arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed y ERIC, y las fuentes de bibliotecas en la sombra: un mirror de Library Genesis, randombook.org, Anna's Archive, Sci-Hub y el visor de artículos SciDB de Anna's Archive. A cuáles llega una llamada, y en qué orden, es propiedad de la tool que llamas y no del servicio entero: su search parte del catálogo de Library Genesis y solo se abre a los proveedores de acceso abierto cuando ese catálogo viene vacío, mientras que su download resuelve un artículo primero por los proveedores de acceso abierto y solo llega a una fuente de biblioteca en la sombra cuando ninguno de ellos sirve el ítem — un libro pedido por su hash de catálogo, que es el identificador propio de esas bibliotecas, se busca directamente allí. Cada tool declara su propio orden en su descripción, en la ficha de libgen.",
       "Por HTTP — la única forma de llegar a este endpoint — su herramienta download nunca entrega un fichero: resuelve el identificador que le des y devuelve un enlace a la fuente que tenga el ítem, para que lo descargue tu propio cliente. Su herramienta read sí lo descarga, pero solo para devolver el fragmento de texto que pediste. En ambos casos mcp.jmrp.io no publica catálogo alguno ni pone ningún fichero a disposición de nadie: la transferencia, si la haces, ocurre entre ese tercero y tú.",
-      "Lo que hagas con los enlaces que devuelve es responsabilidad tuya, bajo la ley que te sea aplicable. gitlab no hace más que retransmitir llamadas a la instancia de GitLab y el token que le des, y no concede ningún derecho más allá del que ya te concede esa instancia.",
+      "Lo que hagas con los enlaces que devuelve es responsabilidad tuya, bajo la ley que te sea aplicable. gitlab no hace más que retransmitir llamadas a gitlab.com con la credencial que le des, y no concede ningún derecho más allá del que ya te concede esa instancia.",
     ],
   },
 } as const;

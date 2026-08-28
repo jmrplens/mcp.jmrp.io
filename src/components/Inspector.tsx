@@ -199,12 +199,18 @@ export default function Inspector({
   const requirementNote = requirementNoteFor(tab, selectedTool?.inputSchema, t);
 
 
-  /** Solo las cabeceras del servidor activo, y solo las que tienen valor. */
+  /**
+   * Solo las cabeceras del servidor activo, y solo las que tienen valor.
+   *
+   * El esquema (`valuePrefix`, hoy `"Bearer "` en gitlab) lo pone AQUÍ y no el
+   * visitante: lo que se teclea es el token, y pedirle además que escriba
+   * `Bearer ` delante convierte un espacio de más en un 401 sin explicación.
+   */
   function authHeaders(): Record<string, string> {
     const headers: Record<string, string> = {};
     for (const field of fields) {
       const value = headerValues[keyOf(field.name)]?.trim();
-      if (value) headers[field.name] = value;
+      if (value) headers[field.name] = `${field.valuePrefix ?? ""}${value}`;
     }
     return headers;
   }

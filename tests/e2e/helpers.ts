@@ -18,7 +18,7 @@ import { type Lang, ui } from "../../src/i18n/ui";
  * Ficha de un servidor, identificada por su heading.
  *
  * Se devuelve la tarjeta entera para poder afirmar que un dato está en SU
- * servidor. Buscar el texto suelto en la página no distingue si "PRIVATE-TOKEN"
+ * servidor. Buscar el texto suelto en la página no distingue si "Authorization"
  * sale en la ficha de gitlab o en la de libgen, y esa confusión es justo el
  * error que estos tests tienen que cazar.
  *

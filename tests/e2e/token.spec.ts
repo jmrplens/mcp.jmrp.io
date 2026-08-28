@@ -72,7 +72,7 @@ test("el campo de token es password y no se persiste", async ({ page }) => {
   // "Servers", así que un getByLabel a nivel de página es ambiguo.
   const mcp = inspector(page);
   await serverSelect(page).selectOption("gitlab");
-  const field = mcp.getByLabel("PRIVATE-TOKEN");
+  const field = mcp.getByLabel("Authorization");
   await expect(field).toHaveAttribute("type", "password");
   await expect(field).toHaveAttribute("autocomplete", "off");
 
@@ -93,7 +93,7 @@ test("el campo de token es password y no se persiste", async ({ page }) => {
 
   await page.reload();
   await serverSelect(page).selectOption("gitlab");
-  await expect(mcp.getByLabel("PRIVATE-TOKEN")).toHaveValue("");
+  await expect(mcp.getByLabel("Authorization")).toHaveValue("");
 });
 
 test("gitlab expone su cabecera opcional y libgen no pide nada", async ({
@@ -102,30 +102,33 @@ test("gitlab expone su cabecera opcional y libgen no pide nada", async ({
   await page.goto("/inspector/");
   const mcp = inspector(page);
   await serverSelect(page).selectOption("gitlab");
-  // GITLAB-URL es opcional pero no es un secreto: campo de texto normal.
-  await expect(mcp.getByLabel("GITLAB-URL")).toHaveAttribute("type", "text");
+  // gitlab ya no declara ninguna cabecera opcional: desde --auth-mode=oauth la
+  // instancia está fijada en el servidor y `GITLAB-URL` dejó de honrarse, así
+  // que el formulario no debe seguir ofreciéndola.
+  await expect(mcp.getByLabel("GITLAB-URL")).toHaveCount(0);
 
   // libgen no declara cabeceras: pedirle credenciales sería mentir al visitante.
   await serverSelect(page).selectOption("libgen");
-  await expect(mcp.getByLabel("PRIVATE-TOKEN")).toHaveCount(0);
-  await expect(mcp.getByLabel("GITLAB-URL")).toHaveCount(0);
+  await expect(mcp.getByLabel("Authorization")).toHaveCount(0);
 });
 
-test("el token del visitante viaja como cabecera PRIVATE-TOKEN", async ({
+test("el token del visitante viaja como Authorization: Bearer", async ({
   page,
 }) => {
   const sent = await stubMcp(page);
   await page.goto("/inspector/");
   const mcp = inspector(page);
   await serverSelect(page).selectOption("gitlab");
-  await mcp.getByLabel("PRIVATE-TOKEN").fill(TOKEN);
-  await mcp.getByLabel("GITLAB-URL").fill("https://gitlab.example");
+  await mcp.getByLabel("Authorization").fill(TOKEN);
   await loadButton(page).click();
 
   await expect.poll(() => sent.length).toBe(1);
   expect(sent[0].url).toContain("/gitlab");
-  expect(sent[0].headers["private-token"]).toBe(TOKEN);
-  expect(sent[0].headers["gitlab-url"]).toBe("https://gitlab.example");
+  // El esquema lo compone el inspector, no el visitante: lo que se teclea es
+  // el token pelado y lo que sale por el cable lleva `Bearer ` delante. Es
+  // justo la mitad que se rompería en silencio si alguien quitara
+  // `valuePrefix` de la ficha del servidor.
+  expect(sent[0].headers.authorization).toBe(`Bearer ${TOKEN}`);
 });
 
 test("el token no se filtra al servidor que no lo declara", async ({
@@ -135,7 +138,7 @@ test("el token no se filtra al servidor que no lo declara", async ({
   await page.goto("/inspector/");
   const mcp = inspector(page);
   await serverSelect(page).selectOption("gitlab");
-  await mcp.getByLabel("PRIVATE-TOKEN").fill(TOKEN);
+  await mcp.getByLabel("Authorization").fill(TOKEN);
 
   // Cambiar de servidor sin recargar: el valor tecleado sigue en memoria, y
   // esta es la razón de que la clave del estado lleve el id del servidor
@@ -145,7 +148,7 @@ test("el token no se filtra al servidor que no lo declara", async ({
 
   await expect.poll(() => sent.length).toBe(1);
   expect(sent[0].url).toContain("/libgen");
-  expect(sent[0].headers["private-token"]).toBeUndefined();
+  expect(sent[0].headers.authorization).toBeUndefined();
   expect(JSON.stringify(sent[0].headers)).not.toContain(TOKEN);
 });
 

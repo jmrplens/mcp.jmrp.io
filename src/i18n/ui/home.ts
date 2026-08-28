@@ -62,7 +62,7 @@ export const home = {
     internalsEyebrow: "Under the hood",
     internalsTitle: "What happens to your request",
     internalsLead:
-      "The whole path, drawn and explained: HTTPS all the way in and out, three instances per server with one always picked for you, and a fixed exit country — plus where a PRIVATE-TOKEN is readable, and where it never is.",
+      "The whole path, drawn and explained: HTTPS all the way in and out, three instances per server with one always picked for you, and a fixed exit country — plus where your token is readable, and where it never is.",
     internalsLink: "See how it works",
     machineIndex: "Machine-readable index",
     /** Same idea as `machineIndex`, for the `/llms.txt` pointer below it. */
@@ -121,7 +121,7 @@ export const home = {
     internalsEyebrow: "Por dentro",
     internalsTitle: "Qué le pasa a tu petición",
     internalsLead:
-      "El camino entero, dibujado y explicado: HTTPS a la ida y a la vuelta, tres instancias por servidor con una siempre elegida para ti y un país de salida fijo — y dónde se puede leer un PRIVATE-TOKEN y dónde no.",
+      "El camino entero, dibujado y explicado: HTTPS a la ida y a la vuelta, tres instancias por servidor con una siempre elegida para ti y un país de salida fijo — y dónde se puede leer tu token y dónde no.",
     internalsLink: "Mira cómo funciona",
     machineIndex: "Índice para máquinas",
     /** Ver `en.machineLlms`: mismo patrón para el puntero a `/llms.txt`. */

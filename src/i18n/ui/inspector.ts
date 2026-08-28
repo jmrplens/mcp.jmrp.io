@@ -3,7 +3,7 @@
  * island's own labels (`insp.*`).
  *
  * Los identificadores del protocolo (`initialize`, `tools/list`,
- * `PRIVATE-TOKEN`, `tools`, `prompts`…) NO están aquí y no se traducen: son
+ * `Authorization`, `tools`, `prompts`…) NO están aquí y no se traducen: son
  * exactamente lo que hay que teclear en un cliente MCP de verdad, y
  * traducirlos le enseñaría al visitante un nombre que no existe.
  */
@@ -67,7 +67,7 @@ export const inspector = {
     },
     insp: {
       server: "Endpoint",
-      needHeader: "Fill in this header before calling the server:",
+      needHeader: "Paste your credential before calling the server:",
       noArgs: "This tool takes no arguments.",
       pickOne: "— choose —",
       omit: "— omit —",
@@ -157,7 +157,7 @@ export const inspector = {
     /** Ver `en.insp`: los identificadores del protocolo se quedan en inglés. */
     insp: {
       server: "Servidor",
-      needHeader: "Rellena esta cabecera antes de llamar al servidor:",
+      needHeader: "Pega tu credencial antes de llamar al servidor:",
       noArgs: "Esta tool no admite argumentos.",
       pickOne: "— elige —",
       omit: "— omitir —",
