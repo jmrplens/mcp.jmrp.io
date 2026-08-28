@@ -144,7 +144,16 @@ add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 
 # Cross-Origin Policies (COOP, COEP, CORP)
 add_header Cross-Origin-Embedder-Policy "require-corp" always;
-add_header Cross-Origin-Opener-Policy "same-origin" always;
+# COOP is per-path, not a constant: $mcp_coop comes from a map in the vhost.
+# Everything is same-origin except the inspector and its OAuth callback.
+#
+# The reason is not preference, it is that same-origin BREAKS the popup flow:
+# when a popup navigates to a cross-origin document (gitlab.com), that value
+# puts it in a new browsing context group and severs window.opener. The
+# callback then comes back with no opener to hand the authorization code to,
+# and the sign-in dies silently with the code already spent. Measured on a
+# phone, where the popup opens as a tab and the failure is plain to see.
+add_header Cross-Origin-Opener-Policy $mcp_coop always;
 add_header Cross-Origin-Resource-Policy "same-origin" always;
 
 # Security Cookie (Optional demo cookie)
@@ -189,7 +198,16 @@ add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 
 # Cross-Origin Policies
 add_header Cross-Origin-Embedder-Policy "require-corp" always;
-add_header Cross-Origin-Opener-Policy "same-origin" always;
+# COOP is per-path, not a constant: $mcp_coop comes from a map in the vhost.
+# Everything is same-origin except the inspector and its OAuth callback.
+#
+# The reason is not preference, it is that same-origin BREAKS the popup flow:
+# when a popup navigates to a cross-origin document (gitlab.com), that value
+# puts it in a new browsing context group and severs window.opener. The
+# callback then comes back with no opener to hand the authorization code to,
+# and the sign-in dies silently with the code already spent. Measured on a
+# phone, where the popup opens as a tab and the failure is plain to see.
+add_header Cross-Origin-Opener-Policy $mcp_coop always;
 # CORP: 'cross-origin' allows other sites to embed these assets (e.g., social media previews,
 # CDN sharing). This is intentional for static assets like images and fonts.
 # For HTML pages, the main security_headers_mcp.conf uses stricter policies.
