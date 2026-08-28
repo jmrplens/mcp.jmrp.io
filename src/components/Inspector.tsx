@@ -145,6 +145,24 @@ function SignInBlock({
 }
 
 /**
+ * Classes for the output panel: stale while a call is in flight, error when
+ * the last one failed.
+ *
+ * At module level for the same reason as `requirementNoteFor` above (S3776):
+ * two ternaries inline in an attribute counted against the component for what
+ * is a lookup table with two flags.
+ *
+ * @param busy Whether a call is in flight.
+ * @param failed Whether the last call failed.
+ * @returns The class attribute.
+ */
+function outputClass(busy: boolean, failed: boolean): string {
+  const stale = busy ? " is-stale" : "";
+  const error = failed ? " is-error" : "";
+  return `term-out${stale}${error}`;
+}
+
+/**
  * Isla interactiva que habla con los servidores MCP desde el navegador del
  * visitante: introspección (initialize, tools/list, prompts/list,
  * resources/list) y ejecución de tools.
@@ -738,7 +756,7 @@ export default function Inspector({
           propio, esté SIEMPRE en el orden de tabulación y con nombre — Chrome
           lo hacía enfocable solo cuando el contenido desbordaba. */}
       <pre
-        className={`term-out${busy ? " is-stale" : ""}${failed ? " is-error" : ""}`}
+        className={outputClass(busy, failed)}
         data-testid="inspector-output"
         aria-live="off"
         // Contenedor con scroll propio: sin tabIndex, quien navega con teclado
