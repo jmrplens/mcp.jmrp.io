@@ -64,10 +64,16 @@ export function markdownResponse(body: string): Response {
  * @param title Page title.
  * @param summary One-line description.
  * @param url The HTML page this mirrors.
+ * @param lang Locale of the label.
  * @returns The opening block.
  */
-function head(title: string, summary: string, url: string): string {
-  return `# ${title}\n\n> ${summary}\n\nCanonical page: ${url}\n`;
+function head(
+  title: string,
+  summary: string,
+  url: string,
+  lang: Lang,
+): string {
+  return `# ${title}\n\n> ${summary}\n\n${ui[lang].mdCanonicalLabel}: ${url}\n`;
 }
 
 /** Renders a list of paragraphs as markdown prose. */
@@ -93,18 +99,18 @@ export function homeMarkdown(lang: Lang): string {
       const credential =
         server.requiredHeaders.length > 0
           ? server.requiredHeaders.map((header) => `\`${header.name}\``).join(", ")
-          : "none";
-      return `- **${server.name}** — \`${server.endpoint}\`\n  ${server.description[lang]}\n  Credentials: ${credential}. Page: ${serverPageUrl(lang, server.id)}`;
+          : t.mdNoneLabel;
+      return `- **${server.name}** — \`${server.endpoint}\`\n  ${server.description[lang]}\n  ${t.mdCredentialsLabel}: ${credential}. ${t.mdPageLabel}: ${serverPageUrl(lang, server.id)}`;
     })
     .join("\n");
   return (
-    head(t.title, t.subtitle, pageUrl(lang, "home")) +
+    head(t.title, t.subtitle, pageUrl(lang, "home"), lang) +
     section(t.serversEyebrow, [t.serversIntro, list]) +
-    section("Machine-readable", [
-      `- Index: ${SITE_ORIGIN}/servers.json`,
-      `- Corpus: ${SITE_ORIGIN}/llms.txt and ${SITE_ORIGIN}/llms-full.txt`,
-      `- Inspector: ${pageUrl(lang, "inspector")}`,
-      `- Internals: ${pageUrl(lang, "internals")}`,
+    section(t.mdMachineHead, [
+      `- ${t.mdIndexLabel}: ${SITE_ORIGIN}/servers.json`,
+      `- ${t.mdCorpusLabel}: ${SITE_ORIGIN}/llms.txt ${t.mdAndWord} ${SITE_ORIGIN}/llms-full.txt`,
+      `- ${t.inspectorTitle}: ${pageUrl(lang, "inspector")}`,
+      `- ${internals[lang].title}: ${pageUrl(lang, "internals")}`,
     ]) +
     "\n"
   );
@@ -120,7 +126,7 @@ export function homeMarkdown(lang: Lang): string {
 export function inspectorMarkdown(lang: Lang): string {
   const t = ui[lang];
   return (
-    head(t.inspectorTitle, t.inspectorIntro, pageUrl(lang, "inspector")) +
+    head(t.inspectorTitle, t.inspectorIntro, pageUrl(lang, "inspector"), lang) +
     section(t.inspectorEyebrow, [
       t.inspectorIntro,
       servers
@@ -129,7 +135,7 @@ export function inspectorMarkdown(lang: Lang): string {
             requiresLine(server, lang),
         )
         .join("\n"),
-      `The inspector runs in the browser and keeps any credential in memory only: it touches neither localStorage nor cookies, and it is gone on reload. Deep links take the shape ${pageUrl(lang, "inspector")}?server=<id>&tab=tools&name=<tool>.`,
+      t.mdInspectorNote.replace("{url}", () => pageUrl(lang, "inspector")),
     ]) +
     "\n"
   );
@@ -146,7 +152,7 @@ export function inspectorMarkdown(lang: Lang): string {
  */
 function requiresLine(server: McpServer, lang: Lang): string {
   const names = server.requiredHeaders.map((h) => "`" + h.name + "`").join(", ");
-  const needs = names ? ` Requires ${names}.` : "";
+  const needs = names ? ` ${ui[lang].mdRequiresLabel} ${names}.` : "";
   return `- \`${server.endpoint}\` — ${server.description[lang]}${needs}`;
 }
 
@@ -168,7 +174,7 @@ export function internalsMarkdown(lang: Lang): string {
     t.diagramTimelineStep6,
   ].map((step, i) => `${i + 1}. ${step}`);
   return (
-    head(t.title, t.lede, pageUrl(lang, "internals")) +
+    head(t.title, t.lede, pageUrl(lang, "internals"), lang) +
     section(t.pathEyebrow, [...t.pathBody, t.diagramTimelineIntro, steps.join("\n")]) +
     section(t.wireEyebrow, t.wireBody) +
     section(t.instancesEyebrow, t.instancesBody) +
@@ -181,7 +187,7 @@ export function internalsMarkdown(lang: Lang): string {
       // in the component, not in i18n — so in the twin that sentence would
       // point at nothing. Naming where it lives keeps the reference honest
       // instead of silently dangling.
-      `The nginx directive itself is quoted in full on the page: ${pageUrl(lang, "internals")}`,
+      t.mdDirectiveNote.replace("{url}", () => pageUrl(lang, "internals")),
       t.affinityConsequence,
     ]) +
     section(t.egressEyebrow, t.egressBody) +
@@ -199,7 +205,7 @@ export function internalsMarkdown(lang: Lang): string {
 export function policiesMarkdown(lang: Lang): string {
   const t = policies[lang];
   return (
-    head(t.policiesTitle, t.policiesIntro, pageUrl(lang, "policies")) +
+    head(t.policiesTitle, t.policiesIntro, pageUrl(lang, "policies"), lang) +
     section(t.privacyEyebrow, t.privacyBody) +
     section(t.logsEyebrow, t.logsBody) +
     section(t.slaEyebrow, t.slaBody) +
@@ -219,11 +225,11 @@ export function serversIndexMarkdown(lang: Lang): string {
   const list = servers
     .map(
       (server) =>
-        `- **${server.name}** — ${server.description[lang]}\n  Endpoint: \`${server.endpoint}\` · Page: ${serverPageUrl(lang, server.id)}`,
+        `- **${server.name}** — ${server.description[lang]}\n  ${t.endpointLabel}: \`${server.endpoint}\` · ${t.mdPageLabel}: ${serverPageUrl(lang, server.id)}`,
     )
     .join("\n");
   return (
-    head(t.titleIndex, t.ledeIndex, pageUrl(lang, "servers")) +
+    head(t.titleIndex, t.ledeIndex, pageUrl(lang, "servers"), lang) +
     section(t.eyebrowIndex, [list]) +
     "\n"
   );
@@ -242,33 +248,40 @@ export function serverMarkdown(server: McpServer, lang: Lang): string {
   const t = serversPage[lang];
   const card = serverCards[server.id];
   const facts = [
-    `- Endpoint: \`${server.endpoint}\` (POST only; GET answers 405)`,
-    `- Transport: streamable HTTP, stateless JSON-RPC 2.0`,
+    `- ${t.endpointLabel}: \`${server.endpoint}\` (${t.getNoteLabel} ${server.getStatus})`,
+    `- ${t.transportLabel}: ${t.transportValue}`,
     `- ${t.versionLabel}: ${card ? card.serverInfo.version : "—"}`,
     `- ${t.authLabel}: ${
       server.requiredHeaders.length > 0
         ? server.requiredHeaders.map((h) => `\`${h.name}\``).join(", ")
-        : "none"
+        : t.noneLabel
     }`,
-    `- Health: \`${server.endpoint}/health\``,
-    `- Repository: ${server.repo}`,
-    `- Documentation: ${server.docsSite ?? server.docs}`,
+    `- ${t.healthLabel}: \`${server.endpoint}/health\``,
+    `- ${t.repositoryLabel}: ${server.repo}`,
+    `- ${t.documentationLabel}: ${server.docsSite ?? server.docs}`,
   ];
   const surface = card
     ? [
-        `- ${card.tools.length} tools`,
-        `- ${card.prompts.length} prompts`,
-        `- ${card.resources.length} resources`,
-        `- ${card.resourceTemplates.length} resource templates`,
+        `- ${card.tools.length} ${t.countTools}`,
+        `- ${card.prompts.length} ${t.countPrompts}`,
+        `- ${card.resources.length} ${t.countResources}`,
+        `- ${card.resourceTemplates.length} ${t.countTemplates}`,
       ]
     : [];
   return (
-    head(server.name, server.description[lang], serverPageUrl(lang, server.id)) +
+    head(
+      server.name,
+      server.description[lang],
+      serverPageUrl(lang, server.id),
+      lang,
+    ) +
     section(t.overviewHead, [facts.join("\n")]) +
     // `toolsHead` lives in `common` (through `ui`), not in `serversPage`.
     (surface.length > 0 ? section(ui[lang].toolsHead, [surface.join("\n")]) : "") +
-    section("Full catalog", [
-      `Every tool, prompt, resource and template of this server — with what each one takes and returns — is listed in ${SITE_ORIGIN}/llms-full.txt, and served live by the server itself at \`${server.endpoint}/server-card\`.`,
+    section(t.fullCatalogHead, [
+      t.fullCatalogBody
+        .replace("{corpus}", () => `${SITE_ORIGIN}/llms-full.txt`)
+        .replace("{card}", () => `\`${server.endpoint}/server-card\``),
     ]) +
     "\n"
   );
@@ -345,11 +358,21 @@ export function domainMarkdown(
       return lines.join("\n\n");
     })
     .join("\n\n");
+  // Two catalogue domains hold exactly one action, so the count needs a
+  // singular in both languages.
+  const one = actions.length === 1;
+  let countLabel: string;
+  if (lang === "es") {
+    countLabel = one ? "acción" : "acciones";
+  } else {
+    countLabel = one ? "action" : "actions";
+  }
   return (
     head(
       `${domain} — ${server}`,
-      `${actions.length} ${lang === "es" ? "acciones" : "actions"}`,
+      `${actions.length} ${countLabel}`,
       url,
+      lang,
     ) +
     `\n\n## ${lang === "es" ? "Acciones" : "Actions"}\n\n${body}\n`
   );

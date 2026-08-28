@@ -136,9 +136,10 @@ export function buildLlmsTxt(): string {
     ),
   ).join("\n");
 
-  // The link target is the JSON-RPC endpoint, not a page: a GET on it answers
-  // 405, so an agent walking this section — the first one in the file —
-  // collects one 405 per server before reading anything. The label goes in the
+  // The link target is the JSON-RPC endpoint, not a page: a GET on it is
+  // rejected (405 on libgen, 401 on gitlab), so an agent walking this section
+  // — the first one in the file — collects one error per server before
+  // reading anything. The label goes in the
   // description half of the item, which is free text inside llmstxt.org's
   // `- [name](url): description` shape, so the file still parses as a link
   // list; a bare prose line under the H2 would not, since an H2 section is a
@@ -150,7 +151,7 @@ export function buildLlmsTxt(): string {
   const list = servers
     .map(
       (server) =>
-        `- [${server.name}](${server.endpoint}): POST-only MCP endpoint; GET answers 405. ${server.description.en} Readable page: ${serverPageUrl(DEFAULT_LANG, server.id)}`,
+        `- [${server.name}](${server.endpoint}): POST-only MCP endpoint; GET answers ${server.getStatus}. ${server.description.en} Readable page: ${serverPageUrl(DEFAULT_LANG, server.id)}`,
     )
     .join("\n");
 
@@ -177,10 +178,11 @@ export function buildLlmsTxt(): string {
 
 Every server speaks the Model Context Protocol over streamable HTTP: a single
 POST endpoint that takes a JSON-RPC 2.0 request and answers with either
-\`application/json\` or an \`text/event-stream\` (SSE) frame. They run stateless,
-so each POST is self-contained and no session header is needed. A GET on one
-answers 405 by design: the links under "MCP servers" below are call targets,
-not pages. Point an MCP client at the endpoint, or try the servers from the
+\`application/json\` or a \`text/event-stream\` (SSE) frame. They run stateless,
+so each POST is self-contained and no session header is needed. A GET on one never
+answers with a page — libgen rejects the method with 405, gitlab checks
+credentials first and answers 401 — because the links under "MCP servers"
+below are call targets, not pages. Point an MCP client at the endpoint, or try the servers from the
 browser with the inspector on the site.
 
 ## MCP servers
@@ -199,8 +201,24 @@ ${pages}
 
 ## Optional
 
-- [jmrp.io](https://jmrp.io/): the author's site, which publishes the canonical identity document these servers are attributed to.
+- [jmrp.io](https://jmrp.io/): the author's site, which publishes the canonical identity document that attributes these servers to him.
 `;
+}
+
+/**
+ * Renders the credential headers of the HTTP example, if the server takes any.
+ *
+ * @param server The server the example belongs to.
+ * @returns A leading newline plus one line per header, or an empty string.
+ */
+function exampleHeaders(server: McpServer): string {
+  if (server.requiredHeaders.length === 0) return "";
+  return (
+    "\n" +
+    server.requiredHeaders
+      .map((h) => `${h.name}: ${h.valuePrefix ?? ""}<your token>`)
+      .join("\n")
+  );
 }
 
 /**
@@ -368,7 +386,7 @@ function serverSection(server: McpServer): string {
 
 ${server.description.en}
 
-- Endpoint: \`${server.endpoint}\` (POST only; GET answers 405)
+- Endpoint: \`${server.endpoint}\` (POST only; GET answers ${server.getStatus})
 - Transport: streamable HTTP, stateless JSON-RPC 2.0
 - Repository: ${server.repo}
 - Documentation: ${server.docsSite ?? server.docs}
@@ -383,8 +401,7 @@ Verify the live list with:
 \`\`\`http
 POST ${server.endpoint}
 Content-Type: application/json
-Accept: application/json, text/event-stream
-${server.requiredHeaders.map((h) => `${h.name}: ${h.valuePrefix ?? ""}<your token>`).join("\n")}
+Accept: application/json, text/event-stream${exampleHeaders(server)}
 
 {"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}
 \`\`\`
@@ -465,7 +482,7 @@ All servers speak the Model Context Protocol over streamable HTTP:
 - \`Accept: application/json, text/event-stream\` — answers may come back as a
   single JSON object or as an SSE frame whose last \`data:\` line carries it.
 - Stateless: no \`Mcp-Session-Id\`, every POST is self-contained.
-- GET answers 405 by design.
+- A GET never returns a page: libgen answers 405, gitlab answers 401.
 
 ${sections}${credentials}`;
 }

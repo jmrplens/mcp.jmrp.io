@@ -32,7 +32,7 @@ export const internals = {
 
     pathEyebrow: "The path of a request",
     pathBody: [
-      "A call to either server crosses the same six steps before it comes back: your client to Cloudflare, Cloudflare to nginx on the home server that fronts both MCPs, nginx to one of three running instances of the server you called, that instance out through an egress proxy, and the egress proxy to the actual destination — a Library Genesis mirror for libgen, or the GitLab instance you pointed gitlab at.",
+      "A call to either server crosses the same six steps before it comes back: your client to Cloudflare, Cloudflare to nginx on the home server that fronts both MCPs, nginx to one of three running instances of the server you called, that instance out through an egress proxy, and the egress proxy to the actual destination — a Library Genesis mirror for libgen, or gitlab.com for gitlab — a destination fixed by the deployment, not chosen by the caller.",
     ],
 
     instancesEyebrow: "Three instances, one nginx",
@@ -89,7 +89,7 @@ export const internals = {
     diagramBubble3: "Here the key gets computed: your IP, or the token's hash",
     diagramBubble4: "The same key always picks the same node",
     diagramBubble5: "That node exits through its fixed country",
-    diagramBubble6: "That request leaves toward the server that answers it",
+    diagramBubble6: "The request goes out to the server that answers it",
     /** Lead-in line for the prose timeline right below the figure — not a
      * heading (this page's heading levels are already accounted for), just
      * enough of a sentence for the numbered list to read naturally on its
@@ -117,7 +117,7 @@ export const internals = {
     diagramTimelineStep2:
       "Cloudflare receives it at the edge and forwards it, unchanged, to the home server that fronts both MCPs.",
     diagramTimelineStep3:
-      "nginx turns the request into a routing key: your IP address if there is no credential, or an MD5 of a secret salt plus the token out of your `Authorization: Bearer` header if there is — see the directive above for exactly how.",
+      "nginx turns the request into a routing key: your IP address if there is no credential, or an MD5 of a secret salt plus the token out of your `Authorization: Bearer` header if there is — the directive that does it is quoted in full under “Affinity” below.",
     diagramTimelineStep4:
       "That key feeds a consistent-hash balancer, which is why it keeps choosing the same one of the three running instances for you — never a different one from one call to the next.",
     diagramTimelineStep5:
@@ -145,11 +145,13 @@ export const internals = {
      * and that takes more room than a form allows.
      */
     storageEyebrow: "What the inspector keeps, and how to check",
+    mdDirectiveNote:
+      "The nginx directive itself is quoted in full on the page: {url}",
     storageBody: [
-      "Nothing. The token you paste, or the one the sign-in button obtains, lives in the memory of the page's component and nowhere else: no localStorage, no sessionStorage, no cookies, no query string, no logs. Reloading drops it, navigating anywhere drops it — this site has no client-side router, so every link is a fresh document — and closing the tab drops it.",
+      "Nothing. The token you paste — or, when the sign-in button is enabled, the one it obtains — lives in the memory of the page's component and nowhere else: no localStorage, no sessionStorage, no cookies, no query string, no logs. Reloading drops it, navigating anywhere drops it — this site has no client-side router, so every link is a fresh document — and closing the tab drops it.",
       "That is a claim about an absence, which is exactly the kind you should never take on trust. Here is how to see it for yourself, with the browser you already have open.",
       "In Chrome or Edge, press F12 and go to Application → Storage. Paste a token in the inspector, call something, and look again: Local Storage, Session Storage and Cookies for this site stay empty. In Firefox that panel is called Storage; in Safari it is Develop → Show Web Inspector → Storage.",
-      "Then look at where it goes. In the Network tab, run a call and open the request to /gitlab: the Authorization header is on that request and on no other. The only other place the token appears is the sign-in exchange with gitlab.com, and only if you used the button — the browser itself enforces that, because this page's Content-Security-Policy names those two destinations and no others. Everything in this paragraph is visible in that panel, without taking anyone's word for it.",
+      "Then look at where it goes. In the Network tab, run a call and open the request to /gitlab: the Authorization header is on that request and on no other. The only other place the token could appear is the sign-in exchange with gitlab.com, and only if you used that button, which is disabled at the moment — so today there is exactly one destination. The browser itself enforces the boundary, because this page's Content-Security-Policy names those two destinations and no others. Everything in this paragraph is visible in that panel, without taking anyone's word for it.",
     ],
     wireEyebrow: "On the wire: what is encrypted, and where it is not",
     wireBody: [
@@ -179,7 +181,7 @@ export const internals = {
 
     pathEyebrow: "El camino de una petición",
     pathBody: [
-      "Una llamada a cualquiera de los dos servidores cruza los mismos seis pasos antes de volver: tu cliente hasta Cloudflare, Cloudflare hasta el nginx del servidor de casa que da la cara por los dos MCP, nginx hasta una de las tres instancias en marcha del servidor que llamaste, esa instancia hacia fuera por un proxy de salida, y el proxy de salida hasta el destino real — un mirror de Library Genesis para libgen, o la instancia de GitLab a la que apuntaste gitlab.",
+      "Una llamada a cualquiera de los dos servidores cruza los mismos seis pasos antes de volver: tu cliente hasta Cloudflare, Cloudflare hasta el nginx del servidor de casa que da la cara por los dos MCP, nginx hasta una de las tres instancias en marcha del servidor que llamaste, esa instancia hacia fuera por un proxy de salida, y el proxy de salida hasta el destino real — un mirror de Library Genesis para libgen, o gitlab.com para gitlab — un destino que fija el despliegue, no quien llama.",
     ],
 
     instancesEyebrow: "Tres instancias, un solo nginx",
@@ -204,7 +206,7 @@ export const internals = {
     /** Ver `en.affinityCodeComment`: la única línea traducida del snippet. */
     affinityCodeComment: "# el valor real no se publica",
     affinityConsequence:
-      "El efecto práctico: como el egreso también es fijo por instancia (siguiente sección), caer en el mismo nodo significa que tus llamadas siguen pareciendo venir del mismo país — estable, no alternando de una petición a la siguiente.",
+      "El efecto práctico: como la salida también es fija por instancia (siguiente sección), caer en el mismo nodo significa que tus llamadas siguen pareciendo venir del mismo país — estable, no alternando de una petición a la siguiente.",
     /** Ver `en.diagramCaption`: leyenda breve de la figura del camino de la petición. */
     diagramCaption:
       "Los mismos seis pasos que cruza toda petición, y por qué el mismo cliente cae siempre en el mismo nodo.",
@@ -236,7 +238,7 @@ export const internals = {
     diagramTimelineStep2:
       "Cloudflare la recibe en el borde y la reenvía, sin tocarla, al servidor de casa que da la cara por los dos MCP.",
     diagramTimelineStep3:
-      "nginx convierte la petición en una clave de enrutado: tu dirección IP si no hay credencial, o un MD5 de una sal secreta más el token que va en tu cabecera `Authorization: Bearer` si lo hay — ver la directiva de arriba para el detalle exacto.",
+      "nginx convierte la petición en una clave de enrutado: tu dirección IP si no hay credencial, o un MD5 de una sal secreta más el token que va en tu cabecera `Authorization: Bearer` si lo hay — la directiva que lo hace está citada entera más abajo, en «Afinidad».",
     diagramTimelineStep4:
       "Esa clave alimenta un balanceador por hash consistente, por eso elige siempre la misma de las tres instancias en marcha para ti — nunca una distinta de una llamada a la siguiente.",
     diagramTimelineStep5:
@@ -246,11 +248,14 @@ export const internals = {
 
     /** Ver `en.storageEyebrow`. */
     storageEyebrow: "Qué guarda el inspector, y cómo comprobarlo",
+    /** Ver `en.mdDirectiveNote`. */
+    mdDirectiveNote:
+      "La propia directiva de nginx está citada entera en la página: {url}",
     storageBody: [
-      "Nada. El token que pegas, o el que consigue el botón de acceso, vive en la memoria del componente de la página y en ningún sitio más: sin localStorage, sin sessionStorage, sin cookies, sin barra de direcciones y sin logs. Al recargar desaparece, al navegar a cualquier sitio desaparece —este sitio no lleva enrutador de cliente, así que cada enlace es un documento nuevo— y al cerrar la pestaña desaparece.",
+      "Nada. El token que pegas —o, cuando el botón de acceso esté activo, el que consigue él— vive en la memoria del componente de la página y en ningún sitio más: sin localStorage, sin sessionStorage, sin cookies, sin barra de direcciones y sin logs. Al recargar desaparece, al navegar a cualquier sitio desaparece —este sitio no lleva enrutador de cliente, así que cada enlace es un documento nuevo— y al cerrar la pestaña desaparece.",
       "Eso es una afirmación sobre una ausencia, que es justo la clase que nunca deberías creerte por las buenas. Así puedes verlo tú mismo, con el navegador que ya tienes abierto.",
       "En Chrome o Edge, pulsa F12 y ve a Aplicación → Almacenamiento. Pega un token en el inspector, llama a algo y vuelve a mirar: Local Storage, Session Storage y Cookies de este sitio siguen vacíos. En Firefox ese panel se llama Almacenamiento; en Safari es Desarrollo → Mostrar inspector web → Almacenamiento.",
-      "Después mira a dónde va. En la pestaña Red, lanza una llamada y abre la petición a /gitlab: la cabecera Authorization está en esa petición y en ninguna otra. El único otro sitio donde aparece el token es el intercambio de acceso con gitlab.com, y solo si usaste el botón — eso lo impone el propio navegador, porque la Content-Security-Policy de esta página nombra esos dos destinos y ningún otro. Todo lo de este párrafo se ve en ese panel, sin fiarte de nadie.",
+      "Después mira a dónde va. En la pestaña Red, lanza una llamada y abre la petición a /gitlab: la cabecera Authorization está en esa petición y en ninguna otra. El único otro sitio donde podría aparecer el token es el intercambio de acceso con gitlab.com, y solo si usaste ese botón, que ahora mismo está desactivado — así que hoy hay exactamente un destino. La frontera la impone el propio navegador, porque la Content-Security-Policy de esta página nombra esos dos destinos y ningún otro. Todo lo de este párrafo se ve en ese panel, sin fiarte de nadie.",
     ],
     /** Ver `en.wireEyebrow`. */
     wireEyebrow: "Por el cable: qué va cifrado y dónde deja de estarlo",
@@ -260,7 +265,7 @@ export const internals = {
       "El último salto era el que este servidor no podía prometer: gitlab iba a donde apuntara tu cabecera `GITLAB-URL`, así que dirigirlo a una instancia tuya que escuchara en `http://` a secas dejaba ese tramo final tan cifrado como la dirección que le dieras. Esa cabecera ya no existe — OAuth necesita un único servidor de autorización con nombre, así que la instancia está fijada a gitlab.com y el último salto es HTTPS contra un host que declara este despliegue, no uno que aporte quien llama.",
     ],
 
-    egressEyebrow: "Egreso: de qué país sale una petición",
+    egressEyebrow: "Salida: de qué país sale una petición",
     egressBody: [
       "Toda llamada saliente, desde cualquier instancia, sale por un túnel SSH a un VPS de IONOS en España o en Reino Unido — nunca por la dirección propia de la red de casa.",
       "La asignación es fija por instancia, y cruzada entre los dos servidores: libgen saca dos de sus tres instancias por España y una por Reino Unido; gitlab es al revés, dos por Reino Unido y una por España. Sea cual sea, lo que ve el destino es una de esas direcciones de VPS, nunca la de la red de casa.",

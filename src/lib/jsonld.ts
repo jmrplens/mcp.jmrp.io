@@ -271,7 +271,7 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
     // desaparece solo al serializar.
     sameAs: server.sameAs,
     // Cómo se llama de verdad: POST con JSON-RPC, no un GET a la URL. Un
-    // rastreador que siga `url` recibe un 405, que es correcto por diseño.
+    // rastreador que siga `url` recibe un error (405 en libgen, 401 en gitlab), que es correcto por diseño.
     // Two actions: how to call it, and how to ask whether it is up. The second
     // is the question an agent asks BEFORE the first, and until now only
     // /servers.json answered it — the health URLs were absent from the graph
@@ -312,7 +312,7 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
  * acciones, fechas— viaja fuera de la ficha.
  *
  * Tampoco basta la referencia desnuda que había antes: el `@id` es
- * `<endpoint>#api` y un GET a esa URL responde 405 —correcto por diseño, el
+ * `<endpoint>#api` y un GET a esa URL responde con un error —405 en libgen, 401 en gitlab; correcto por diseño, el
  * endpoint solo habla POST—, así que quien lee únicamente la portada no puede
  * saber qué es esa entidad ni siguiendo el enlace. Es el mismo patrón que
  * `softwareHelp` en {@link buildApiNode}: un nodo tipado en línea dice QUÉ es
@@ -507,7 +507,7 @@ function resolvePageUrls(
  * BARE reference, because the full node sits in this very document: a partial
  * description there would only repeat two of its keys. The pages that merely
  * mention the servers get {@link partialApi} instead — a bare `@id` there
- * names a node that lives on another page and answers 405 when dereferenced,
+ * names a node that lives on another page and answers an error when dereferenced,
  * so nothing on the page says what the entity even is.
  *
  * @param page This page's `PageId`.

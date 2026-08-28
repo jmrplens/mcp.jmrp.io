@@ -50,7 +50,7 @@ export const home = {
     tryInBrowser: "Try them in the browser",
     serversEyebrow: "Servers",
     serversIntro:
-      "Both servers speak streamable HTTP: one POST per JSON-RPC 2.0 call, stateless — no session header — answering JSON or an SSE stream depending on your Accept header (application/json, text/event-stream). A GET to an endpoint returns 405 by design.",
+      "Both servers speak streamable HTTP: one POST per JSON-RPC 2.0 call, stateless — no session header — answering JSON or an SSE stream depending on your Accept header (application/json, text/event-stream). Neither endpoint serves a page to a plain GET: libgen rejects the method with 405, gitlab checks credentials first and answers 401.",
     /** The `/internals/` callout. The page it points at is the one that
      * answers "what actually happens to my request, and to my token" — the
      * question a hosted endpoint owes an answer to — and nothing on this
@@ -72,6 +72,17 @@ export const home = {
     documentation: "Documentation",
     credentialsRequired: "Credentials required",
     toolsHead: "Tools",
+    mdCredentialsLabel: "Credentials",
+    mdCanonicalLabel: "Canonical page",
+    mdRequiresLabel: "Requires",
+    mdPageLabel: "Page",
+    mdNoneLabel: "none",
+    mdMachineHead: "Machine-readable",
+    mdIndexLabel: "Index",
+    mdCorpusLabel: "Corpus",
+    mdAndWord: "and",
+    mdInspectorNote:
+      "The inspector runs in the browser and keeps any credential in memory only: it touches neither localStorage nor cookies, and it is gone on reload. Deep links take the shape {url}?server=<id>&tab=tools&name=<tool>.",
     promptsHead: "Prompts",
     promptsIntro:
       "Canned plans a client can render, beyond the tools above. Ask your assistant for one by name.",
@@ -95,7 +106,7 @@ export const home = {
     clientTokenHint:
       "For anything that cannot open a browser — headless, CI — a gitlab.com personal access token sent as Bearer is verified exactly like an OAuth one.",
     clientEnvHint:
-      "In the JSON files the ${…} placeholders read the token from your environment — VS Code prompts for it and stores it itself — so the credential never lives in the file. In the command, replace <your token> by hand.",
+      "In the JSON files the ${…} placeholders keep the credential out of the file: Cursor reads it from your environment, VS Code prompts for it once and stores it itself. In the command, replace <your token> by hand.",
     optionalHeaders: "Optional headers",
     noCredentials: "No credentials required",
     /**
@@ -129,7 +140,7 @@ export const home = {
     tryInBrowser: "Pruébalos en el navegador",
     serversEyebrow: "Servidores",
     serversIntro:
-      "Ambos servidores hablan streamable HTTP: un POST por llamada JSON-RPC 2.0, sin estado — sin cabecera de sesión — respondiendo JSON o un stream SSE según tu cabecera Accept (application/json, text/event-stream). Un GET al endpoint devuelve 405 a propósito.",
+      "Ambos servidores hablan streamable HTTP: un POST por llamada JSON-RPC 2.0, sin estado — sin cabecera de sesión — respondiendo JSON o un stream SSE según tu cabecera Accept (application/json, text/event-stream). Ninguno de los dos endpoints sirve una página ante un GET normal: libgen rechaza el método con un 405 y gitlab comprueba antes las credenciales, así que responde 401.",
     /** Ver `en.internalsEyebrow`. */
     internalsEyebrow: "Por dentro",
     internalsTitle: "Qué le pasa a tu petición",
@@ -142,10 +153,31 @@ export const home = {
     repository: "Repositorio",
     documentation: "Documentación",
     credentialsRequired: "Requiere credenciales",
-    toolsHead: "Herramientas",
+    toolsHead: "Tools",
+    /** Ver `en.mdCredentialsLabel`. */
+    mdCredentialsLabel: "Credenciales",
+    /** Ver `en.mdCanonicalLabel`. */
+    mdCanonicalLabel: "Página canónica",
+    /** Ver `en.mdRequiresLabel`. */
+    mdRequiresLabel: "Requiere",
+    /** Ver `en.mdPageLabel`. */
+    mdPageLabel: "Página",
+    /** Ver `en.mdNoneLabel`. */
+    mdNoneLabel: "ninguna",
+    /** Ver `en.mdMachineHead`. */
+    mdMachineHead: "Legible por máquinas",
+    /** Ver `en.mdIndexLabel`. */
+    mdIndexLabel: "Índice",
+    /** Ver `en.mdCorpusLabel`. */
+    mdCorpusLabel: "Corpus",
+    /** Ver `en.mdAndWord`. */
+    mdAndWord: "y",
+    /** Ver `en.mdInspectorNote`. */
+    mdInspectorNote:
+      "El inspector se ejecuta en el navegador y guarda cualquier credencial solo en memoria: no toca ni localStorage ni las cookies, y desaparece al recargar. Los enlaces directos tienen la forma {url}?server=<id>&tab=tools&name=<tool>.",
     promptsHead: "Prompts",
     promptsIntro:
-      "Planes listos que un cliente puede renderizar, además de las herramientas de arriba. Pídeselos a tu asistente por su nombre.",
+      "Planes listos que un cliente puede renderizar, además de las tools de arriba. Pídele uno a tu asistente por su nombre.",
     /** Ver `en.clientHead`: `{server}` lo sustituye ServerCard. */
     clientHead: "¿Cómo añado {server} a un cliente MCP?",
     /** Ver `en.clientOauthHead`: el orden de los dos caminos es deliberado. */
@@ -156,9 +188,9 @@ export const home = {
       "Tu cliente abre gitlab.com en el navegador, autorizas ahí y él guarda el token: no pegas ninguno. El client ID hay que configurarlo sí o sí — sin él estos clientes caen al registro dinámico, que GitLab responde con un alcance que este servidor no puede usar.",
     clientTokenHead: "O pegar un token",
     clientTokenHint:
-      "Para lo que no puede abrir un navegador —headless, CI— un personal access token de gitlab.com enviado como Bearer se verifica igual que uno de OAuth.",
+      "Para lo que no puede abrir un navegador —headless, CI—, un personal access token de gitlab.com enviado como Bearer se verifica exactamente igual que uno de OAuth.",
     clientEnvHint:
-      "En los ficheros JSON, los marcadores ${…} leen el token de tu entorno — VS Code lo pide y lo guarda él mismo — así que la credencial nunca vive en el fichero. En el comando, sustituye <your token> a mano.",
+      "En los ficheros JSON, los marcadores ${…} mantienen la credencial fuera del fichero: Cursor lo lee de tu entorno y VS Code lo pide una vez y lo guarda él mismo. En el comando, sustituye <your token> a mano.",
     optionalHeaders: "Cabeceras opcionales",
     noCredentials: "No requiere credenciales",
     /** Ver `en.affinityLink`: enlace a `/internals/#affinity-h`. */
