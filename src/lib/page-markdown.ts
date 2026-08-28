@@ -1,7 +1,7 @@
 import { serverCards } from "../data/server-cards";
-import type { GitlabActionEntry, GitlabActionParam } from "../data/surface";
 import type { McpServer } from "../data/servers";
 import { servers } from "../data/servers";
+import type { GitlabActionEntry, GitlabActionParam } from "../data/surface";
 import type { Lang } from "../i18n/config";
 import { ui } from "../i18n/ui";
 import { internals } from "../i18n/ui/internals";
@@ -274,6 +274,12 @@ export function serverMarkdown(server: McpServer, lang: Lang): string {
   );
 }
 
+/** Envuelve en comillas invertidas sin anidar plantillas: tres niveles de
+ * backtick en una sola expresión es donde se esconde un fallo de comillas. */
+function code(text: string): string {
+  return "`" + text + "`";
+}
+
 /** `name (type)`, or the bare name when the manifest declares no type. */
 function paramLabel(param: GitlabActionParam): string {
   return param.type ? `${param.name} (${param.type})` : param.name;
@@ -316,23 +322,25 @@ export function domainMarkdown(
         action.destructive ? t.domainChipDestructive : undefined,
         action.read_only ? t.domainChipReadOnly : undefined,
       ].filter(Boolean);
-      const lines = [`### \`${action.id}\`${action.title ? ` — ${action.title}` : ""}`];
+      const title = action.title ? ` — ${action.title}` : "";
+      const lines = [`### ${code(action.id)}${title}`];
       if (flags.length > 0) lines.push(`_${flags.join(" · ")}_`);
       lines.push(action.description);
       if (action.required_params?.length) {
         lines.push(
-          `**${t.domainParamsLabel}:** ${action.required_params.map((p) => `\`${paramLabel(p)}\``).join(", ")}`,
+          `**${t.domainParamsLabel}:** ${action.required_params.map((p) => code(paramLabel(p))).join(", ")}`,
         );
       }
       if (action.required_params_any_of?.length) {
         const groups = action.required_params_any_of
-          .map((group) => group.map((p) => `\`${paramLabel(p)}\``).join(" + "))
+          .map((group) => group.map((p) => code(paramLabel(p))).join(" + "))
           .join(` ${t.domainAnyOfJoiner} `);
         lines.push(`**${t.domainAnyOfLabel}:** ${groups}`);
       }
       if (action.alias_of) {
         const target = aliasDomains[action.alias_of];
-        lines.push(`**${t.domainAliasOf}:** \`${action.alias_of}\`${target ? ` (${target})` : ""}`);
+        const where = target ? ` (${target})` : "";
+        lines.push(`**${t.domainAliasOf}:** ${code(action.alias_of)}${where}`);
       }
       return lines.join("\n\n");
     })

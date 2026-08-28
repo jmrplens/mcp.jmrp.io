@@ -195,9 +195,12 @@ test("cada gemelo en markdown tiene su location y su canónico", (t) => {
   // así que caen en el bloque `^~` de su prefijo, que anida una `location ~
   // \.md$`. Se exige que ese anidado exista, no basta con que el prefijo esté:
   // sin él nginx probaría `$uri/index.html` sobre un fichero .md y daría 404.
-  const prefixes = [...vhost.matchAll(/location \^~ (\S+) \{([\s\S]*?)\n {4}\}/g)]
-    .filter(([, , block]) => block.includes("\\.md$"))
-    .map(([, prefix]) => prefix);
+  // Nombrados, no posicionales: `[, , block]` con dos huecos seguidos es
+  // ilegible y el linter lo rechaza con razón — al leerlo nadie sabe cuál de
+  // los dos grupos se está saltando.
+  const prefixes = [...vhost.matchAll(/location \^~ (?<prefix>\S+) \{(?<block>[\s\S]*?)\n {4}\}/g)]
+    .filter((match) => match.groups.block.includes(String.raw`\.md$`))
+    .map((match) => match.groups.prefix);
   for (const twin of twins) {
     const exact = vhost.includes(`location = ${twin} `);
     const covered = prefixes.some((prefix) => twin.startsWith(prefix));
