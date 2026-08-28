@@ -2,7 +2,7 @@
  * Estilos de la isla del filtro de las páginas de dominio.
  *
  * En un .css aparte por el mismo motivo que ActionSearch.css: el componente
- * es Preact y los <style> con ámbito de Astro no lo alcanzan. Los controles
+ * es Preact y los \3c style> con ámbito de Astro no lo alcanzan. Los controles
  * calcan la forma de `.as-input` (mismo input, mismo focus ring) para que
  * el buscador de la ficha y el filtro del dominio se lean como la misma
  * familia de controles.
@@ -16,9 +16,9 @@
   width: 100%;
   max-width: 28rem;
   padding: 0.5rem 0.75rem;
-  color: var(--color-text);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
+  color: var(--color-text);
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -41,8 +41,8 @@
   display: inline-flex;
   gap: 0.4rem;
   align-items: center;
-  color: var(--color-text-muted);
   font-size: var(--text-sm);
+  color: var(--color-text-muted);
   cursor: pointer;
 }
 
@@ -56,16 +56,16 @@
 
 .domain-filter-count {
   margin-left: auto;
-  white-space: nowrap;
-  color: var(--color-text-muted);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
 .domain-filter-empty {
   margin: 0.6rem 0 0;
-  color: var(--color-text-muted);
   font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 /* Leyenda junto al contador: el mismo punto que llevan las tarjetas. Con
@@ -75,9 +75,9 @@
   display: inline-flex;
   gap: 0.35rem;
   align-items: center;
-  color: var(--color-text-muted);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
+  color: var(--color-text-muted);
 
   /* Cada pieza envuelve como unidad o no envuelve: sin esto, a 390px la
      palabra se partía por dentro ("read-" / "only") antes que la fila. */

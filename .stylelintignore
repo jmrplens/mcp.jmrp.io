@@ -1,17 +1,15 @@
 ###############################################################################
-# JMRP.IO - STYLELINT IGNORE
+# MCP.JMRP.IO — STYLELINT IGNORE
 ###############################################################################
+# Build output and vendored/generated trees. `builds/` is where the blue/green
+# colours live, so it holds two full copies of the site.
 
 dist/
 builds/
-plan/
-dist-reports/
 node_modules/
 .astro/
 public/
 test-results/
 playwright-report/
-accessibility-report/
-temp_lh/
-temp_workflow/
-lh-deploy/
+ops/
+plan/

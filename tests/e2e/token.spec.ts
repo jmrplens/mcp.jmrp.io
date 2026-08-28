@@ -163,7 +163,11 @@ test("los argumentos del formulario viajan con su tipo, no como texto", async ({
   await pickTool(page, "search");
   // Se teclea en los campos del formulario, no en un JSON que haya que
   // saberse: eso es lo que el rediseño vino a arreglar.
-  await page.getByTestId("args-form").locator("input, textarea").first().fill("x");
+  await page
+    .getByTestId("args-form")
+    .locator("input, textarea")
+    .first()
+    .fill("x");
   await runButton(page).click();
 
   const calls = () => sent.filter((r) => r.body.method === "tools/call");

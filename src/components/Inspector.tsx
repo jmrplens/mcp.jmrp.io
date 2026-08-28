@@ -53,7 +53,6 @@ const INIT_PARAMS = {
   clientInfo: { name: "mcp.jmrp.io inspector", version: "1" },
 };
 
-
 /**
  * "Exactly one of: md5 or id or doi" — el formulario no puede marcar ningún
  * campo suelto como obligatorio cuando el requisito es un GRUPO (libgen 1.7.1
@@ -126,7 +125,10 @@ function SignInBlock({
             the visitor authorises at gitlab.com with nobody in between, and
             the mark is what says so before the popup opens. Brand orange, not
             the site accent — this one destination is deliberately not ours. */}
-        <span className="i-simple-icons:gitlab signin-mark" aria-hidden="true" />
+        <span
+          className="i-simple-icons:gitlab signin-mark"
+          aria-hidden="true"
+        />
         {signIn === "busy" ? t.signInBusy : t.signInWith}
       </button>
       {/* `<output>` rather than a paragraph with role="status": same live
@@ -257,7 +259,10 @@ export default function Inspector({
     if (deepLink.serverId) setServerId(deepLink.serverId);
     if (deepLink.tab) setTab(deepLink.tab);
     if (deepLink.name) {
-      pendingNameRef.current = { tab: deepLink.tab ?? "tools", name: deepLink.name };
+      pendingNameRef.current = {
+        tab: deepLink.tab ?? "tools",
+        name: deepLink.name,
+      };
     }
   }, [servers]);
   /** Lo tecleado en el formulario, por nombre de argumento. */
@@ -297,7 +302,6 @@ export default function Inspector({
       : formFields(selectedTool?.inputSchema);
 
   const requirementNote = requirementNoteFor(tab, selectedTool?.inputSchema, t);
-
 
   /**
    * Runs the OAuth popup and puts the resulting token where a pasted one goes.
@@ -528,19 +532,25 @@ export default function Inspector({
     }
   }
 
-
   /** El botón de leer solo aparece con un recurso ya elegido. */
   const showRead = tab === "resources" && resourceUri !== "";
 
-  const failed = !!status && status.outcome !== "ok" && status.outcome !== "running";
+  const failed =
+    !!status && status.outcome !== "ok" && status.outcome !== "running";
 
   return (
-    <section className="term" data-testid="inspector">
+    <section
+      className="term"
+      data-testid="inspector"
+    >
       {/* Barra de ventana: la misma pieza que la tarjeta de terminal de
           jmrp.io. Aquí no es decorativa — lo que hay debajo ES una consola
           JSON-RPC, así que la forma dice la verdad sobre la función. */}
       <header className="term-bar">
-        <span className="lights" aria-hidden="true">
+        <span
+          className="lights"
+          aria-hidden="true"
+        >
           <i></i>
           <i></i>
           <i></i>
@@ -571,7 +581,10 @@ export default function Inspector({
               }
             >
               {servers.map((s) => (
-                <option key={s.id} value={s.id}>
+                <option
+                  key={s.id}
+                  value={s.id}
+                >
                   {s.name}
                 </option>
               ))}
@@ -596,7 +609,10 @@ export default function Inspector({
           )}
 
           {fields.map((field) => (
-            <label className="field" key={keyOf(field.name)}>
+            <label
+              className="field"
+              key={keyOf(field.name)}
+            >
               <span>{field.name}</span>
               <input
                 type={field.secret ? "password" : "text"}
@@ -621,7 +637,10 @@ export default function Inspector({
         </div>
 
         {blocked ? (
-          <p className="need-header" data-testid="inspector-missing-header">
+          <p
+            className="need-header"
+            data-testid="inspector-missing-header"
+          >
             {t.needHeader}{" "}
             {missing.map((h) => (
               <code key={h.name}>{h.name}</code>
@@ -640,27 +659,31 @@ export default function Inspector({
             else at 100). The row looks the same — `.tabs-row` now carries the
             flex layout the tablist used to provide. */}
         <div className="tabs-row">
-        <div className="tabs" role="tablist" aria-label={t.handshake}>
-          {TABS.map((name) => (
-            <button
-              key={name}
-              type="button"
-              role="tab"
-              id={`tab-${name}`}
-              aria-selected={tab === name}
-              // Solo el activo referencia el panel: se renderiza UN tabpanel,
-              // el de la pestaña elegida, así que los demás apuntarían a un id
-              // inexistente. html-validate lo caza con no-missing-references.
-              aria-controls={tab === name ? `panel-${name}` : undefined}
-              className={tab === name ? "tab is-active" : "tab"}
-              onClick={() => setTab(name)}
-            >
-              {name === "tools" ? t.tabTools : null}
-              {name === "prompts" ? t.tabPrompts : null}
-              {name === "resources" ? t.tabResources : null}
-            </button>
-          ))}
-        </div>
+          <div
+            className="tabs"
+            role="tablist"
+            aria-label={t.handshake}
+          >
+            {TABS.map((name) => (
+              <button
+                key={name}
+                type="button"
+                role="tab"
+                id={`tab-${name}`}
+                aria-selected={tab === name}
+                // Solo el activo referencia el panel: se renderiza UN tabpanel,
+                // el de la pestaña elegida, así que los demás apuntarían a un id
+                // inexistente. html-validate lo caza con no-missing-references.
+                aria-controls={tab === name ? `panel-${name}` : undefined}
+                className={tab === name ? "tab is-active" : "tab"}
+                onClick={() => setTab(name)}
+              >
+                {name === "tools" ? t.tabTools : null}
+                {name === "prompts" ? t.tabPrompts : null}
+                {name === "resources" ? t.tabResources : null}
+              </button>
+            ))}
+          </div>
           <button
             type="button"
             className="tab-init tab"
@@ -749,7 +772,11 @@ export default function Inspector({
         </div>
       </div>
 
-      <StatusLine status={status} copyNote={copyNote} lang={lang} />
+      <StatusLine
+        status={status}
+        copyNote={copyNote}
+        lang={lang}
+      />
 
       {/* aria-live="off" a propósito: quien anuncia es la línea de estado de
           arriba. tabindex + role + nombre para que el panel, que tiene scroll

@@ -42,14 +42,19 @@ export function ToolSchema({
   const groups = requirementGroups(tool.inputSchema);
 
   return (
-    <div className="schema" data-testid="inspector-schema">
+    <div
+      className="schema"
+      data-testid="inspector-schema"
+    >
       <p className="schema-head">
         <code>{tool.name}</code>
         {tool.description ? <span> — {tool.description}</span> : null}
       </p>
       {groups && (
         <p className="schema-groups">
-          <strong>{groups.kind === "oneOf" ? t.groupOneOf : t.groupAnyOf}:</strong>{" "}
+          <strong>
+            {groups.kind === "oneOf" ? t.groupOneOf : t.groupAnyOf}:
+          </strong>{" "}
           {groups.groups.map((group, gi) => (
             <>
               {gi > 0 && ` ${t.groupJoiner} `}
@@ -207,7 +212,11 @@ export function Catalog({
 
   // Un mapa en vez de tres ternarios encadenados: dar de alta otra categoría
   // es una entrada más, no otro nivel de anidamiento.
-  const { count, load: loadLabel, empty: emptyLabel } = {
+  const {
+    count,
+    load: loadLabel,
+    empty: emptyLabel,
+  } = {
     tools: { count: tools.length, load: t.loadTools, empty: t.emptyTools },
     prompts: {
       count: prompts.length,
@@ -222,7 +231,10 @@ export function Catalog({
   }[tab];
 
   return (
-    <div className="catalog" data-testid={`catalog-${tab}`}>
+    <div
+      className="catalog"
+      data-testid={`catalog-${tab}`}
+    >
       <div className="catalog-head">
         <button
           type="button"
@@ -251,7 +263,10 @@ export function Catalog({
           >
             <option value="">{t.chooseTool}</option>
             {tools.map((tool) => (
-              <option key={tool.name} value={tool.name}>
+              <option
+                key={tool.name}
+                value={tool.name}
+              >
                 {tool.name}
               </option>
             ))}
@@ -265,11 +280,16 @@ export function Catalog({
           <select
             value={promptName}
             disabled={busy}
-            onChange={(e) => onPickPrompt((e.target as HTMLSelectElement).value)}
+            onChange={(e) =>
+              onPickPrompt((e.target as HTMLSelectElement).value)
+            }
           >
             <option value="">{t.pickPrompt}</option>
             {prompts.map((prompt) => (
-              <option key={prompt.name} value={prompt.name}>
+              <option
+                key={prompt.name}
+                value={prompt.name}
+              >
                 {prompt.name}
               </option>
             ))}
@@ -289,7 +309,10 @@ export function Catalog({
           >
             <option value="">{t.pickResource}</option>
             {resources.map((res) => (
-              <option key={res.uri} value={res.uri}>
+              <option
+                key={res.uri}
+                value={res.uri}
+              >
                 {res.name ?? res.uri}
                 {res.mimeType ? ` · ${res.mimeType}` : ""}
               </option>

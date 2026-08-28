@@ -59,7 +59,9 @@ const sp = serversPage[lang];
 // fails loudly at build time instead of silently typing past it.
 const card = getServerCard(id);
 if (!card) {
-  throw new Error(`[servers] no server card for id "${id}" — getStaticPaths should have prevented this`);
+  throw new Error(
+    `[servers] no server card for id "${id}" — getStaticPaths should have prevented this`,
+  );
 }
 const serverMeta = servers.find((s) => s.id === id);
 if (!serverMeta) {
@@ -86,7 +88,10 @@ const inspectorOverviewHref = `${inspectorBase}?server=${id}`;
  * @returns Relative URL, same-origin — never absolute (see other pages'
  *   `Href` comments for why).
  */
-function inspectorHref(tab: "tools" | "prompts" | "resources", name: string): string {
+function inspectorHref(
+  tab: "tools" | "prompts" | "resources",
+  name: string,
+): string {
   return `${inspectorBase}?server=${id}&tab=${tab}&name=${encodeURIComponent(name)}`;
 }
 
@@ -99,7 +104,10 @@ interface Entry<T> {
   data: T;
 }
 
-function toEntries<T extends { name: string }>(prefix: string, items: T[]): Entry<T>[] {
+function toEntries<T extends { name: string }>(
+  prefix: string,
+  items: T[],
+): Entry<T>[] {
   return items.map((item) => ({
     id: `${prefix}-${anchorSlug(item.name)}`,
     label: item.name,
@@ -112,11 +120,13 @@ const promptEntries: Entry<PromptSummary>[] = toEntries("prompt", card.prompts);
 // Resources key off their URI, not `name`: the SEP-1649 field guaranteed
 // unique, and the same value the inspector deep link's `name` param carries
 // for this family (see `servers-section-spec.md`'s "Deep-link al inspector").
-const resourceEntries: Entry<ResourceSummary>[] = card.resources.map((resource) => ({
-  id: `resource-${anchorSlug(resource.uri)}`,
-  label: resource.title ?? resource.name,
-  data: resource,
-}));
+const resourceEntries: Entry<ResourceSummary>[] = card.resources.map(
+  (resource) => ({
+    id: `resource-${anchorSlug(resource.uri)}`,
+    label: resource.title ?? resource.name,
+    data: resource,
+  }),
+);
 const templateEntries: Entry<ResourceTemplateSummary>[] =
   card.resourceTemplates.map((tmpl) => ({
     id: `template-${anchorSlug(tmpl.uriTemplate)}`,
@@ -205,19 +215,41 @@ const tocFamilies = [
     : []),
   { id: "tools-h", label: t.toolsHead, count: toolEntries.length },
   ...(actions
-    ? [{ id: "catalog-h", label: sp.catalogHead, count: actions.meta.actionCount }]
+    ? [
+        {
+          id: "catalog-h",
+          label: sp.catalogHead,
+          count: actions.meta.actionCount,
+        },
+      ]
     : []),
-  ...(hasPrompts ? [{ id: "prompts-h", label: t.promptsHead, count: promptEntries.length }] : []),
+  ...(hasPrompts
+    ? [{ id: "prompts-h", label: t.promptsHead, count: promptEntries.length }]
+    : []),
   ...(hasResources
-    ? [{ id: "resources-h", label: sp.resourcesHead, count: resourceEntries.length }]
+    ? [
+        {
+          id: "resources-h",
+          label: sp.resourcesHead,
+          count: resourceEntries.length,
+        },
+      ]
     : []),
   ...(hasTemplates
-    ? [{ id: "templates-h", label: sp.templatesHead, count: templateEntries.length }]
+    ? [
+        {
+          id: "templates-h",
+          label: sp.templatesHead,
+          count: templateEntries.length,
+        },
+      ]
     : []),
   ...(subs ? [{ id: "subscriptions-h", label: sp.subscriptionsHead }] : []),
 ];
 
-const authText = card.authentication.required ? t.credentialsRequired : t.noCredentials;
+const authText = card.authentication.required
+  ? t.credentialsRequired
+  : t.noCredentials;
 const authSchemes = card.authentication.schemes;
 
 /**
@@ -304,7 +336,9 @@ interface AnnotationChip {
  * today's servers already do: gitlab's `gitlab_execute_action` is exactly
  * the destructive+external-network case this exists for.
  */
-function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): AnnotationChip[] {
+function toolAnnotationChips(
+  annotations: ToolAnnotationsSummary | undefined,
+): AnnotationChip[] {
   if (!annotations) {
     return [];
   }
@@ -330,11 +364,19 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
     <a href={serversHref}>{sp.backToServers}</a>
   </p>
 
-  <header class="subpage-header" id="top">
+  <header
+    class="subpage-header"
+    id="top"
+  >
     <p class="section-title">{sp.eyebrowServer}</p>
     <h1 class="subpage-title">
       {
-        serverIcon && <ServerMark src={serverIcon.src} class="server-icon" />
+        serverIcon && (
+          <ServerMark
+            src={serverIcon.src}
+            class="server-icon"
+          />
+        )
       }
       {serverMeta.name}
     </h1>
@@ -343,14 +385,16 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
   </header>
 
   <div class="server-layout">
-    {/* Checkbox-hack toggle for the mobile TOC panel — same mechanism as the
+    {
+      /* Checkbox-hack toggle for the mobile TOC panel — same mechanism as the
         header's `#nav-open` in Base.astro (hidden checkbox + `:has()` +
         `<label>` scrim/FAB), scoped to this page instead of the whole site.
         Zero JavaScript: opening/closing works from mouse, touch AND
         keyboard (Tab lands on this checkbox since it is not `tabindex="-1"`,
         Space toggles it — the native behaviour every checkbox already has).
         No inline script layers anything on top here, unlike the nav drawer:
-        the spec calls for these pages to ship no JS at all. */}
+        the spec calls for these pages to ship no JS at all. */
+    }
     <input
       type="checkbox"
       id="toc-open"
@@ -360,21 +404,46 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
     />
 
     <div class="server-content">
-      {/* NUESTRO contenido primero, el del binario después: la página empieza
+      {
+        /* NUESTRO contenido primero, el del binario después: la página empieza
           contestando «cómo conecto esto» y sólo entonces pasa a describir lo
           que el servidor declara de sí mismo. Antes el orden era el inverso y
           la respuesta ni siquiera estaba aquí — vivía plegada en una tarjeta
-          de la portada. */}
-      <section class="server-family" aria-labelledby="connect-title" id="connect-h">
-        <h2 class="subsection-title" id="connect-title">{sp.connectHead}</h2>
-        <ClientSetup server={serverMeta} lang={lang} />
+          de la portada. */
+      }
+      <section
+        class="server-family"
+        aria-labelledby="connect-title"
+        id="connect-h"
+      >
+        <h2
+          class="subsection-title"
+          id="connect-title"
+        >
+          {sp.connectHead}
+        </h2>
+        <ClientSetup
+          server={serverMeta}
+          lang={lang}
+        />
       </section>
 
-      <section class="server-family" aria-labelledby="context-title" id="context-h">
-        <h2 class="subsection-title" id="context-title">{sp.contextHead}</h2>
+      <section
+        class="server-family"
+        aria-labelledby="context-title"
+        id="context-h"
+      >
+        <h2
+          class="subsection-title"
+          id="context-title"
+        >
+          {sp.contextHead}
+        </h2>
         <p class="prose-text">{sp.contextService}</p>
-        {/* The one sentence here that differs per server, so it comes from
-            `servers.ts` and not from the i18n module. */}
+        {
+          /* The one sentence here that differs per server, so it comes from
+            `servers.ts` and not from the i18n module. */
+        }
         <p class="prose-text">{serverMeta.rateLimit[lang]}</p>
         <p class="prose-text">
           {sp.contextRouting}{" "}
@@ -386,8 +455,17 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
         </p>
       </section>
 
-      <section class="server-family" aria-labelledby="overview-title" id="overview-h">
-        <h2 class="subsection-title" id="overview-title">{sp.overviewHead}</h2>
+      <section
+        class="server-family"
+        aria-labelledby="overview-title"
+        id="overview-h"
+      >
+        <h2
+          class="subsection-title"
+          id="overview-title"
+        >
+          {sp.overviewHead}
+        </h2>
         <dl class="meta-grid">
           <div>
             <dt>{sp.serverInfoLabel}</dt>
@@ -412,22 +490,33 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
         {
           cardDescription && (
             <p class="card-own-description">
-              <span class="card-own-description-label">{sp.cardDescriptionLabel}:</span>{" "}
+              <span class="card-own-description-label">
+                {sp.cardDescriptionLabel}:
+              </span>{" "}
               {cardDescription}
             </p>
           )
         }
         <p class="server-meta-links">
           <a href={inspectorOverviewHref}>
-            <span class="link-icon i-mdi:console-line" aria-hidden="true" />
+            <span
+              class="link-icon i-mdi:console-line"
+              aria-hidden="true"
+            ></span>
             {sp.tryInInspector}
           </a>{" "}
           <a href={serverMeta.repo}>
-            <span class="link-icon i-simple-icons:github" aria-hidden="true" />
+            <span
+              class="link-icon i-simple-icons:github"
+              aria-hidden="true"
+            ></span>
             {t.repository}
           </a>{" "}
           <a href={serverMeta.docsSite ?? serverMeta.docs}>
-            <span class="link-icon i-mdi:book-open-variant" aria-hidden="true" />
+            <span
+              class="link-icon i-mdi:book-open-variant"
+              aria-hidden="true"
+            ></span>
             {t.documentation}
           </a>
           {
@@ -435,7 +524,10 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
               <>
                 {" "}
                 <a href={websiteUrl}>
-                  <span class="link-icon i-mdi:web" aria-hidden="true" />
+                  <span
+                    class="link-icon i-mdi:web"
+                    aria-hidden="true"
+                  />
                   {sp.websiteLabel}
                 </a>
               </>
@@ -444,22 +536,26 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
         </p>
       </section>
 
-      {/* Service context, between the overview and the schemas — the four
+      {
+        /* Service context, between the overview and the schemas — the four
           things the home page treats as non-negotiable about these endpoints
           (rate limit, no SLA, how many nodes, the legal position) and that
           this page carried none of. It goes HERE and not at the foot of the
           page because a card runs to 1,300 words of tools and prompts: after
           them, the caveats are read by nobody who did not already go looking.
           See `serversPage.contextHead` for why it links out instead of
-          repeating `/policies/`. */}
+          repeating `/policies/`. */
+      }
 
-      {/* The server's own connect-time instructions (`server/discover`),
+      {
+        /* The server's own connect-time instructions (`server/discover`),
           quoted verbatim from the committed surface snapshot — data, not
           chrome, so it is never translated (the ES intro says "(en inglés)",
           same convention as `cardDescriptionLabel`). Placed after the
           service context — whose own comment defends its spot right behind
           the overview — and before the 1,300 words of tools, where whoever
-          is configuring a client actually needs it. */}
+          is configuring a client actually needs it. */
+      }
       {
         instructions && (
           <section
@@ -467,7 +563,10 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
             aria-labelledby="instructions-title"
             id="instructions-h"
           >
-            <h2 class="subsection-title" id="instructions-title">
+            <h2
+              class="subsection-title"
+              id="instructions-title"
+            >
               {sp.instructionsHead}
             </h2>
             <p class="fold-intro">{sp.instructionsIntro}</p>
@@ -487,9 +586,17 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
         )
       }
 
-      <section class="server-family" aria-labelledby="tools-title" id="tools-h">
-        <h2 class="subsection-title" id="tools-title">
-          {t.toolsHead} <span class="count">({toolEntries.length})</span>
+      <section
+        class="server-family"
+        aria-labelledby="tools-title"
+        id="tools-h"
+      >
+        <h2
+          class="subsection-title"
+          id="tools-title"
+        >
+          {t.toolsHead}
+          <span class="count">({toolEntries.length})</span>
         </h2>
         {
           toolEntries.length > CHIP_THRESHOLD && (
@@ -505,33 +612,48 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
               const icon = safeIcon(entry.data.icons);
               const chips = toolAnnotationChips(entry.data.annotations);
               return (
-                <article class="entry" id={entry.id}>
+                <article
+                  class="entry"
+                  id={entry.id}
+                >
                   <h3 class="entry-title">
-                    {icon && <img src={icon.src} alt="" aria-hidden="true" class="entry-icon" />}
+                    {icon && (
+                      <img
+                        src={icon.src}
+                        alt=""
+                        aria-hidden="true"
+                        class="entry-icon"
+                      />
+                    )}
                     {entry.data.title}
                   </h3>
                   <p class="entry-name">
                     <code>{entry.data.name}</code>
                   </p>
-                  {
-                    chips.length > 0 && (
-                      <ul class="annotation-chips" aria-label={sp.toolBehaviorLabel}>
-                        {chips.map((chip) => (
-                          <li class={`chip a-chip--${chip.variant}`}>{chip.label}</li>
-                        ))}
-                      </ul>
-                    )
-                  }
-                  {descriptionParagraphs(entry.data.description).map((paragraph) => (
-                    <p class="entry-desc">
-                      {paragraphLines(paragraph).map((line, i) => (
-                        <>
-                          {i > 0 && <br />}
-                          {line}
-                        </>
+                  {chips.length > 0 && (
+                    <ul
+                      class="annotation-chips"
+                      aria-label={sp.toolBehaviorLabel}
+                    >
+                      {chips.map((chip) => (
+                        <li class={`chip a-chip--${chip.variant}`}>
+                          {chip.label}
+                        </li>
                       ))}
-                    </p>
-                  ))}
+                    </ul>
+                  )}
+                  {descriptionParagraphs(entry.data.description).map(
+                    (paragraph) => (
+                      <p class="entry-desc">
+                        {paragraphLines(paragraph).map((line, i) => (
+                          <>
+                            {i > 0 && <br />}
+                            {line}
+                          </>
+                        ))}
+                      </p>
+                    ),
+                  )}
                   {/* What to send. The same `schemaFields` the inspector uses
                       on the LIVE `tools/list`, run here over the card's
                       committed copy — one reader, so a field is described the
@@ -545,15 +667,21 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                       <details class="returns disclosure">
                         <summary>
                           {sp.toolArgsHead}{" "}
-                          <span class="count">({args.length} {sp.toolFieldsToggle})</span>
+                          <span class="count">
+                            ({args.length} {sp.toolFieldsToggle})
+                          </span>
                         </summary>
                         <dl class="args">
                           {args.map((field) => (
                             <>
                               <dt>
                                 <code>{field.name}</code>
-                                {field.type && <span class="arg-type"> {field.type}</span>}
-                                {field.required && <span class="req"> · {sp.requiredArg}</span>}
+                                {field.type && (
+                                  <span class="arg-type"> {field.type}</span>
+                                )}
+                                {field.required && (
+                                  <span class="req"> · {sp.requiredArg}</span>
+                                )}
                               </dt>
                               <dd>{field.description}</dd>
                             </>
@@ -561,7 +689,9 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                         </dl>
                       </details>
                     ) : (
-                      <p class="entry-desc entry-desc--muted">{sp.toolNoArgs}</p>
+                      <p class="entry-desc entry-desc--muted">
+                        {sp.toolNoArgs}
+                      </p>
                     );
                   })()}
                   {/* What comes back, collapsed: `read` answers with 19 fields,
@@ -573,14 +703,18 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                       <details class="returns disclosure">
                         <summary>
                           {sp.toolReturnsHead}{" "}
-                          <span class="count">({out.length} {sp.toolFieldsToggle})</span>
+                          <span class="count">
+                            ({out.length} {sp.toolFieldsToggle})
+                          </span>
                         </summary>
                         <dl class="args">
                           {out.map((field) => (
                             <>
                               <dt>
                                 <code>{field.name}</code>
-                                {field.type && <span class="arg-type"> {field.type}</span>}
+                                {field.type && (
+                                  <span class="arg-type"> {field.type}</span>
+                                )}
                               </dt>
                               <dd>{field.description}</dd>
                             </>
@@ -590,7 +724,9 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
                     ) : null;
                   })()}
                   <p class="entry-cta">
-                    <a href={inspectorHref("tools", entry.data.name)}>{sp.tryInInspector}</a>
+                    <a href={inspectorHref("tools", entry.data.name)}>
+                      {sp.tryInInspector}
+                    </a>
                   </p>
                 </article>
               );
@@ -599,11 +735,13 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
         </div>
       </section>
 
-      {/* gitlab's fine-grained action catalog (`gitlab://tools`), counted
+      {
+        /* gitlab's fine-grained action catalog (`gitlab://tools`), counted
           by domain from the committed snapshot. This section only ever
           consumes AGGREGATES (`meta` counts + per-domain rows) — never the
           upstream instance the manifest was read from, which the extractor's
-          anti-leak guard keeps out of the snapshot in the first place. */}
+          anti-leak guard keeps out of the snapshot in the first place. */
+      }
       {
         actions && (
           <section
@@ -611,8 +749,12 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
             aria-labelledby="catalog-title"
             id="catalog-h"
           >
-            <h2 class="subsection-title" id="catalog-title">
-              {sp.catalogHead} <span class="count">({actions.meta.actionCount})</span>
+            <h2
+              class="subsection-title"
+              id="catalog-title"
+            >
+              {sp.catalogHead}{" "}
+              <span class="count">({actions.meta.actionCount})</span>
             </h2>
             <p class="fold-intro">{sp.catalogIntro}</p>
             {/* Always visible, never folded: every count below is only true
@@ -659,9 +801,17 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
 
       {
         hasPrompts && (
-          <section class="server-family" aria-labelledby="prompts-title" id="prompts-h">
-            <h2 class="subsection-title" id="prompts-title">
-              {t.promptsHead} <span class="count">({promptEntries.length})</span>
+          <section
+            class="server-family"
+            aria-labelledby="prompts-title"
+            id="prompts-h"
+          >
+            <h2
+              class="subsection-title"
+              id="prompts-title"
+            >
+              {t.promptsHead}{" "}
+              <span class="count">({promptEntries.length})</span>
             </h2>
             <p class="fold-intro">{t.promptsIntro}</p>
             {promptEntries.length > CHIP_THRESHOLD && (
@@ -674,43 +824,61 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
               {promptEntries.map((entry) => {
                 const icon = safeIcon(entry.data.icons);
                 return (
-                <article class="entry" id={entry.id}>
-                  <h3 class="entry-title">
-                    {icon && <img src={icon.src} alt="" aria-hidden="true" class="entry-icon" />}
-                    {entry.data.title}
-                  </h3>
-                  <p class="entry-name">
-                    <code>{entry.data.name}</code>
-                  </p>
-                  {descriptionParagraphs(entry.data.description).map((paragraph) => (
-                    <p class="entry-desc">
-                      {paragraphLines(paragraph).map((line, i) => (
-                        <>
-                          {i > 0 && <br />}
-                          {line}
-                        </>
-                      ))}
+                  <article
+                    class="entry"
+                    id={entry.id}
+                  >
+                    <h3 class="entry-title">
+                      {icon && (
+                        <img
+                          src={icon.src}
+                          alt=""
+                          aria-hidden="true"
+                          class="entry-icon"
+                        />
+                      )}
+                      {entry.data.title}
+                    </h3>
+                    <p class="entry-name">
+                      <code>{entry.data.name}</code>
                     </p>
-                  ))}
-                  {entry.data.arguments.length > 0 ? (
-                    <dl class="args">
-                      {entry.data.arguments.map((arg) => (
-                        <>
-                          <dt>
-                            <code>{arg.name}</code>
-                            {isRequired(arg) && <span class="req"> · {sp.requiredArg}</span>}
-                          </dt>
-                          <dd>{arg.description}</dd>
-                        </>
-                      ))}
-                    </dl>
-                  ) : (
-                    <p class="entry-desc entry-desc--muted">{sp.noArguments}</p>
-                  )}
-                  <p class="entry-cta">
-                    <a href={inspectorHref("prompts", entry.data.name)}>{sp.tryInInspector}</a>
-                  </p>
-                </article>
+                    {descriptionParagraphs(entry.data.description).map(
+                      (paragraph) => (
+                        <p class="entry-desc">
+                          {paragraphLines(paragraph).map((line, i) => (
+                            <>
+                              {i > 0 && <br />}
+                              {line}
+                            </>
+                          ))}
+                        </p>
+                      ),
+                    )}
+                    {entry.data.arguments.length > 0 ? (
+                      <dl class="args">
+                        {entry.data.arguments.map((arg) => (
+                          <>
+                            <dt>
+                              <code>{arg.name}</code>
+                              {isRequired(arg) && (
+                                <span class="req"> · {sp.requiredArg}</span>
+                              )}
+                            </dt>
+                            <dd>{arg.description}</dd>
+                          </>
+                        ))}
+                      </dl>
+                    ) : (
+                      <p class="entry-desc entry-desc--muted">
+                        {sp.noArguments}
+                      </p>
+                    )}
+                    <p class="entry-cta">
+                      <a href={inspectorHref("prompts", entry.data.name)}>
+                        {sp.tryInInspector}
+                      </a>
+                    </p>
+                  </article>
                 );
               })}
             </div>
@@ -720,43 +888,63 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
 
       {
         hasResources && (
-          <section class="server-family" aria-labelledby="resources-title" id="resources-h">
-            <h2 class="subsection-title" id="resources-title">
-              {sp.resourcesHead} <span class="count">({resourceEntries.length})</span>
+          <section
+            class="server-family"
+            aria-labelledby="resources-title"
+            id="resources-h"
+          >
+            <h2
+              class="subsection-title"
+              id="resources-title"
+            >
+              {sp.resourcesHead}{" "}
+              <span class="count">({resourceEntries.length})</span>
             </h2>
             <div class="entry-list">
               {resourceEntries.map((entry) => {
                 const icon = safeIcon(entry.data.icons);
                 return (
-                <article class="entry" id={entry.id}>
-                  <h3 class="entry-title">
-                    {icon && <img src={icon.src} alt="" aria-hidden="true" class="entry-icon" />}
-                    {entry.label}
-                  </h3>
-                  <p class="entry-name">
-                    <code>{entry.data.uri}</code>
-                  </p>
-                  {descriptionParagraphs(entry.data.description).map((paragraph) => (
-                    <p class="entry-desc">
-                      {paragraphLines(paragraph).map((line, i) => (
-                        <>
-                          {i > 0 && <br />}
-                          {line}
-                        </>
-                      ))}
+                  <article
+                    class="entry"
+                    id={entry.id}
+                  >
+                    <h3 class="entry-title">
+                      {icon && (
+                        <img
+                          src={icon.src}
+                          alt=""
+                          aria-hidden="true"
+                          class="entry-icon"
+                        />
+                      )}
+                      {entry.label}
+                    </h3>
+                    <p class="entry-name">
+                      <code>{entry.data.uri}</code>
                     </p>
-                  ))}
-                  {entry.data.mimeType && (
-                    <p class="entry-meta">
-                      {sp.mimeTypeLabel}: <code>{entry.data.mimeType}</code>
+                    {descriptionParagraphs(entry.data.description).map(
+                      (paragraph) => (
+                        <p class="entry-desc">
+                          {paragraphLines(paragraph).map((line, i) => (
+                            <>
+                              {i > 0 && <br />}
+                              {line}
+                            </>
+                          ))}
+                        </p>
+                      ),
+                    )}
+                    {entry.data.mimeType && (
+                      <p class="entry-meta">
+                        {sp.mimeTypeLabel}: <code>{entry.data.mimeType}</code>
+                      </p>
+                    )}
+                    <p class="entry-cta">
+                      <a href={inspectorHref("resources", entry.data.uri)}>
+                        {sp.tryInInspector}
+                      </a>
                     </p>
-                  )}
-                  <p class="entry-cta">
-                    <a href={inspectorHref("resources", entry.data.uri)}>
-                      {sp.tryInInspector}
-                    </a>
-                  </p>
-                </article>
+                  </article>
                 );
               })}
             </div>
@@ -766,9 +954,17 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
 
       {
         hasTemplates && (
-          <section class="server-family" aria-labelledby="templates-title" id="templates-h">
-            <h2 class="subsection-title" id="templates-title">
-              {sp.templatesHead} <span class="count">({templateEntries.length})</span>
+          <section
+            class="server-family"
+            aria-labelledby="templates-title"
+            id="templates-h"
+          >
+            <h2
+              class="subsection-title"
+              id="templates-title"
+            >
+              {sp.templatesHead}{" "}
+              <span class="count">({templateEntries.length})</span>
             </h2>
             <p class="fold-intro">{sp.templatesIntro}</p>
             {templateEntries.length > CHIP_THRESHOLD && (
@@ -781,35 +977,50 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
               {templateEntries.map((entry) => {
                 const icon = safeIcon(entry.data.icons);
                 return (
-                <article class="entry" id={entry.id}>
-                  <h3 class="entry-title">
-                    {icon && <img src={icon.src} alt="" aria-hidden="true" class="entry-icon" />}
-                    {entry.data.title}
-                  </h3>
-                  <p class="entry-name">
-                    <code>{entry.data.uriTemplate}</code>
-                  </p>
-                  {entry.data.subscribable && (
-                    <ul class="annotation-chips" aria-label={sp.toolBehaviorLabel}>
-                      <li class="chip a-chip--info">{sp.subscribableChip}</li>
-                    </ul>
-                  )}
-                  {descriptionParagraphs(entry.data.description).map((paragraph) => (
-                    <p class="entry-desc">
-                      {paragraphLines(paragraph).map((line, i) => (
-                        <>
-                          {i > 0 && <br />}
-                          {line}
-                        </>
-                      ))}
+                  <article
+                    class="entry"
+                    id={entry.id}
+                  >
+                    <h3 class="entry-title">
+                      {icon && (
+                        <img
+                          src={icon.src}
+                          alt=""
+                          aria-hidden="true"
+                          class="entry-icon"
+                        />
+                      )}
+                      {entry.data.title}
+                    </h3>
+                    <p class="entry-name">
+                      <code>{entry.data.uriTemplate}</code>
                     </p>
-                  ))}
-                  {entry.data.mimeType && (
-                    <p class="entry-meta">
-                      {sp.mimeTypeLabel}: <code>{entry.data.mimeType}</code>
-                    </p>
-                  )}
-                </article>
+                    {entry.data.subscribable && (
+                      <ul
+                        class="annotation-chips"
+                        aria-label={sp.toolBehaviorLabel}
+                      >
+                        <li class="chip a-chip--info">{sp.subscribableChip}</li>
+                      </ul>
+                    )}
+                    {descriptionParagraphs(entry.data.description).map(
+                      (paragraph) => (
+                        <p class="entry-desc">
+                          {paragraphLines(paragraph).map((line, i) => (
+                            <>
+                              {i > 0 && <br />}
+                              {line}
+                            </>
+                          ))}
+                        </p>
+                      ),
+                    )}
+                    {entry.data.mimeType && (
+                      <p class="entry-meta">
+                        {sp.mimeTypeLabel}: <code>{entry.data.mimeType}</code>
+                      </p>
+                    )}
+                  </article>
                 );
               })}
             </div>
@@ -817,11 +1028,13 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
         )
       }
 
-      {/* Whether a client can subscribe instead of polling — the block that
+      {
+        /* Whether a client can subscribe instead of polling — the block that
           explains the "subscribable" chips on the templates above, so it
           sits right after them. Availability is read from the card, never
           hardcoded: on THIS deployment `subscriptions/listen` is up and
-          `resources/subscribe` is not, but only the data says so. */}
+          `resources/subscribe` is not, but only the data says so. */
+      }
       {
         subs && (
           <section
@@ -829,7 +1042,10 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
             aria-labelledby="subscriptions-title"
             id="subscriptions-h"
           >
-            <h2 class="subsection-title" id="subscriptions-title">
+            <h2
+              class="subsection-title"
+              id="subscriptions-title"
+            >
               {sp.subscriptionsHead}
             </h2>
             <p class="fold-intro">{sp.subscriptionsIntro}</p>
@@ -871,21 +1087,45 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
       <UpdatedLine lang={lang} />
     </div>
 
-    {/* Desktop: sticky rail, always visible above the breakpoint (see the
-        media queries below) — plain anchors, no JS. */}
+    {
+      /* Desktop: sticky rail, always visible above the breakpoint (see the
+        media queries below) — plain anchors, no JS. */
+    }
     <aside class="toc-rail">
-      <ServerToc overviewLabel={sp.overviewHead} families={tocFamilies} ariaLabel={sp.tocLabel} />
+      <ServerToc
+        overviewLabel={sp.overviewHead}
+        families={tocFamilies}
+        ariaLabel={sp.tocLabel}
+      />
     </aside>
 
-    {/* Mobile: floating button + panel, both driven by `#toc-open` above.
+    {
+      /* Mobile: floating button + panel, both driven by `#toc-open` above.
         `<label for="toc-open">` toggles the checkbox on click/tap with zero
-        JavaScript — standard label behaviour, not a custom mechanism. */}
-    <label for="toc-open" class="toc-fab">
+        JavaScript — standard label behaviour, not a custom mechanism. */
+    }
+    <label
+      for="toc-open"
+      class="toc-fab"
+    >
       {sp.tocFabLabel}
     </label>
-    <label for="toc-open" class="toc-scrim" aria-hidden="true"></label>
-    <div id="toc-panel" class="toc-panel" role="dialog" aria-modal="true" aria-label={sp.tocLabel}>
-      <label for="toc-open" class="toc-panel-close">
+    <label
+      for="toc-open"
+      class="toc-scrim"
+      aria-hidden="true"
+    ></label>
+    <div
+      id="toc-panel"
+      class="toc-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-label={sp.tocLabel}
+    >
+      <label
+        for="toc-open"
+        class="toc-panel-close"
+      >
         {sp.tocClose}
       </label>
       <ServerToc
@@ -905,9 +1145,9 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
 
   .back-link {
     margin: 0 0 1.5rem;
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: 0.8125rem;
+    color: var(--color-text-muted);
   }
 
   .back-link a {
@@ -921,7 +1161,7 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
   }
 
   /* `.prose-text` is base.css's, but the links inside one are not: Astro
-     scopes <style> per component, so every page carrying prose links needs
+     scopes \3c style> per component, so every page carrying prose links needs
      its own copy (Internals and Policies have the same pair). */
   .prose-text a {
     color: var(--color-accent);
@@ -939,21 +1179,21 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
      use unmodified (none of them have a server icon to place). */
   .subpage-title {
     display: flex;
-    align-items: center;
     gap: 0.6rem;
+    align-items: center;
   }
 
   .server-icon {
+    flex: none;
     width: 1em;
     height: 1em;
-    flex: none;
   }
 
   .server-card-title {
     margin: 0 0 0.75rem;
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: var(--text-sm);
+    color: var(--color-text-muted);
   }
 
   /* Every icon on this page ships as a `currentColor` SVG, but `currentColor`
@@ -1025,9 +1265,9 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
   }
 
   .meta-grid dt {
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
+    color: var(--color-text-muted);
   }
 
   .meta-grid dd {
@@ -1051,8 +1291,8 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
     display: inline-flex;
     gap: 0.3rem;
     align-items: center;
-    color: var(--color-accent);
     font-weight: var(--fw-semibold);
+    color: var(--color-accent);
     text-decoration: none;
   }
 
@@ -1067,30 +1307,31 @@ function toolAnnotationChips(annotations: ToolAnnotationsSummary | undefined): A
   .card-own-description {
     padding: 0.75rem 0.9rem;
     margin: 0 0 1rem;
-    color: var(--color-text);
     font-size: var(--text-sm);
     line-height: 1.6;
+    color: var(--color-text);
     text-wrap: pretty;
+
     /* Superficie, no tinte: `--color-bg-subtle` es un 5% translúcido y aquí
        este bloque se apoya en el fondo de página, así que la rejilla lo
        cruzaba. Donde ese token SÍ vale es encima de una tarjeta ya opaca
        (los chips, el verbo POST): ahí es un matiz, no la superficie. */
-background: var(--color-bg-secondary);
+    background: var(--color-bg-secondary);
     border-radius: var(--radius-md);
   }
 
   .card-own-description-label {
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
-    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
     text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
   .fold-intro {
     margin: 0 0 1rem;
-    color: var(--color-text-muted);
     font-size: 0.85rem;
+    color: var(--color-text-muted);
     text-wrap: pretty;
   }
 
@@ -1102,13 +1343,7 @@ background: var(--color-bg-secondary);
 
   .entry {
     padding: 1rem 1.1rem;
-    /* Superficie OPACA, como las tarjetas de jmrp.io: con solo borde, la
-       rejilla del fondo atraviesa la caja y en tema claro deja de leerse como
-       una superficie. `--color-bg-subtle` tampoco vale para esto — es un 5%
-       translúcido, así que la rejilla se ve igual. */
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-hair);
-    border-radius: var(--radius-md);
+
     /* SIN sombra, y es deliberado. jmrp.io/projects tampoco la lleva en sus
        tarjetas (cero `box-shadow` en esa página): las separa la superficie
        opaca y el filete, nada más. Y los dos únicos tokens de sombra que
@@ -1116,26 +1351,35 @@ background: var(--color-bg-secondary);
        para una tarjeta grande y sola; repetidas en cientos de fichas seguidas
        ensuciarían la columna entera. Inventar un tercer token para esto sería
        ampliar el sistema de diseño sin mandato. */
+
     /* Anchor target offset: without this, jumping to #tool-x lands the
        entry's top edge flush under the sticky site header. */
     scroll-margin-top: calc(var(--header-height) + 1rem);
+
+    /* Superficie OPACA, como las tarjetas de jmrp.io: con solo borde, la
+       rejilla del fondo atraviesa la caja y en tema claro deja de leerse como
+       una superficie. `--color-bg-subtle` tampoco vale para esto — es un 5%
+       translúcido, así que la rejilla se ve igual. */
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-hair);
+    border-radius: var(--radius-md);
   }
 
   .entry-title {
     display: flex;
-    align-items: center;
     gap: 0.45rem;
+    align-items: center;
     margin: 0;
-    color: var(--color-text-heading);
     font-family: var(--font-display);
     font-size: var(--text-lg);
     font-weight: var(--fw-medium);
+    color: var(--color-text-heading);
   }
 
   .entry-icon {
+    flex: none;
     width: 1.05em;
     height: 1.05em;
-    flex: none;
   }
 
   .entry-name {
@@ -1143,9 +1387,9 @@ background: var(--color-bg-secondary);
   }
 
   .entry-name code {
-    color: var(--color-accent);
     font-family: var(--font-mono);
     font-size: 0.8rem;
+    color: var(--color-accent);
     overflow-wrap: anywhere;
   }
 
@@ -1176,29 +1420,29 @@ background: var(--color-bg-secondary);
      just the color, so this reads the same under a color-vision deficiency —
      the color is emphasis on top of that, not the only signal. */
   .a-chip--destructive {
-    color: var(--color-danger);
     font-weight: var(--fw-medium);
+    color: var(--color-danger);
     background: var(--danger-dim);
     border-color: var(--color-danger);
   }
 
   .entry-desc {
     margin: 0.5rem 0 0;
-    color: var(--color-text);
     font-size: var(--text-sm);
     line-height: 1.6;
+    color: var(--color-text);
     text-wrap: pretty;
   }
 
   .entry-desc--muted {
-    color: var(--color-text-muted);
     font-style: italic;
+    color: var(--color-text-muted);
   }
 
   .entry-meta {
     margin: 0.5rem 0 0;
-    color: var(--color-text-muted);
     font-size: 0.8rem;
+    color: var(--color-text-muted);
   }
 
   .entry-meta code {
@@ -1210,19 +1454,19 @@ background: var(--color-bg-secondary);
      unlabelled they would read as one. */
   .schema-head {
     margin: 0.9rem 0 0;
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: 0.7rem;
-    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
     text-transform: uppercase;
+    letter-spacing: 0.06em;
   }
 
   /* The declared type, beside the field name: `string`, `string[]`,
      `"a" | "b"` — whatever `schemaFields` could read. Quieter than the name,
      which is what a reader scans for. */
   .arg-type {
-    color: var(--color-text-muted);
     font-weight: var(--fw-normal);
+    color: var(--color-text-muted);
   }
 
   /* Both schema lists, collapsed. Same list inside, one summary line outside.
@@ -1237,8 +1481,8 @@ background: var(--color-bg-secondary);
   .returns > summary {
     font-family: var(--font-mono);
     font-size: 0.7rem;
-    letter-spacing: 0.06em;
     text-transform: uppercase;
+    letter-spacing: 0.06em;
   }
 
   .returns > summary:focus-visible {
@@ -1267,17 +1511,17 @@ background: var(--color-bg-secondary);
        its own column and the descriptions keep their width. */
     grid-template-columns: minmax(0, 40%) 1fr;
     gap: 0.3rem 0.85rem;
-    margin: 0.75rem 0 0;
     padding-top: 0.75rem;
-    border-top: 1px solid var(--color-hair);
+    margin: 0.75rem 0 0;
     font-size: 0.85rem;
+    border-top: 1px solid var(--color-hair);
   }
 
   .args dt {
-    overflow-wrap: anywhere; /* so a long union breaks inside the capped column */
-    color: var(--color-text-heading);
     font-family: var(--font-mono);
     font-size: 0.8rem;
+    color: var(--color-text-heading);
+    overflow-wrap: anywhere; /* so a long union breaks inside the capped column */
   }
 
   .args dt code {
@@ -1285,8 +1529,8 @@ background: var(--color-bg-secondary);
   }
 
   .args .req {
-    color: var(--color-text-muted);
     font-size: 0.7rem;
+    color: var(--color-text-muted);
     text-transform: uppercase;
   }
 
@@ -1313,12 +1557,14 @@ background: var(--color-bg-secondary);
   }
 
   /* ===== Instructions (server/discover) ================================== */
+
   /* Shares `.card-own-description`'s quote styling (the subtle background is
      the "this is the server speaking, not this site" marker); these rules
      only add what a MULTI-paragraph quote needs on top of that single-`<p>`
      rule. */
   .server-instructions p {
     margin: 0;
+
     /* Single line breaks inside a paragraph render as explicit <br /> (see
        `paragraphLines`): the post-build minifier collapses raw newlines in
        text nodes, so relying on pre-line alone silently lost them in the
@@ -1331,13 +1577,14 @@ background: var(--color-bg-secondary);
   }
 
   /* ===== Action catalog (gitlab) ========================================= */
+
   /* The Free-token caveat. Body text, not a chip, and never folded away:
      without it every count in the table claims a universality the manifest
      itself disowns (`cacheScope: "private"`). */
   .catalog-token-note {
     margin: 0 0 1rem;
-    color: var(--color-text-muted);
     font-size: 0.8rem;
+    color: var(--color-text-muted);
   }
 
   /* A four-column table can outgrow a phone; it scrolls inside its own box
@@ -1361,10 +1608,10 @@ background: var(--color-bg-secondary);
   }
 
   .catalog-table thead th {
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     font-weight: var(--fw-normal);
+    color: var(--color-text-muted);
     text-align: right;
   }
 
@@ -1378,9 +1625,9 @@ background: var(--color-bg-secondary);
   }
 
   .catalog-table tbody th code {
-    color: var(--color-accent);
     font-family: var(--font-mono);
     font-size: 0.8rem;
+    color: var(--color-accent);
   }
 
   /* Numeric cells right-aligned and tabular so the columns compare at a
@@ -1397,15 +1644,15 @@ background: var(--color-bg-secondary);
 
   @media (width >= 64rem) {
     .toc-rail {
-      display: block;
       position: sticky;
       top: calc(var(--header-height) + var(--space-lg));
+      display: block;
       max-height: calc(100vh - var(--header-height) - 2 * var(--space-lg));
       padding: var(--space-md);
       overflow-y: auto;
+      background: var(--color-bg-secondary);
       border: 1px solid var(--color-hair);
       border-radius: var(--radius-md);
-      background: var(--color-bg-secondary);
     }
   }
 
@@ -1428,13 +1675,13 @@ background: var(--color-bg-secondary);
       bottom: var(--space-md);
       z-index: var(--z-fab);
       display: flex;
-      align-items: center;
       gap: 0.4rem;
+      align-items: center;
       padding: 0.7rem 1.1rem;
-      color: var(--color-on-primary);
       font-family: var(--font-mono);
       font-size: var(--text-sm);
       font-weight: var(--fw-medium);
+      color: var(--color-on-primary);
       text-decoration: none;
       cursor: pointer;
       background: var(--color-primary);
@@ -1451,9 +1698,9 @@ background: var(--color-bg-secondary);
       inset: 0;
       z-index: var(--z-backdrop);
       display: block;
-      background: var(--scrim);
-      opacity: 0;
       visibility: hidden;
+      background: var(--scrim);
+      opacity: 0%;
       transition:
         opacity var(--dur-3) var(--ease-out),
         visibility var(--dur-3) var(--ease-out);
@@ -1466,6 +1713,7 @@ background: var(--color-bg-secondary);
       left: 0;
       z-index: var(--z-drawer);
       display: block;
+      visibility: hidden;
       max-height: 70vh;
       padding: var(--space-md);
       overflow-y: auto;
@@ -1473,11 +1721,10 @@ background: var(--color-bg-secondary);
       border-top: 1px solid var(--color-border);
       border-radius: var(--radius-lg) var(--radius-lg) 0 0;
       box-shadow: var(--sh-pop);
-      visibility: hidden;
+      transform: translateY(100%);
       transition:
         transform var(--dur-3) var(--ease-out),
         visibility var(--dur-3) var(--ease-out);
-      transform: translateY(100%);
     }
 
     .toc-panel-close {
@@ -1487,9 +1734,9 @@ background: var(--color-bg-secondary);
       min-height: 44px;
       padding: 0.4rem 0.8rem;
       margin: 0 0 0.5rem;
-      color: var(--color-text-muted);
       font-family: var(--font-mono);
       font-size: var(--text-sm);
+      color: var(--color-text-muted);
       cursor: pointer;
       border: 1px solid var(--color-hair);
       border-radius: var(--radius-md);
@@ -1504,7 +1751,7 @@ background: var(--color-bg-secondary);
        selector to the same component instance automatically. */
     .toc-toggle-cb:checked ~ .toc-scrim {
       visibility: visible;
-      opacity: 1;
+      opacity: 100%;
     }
 
     .toc-toggle-cb:checked ~ .toc-panel {

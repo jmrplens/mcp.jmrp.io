@@ -87,7 +87,5 @@ test("el aviso del token llega CERRADO pero abre; la tranquilización nunca sin 
   await expect(security).not.toHaveAttribute("open", /.*/);
   await security.locator("summary").click();
   await expect(security).toHaveAttribute("open", /.*/);
-  await expect(
-    security.locator("li", { hasText: /read_api/ }),
-  ).toBeVisible();
+  await expect(security.locator("li", { hasText: /read_api/ })).toBeVisible();
 });

@@ -361,7 +361,10 @@ function isTypedParam(x) {
  */
 function hasValidRequiredParams(entry) {
   if (entry.required_params === undefined) return true;
-  return Array.isArray(entry.required_params) && entry.required_params.every(isTypedParam);
+  return (
+    Array.isArray(entry.required_params) &&
+    entry.required_params.every(isTypedParam)
+  );
 }
 
 /**
@@ -373,7 +376,8 @@ function hasValidAnyOfGroups(entry) {
   return (
     Array.isArray(entry.required_params_any_of) &&
     entry.required_params_any_of.every(
-      (group) => Array.isArray(group) && group.length > 0 && group.every(isTypedParam),
+      (group) =>
+        Array.isArray(group) && group.length > 0 && group.every(isTypedParam),
     )
   );
 }
@@ -429,7 +433,8 @@ function validateManifestEntries(manifest) {
  * extracción. Lanza si la forma no cuadra (el llamador lo degrada a blando).
  */
 function buildActionsSnapshot(endpoint, result, sourceVersion, generatedAt) {
-  const { manifest, resourceUri, ttlMs, cacheScope } = parseManifestEnvelope(result);
+  const { manifest, resourceUri, ttlMs, cacheScope } =
+    parseManifestEnvelope(result);
   validateManifestHeader(manifest);
   validateManifestEntries(manifest);
 
@@ -605,7 +610,12 @@ async function collectGitlabDiscover(pending, endpoint, generatedAt) {
 }
 
 /** gitlab · manifiesto gitlab://tools, atado al sourceVersion del discover. */
-async function collectGitlabActions(pending, endpoint, sourceVersion, generatedAt) {
+async function collectGitlabActions(
+  pending,
+  endpoint,
+  sourceVersion,
+  generatedAt,
+) {
   try {
     // resources/read exige, además del token, params._meta con las mismas
     // tres claves que discover y la cabecera Mcp-Name con la URI del recurso
@@ -670,11 +680,18 @@ async function main() {
   // ambos snapshots: esa ES la semántica de respaldo.
   if (GITLAB_TOKEN && FORBIDDEN_HOSTS.length > 0) {
     const endpoint = `${BASE}/gitlab/mcp`;
-    const sourceVersion = await collectGitlabDiscover(pending, endpoint, generatedAt);
+    const sourceVersion = await collectGitlabDiscover(
+      pending,
+      endpoint,
+      generatedAt,
+    );
     if (sourceVersion) {
       await collectGitlabActions(pending, endpoint, sourceVersion, generatedAt);
     } else {
-      softWarn("gitlab-actions.json", "sin discover del que atar sourceVersion");
+      softWarn(
+        "gitlab-actions.json",
+        "sin discover del que atar sourceVersion",
+      );
     }
   } else {
     const reason = GITLAB_TOKEN

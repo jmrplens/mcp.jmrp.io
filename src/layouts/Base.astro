@@ -246,9 +246,13 @@ const serverSubItems = servers.map((server) => ({
 <html lang={lang}>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
 
-    {/* Applies the forced theme override BEFORE first paint, so a visitor who
+    {
+      /* Applies the forced theme override BEFORE first paint, so a visitor who
         picked "light" never sees a flash of the dark-first default while the
         rest of the document loads. `is:inline` is required, not stylistic:
         without it Vite pulls the block into a bundled module chunk, and the
@@ -260,7 +264,8 @@ const serverSubItems = servers.map((server) => ({
         multi-instance class-based wiring jmrp.io's version carries for its
         header+drawer pair. No `astro:after-swap` handling either: this site
         has no ClientRouter, so every navigation is a fresh document load and
-        this script simply runs again from scratch. */}
+        this script simply runs again from scratch. */
+    }
     <script is:inline>
       (function () {
         var KEY = "theme";
@@ -295,42 +300,60 @@ const serverSubItems = servers.map((server) => ({
     </script>
 
     <title>{title}</title>
-    <meta name="description" content={description} />
-    {!errorPage && <link rel="canonical" href={canonical} />}
+    <meta
+      name="description"
+      content={description}
+    />
+    {
+      !errorPage && (
+        <link
+          rel="canonical"
+          href={canonical}
+        />
+      )
+    }
 
-    {/* `max-snippet:-1` lifts the cap on how much text Google may quote, and
+    {
+      /* `max-snippet:-1` lifts the cap on how much text Google may quote, and
         it is the directive the whole play of this site rests on: its answers
         are marked up as FAQPage and speakable precisely so they get quoted in
         full. AI bots (GPTBot, ClaudeBot, PerplexityBot) do NOT read this —
         robots.txt is what governs them — but AI Overviews and Gemini
         grounding are served from Googlebot's index, which does honour it.
         Same value as jmrp.io's 126 pages: one policy for domain and
-        subdomain. */}
+        subdomain. */
+    }
     <meta
       name="robots"
-      content={
-        errorPage || noindex
-          ? "noindex, follow"
-          : "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
-      }
+      content={errorPage || noindex
+        ? "noindex, follow"
+        : "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"}
     />
 
-    {/* Las anotaciones hreflang se emiten ENTERAS en las dos páginas, cada una
+    {
+      /* Las anotaciones hreflang se emiten ENTERAS en las dos páginas, cada una
         incluyéndose a sí misma. Google exige que toda versión liste todas las
         versiones —ella incluida— y descarta el clúster completo si falta la
         autorreferencia: EN y ES pasarían a competir entre sí en vez de
         agruparse. Salen de `alternates()` y no de un ternario para que dar de
-        alta un idioma nuevo no pueda volver a dejar la lista coja. */}
+        alta un idioma nuevo no pueda volver a dejar la lista coja. */
+    }
     {
       !errorPage &&
         hreflangCluster.map((alt) => (
-          <link rel="alternate" hreflang={alt.hreflang} href={alt.href} />
+          <link
+            rel="alternate"
+            hreflang={alt.hreflang}
+            href={alt.href}
+          />
         ))
     }
 
-    {/* El índice de endpoints en JSON, declarado como representación
+    {
+      /* El índice de endpoints en JSON, declarado como representación
         alternativa del documento. Estaba solo enlazado desde el cuerpo, así
-        que un agente que lea el `<head>` —que es lo que hacen— no lo veía. */}
+        que un agente que lea el `<head>` —que es lo que hacen— no lo veía. */
+    }
     <link
       rel="alternate"
       type="application/json"
@@ -338,9 +361,11 @@ const serverSubItems = servers.map((server) => ({
       title="MCP server index"
     />
 
-    {/* Mismo motivo que el `<link>` de arriba, para `/llms.txt`: el diseño ya
+    {
+      /* Mismo motivo que el `<link>` de arriba, para `/llms.txt`: el diseño ya
         daba por hecho que la portada apuntaba a los dos, pero este nunca se
-        había llegado a añadir. */}
+        había llegado a añadir. */
+    }
     <link
       rel="alternate"
       type="text/plain"
@@ -348,37 +373,88 @@ const serverSubItems = servers.map((server) => ({
       title="llms.txt index"
     />
 
-    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="color-scheme"
+      content="light dark"
+    />
 
-    {/* Icono en SVG, no .ico: el vhost contesta 204 a /favicon.ico (viene del
+    {
+      /* Icono en SVG, no .ico: el vhost contesta 204 a /favicon.ico (viene del
         include `empty_apple_icons.conf` y hermanos) y ese 204 no se puede
-        cambiar desde aquí. Un SVG declarado explícitamente sí se sirve. */}
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+        cambiar desde aquí. Un SVG declarado explícitamente sí se sirve. */
+    }
+    <link
+      rel="icon"
+      href="/favicon.svg"
+      type="image/svg+xml"
+    />
+    <link
+      rel="apple-touch-icon"
+      href="/apple-touch-icon.png"
+      sizes="180x180"
+    />
 
-    {/* Tarjeta social. Sin este bloque, un enlace compartido en Bluesky,
+    {
+      /* Tarjeta social. Sin este bloque, un enlace compartido en Bluesky,
         Mastodon, Slack o WhatsApp sale como URL pelada: ni título, ni
         descripción, ni imagen. `og:image` va en ABSOLUTO porque ninguno de
-        esos clientes resuelve rutas relativas. */}
+        esos clientes resuelve rutas relativas. */
+    }
     {
       /* Not on the error body: `og:url` and `twitter:url` are the canonical,
          so a shared 404 link would have previewed as the home page. */
       !errorPage && (
         <>
-          <meta property="og:type" content="website" />
-          <meta property="og:url" content={canonical} />
-          <meta property="og:title" content={title} />
-          <meta property="og:description" content={description} />
-          <meta property="og:site_name" content={SITE_NAME} />
-          <meta property="og:locale" content={OG_LOCALES[lang]} />
+          <meta
+            property="og:type"
+            content="website"
+          />
+          <meta
+            property="og:url"
+            content={canonical}
+          />
+          <meta
+            property="og:title"
+            content={title}
+          />
+          <meta
+            property="og:description"
+            content={description}
+          />
+          <meta
+            property="og:site_name"
+            content={SITE_NAME}
+          />
+          <meta
+            property="og:locale"
+            content={OG_LOCALES[lang]}
+          />
           {otherLocales.map((locale) => (
-            <meta property="og:locale:alternate" content={locale} />
+            <meta
+              property="og:locale:alternate"
+              content={locale}
+            />
           ))}
-          <meta property="og:image" content={ogImage} />
-          <meta property="og:image:type" content="image/png" />
-          <meta property="og:image:width" content={String(OG_IMAGE_SIZE.width)} />
-          <meta property="og:image:height" content={String(OG_IMAGE_SIZE.height)} />
-          <meta property="og:image:alt" content={imageAlt} />
+          <meta
+            property="og:image"
+            content={ogImage}
+          />
+          <meta
+            property="og:image:type"
+            content="image/png"
+          />
+          <meta
+            property="og:image:width"
+            content={String(OG_IMAGE_SIZE.width)}
+          />
+          <meta
+            property="og:image:height"
+            content={String(OG_IMAGE_SIZE.height)}
+          />
+          <meta
+            property="og:image:alt"
+            content={imageAlt}
+          />
 
           {/* No twitter:site / twitter:creator here, and none is coming back:
               the author does not use the account (closed decision,
@@ -387,34 +463,60 @@ const serverSubItems = servers.map((server) => ({
               and Discord use twitter:card to pick the large-image layout.
               site/creator are attribution-only: nothing renders worse without
               them. */}
-          <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:url" content={canonical} />
-          <meta name="twitter:title" content={title} />
-          <meta name="twitter:description" content={description} />
-          <meta name="twitter:image" content={ogImage} />
-          <meta name="twitter:image:alt" content={imageAlt} />
+          <meta
+            name="twitter:card"
+            content="summary_large_image"
+          />
+          <meta
+            name="twitter:url"
+            content={canonical}
+          />
+          <meta
+            name="twitter:title"
+            content={title}
+          />
+          <meta
+            name="twitter:description"
+            content={description}
+          />
+          <meta
+            name="twitter:image"
+            content={ogImage}
+          />
+          <meta
+            name="twitter:image:alt"
+            content={imageAlt}
+          />
         </>
       )
     }
 
-    {/* Datos estructurados. `is:inline` es obligatorio: sin él Astro trata el
+    {
+      /* Datos estructurados. `is:inline` es obligatorio: sin él Astro trata el
         bloque como un script propio y lo saca a un módulo del bundle, con lo
         que el JSON-LD desaparecería del HTML.
 
         No hay nada que tocar en la CSP: `script-src` no aplica a un bloque de
         datos `ld+json`, y aun así el post-build le pone el placeholder
-        `nonce="NGINX_CSP_NONCE"` como a cualquier `script:not([src])`. */}
+        `nonce="NGINX_CSP_NONCE"` como a cualquier `script:not([src])`. */
+    }
     {
       jsonLd && (
-        <script is:inline type="application/ld+json" set:html={jsonLd} />
+        <script
+          is:inline
+          type="application/ld+json"
+          set:html={jsonLd}
+        />
       )
     }
 
-    {/* Sin estos <Font> Astro NO emite las variables --font-*, y como
+    {
+      /* Sin estos <Font> Astro NO emite las variables --font-*, y como
         tokens.css define --font-body como `var(--font-ibm-plex-sans), ...`,
         un var() inexistente invalida la declaración entera: el navegador
         ignora toda la cadena de fallback y cae a Times New Roman.
-        Configurar `fonts:` en astro.config no basta por sí solo. */}
+        Configurar `fonts:` en astro.config no basta por sí solo. */
+    }
     <Font
       cssVariable="--font-ibm-plex-sans"
       preload={[{ weight: "400", style: "normal" }]}
@@ -429,24 +531,36 @@ const serverSubItems = servers.map((server) => ({
     />
   </head>
   <body>
-    {/* jmrp.io's ambient hairline grid (utilities.css, imported here already
+    {
+      /* jmrp.io's ambient hairline grid (utilities.css, imported here already
         but never rendered until now), full-page: `position:absolute; inset:0`
         inside body's `position:relative`, sitting behind everything via
         `z-index:-1` in body's own stacking context (`isolation:isolate`,
         base.css). Same markup and placement as jmrp.io's BaseLayout.astro —
-        first child of <body>, aria-hidden since it is purely decorative. */}
-    <div class="lab-grid lab-grid--page" aria-hidden="true"></div>
+        first child of <body>, aria-hidden since it is purely decorative. */
+    }
+    <div
+      class="lab-grid lab-grid--page"
+      aria-hidden="true"
+    >
+    </div>
 
-    <a class="skip" href="#main">{t.skip}</a>
+    <a
+      class="skip"
+      href="#main"
+      >{t.skip}</a
+    >
 
     <header class="site-header">
-      {/* Checkbox-hack drawer toggle: the ONLY thing that opens/closes the
+      {
+        /* Checkbox-hack drawer toggle: the ONLY thing that opens/closes the
           mobile drawer is this checkbox's `:checked` state via `html:has()`
-          in the <style> block below. Both the burger (`.menu-toggle`) and
+          in the `style` block below. Both the burger (`.menu-toggle`) and
           the scrim (`.menu-backdrop`) are plain `<label for="nav-open">`
           elements, so the drawer works with JavaScript fully disabled — the
           inline script at the end of <body> only layers on Escape-to-close,
-          moving focus, and `inert` on the background. */}
+          moving focus, and `inert` on the background. */
+      }
       <input
         type="checkbox"
         id="nav-open"
@@ -456,20 +570,32 @@ const serverSubItems = servers.map((server) => ({
       />
 
       <div class="header-bar">
-        {/* Terminal-prompt mark, same anatomy as jmrp.io's Logo.astro:
+        {
+          /* Terminal-prompt mark, same anatomy as jmrp.io's Logo.astro:
             breadcrumb path + teal chevron + command + blinking cursor. It
             links to THIS site's home in the current language — it used to
             point at https://jmrp.io, which sent visitors off the site from
             every page. The visible wordmark is the accessible name, so no
-            aria-label (it would not contain the visible breadcrumb text). */}
-        <a class="brand" href={homeHref} rel="home">
+            aria-label (it would not contain the visible breadcrumb text). */
+        }
+        <a
+          class="brand"
+          href={homeHref}
+          rel="home"
+        >
           <span class="brand-path">{breadcrumb}</span>
           <span class="brand-prompt">&#10095;</span>
           <span class="brand-name">mcp</span>
-          <span class="brand-cursor" aria-hidden="true"></span>
+          <span
+            class="brand-cursor"
+            aria-hidden="true"
+          ></span>
         </a>
 
-        <nav class="site-nav" aria-label={t.mainNavLabel}>
+        <nav
+          class="site-nav"
+          aria-label={t.mainNavLabel}
+        >
           <ul class="nav-links">
             {
               navItems.map((item) => (
@@ -482,7 +608,10 @@ const serverSubItems = servers.map((server) => ({
                         decorative "/" ahead of the label, hidden from AT
                         since aria-current already announces the state. */}
                     {item.current && (
-                      <span class="nav-prefix" aria-hidden="true">
+                      <span
+                        class="nav-prefix"
+                        aria-hidden="true"
+                      >
                         /
                       </span>
                     )}
@@ -499,7 +628,10 @@ const serverSubItems = servers.map((server) => ({
                         <li>
                           <a href={sub.href}>
                             {sub.icon && (
-                              <ServerMark src={sub.icon} class="nav-sub-icon" />
+                              <ServerMark
+                                src={sub.icon}
+                                class="nav-sub-icon"
+                              />
                             )}
                             {sub.name}
                           </a>
@@ -514,7 +646,8 @@ const serverSubItems = servers.map((server) => ({
         </nav>
 
         <div class="header-controls">
-          {/* Two-segment `EN | ES` pill, jmrp.io's LanguageSwitcher.astro
+          {
+            /* Two-segment `EN | ES` pill, jmrp.io's LanguageSwitcher.astro
               design (`.lang-pill`/`.lang-seg`): the current locale is a
               non-interactive active segment, the other is a link. Rendered
               in FIXED `LANGS` order like the original — each label keeps
@@ -530,7 +663,8 @@ const serverSubItems = servers.map((server) => ({
               `alternates()`), which is already correct and complete. A
               second, body-level `hreflang=` would also leak onto the 404
               body — the one page that must emit no identity signals at all,
-              since its `<head>` block is suppressed by `errorPage`. */}
+              since its `<head>` block is suppressed by `errorPage`. */
+          }
           <div
             class="lang-switch"
             role="group"
@@ -571,26 +705,47 @@ const serverSubItems = servers.map((server) => ({
             <span
               class="i-mdi:white-balance-sunny icon-sun"
               aria-hidden="true"
-            />
+            ></span>
             <span
               class="i-mdi:moon-waning-crescent icon-moon"
               aria-hidden="true"
-            />
+            ></span>
           </button>
 
-          <a class="gh-link" href="https://jmrp.io" aria-label={t.authorSite}>
-            <span class="i-mdi:account-circle-outline" aria-hidden="true" />
+          <a
+            class="gh-link"
+            href="https://jmrp.io"
+            aria-label={t.authorSite}
+          >
+            <span
+              class="i-mdi:account-circle-outline"
+              aria-hidden="true"
+            ></span>
           </a>
 
-          <label for="nav-open" id="menu-toggle" class="menu-toggle">
+          <label
+            for="nav-open"
+            id="menu-toggle"
+            class="menu-toggle"
+          >
             <span class="sr-only">{t.menuOpen}</span>
-            <span class="i-mdi:menu icon-menu-open" aria-hidden="true" />
-            <span class="i-mdi:close icon-menu-close" aria-hidden="true" />
+            <span
+              class="i-mdi:menu icon-menu-open"
+              aria-hidden="true"
+            ></span>
+            <span
+              class="i-mdi:close icon-menu-close"
+              aria-hidden="true"
+            ></span>
           </label>
         </div>
       </div>
 
-      <label for="nav-open" class="menu-backdrop" aria-hidden="true">
+      <label
+        for="nav-open"
+        class="menu-backdrop"
+        aria-hidden="true"
+      >
         <span class="sr-only">{t.menuClose}</span>
       </label>
 
@@ -603,13 +758,15 @@ const serverSubItems = servers.map((server) => ({
         tabindex="-1"
       >
         <div class="drawer-head">
-          {/* A `<label>` cannot take keyboard focus on its own, so it gets
+          {
+            /* A `<label>` cannot take keyboard focus on its own, so it gets
               `tabindex` and a `button` role, and the script below makes Enter
               and Space activate it. Without a reachable close control inside
               an `aria-modal` dialog, a screen reader user on a phone — where
               there is no Escape key — has no announced way out. Clicking it
               still works with JavaScript disabled: it is a label, and the
-              scrim behind it is another one. */}
+              scrim behind it is another one. */
+          }
           <label
             for="nav-open"
             class="drawer-close"
@@ -617,7 +774,10 @@ const serverSubItems = servers.map((server) => ({
             tabindex="0"
           >
             <span class="sr-only">{t.menuClose}</span>
-            <span class="i-mdi:close" aria-hidden="true" />
+            <span
+              class="i-mdi:close"
+              aria-hidden="true"
+            ></span>
           </label>
         </div>
 
@@ -639,7 +799,10 @@ const serverSubItems = servers.map((server) => ({
                       <li>
                         <a href={sub.href}>
                           {sub.icon && (
-                            <ServerMark src={sub.icon} class="nav-sub-icon" />
+                            <ServerMark
+                              src={sub.icon}
+                              class="nav-sub-icon"
+                            />
                           )}
                           {sub.name}
                         </a>
@@ -651,20 +814,25 @@ const serverSubItems = servers.map((server) => ({
             ))
           }
           <li>
-            <a class="drawer-gh" href="https://jmrp.io">
+            <a
+              class="drawer-gh"
+              href="https://jmrp.io"
+            >
               {t.authorSite}
             </a>
           </li>
         </ul>
 
-        {/* The language pill also lives in the drawer panel, like jmrp.io's
+        {
+          /* The language pill also lives in the drawer panel, like jmrp.io's
             `.drawer__foot` (NavDrawer.astro) — requested explicitly: the
             header-bar pill stays visible on mobile too (same call jmrp.io
             makes for its own header + drawer pair), so this is a deliberate
             duplicate, not a replacement. Only the language pill is
             duplicated here, not the theme toggle: that one only asked for
             the language switcher, and the theme button already works fine
-            from the bar behind the drawer. */}
+            from the bar behind the drawer. */
+        }
         <div class="drawer-foot">
           <div
             class="lang-switch"
@@ -694,12 +862,14 @@ const serverSubItems = servers.map((server) => ({
             }
           </div>
 
-          {/* El toggle de tema, duplicado aquí igual que la píldora de idioma
+          {
+            /* El toggle de tema, duplicado aquí igual que la píldora de idioma
               y por el mismo motivo: al abrir el cajón, los botones de la barra
               quedan detrás del panel, así que en móvil no había forma de
               cambiar de tema con el menú abierto. El de la barra se queda
               donde está; esto es un segundo mando para el mismo estado, no un
-              reemplazo. */}
+              reemplazo. */
+          }
           <button
             type="button"
             class="theme-toggle"
@@ -711,11 +881,11 @@ const serverSubItems = servers.map((server) => ({
             <span
               class="i-mdi:white-balance-sunny icon-sun"
               aria-hidden="true"
-            />
+            ></span>
             <span
               class="i-mdi:moon-waning-crescent icon-moon"
               aria-hidden="true"
-            />
+            ></span>
           </button>
         </div>
       </div>
@@ -723,17 +893,23 @@ const serverSubItems = servers.map((server) => ({
 
     <main id="main"><slot /></main>
 
-    {/* Identidad y frescura VISIBLES. Estaban completas en el JSON-LD y
+    {
+      /* Identidad y frescura VISIBLES. Estaban completas en el JSON-LD y
         ausentes para una persona: la auditoría lo llamó "autoridad regalada",
         y las respuestas de IA que citan texto visible no tenían a quién
         atribuir. El mailto también resuelve que security.txt existiera sin
         estar enlazado desde ninguna parte — mismo motivo por el que
         `/policies/` va aquí y no solo en la portada: cualquier página tiene
-        que poder llegar a ella. */}
+        que poder llegar a ella. */
+    }
     <footer class="site-footer">
       <p class="footer-id">
         {t.footerBy}
-        <a href="https://jmrp.io/about/" rel="author">José Manuel Requena Plens</a>
+        <a
+          href="https://jmrp.io/about/"
+          rel="author"
+          >José Manuel Requena Plens</a
+        >
         ·
         {t.footerUpdated}
         <time datetime={updated}>{updatedHuman}</time>
@@ -746,10 +922,12 @@ const serverSubItems = servers.map((server) => ({
       </p>
     </footer>
 
-    {/* Progressive enhancement only — see the two comments in the <header>
+    {
+      /* Progressive enhancement only — see the two comments in the <header>
         above. `is:inline` for the same nonce reason as the theme-detection
         script in <head>: without it Vite would bundle this into an external
-        module and the post-build's nonce patch would not apply to it. */}
+        module and the post-build's nonce patch would not apply to it. */
+    }
     <script is:inline>
       (function () {
         // Theme button: reflect the live theme in aria-label and dispatch
@@ -782,7 +960,7 @@ const serverSubItems = servers.map((server) => ({
         }
 
         // Mobile drawer a11y: the #nav-open checkbox already opens and
-        // closes the drawer with zero JS (see the <style> block's
+        // closes the drawer with zero JS (see the `style` block's
         // `html:has(#nav-open:checked)` rules). Everything here only adds
         // what CSS cannot do on its own: Escape-to-close, moving focus in
         // and out, and taking the background out of the tab order while
@@ -887,24 +1065,25 @@ const serverSubItems = servers.map((server) => ({
     z-index: -1;
     content: "";
     background: var(--color-bg-header);
-    backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
   }
 
   .header-bar,
   .site-footer {
     display: flex;
     flex-wrap: wrap;
+    gap: var(--space-4, 1rem);
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-4, 1rem);
+
     /* width: 100% es obligatorio: body es un flex en columna y `margin-inline:
        auto` sobre un hijo flex ANULA el stretch del eje cruzado, encogiendo la
        franja al ancho de su contenido en vez de llegar a --max-width-container. */
     width: 100%;
     max-width: var(--max-width-container);
-    margin-inline: auto;
     padding: 1rem var(--pad, 1.5rem);
+    margin-inline: auto;
     font-family: var(--font-mono);
     font-size: 0.8125rem;
   }
@@ -929,11 +1108,11 @@ const serverSubItems = servers.map((server) => ({
   .brand {
     display: inline-flex;
     align-items: center;
-    color: var(--color-text-heading);
     font-family: var(--font-mono);
     font-size: var(--text-md);
     font-weight: var(--fw-semibold);
     line-height: 1;
+    color: var(--color-text-heading);
     letter-spacing: -0.01em;
     text-decoration: none;
   }
@@ -994,6 +1173,7 @@ const serverSubItems = servers.map((server) => ({
   }
 
   /* ===== Desktop page nav — hidden below 40rem, replaced by the drawer === */
+
   /* ===== Submenú de servidores ===============================================
      Cuelga de «Servers» sin quitarle el enlace: el elemento padre sigue
      llevando al índice y esto solo se despliega al pasar el ratón o al entrar
@@ -1036,9 +1216,9 @@ const serverSubItems = servers.map((server) => ({
   }
 
   .nav-sub-icon {
+    flex-shrink: 0;
     width: 1rem;
     height: 1rem;
-    flex-shrink: 0;
   }
 
   /* En el cajón no hay hover que valga: la lista va siempre desplegada,
@@ -1053,8 +1233,8 @@ const serverSubItems = servers.map((server) => ({
   .nav-links {
     display: flex;
     gap: 2px;
-    margin: 0;
     padding: 0;
+    margin: 0;
     list-style: none;
   }
 
@@ -1107,8 +1287,8 @@ const serverSubItems = servers.map((server) => ({
   /* ===== Controls cluster: language, theme, GitHub, burger =============== */
   .header-controls {
     display: flex;
-    align-items: center;
     gap: var(--space-sm);
+    align-items: center;
   }
 
   /* Two-segment `EN | ES` pill — same design as jmrp.io's LanguageSwitcher
@@ -1264,9 +1444,9 @@ const serverSubItems = servers.map((server) => ({
     inset: 0;
     z-index: var(--z-backdrop);
     display: block;
-    background: var(--scrim);
-    opacity: 0;
     visibility: hidden;
+    background: var(--scrim);
+    opacity: 0%;
     transition:
       opacity var(--dur-3) var(--ease-out),
       visibility var(--dur-3) var(--ease-out);
@@ -1281,8 +1461,10 @@ const serverSubItems = servers.map((server) => ({
     inset-inline-end: 0;
     z-index: var(--z-drawer);
     display: flex;
+    visibility: hidden;
     flex-direction: column;
     width: var(--drawer-w);
+
     /* OPACO. Estaba al 88% con desenfoque detrás, y el texto de la página se
        leía a través del panel: un menú superpuesto por el que se ve lo que
        tapa no se lee como una capa, se lee como suciedad. El cajón de jmrp.io
@@ -1291,13 +1473,12 @@ const serverSubItems = servers.map((server) => ({
     background: var(--color-bg-secondary);
     border-inline-start: 1px solid var(--color-border);
     box-shadow: -30px 0 60px -30px rgb(0 0 0 / 55%);
-    backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    visibility: hidden;
+    backdrop-filter: blur(16px);
+    transform: translateX(110%);
     transition:
       transform var(--dur-3) var(--ease-out),
       visibility var(--dur-3) var(--ease-out);
-    transform: translateX(110%);
   }
 
   .nav-drawer:focus {
@@ -1343,8 +1524,8 @@ const serverSubItems = servers.map((server) => ({
     flex: 1;
     flex-direction: column;
     gap: 4px;
-    margin: 0;
     padding: 12px 14px;
+    margin: 0;
     overflow-y: auto;
     list-style: none;
   }
@@ -1420,7 +1601,7 @@ const serverSubItems = servers.map((server) => ({
 
     :global(html:has(#nav-open:checked)) .menu-backdrop {
       visibility: visible;
-      opacity: 1;
+      opacity: 100%;
     }
 
     :global(html:has(#nav-open:checked)) .nav-drawer {
@@ -1454,10 +1635,10 @@ const serverSubItems = servers.map((server) => ({
   }
 
   .site-footer {
-    margin-top: 4rem;
     padding-block: 2rem;
-    border-top: 1px solid var(--color-hair);
+    margin-top: 4rem;
     color: var(--color-text-muted);
+    border-top: 1px solid var(--color-hair);
   }
 
   /* Content width: was a hardcoded 72rem (1152px), measured against jmrp.io
@@ -1473,8 +1654,8 @@ const serverSubItems = servers.map((server) => ({
   main {
     width: 100%;
     max-width: var(--max-width-container);
-    margin-inline: auto;
     padding: 0 var(--pad, 1.5rem);
+    margin-inline: auto;
   }
 
   /* Enlace de salto: invisible hasta recibir foco por teclado. */
@@ -1486,12 +1667,12 @@ const serverSubItems = servers.map((server) => ({
   .skip:focus {
     position: static;
     display: inline-block;
-    margin: 0.5rem;
     padding: 0.5rem 0.75rem;
-    border-radius: 6px;
-    background: var(--color-accent);
-    color: var(--color-bg);
+    margin: 0.5rem;
     font-family: var(--font-mono);
+    color: var(--color-bg);
+    background: var(--color-accent);
+    border-radius: 6px;
   }
 
   @media (width <= 40rem) {

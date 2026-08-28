@@ -12,6 +12,10 @@ import Base from "../../layouts/Base.astro";
 const t = serversPage[getLangFromUrl(Astro.url)];
 ---
 
-<Base title={t.metaTitleIndex} description={t.ledeIndex} page="servers">
+<Base
+  title={t.metaTitleIndex}
+  description={t.ledeIndex}
+  page="servers"
+>
   <ServersIndexPage />
 </Base>

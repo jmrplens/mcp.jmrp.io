@@ -63,16 +63,16 @@ interface CardRef {
 function collectCards(listId: string): CardRef[] {
   const list = document.querySelector(`#${CSS.escape(listId)}`);
   if (!list) return [];
-  return [...list.querySelectorAll<HTMLDetailsElement>("details.action-item")].map(
-    (el) => ({
-      el,
-      item: el.closest("li") ?? el,
-      name: `${el.dataset.actionId ?? ""} ${el.dataset.actionTitle ?? ""}`.toLowerCase(),
-      desc: (el.querySelector(".action-desc")?.textContent ?? "").toLowerCase(),
-      destructive: el.dataset.destructive === "true",
-      readOnly: el.dataset.readOnly === "true",
-    }),
-  );
+  return [
+    ...list.querySelectorAll<HTMLDetailsElement>("details.action-item"),
+  ].map((el) => ({
+    el,
+    item: el.closest("li") ?? el,
+    name: `${el.dataset.actionId ?? ""} ${el.dataset.actionTitle ?? ""}`.toLowerCase(),
+    desc: (el.querySelector(".action-desc")?.textContent ?? "").toLowerCase(),
+    destructive: el.dataset.destructive === "true",
+    readOnly: el.dataset.readOnly === "true",
+  }));
 }
 
 /**
@@ -95,7 +95,8 @@ function applyFilter(
   let visible = 0;
   for (const card of cards) {
     const passesToggles =
-      (!onlyDestructive || card.destructive) && (!onlyReadOnly || card.readOnly);
+      (!onlyDestructive || card.destructive) &&
+      (!onlyReadOnly || card.readOnly);
     const nameHit = q === "" || card.name.includes(q);
     const descHit = q !== "" && !nameHit && card.desc.includes(q);
     const show = passesToggles && (nameHit || descHit);
@@ -172,7 +173,10 @@ export default function DomainActionsFilter({
 
   return (
     <div className="domain-filter">
-      <label className="domain-filter-label" htmlFor="domain-filter-q">
+      <label
+        className="domain-filter-label"
+        htmlFor="domain-filter-q"
+      >
         <span className="sr-only">{sp.domainFilterLabel}</span>
         <input
           id="domain-filter-q"
@@ -180,7 +184,9 @@ export default function DomainActionsFilter({
           className="domain-filter-input"
           placeholder={sp.domainFilterPlaceholder}
           value={query}
-          onInput={(event) => setQuery((event.target as HTMLInputElement).value)}
+          onInput={(event) =>
+            setQuery((event.target as HTMLInputElement).value)
+          }
         />
       </label>
       <div className="domain-filter-toggles">
@@ -209,18 +215,29 @@ export default function DomainActionsFilter({
           scoped de la página no alcanzan al DOM renderizado en cliente. */}
       <div className="domain-filter-status">
         <span className="domain-legend">
-          <span className="df-dot df-dot--destructive" aria-hidden="true"></span>
+          <span
+            className="df-dot df-dot--destructive"
+            aria-hidden="true"
+          ></span>
           {sp.domainChipDestructive}
         </span>
         <span className="domain-legend">
-          <span className="df-dot df-dot--readonly" aria-hidden="true"></span>
+          <span
+            className="df-dot df-dot--readonly"
+            aria-hidden="true"
+          ></span>
           {sp.domainChipReadOnly}
         </span>
-        <span className="domain-filter-count" aria-live="polite">
+        <span
+          className="domain-filter-count"
+          aria-live="polite"
+        >
           {countText}
         </span>
       </div>
-      {shown === 0 && <p className="domain-filter-empty">{sp.domainFilterNoMatch}</p>}
+      {shown === 0 && (
+        <p className="domain-filter-empty">{sp.domainFilterNoMatch}</p>
+      )}
     </div>
   );
 }

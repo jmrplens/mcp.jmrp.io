@@ -17,7 +17,12 @@
     "identity:sync": "node scripts/sync-identity.mjs",
     "identity:check": "node scripts/sync-identity.mjs --check",
     "validate:html": "html-validate dist",
-    "check": "pnpm lint && pnpm typecheck && pnpm build && pnpm test:unit && pnpm validate:html"
+    "check": "pnpm lint && pnpm typecheck && pnpm build && pnpm test:unit && pnpm validate:html",
+    "lint:css": "stylelint \"src/**/*.{astro,css}\"",
+    "lint:html": "html-validate \"${DIST_DIR:-dist}\"",
+    "spell": "cspell lint .",
+    "verify": "node scripts/run-verify.mjs",
+    "lint:md": "markdownlint-cli2"
   },
   "dependencies": {
     "@astrojs/preact": "6.0.2",
@@ -31,6 +36,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
+    "@cspell/dict-es-es": "^3.0.8",
     "@gorazdo/eslint-plugin-preact": "^1.0.7",
     "@iconify-json/mdi": "^1.2.3",
     "@iconify-json/simple-icons": "^1.2.93",
@@ -38,6 +44,7 @@
     "@types/html-minifier-terser": "^7.0.2",
     "@unocss/eslint-plugin": "^66.7.5",
     "cheerio": "^1.2.0",
+    "cspell": "^10.1.1",
     "domhandler": "^6.0.1",
     "eslint": "^10.8.0",
     "eslint-plugin-astro": "^3.1.0",
@@ -52,6 +59,15 @@
     "html-minifier-terser": "^7.2.0",
     "html-validate": "^11.6.2",
     "lighthouse": "^13.4.1",
+    "markdownlint-cli2": "^0.23.2",
+    "prettier": "^3.9.6",
+    "prettier-plugin-astro": "^0.14.1",
+    "sonar-scanner": "^3.1.0",
+    "stylelint": "^17.14.1",
+    "stylelint-config-html": "^2.0.0",
+    "stylelint-config-recess-order": "^7.8.0",
+    "stylelint-config-standard": "^40.0.0",
+    "stylelint-order": "^8.1.1",
     "svgo": "^4.0.2",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.66.0"

@@ -31,10 +31,17 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
 ---
 
 <section class="hero">
-  <p class="pill"><span class="dot" aria-hidden="true"></span>{servers.length} {t.pill}</p>
+  <p class="pill">
+    <span
+      class="dot"
+      aria-hidden="true"
+    ></span>{servers.length}
+    {t.pill}
+  </p>
   <h1 class="hero-title">{t.title}</h1>
   <p class="lede">{t.lede}</p>
-  {/* La definición de MCP con la marca: el único bloque autocontenido para
+  {
+    /* La definición de MCP con la marca: el único bloque autocontenido para
       quien no sabe qué es esto, y el ancla de entidad que los titulares
       genéricos no dan. Ver `whatIsMcp` en ui.ts.
 
@@ -45,65 +52,85 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
       del sitio que no es del propio autor, y marcarla como no confiable
       contradiría el motivo por el que está aquí; el resto de enlaces
       salientes de esta página tampoco lleva `rel`. Ver `specLink` en
-      ui.ts para por qué el href es el `/specification` SIN fechar. */}
+      ui.ts para por qué el href es el `/specification` SIN fechar. */
+  }
   <p class="what-is">
     {t.whatIsMcp}{" "}
     <a href="https://modelcontextprotocol.io/specification">{t.specLink}</a>.
   </p>
-  {/* The old lede promised trying the servers "right here"; now that the
+  {
+    /* The old lede promised trying the servers "right here"; now that the
       inspector lives on its own page, that promise is a real link instead
-      (Ruling R6 — see the comment on `home.tryInBrowser`). */}
+      (Ruling R6 — see the comment on `home.tryInBrowser`). */
+  }
   <p class="try-inspector">
     <a href={inspectorHref}>{t.tryInBrowser}</a>
   </p>
 </section>
 
-{/* The `/internals/` invitation, between the hero and the servers. It sat
+{
+  /* The `/internals/` invitation, between the hero and the servers. It sat
     after the two server cards until the comparison table was removed and the
     measurement was taken again: even then it landed 2.46 screens down on a
     390px phone, which is past where most visitors stop. The question it
     answers — what happens to my request, and to my token — is one a reader
     has BEFORE pasting a credential into anything, so it now precedes the
-    cards rather than following them. */}
-  <aside class="internals-callout">
-    <p class="internals-callout-eyebrow">{t.internalsEyebrow}</p>
-    <p class="internals-callout-title">{t.internalsTitle}</p>
-    <p class="internals-callout-lead">{t.internalsLead}</p>
-    <p class="internals-callout-link">
-      <a href={internalsHref}>{t.internalsLink}</a>
-    </p>
-  </aside>
+    cards rather than following them. */
+}
+<aside class="internals-callout">
+  <p class="internals-callout-eyebrow">{t.internalsEyebrow}</p>
+  <p class="internals-callout-title">{t.internalsTitle}</p>
+  <p class="internals-callout-lead">{t.internalsLead}</p>
+  <p class="internals-callout-link">
+    <a href={internalsHref}>{t.internalsLink}</a>
+  </p>
+</aside>
 
 <section aria-labelledby="servers-h">
-  {/* h2 y no p: eran rótulos decorativos y la página colgaba 734 palabras de
+  {
+    /* h2 y no p: eran rótulos decorativos y la página colgaba 734 palabras de
       dos únicos H2 (los nombres de las fichas). Como h2 dan outline real sin
-      cambiar el aspecto — .eyebrow ya fija tamaño, peso y márgenes. */}
-  <h2 class="eyebrow" id="servers-h">
+      cambiar el aspecto — .eyebrow ya fija tamaño, peso y márgenes. */
+  }
+  <h2
+    class="eyebrow"
+    id="servers-h"
+  >
     {t.serversEyebrow}
   </h2>
   <p class="section-intro">{t.serversIntro}</p>
   <div class="grid">
-    {servers.map((s) => <ServerCard server={s} lang={lang} />)}
+    {
+      servers.map((s) => (
+        <ServerCard
+          server={s}
+          lang={lang}
+        />
+      ))
+    }
   </div>
-
 
   <p class="machine">
     <a href="/servers.json"><code>/servers.json</code></a>
     <span>— {t.machineIndex}</span>
   </p>
-  {/* Same pointer pattern as `/servers.json` above, for the llmstxt.org
-      index — see the `<link>` of the same name in Base.astro's <head>. */}
+  {
+    /* Same pointer pattern as `/servers.json` above, for the llmstxt.org
+      index — see the `<link>` of the same name in Base.astro's <head>. */
+  }
   <p class="machine">
     <a href="/llms.txt"><code>/llms.txt</code></a>
     <span>— {t.machineLlms}</span>
   </p>
 </section>
 
-{/* Visible freshness INSIDE <main>. It used to close the "Privacy & data"
+{
+  /* Visible freshness INSIDE <main>. It used to close the "Privacy & data"
     section that lived here; that section moved to its own page
     (`PoliciesPage.astro`), but the home page still needs its own dated line —
     see `UpdatedLine.astro` for why an undated page is a real problem, not a
-    cosmetic one. */}
+    cosmetic one. */
+}
 <UpdatedLine lang={lang} />
 
 <style>
@@ -122,20 +149,20 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
     display: inline-flex;
     gap: 0.5rem;
     align-items: center;
-    margin: 0 0 1.5rem;
     padding: 0.35rem 0.8rem;
-    border: 1px solid var(--color-border);
-    border-radius: 999px;
-    color: var(--color-text);
+    margin: 0 0 1.5rem;
     font-family: var(--font-mono);
     font-size: var(--text-xs);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
   }
 
   .dot {
     width: 0.5rem;
     height: 0.5rem;
-    border-radius: 50%;
     background: var(--color-success);
+    border-radius: 50%;
   }
 
   /* Size lives in base.css's `.hero-title` now (shared with the other
@@ -147,9 +174,9 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
   .lede {
     max-width: 58ch;
     margin: 0;
-    color: var(--color-text);
     font-size: var(--text-xl);
     line-height: 1.4;
+    color: var(--color-text);
     text-wrap: pretty;
   }
 
@@ -160,9 +187,9 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
   .what-is {
     max-width: 62ch;
     margin: 0.9rem 0 0;
-    color: var(--color-text);
     font-size: var(--text-md);
     line-height: 1.65;
+    color: var(--color-text);
     text-wrap: pretty;
   }
 
@@ -197,12 +224,12 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
     gap: 0.6rem;
     align-items: center;
     margin: 0 0 1.25rem;
-    color: var(--color-accent);
     font-family: var(--font-mono);
     font-size: var(--text-label);
     font-weight: var(--fw-medium);
-    letter-spacing: 0.16em;
+    color: var(--color-accent);
     text-transform: uppercase;
+    letter-spacing: 0.16em;
   }
 
   .eyebrow::before {
@@ -240,20 +267,20 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
 
   .internals-callout-eyebrow {
     margin: 0 0 0.35rem;
-    color: var(--color-accent);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
-    letter-spacing: 0.08em;
+    color: var(--color-accent);
     text-transform: uppercase;
+    letter-spacing: 0.08em;
   }
 
   .internals-callout-title {
     margin: 0 0 0.4rem;
-    color: var(--color-text-heading);
     font-family: var(--font-display);
     font-size: 1.15rem;
     font-weight: 600;
     line-height: 1.25;
+    color: var(--color-text-heading);
   }
 
   .internals-callout-lead {
@@ -271,13 +298,13 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
 
   .machine {
     margin: 1.25rem 0 0;
-    color: var(--color-text-muted);
     font-size: 0.8125rem;
+    color: var(--color-text-muted);
   }
 
   .machine a {
-    color: var(--color-accent);
     font-family: var(--font-mono);
+    color: var(--color-accent);
     text-decoration: none;
   }
 
@@ -290,13 +317,13 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
      to the inspector's own page instead of a machine-readable file. */
   .try-inspector {
     margin: 0.9rem 0 0;
-    color: var(--color-text-muted);
     font-size: 0.8125rem;
+    color: var(--color-text-muted);
   }
 
   .try-inspector a {
-    color: var(--color-accent);
     font-family: var(--font-mono);
+    color: var(--color-accent);
     text-decoration: none;
   }
 
@@ -304,12 +331,4 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
     text-decoration: underline;
     text-underline-offset: 3px;
   }
-
-
-
-
-
-
-
-
 </style>

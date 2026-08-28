@@ -1,28 +1,36 @@
 // markdownlint-cli2 configuration.
-// Runs only on .md files (never .mdx — those are MDX/JSX, not CommonMark).
-// Prose-formatting rules that fight long tables, intentional inline HTML and
-// frontmatter files are disabled; the structural rules (blank lines around
-// headings/fences/lists/tables, list numbering, trailing spaces) are kept.
+//
+// Ported from jmrp.io, where the same file exists but nothing runs it — no
+// script, no workflow step. Here it is wired into `pnpm verify`, so the rules
+// below are the ones this repo's three documents actually have to satisfy.
 {
   "config": {
     "default": true,
-    "MD013": false, // line-length — prose and wide reference tables are long by design
-    "MD033": false, // inline HTML — docs intentionally use <details>/<summary>/<h4>/<picture>
-    "MD041": false, // first line need not be an H1 (YAML frontmatter precedes it)
-    "MD024": { "siblings_only": true }, // allow repeated headings under different parents
-    "MD026": false, // allow trailing "?"/":" in headings (e.g. "Need Help?")
+    "MD013": false, // line-length — reference tables and prose are long by design
+    "MD033": false, // inline HTML — the docs use <details>/<summary> on purpose
+    "MD041": false, // first line need not be an H1
+    "MD024": { "siblings_only": true }, // repeated headings under different parents
+    "MD026": false, // trailing "?"/":" in headings is fine
     "MD036": false, // emphasis-as-heading is false-positive-prone for labels
-    "MD060": false, // table-column alignment is owned by Prettier (the CI formatter)
-    "MD051": false, // link-fragments mis-resolves emoji-prefixed GitHub heading anchors
+    "MD060": false, // table-column alignment is owned by Prettier, the formatter
   },
   "globs": ["**/*.md"],
   "ignores": [
     "node_modules",
     "**/node_modules",
     "dist",
-    "dist_*",
-    "plan", // git-ignored working notes, not part of the repo
-    "CHANGELOG.md",
-    "**/*.mdx",
+    "builds", // the blue/green output colours
+    "ops", // operational notes and captured vhosts, not repo prose
+    "plan", // git-ignored working notes
+    // Everything below is untracked working notes rather than repo prose:
+    // `git ls-files "*.md"` returns exactly AGENTS.md, CLAUDE.md and
+    // README.md, and those are what this check is for.
+    ".superpowers",
+    "docs/superpowers",
+    "GEO-AUDIT-*.md",
+    // Playwright writes error-context.md into here on a failed run; they are
+    // artifacts of the last run, not documents this repo maintains.
+    "test-results",
+    "playwright-report",
   ],
 }

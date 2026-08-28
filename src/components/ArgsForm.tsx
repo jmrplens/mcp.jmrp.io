@@ -26,6 +26,214 @@ export interface ArgsFormProps {
 }
 
 /**
+ * The control for one field, chosen by the kind its schema resolved to.
+ *
+ * A `switch` rather than the chain of `field.control === "…" ? … : null`
+ * blocks this replaced: five mutually exclusive ternaries cost five points of
+ * cognitive complexity each time the list is rendered, a switch costs one, and
+ * the exclusivity is stated by the language instead of implied.
+ *
+ * @param props.field The resolved field.
+ * @param props.id The control's DOM id, shared with its label and help text.
+ * @param props.value What is currently typed, or the field's initial value.
+ * @param props.describedBy The help text's id, when there is help text.
+ * @param props.disabled Whether a call is in flight.
+ * @param props.t Inspector strings in the page's language.
+ * @param props.onChange Reports a new value for this field.
+ * @param props.onKey Enter submits, except in a textarea.
+ * @returns The control, or null for a kind with no control.
+ */
+function ArgControl({
+  field,
+  id,
+  value,
+  describedBy,
+  disabled,
+  t,
+  onChange,
+  onKey,
+}: Readonly<{
+  field: FormField;
+  id: string;
+  value: string;
+  describedBy: string | undefined;
+  disabled: boolean;
+  t: (typeof ui)[Lang]["insp"];
+  onChange: (name: string, value: string) => void;
+  onKey: (e: KeyboardEvent) => void;
+}>) {
+  switch (field.control) {
+    case "select": {
+      return (
+        <select
+          id={id}
+          disabled={disabled}
+          value={value}
+          aria-describedby={describedBy}
+          onChange={(e) =>
+            onChange(field.name, (e.target as HTMLSelectElement).value)
+          }
+        >
+          {/* Vacío el primero: un opcional con enum debe poder no
+              mandarse, y sin esta opción el desplegable elegiría el
+              primer valor por el visitante. */}
+          <option value="">{field.required ? t.pickOne : t.omit}</option>
+          {field.options.map((option) => (
+            <option
+              key={option}
+              value={option}
+            >
+              {option}
+            </option>
+          ))}
+        </select>
+      );
+    }
+    case "checkbox": {
+      return (
+        <input
+          id={id}
+          type="checkbox"
+          disabled={disabled}
+          checked={value === "true"}
+          aria-describedby={describedBy}
+          onChange={(e) =>
+            onChange(
+              field.name,
+              (e.target as HTMLInputElement).checked ? "true" : "",
+            )
+          }
+        />
+      );
+    }
+    case "number": {
+      return (
+        <input
+          id={id}
+          type="number"
+          disabled={disabled}
+          onKeyDown={onKey}
+          value={value}
+          aria-describedby={describedBy}
+          onInput={(e) =>
+            onChange(field.name, (e.target as HTMLInputElement).value)
+          }
+        />
+      );
+    }
+    case "text": {
+      return (
+        <input
+          id={id}
+          type="text"
+          autocomplete="off"
+          spellcheck={false}
+          disabled={disabled}
+          value={value}
+          aria-describedby={describedBy}
+          onKeyDown={onKey}
+          onInput={(e) =>
+            onChange(field.name, (e.target as HTMLInputElement).value)
+          }
+        />
+      );
+    }
+    case "textarea":
+    case "list":
+    case "json": {
+      return (
+        <textarea
+          id={id}
+          rows={field.control === "textarea" ? 3 : 2}
+          spellcheck={false}
+          disabled={disabled}
+          value={value}
+          aria-describedby={describedBy}
+          onInput={(e) =>
+            onChange(field.name, (e.target as HTMLTextAreaElement).value)
+          }
+        />
+      );
+    }
+    default: {
+      return null;
+    }
+  }
+}
+
+/**
+ * One field: its label, its control, and its help line.
+ *
+ * @param props.field The resolved field.
+ * @param props.value What is currently typed, or the field's initial value.
+ * @param props.disabled Whether a call is in flight.
+ * @param props.t Inspector strings in the page's language.
+ * @param props.onChange Reports a new value for this field.
+ * @param props.onKey Enter submits, except in a textarea.
+ * @returns The field's row.
+ */
+function ArgField({
+  field,
+  value,
+  disabled,
+  t,
+  onChange,
+  onKey,
+}: Readonly<{
+  field: FormField;
+  value: string;
+  disabled: boolean;
+  t: (typeof ui)[Lang]["insp"];
+  onChange: (name: string, value: string) => void;
+  onKey: (e: KeyboardEvent) => void;
+}>) {
+  const id = `arg-${field.name}`;
+  const described = field.description || field.hint;
+  const describedBy = described ? `${id}-d` : undefined;
+
+  return (
+    <div className="arg">
+      <label htmlFor={id}>
+        <span className="arg-name">
+          {field.name}
+          {field.required ? (
+            <b
+              className="req-mark"
+              title={t.required}
+            >
+              {" *"}
+            </b>
+          ) : null}
+        </span>
+        {field.type ? <code className="arg-type">{field.type}</code> : null}
+      </label>
+
+      <ArgControl
+        field={field}
+        id={id}
+        value={value}
+        describedBy={describedBy}
+        disabled={disabled}
+        t={t}
+        onChange={onChange}
+        onKey={onKey}
+      />
+
+      {described ? (
+        <p
+          className="arg-help"
+          id={`${id}-d`}
+        >
+          {field.description}
+          {field.description && field.hint ? " · " : ""}
+          {field.hint}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/**
  * Pinta un control por propiedad del esquema.
  *
  * @param props.fields Campos ya resueltos por `formFields`.
@@ -46,7 +254,7 @@ export default function ArgsForm({
   /** Enter envía, salvo en textarea, donde es un salto de línea legítimo. */
   function onKey(e: KeyboardEvent) {
     if (!(e.key === "Enter" && onSubmit)) {
-    	return;
+      return;
     }
 
     e.preventDefault();
@@ -59,118 +267,21 @@ export default function ArgsForm({
   }
 
   return (
-    <div className="args" data-testid="args-form">
-      {fields.map((field) => {
-        const id = `arg-${field.name}`;
-        const value = values[field.name] ?? field.initial;
-        const described = field.description || field.hint;
-
-        return (
-          <div className="arg" key={field.name}>
-            <label htmlFor={id}>
-              <span className="arg-name">
-                {field.name}
-                {field.required ? (
-                  <b className="req-mark" title={t.required}>
-                    {" *"}
-                  </b>
-                ) : null}
-              </span>
-              {field.type ? <code className="arg-type">{field.type}</code> : null}
-            </label>
-
-            {field.control === "select" ? (
-              <select
-                id={id}
-                disabled={disabled}
-                value={value}
-                aria-describedby={described ? `${id}-d` : undefined}
-                onChange={(e) =>
-                  onChange(field.name, (e.target as HTMLSelectElement).value)
-                }
-              >
-                {/* Vacío el primero: un opcional con enum debe poder no
-                    mandarse, y sin esta opción el desplegable elegiría el
-                    primer valor por el visitante. */}
-                <option value="">{field.required ? t.pickOne : t.omit}</option>
-                {field.options.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            ) : null}
-
-            {field.control === "checkbox" ? (
-              <input
-                id={id}
-                type="checkbox"
-                disabled={disabled}
-                checked={value === "true"}
-                aria-describedby={described ? `${id}-d` : undefined}
-                onChange={(e) =>
-                  onChange(
-                    field.name,
-                    (e.target as HTMLInputElement).checked ? "true" : "",
-                  )
-                }
-              />
-            ) : null}
-
-            {field.control === "number" ? (
-              <input
-                id={id}
-                type="number"
-                disabled={disabled}
-                onKeyDown={onKey}
-                value={value}
-                aria-describedby={described ? `${id}-d` : undefined}
-                onInput={(e) =>
-                  onChange(field.name, (e.target as HTMLInputElement).value)
-                }
-              />
-            ) : null}
-
-            {field.control === "text" ? (
-              <input
-                id={id}
-                type="text"
-                autocomplete="off"
-                spellcheck={false}
-                disabled={disabled}
-                value={value}
-                aria-describedby={described ? `${id}-d` : undefined}
-                onKeyDown={onKey}
-                onInput={(e) =>
-                  onChange(field.name, (e.target as HTMLInputElement).value)
-                }
-              />
-            ) : null}
-
-            {["textarea", "list", "json"].includes(field.control) ? (
-              <textarea
-                id={id}
-                rows={field.control === "textarea" ? 3 : 2}
-                spellcheck={false}
-                disabled={disabled}
-                value={value}
-                aria-describedby={described ? `${id}-d` : undefined}
-                onInput={(e) =>
-                  onChange(field.name, (e.target as HTMLTextAreaElement).value)
-                }
-              />
-            ) : null}
-
-            {described ? (
-              <p className="arg-help" id={`${id}-d`}>
-                {field.description}
-                {field.description && field.hint ? " · " : ""}
-                {field.hint}
-              </p>
-            ) : null}
-          </div>
-        );
-      })}
+    <div
+      className="args"
+      data-testid="args-form"
+    >
+      {fields.map((field) => (
+        <ArgField
+          key={field.name}
+          field={field}
+          value={values[field.name] ?? field.initial}
+          disabled={disabled}
+          t={t}
+          onChange={onChange}
+          onKey={onKey}
+        />
+      ))}
     </div>
   );
 }

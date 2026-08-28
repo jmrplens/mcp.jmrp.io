@@ -44,7 +44,8 @@ export const MARKDOWN_HEADERS = {
 } as const;
 
 /** Pages that have a twin, beyond the per-server fichas. */
-export type TwinPage = "home" | "inspector" | "internals" | "policies" | "servers";
+export type TwinPage =
+  "home" | "inspector" | "internals" | "policies" | "servers";
 
 /**
  * Wraps a rendered body in the response every twin route returns.
@@ -67,12 +68,7 @@ export function markdownResponse(body: string): Response {
  * @param lang Locale of the label.
  * @returns The opening block.
  */
-function head(
-  title: string,
-  summary: string,
-  url: string,
-  lang: Lang,
-): string {
+function head(title: string, summary: string, url: string, lang: Lang): string {
   return `# ${title}\n\n> ${summary}\n\n${ui[lang].mdCanonicalLabel}: ${url}\n`;
 }
 
@@ -98,7 +94,9 @@ export function homeMarkdown(lang: Lang): string {
     .map((server) => {
       const credential =
         server.requiredHeaders.length > 0
-          ? server.requiredHeaders.map((header) => `\`${header.name}\``).join(", ")
+          ? server.requiredHeaders
+              .map((header) => `\`${header.name}\``)
+              .join(", ")
           : t.mdNoneLabel;
       return `- **${server.name}** — \`${server.endpoint}\`\n  ${server.description[lang]}\n  ${t.mdCredentialsLabel}: ${credential}. ${t.mdPageLabel}: ${serverPageUrl(lang, server.id)}`;
     })
@@ -129,12 +127,7 @@ export function inspectorMarkdown(lang: Lang): string {
     head(t.inspectorTitle, t.inspectorIntro, pageUrl(lang, "inspector"), lang) +
     section(t.inspectorEyebrow, [
       t.inspectorIntro,
-      servers
-        .map(
-          (server) =>
-            requiresLine(server, lang),
-        )
-        .join("\n"),
+      servers.map((server) => requiresLine(server, lang)).join("\n"),
       t.mdInspectorNote.replace("{url}", () => pageUrl(lang, "inspector")),
     ]) +
     "\n"
@@ -151,7 +144,9 @@ export function inspectorMarkdown(lang: Lang): string {
  * @returns The bullet.
  */
 function requiresLine(server: McpServer, lang: Lang): string {
-  const names = server.requiredHeaders.map((h) => "`" + h.name + "`").join(", ");
+  const names = server.requiredHeaders
+    .map((h) => "`" + h.name + "`")
+    .join(", ");
   const needs = names ? ` ${ui[lang].mdRequiresLabel} ${names}.` : "";
   return `- \`${server.endpoint}\` — ${server.description[lang]}${needs}`;
 }
@@ -175,7 +170,11 @@ export function internalsMarkdown(lang: Lang): string {
   ].map((step, i) => `${i + 1}. ${step}`);
   return (
     head(t.title, t.lede, pageUrl(lang, "internals"), lang) +
-    section(t.pathEyebrow, [...t.pathBody, t.diagramTimelineIntro, steps.join("\n")]) +
+    section(t.pathEyebrow, [
+      ...t.pathBody,
+      t.diagramTimelineIntro,
+      steps.join("\n"),
+    ]) +
     section(t.wireEyebrow, t.wireBody) +
     section(t.instancesEyebrow, t.instancesBody) +
     section(t.affinityEyebrow, [
@@ -277,7 +276,9 @@ export function serverMarkdown(server: McpServer, lang: Lang): string {
     ) +
     section(t.overviewHead, [facts.join("\n")]) +
     // `toolsHead` lives in `common` (through `ui`), not in `serversPage`.
-    (surface.length > 0 ? section(ui[lang].toolsHead, [surface.join("\n")]) : "") +
+    (surface.length > 0
+      ? section(ui[lang].toolsHead, [surface.join("\n")])
+      : "") +
     section(t.fullCatalogHead, [
       t.fullCatalogBody
         .replace("{corpus}", () => `${SITE_ORIGIN}/llms-full.txt`)
@@ -373,7 +374,6 @@ export function domainMarkdown(
       `${actions.length} ${countLabel}`,
       url,
       lang,
-    ) +
-    `\n\n## ${lang === "es" ? "Acciones" : "Actions"}\n\n${body}\n`
+    ) + `\n\n## ${lang === "es" ? "Acciones" : "Actions"}\n\n${body}\n`
   );
 }

@@ -30,7 +30,9 @@ import { serverPageAlternates, serverPageUrl } from "../../lib/seo";
 
 /** One route per server with a committed Server Card. */
 export const getStaticPaths = (() =>
-  Object.keys(serverCards).map((id) => ({ params: { server: id } }))) satisfies GetStaticPaths;
+  Object.keys(serverCards).map((id) => ({
+    params: { server: id },
+  }))) satisfies GetStaticPaths;
 
 const id = Astro.params.server as string;
 const lang = getLangFromUrl(Astro.url);
@@ -41,7 +43,9 @@ const sp = serversPage[lang];
 // instead of rendering a page with no identity.
 const serverMeta = servers.find((s) => s.id === id);
 if (!serverMeta) {
-  throw new Error(`[servers] "${id}" has a Server Card but no entry in src/data/servers.ts`);
+  throw new Error(
+    `[servers] "${id}" has a Server Card but no entry in src/data/servers.ts`,
+  );
 }
 
 const title = `${serverMeta.name} ${sp.metaTitleServerSuffix}`;

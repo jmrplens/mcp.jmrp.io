@@ -37,7 +37,8 @@ interface Props {
   aliasDomains: Record<string, string>;
 }
 
-const { lang, serverId, domain, actions, tokenNote, aliasDomains } = Astro.props;
+const { lang, serverId, domain, actions, tokenNote, aliasDomains } =
+  Astro.props;
 const sp = serversPage[lang];
 
 const localePrefix = lang === "es" ? "/es/" : "/";
@@ -72,18 +73,28 @@ function domainHref(target: string): string {
   <p class="eyebrow">{sp.domainPageKicker}</p>
   <h1 class="domain-title"><code>{domain}</code></h1>
   <p class="domain-intro">{sp.domainPageIntro}</p>
-  {/* Datos y LEYENDA a la vez: el punto de cada cifra es el mismo que llevan
+  {
+    /* Datos y LEYENDA a la vez: el punto de cada cifra es el mismo que llevan
       las tarjetas de abajo — en móvil los chips con texto no cabían y partían
       línea, así que cada acción lleva solo su punto y la palabra vive aquí
-      (y en sr-only dentro de cada tarjeta: el color nunca es la única señal). */}
+      (y en sr-only dentro de cada tarjeta: el color nunca es la única señal). */
+  }
   <p class="domain-facts">
-    <span class="fact">{actions.length} · {sp.catalogColTotal.toLowerCase()}</span>
+    <span class="fact"
+      >{actions.length} · {sp.catalogColTotal.toLowerCase()}</span
+    >
     <span class="fact fact--destructive">
-      <span class="action-dot action-dot--destructive" aria-hidden="true"></span>
+      <span
+        class="action-dot action-dot--destructive"
+        aria-hidden="true"
+      ></span>
       {destructiveCount} · {sp.catalogColDestructive.toLowerCase()}
     </span>
     <span class="fact fact--readonly">
-      <span class="action-dot action-dot--readonly" aria-hidden="true"></span>
+      <span
+        class="action-dot action-dot--readonly"
+        aria-hidden="true"
+      ></span>
       {readOnlyCount} · {sp.catalogColReadOnly.toLowerCase()}
     </span>
   </p>
@@ -97,7 +108,10 @@ function domainHref(target: string): string {
     total={actions.length}
   />
 
-  <ol class="actions-list" id="actions-list">
+  <ol
+    class="actions-list"
+    id="actions-list"
+  >
     {
       actions.map((action) => (
         <li>
@@ -112,22 +126,20 @@ function domainHref(target: string): string {
             <summary class="action-summary">
               <code class="action-id">{action.id}</code>
               <span class="action-title">{action.title}</span>
-              {
-                action.alias_of && (
-                  <span class="action-alias">
-                    {sp.domainAliasOf}{" "}
-                    <a
-                      href={`${
-                        aliasDomains[action.alias_of] === domain
-                          ? ""
-                          : domainHref(aliasDomains[action.alias_of] ?? domain)
-                      }#${action.alias_of}`}
-                    >
-                      <code>{action.alias_of}</code>
-                    </a>
-                  </span>
-                )
-              }
+              {action.alias_of && (
+                <span class="action-alias">
+                  {sp.domainAliasOf}{" "}
+                  <a
+                    href={`${
+                      aliasDomains[action.alias_of] === domain
+                        ? ""
+                        : domainHref(aliasDomains[action.alias_of] ?? domain)
+                    }#${action.alias_of}`}
+                  >
+                    <code>{action.alias_of}</code>
+                  </a>
+                </span>
+              )}
               <span class="action-chips">
                 {action.destructive && (
                   <span class="action-dot action-dot--destructive">
@@ -167,9 +179,8 @@ function domainHref(target: string): string {
                   <span>{sp.domainNoParams}</span>
                 )}
               </p>
-              {
-                action.required_params_any_of &&
-                  action.required_params_any_of.length > 0 && (
+              {action.required_params_any_of &&
+                action.required_params_any_of.length > 0 && (
                   <p class="action-params">
                     <strong>{sp.domainAnyOfLabel}:</strong>{" "}
                     {action.required_params_any_of.map((group, gi) => (
@@ -184,8 +195,7 @@ function domainHref(target: string): string {
                       </>
                     ))}
                   </p>
-                )
-              }
+                )}
             </div>
           </details>
         </li>
@@ -250,8 +260,8 @@ function domainHref(target: string): string {
 
   .domain-note {
     margin: 0 0 0.5rem;
-    color: var(--color-text-muted);
     font-size: var(--text-sm);
+    color: var(--color-text-muted);
   }
 
   .domain-back {
@@ -295,13 +305,13 @@ function domainHref(target: string): string {
   }
 
   .action-title {
-    color: var(--color-text-muted);
     font-size: var(--text-sm);
+    color: var(--color-text-muted);
   }
 
   .action-alias {
-    color: var(--color-text-muted);
     font-size: var(--text-xs);
+    color: var(--color-text-muted);
   }
 
   .action-chips {
@@ -343,7 +353,7 @@ function domainHref(target: string): string {
 
   .action-params {
     margin: 0.65rem 0 0;
-    color: var(--color-text-muted);
     font-size: var(--text-sm);
+    color: var(--color-text-muted);
   }
 </style>

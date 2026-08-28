@@ -21,7 +21,11 @@ const LIBGEN_SEARCH = {
   required: ["query"],
   properties: {
     query: { type: "string", description: "What to look for" },
-    results_per_page: { type: "integer", description: "Page size", default: 25 },
+    results_per_page: {
+      type: "integer",
+      description: "Page size",
+      default: 25,
+    },
     order: { type: "string", enum: ["year", "size"] },
     topics: { type: "array", items: { type: "string" } },
     extra_sources: { type: "boolean" },
@@ -33,7 +37,11 @@ const body = (tools) => ({ jsonrpc: "2.0", id: 1, result: { tools } });
 test("toolsFrom saca nombre, descripción y esquema del catálogo", () => {
   const tools = toolsFrom(
     body([
-      { name: "search", description: "Search Library Genesis", inputSchema: LIBGEN_SEARCH },
+      {
+        name: "search",
+        description: "Search Library Genesis",
+        inputSchema: LIBGEN_SEARCH,
+      },
       { name: "read", inputSchema: { type: "object" } },
     ]),
   );
@@ -45,7 +53,9 @@ test("toolsFrom saca nombre, descripción y esquema del catálogo", () => {
 });
 
 test("toolsFrom acepta también input_schema en snake_case", () => {
-  const tools = toolsFrom(body([{ name: "search", input_schema: LIBGEN_SEARCH }]));
+  const tools = toolsFrom(
+    body([{ name: "search", input_schema: LIBGEN_SEARCH }]),
+  );
   assert.deepEqual(tools[0].inputSchema.required, ["query"]);
 });
 
@@ -114,7 +124,10 @@ test("skeletonFor usa el tipo, el default y el primer valor del enum", () => {
 
 test("skeletonFor da {} cuando la tool no exige nada", () => {
   assert.equal(skeletonFor(undefined), "{}");
-  assert.equal(skeletonFor({ type: "object", properties: { q: { type: "string" } } }), "{}");
+  assert.equal(
+    skeletonFor({ type: "object", properties: { q: { type: "string" } } }),
+    "{}",
+  );
 });
 
 test("el esqueleto sale indentado, que es lo que se pega en el textarea", () => {

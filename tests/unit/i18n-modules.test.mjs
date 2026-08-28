@@ -59,7 +59,11 @@ const leafPaths = (value, prefix = "") => {
 // cubría: eran los únicos módulos cuyo español podía quedarse corto sin que
 // nada se quejara.
 test("los dos idiomas exponen exactamente las mismas claves", () => {
-  for (const [name, mod] of Object.entries({ ...MERGED, internals, serversPage })) {
+  for (const [name, mod] of Object.entries({
+    ...MERGED,
+    internals,
+    serversPage,
+  })) {
     assert.deepEqual(
       sorted(leafPaths(mod.en)),
       sorted(leafPaths(mod.es)),

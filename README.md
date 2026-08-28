@@ -4,13 +4,13 @@ Public site for the self-hosted **Model Context Protocol** servers of
 [jmrp.io](https://jmrp.io): which endpoints exist, how to use them, and an
 inspector to try them from the browser.
 
-**https://mcp.jmrp.io** · [Español](https://mcp.jmrp.io/es/)
+**[mcp.jmrp.io](https://mcp.jmrp.io)** · [Español](https://mcp.jmrp.io/es/)
 
 ## The servers
 
-| Endpoint | Repository | Credentials |
-|---|---|---|
-| `https://mcp.jmrp.io/libgen` | [libgen-mcp](https://github.com/jmrplens/libgen-mcp) | None |
+| Endpoint                     | Repository                                                         | Credentials                                          |
+| ---------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------- |
+| `https://mcp.jmrp.io/libgen` | [libgen-mcp](https://github.com/jmrplens/libgen-mcp)               | None                                                 |
 | `https://mcp.jmrp.io/gitlab` | [gitlab-mcp-server](https://github.com/jmrplens/gitlab-mcp-server) | `Authorization: Bearer` per request (OAuth or a PAT) |
 
 Transport is **streamable HTTP**. `https://mcp.jmrp.io/servers.json` returns
@@ -41,10 +41,12 @@ is the path for headless and CI use.
 > Tokens travel with each request and are **never stored on the server**. The
 > inspector on this site keeps them in browser memory only: it touches neither
 > `localStorage` nor cookies, and they are gone on reload.
-
-> A `GET` on an endpoint answers **405**: in *stateless* mode the protocol
-> reserves `GET`/`DELETE` for sessions. The server is not down — use `POST`,
-> or `/libgen/health` to check its status.
+>
+> A `GET` on an endpoint never returns a page: libgen rejects the method with
+> **405**, and gitlab checks credentials before the method, so it answers
+> **401**. In _stateless_ mode the protocol reserves `GET`/`DELETE` for
+> sessions. The server is not down — use `POST`, or `/libgen/health` and
+> `/gitlab/health` to check status.
 
 ## Development
 
@@ -55,13 +57,13 @@ pnpm install
 pnpm dev
 ```
 
-| Command | What it does |
-|---|---|
-| `pnpm build` | Build into `dist/` |
-| `pnpm deploy` | Build + nginx snippets + Cloudflare purge |
-| `pnpm lint` · `pnpm typecheck` | eslint · astro check |
-| `pnpm test:unit` · `pnpm test:e2e` | node:test · Playwright |
-| `pnpm identity:sync` | Refresh the canonical identity snapshot |
+| Command                            | What it does                              |
+| ---------------------------------- | ----------------------------------------- |
+| `pnpm build`                       | Build into `dist/`                        |
+| `pnpm deploy`                      | Build + nginx snippets + Cloudflare purge |
+| `pnpm lint` · `pnpm typecheck`     | eslint · astro check                      |
+| `pnpm test:unit` · `pnpm test:e2e` | node:test · Playwright                    |
+| `pnpm identity:sync`               | Refresh the canonical identity snapshot   |
 
 The e2e tests call the **real endpoints** in production: that is intentional —
 they validate the full path. Without Internet access, `E2E_NO_NETWORK=1`

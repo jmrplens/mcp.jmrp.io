@@ -1,15 +1,22 @@
-# CSpell Configuration — jmrp.io
+# CSpell Configuration — mcp.jmrp.io
 # Bilingual spell checker (English + Spanish)
 # Docs: https://cspell.org/configuration/
 
+# Both languages everywhere, deliberately. In jmrp.io Spanish lives in its
+# own files, so it is switched on by path overrides. Here the two are
+# interleaved: `src/i18n/ui/*.ts` holds the English and the Spanish copy in
+# ONE file, and the code comments are still largely Spanish (their
+# translation is a backlog item). Per-path overrides cannot express that,
+# and without this every ordinary Spanish word was reported — 21,668 of
+# them, which is the same as having no spell check at all.
 version: "0.2"
-language: en
+language: en,es
 
 # Import Spanish dictionary
 import:
   - "@cspell/dict-es-es/cspell-ext.json"
 
-# Dictionaries to always enable (Spanish activates via overrides)
+# Dictionaries to always enable
 dictionaryDefinitions:
   - name: project-words
     path: ./cspell-project-words.txt
@@ -83,37 +90,14 @@ ignorePaths:
   - docs/I18N_RESEARCH.md
   - "*.tmLanguage.json"
 
-# Per-path language overrides
+# Per-path overrides
+#
+# The bilingual overrides jmrp.io carries here are gone: they named its own
+# paths (`src/content/posts/es/**`, `src/content/cv/es.yaml`, the About/Uses/Now
+# pages), none of which exist in this repo, so they matched nothing. Spanish is
+# enabled globally above instead.
 overrides:
-  # Global style system carries Spanish design-token comments (Lab system)
-  - filename: "src/styles/{tokens,base,utilities,global}.css"
-    language: es,en
-  # Spanish content — check against BOTH English and Spanish dictionaries
-  - filename: "src/content/posts/es/**"
-    language: es,en
-  - filename: "src/content/tools/es/**"
-    language: es,en
-  - filename: "src/content/cv/es.yaml"
-    language: es,en
-  - filename: "src/i18n/translations/es/**"
-    language: es,en
-  # About/Uses/Now pages carry inline bilingual (ES+EN) prose content
-  - filename: "src/components/pages/{About,Uses,Now}Page.astro"
-    language: es,en
-  # Profile content collection (About/Uses page data) carries bilingual
-  # (ES+EN) bio/homelab prose per-locale, same as the *Page.astro components above
-  - filename: "src/content/profile/*.yaml"
-    language: es,en
-  # OG image generator has per-locale (ES+EN) titles/subtitles/category labels
-  - filename: "src/pages/og/**"
-    language: es,en
-  # llms.txt/llms-full.txt generator carries the per-locale profile prose that
-  # feeds the Spanish AI-context document, same as the *Page.astro files above
-  - filename: "src/utils/llms.ts"
-    language: es,en
-  # PDF metadata script has Spanish certificate/course names
-  - filename: "scripts/optimize-pdf-metadata.py"
-    language: es,en
-  # RSS template has odd interpolation patterns
-  - filename: "src/pages/rss.xml.ts"
+  # Generated from the live servers; the tool names and descriptions are the
+  # binaries' own vocabulary, not prose this repo writes.
+  - filename: "src/data/cards/*.json"
     enabled: false

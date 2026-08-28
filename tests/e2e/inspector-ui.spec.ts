@@ -1,6 +1,15 @@
 import { expect, test } from "@playwright/test";
 
-import { inspector, loadButton, pickTool, runButton, serverSelect, stubMcp, TOOLS_LIST, toolSelect } from "./helpers";
+import {
+  inspector,
+  loadButton,
+  pickTool,
+  runButton,
+  serverSelect,
+  stubMcp,
+  TOOLS_LIST,
+  toolSelect,
+} from "./helpers";
 
 /**
  * Lo que convierte el volcado de JSON en un inspector usable: elegir la tool de
@@ -17,7 +26,10 @@ import { inspector, loadButton, pickTool, runButton, serverSelect, stubMcp, TOOL
 const TOOL_ERROR = {
   jsonrpc: "2.0",
   id: 1,
-  result: { content: [{ type: "text", text: "query is required" }], isError: true },
+  result: {
+    content: [{ type: "text", text: "query is required" }],
+    isError: true,
+  },
 };
 
 const TOOL_OK = {
@@ -154,7 +166,9 @@ test("un error JSON-RPC lleva su código, no el HTTP", async ({ page }) => {
   await expect(status(page)).toContainText("unexpected additional properties");
 });
 
-test("la línea de estado da método, código, tiempo y tamaño", async ({ page }) => {
+test("la línea de estado da método, código, tiempo y tamaño", async ({
+  page,
+}) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
   await page.goto("/inspector/");
   await loadButton(page).click();
@@ -263,7 +277,9 @@ test("Enter en el formulario lanza la llamada", async ({ page }) => {
   // ya relleno es fricción gratuita.
   await page.locator(".arg input, .arg textarea").first().press("Enter");
 
-  await expect.poll(() => sent.filter((r) => r.body.method === "tools/call").length).toBe(1);
+  await expect
+    .poll(() => sent.filter((r) => r.body.method === "tools/call").length)
+    .toBe(1);
   expect(sent.at(-1)?.body).toMatchObject({
     method: "tools/call",
     params: { name: "search" },

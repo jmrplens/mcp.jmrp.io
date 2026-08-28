@@ -1,0 +1,64 @@
+# Broken-link sweep for mcp.jmrp.io.
+#
+# Adapted from jmrp.io's config: the structural settings carry over unchanged,
+# but its exclude list did not — it was almost entirely co-author profiles,
+# UPV faculty pages and publication DOIs, none of which this site links to.
+# What replaces it is this site's own shape: two endpoints that answer an error
+# to GET by design, and the MCP directories that block automated traffic.
+
+cache = true
+max_cache_age = "1d"
+
+no_progress = true
+
+# lychee's default valid range is `100..=103, 200..=299`. 408 is added for the
+# same reason jmrp.io added it: it means "nobody answered in time", a network
+# condition rather than a dead link. A real 404 or 410 still fails.
+accept = ["100..=103", "200..=299", "408"]
+
+exclude = [
+    # --- This site's own MCP endpoints ------------------------------------
+    # These are JSON-RPC call targets, not pages: a GET is rejected by design
+    # (405 on libgen, which refuses the method; 401 on gitlab, which checks
+    # credentials before it checks the method). They are linked on purpose —
+    # llms.txt points at them as call targets — so the links are correct and
+    # it is the checker's expectation that is wrong. Path-anchored rather than
+    # host-wide: every ordinary page under mcp.jmrp.io stays checked.
+    'https://mcp\.jmrp\.io/(gitlab|libgen)(/.*)?$',
+
+    # --- Directories and registries that block datacenter traffic ---------
+    'https://glama\.ai/.*',            # slow, times out
+    'https://cursor\.directory/.*',    # 429 to bots
+    'https://www\.npmjs\.com/.*',      # 403 to every non-browser address
+    'https://learn\.microsoft\.com/.*',# 403 to bots
+    'linkedin\.com',
+    'scholar\.google\.',
+
+    # --- Astro/template interpolation that is not a URL -------------------
+    '.*\$\{.*',
+    '.*\%7B.*',
+    '.*\%7D.*',
+
+    # --- Local ------------------------------------------------------------
+    'http://localhost.*',
+    'http://127\.0\.0\.1.*',
+]
+
+# Globs checked when running against sources rather than the build output.
+include = [
+    "./**/*.md",
+    "./src/**/*.astro",
+    "./src/**/*.ts",
+    "./src/**/*.tsx",
+]
+
+# NOT "builds": that is where the build output lives, and `pnpm verify` points
+# lychee straight at the colour it just built. Excluding it here silently
+# reduced the sweep to zero files while still exiting 0 — a check that passes
+# by looking at nothing.
+exclude_path = [
+    "node_modules",
+    "ops",
+]
+
+verbose = "error"

@@ -41,24 +41,29 @@ test("libgen (card completo): expone title/description/websiteUrl/icons de servi
     "Federated search of books and papers, BibTeX/RIS citations, open-access retrieval and reading.",
   );
   assert.equal(card.serverInfo.websiteUrl, "https://jmrp.io/docs/libgen-mcp");
-  assert.ok(Array.isArray(card.serverInfo.icons) && card.serverInfo.icons.length > 0);
-  assert.ok(card.serverInfo.icons.every((icon) => icon.src.startsWith("data:image/")));
+  assert.ok(
+    Array.isArray(card.serverInfo.icons) && card.serverInfo.icons.length > 0,
+  );
+  assert.ok(
+    card.serverInfo.icons.every((icon) => icon.src.startsWith("data:image/")),
+  );
 
   assert.ok(card.tools.length > 0, "libgen debería tener tools");
   for (const tool of card.tools) {
-    assert.ok(Array.isArray(tool.icons) && tool.icons.length > 0, `${tool.name}: sin icons`);
+    assert.ok(
+      Array.isArray(tool.icons) && tool.icons.length > 0,
+      `${tool.name}: sin icons`,
+    );
     assert.ok(tool.icons.every((icon) => icon.src.startsWith("data:image/")));
   }
 
   const download = card.tools.find((t) => t.name === "download");
   assert.ok(download, "falta la tool 'download'");
   assert.ok(download.annotations, "download: sin annotations curadas");
-  assert.deepEqual(Object.keys(download.annotations).sort((a, b) => a.localeCompare(b)), [
-    "destructiveHint",
-    "idempotentHint",
-    "openWorldHint",
-    "readOnlyHint",
-  ]);
+  assert.deepEqual(
+    Object.keys(download.annotations).sort((a, b) => a.localeCompare(b)),
+    ["destructiveHint", "idempotentHint", "openWorldHint", "readOnlyHint"],
+  );
   assert.equal(download.annotations.readOnlyHint, false);
   assert.equal(download.annotations.destructiveHint, false);
   assert.equal(download.annotations.idempotentHint, true);
@@ -69,7 +74,10 @@ test("libgen (card completo): expone title/description/websiteUrl/icons de servi
 
   assert.ok(card.prompts.length > 0, "libgen debería tener prompts");
   for (const prompt of card.prompts) {
-    assert.ok(Array.isArray(prompt.icons) && prompt.icons.length > 0, `${prompt.name}: sin icons`);
+    assert.ok(
+      Array.isArray(prompt.icons) && prompt.icons.length > 0,
+      `${prompt.name}: sin icons`,
+    );
   }
 });
 
@@ -86,8 +94,14 @@ test("gitlab (identidad propia desde 2.7.0): expone title/description/websiteUrl
   // impediría publicar la identidad que el servidor ya declara.
   assert.equal(card.serverInfo.name, "gitlab-mcp-server");
   assert.equal(card.serverInfo.title, "GitLab MCP Server");
-  assert.ok(card.serverInfo.description, "gitlab: falta serverInfo.description");
-  assert.equal(card.serverInfo.websiteUrl, "https://jmrp.io/docs/gitlab-mcp-server");
+  assert.ok(
+    card.serverInfo.description,
+    "gitlab: falta serverInfo.description",
+  );
+  assert.equal(
+    card.serverInfo.websiteUrl,
+    "https://jmrp.io/docs/gitlab-mcp-server",
+  );
   assert.ok(card.serverInfo.icons?.length, "gitlab: falta serverInfo.icons");
 
   assert.ok(card.tools.length > 0, "gitlab debería tener tools");
@@ -99,13 +113,22 @@ test("gitlab (identidad propia desde 2.7.0): expone title/description/websiteUrl
     assert.ok(tool.icons?.length, `${tool.name}: 2.7.2 publica icons de tool`);
   }
   for (const prompt of card.prompts) {
-    assert.ok(prompt.icons?.length, `${prompt.name}: 2.7.2 publica icons de prompt`);
+    assert.ok(
+      prompt.icons?.length,
+      `${prompt.name}: 2.7.2 publica icons de prompt`,
+    );
   }
   for (const resource of card.resources) {
-    assert.ok(resource.icons?.length, `${resource.name}: 2.7.2 publica icons de resource`);
+    assert.ok(
+      resource.icons?.length,
+      `${resource.name}: 2.7.2 publica icons de resource`,
+    );
   }
   for (const template of card.resourceTemplates) {
-    assert.ok(template.icons?.length, `${template.name}: 2.7.2 publica icons de template`);
+    assert.ok(
+      template.icons?.length,
+      `${template.name}: 2.7.2 publica icons de template`,
+    );
   }
 
   // Annotations already existed on gitlab's card before this change; the
@@ -122,7 +145,9 @@ test("filterIcons: descarta un icono con esquema no permitido y conserva los dat
     { src: "javascript:alert(1)" },
     { src: "https://evil.example/icon.svg" },
   ];
-  assert.deepEqual(filterIcons(icons), [{ src: "data:image/svg+xml;base64,AAAA" }]);
+  assert.deepEqual(filterIcons(icons), [
+    { src: "data:image/svg+xml;base64,AAAA" },
+  ]);
 });
 
 test("filterIcons: si ninguno es seguro, devuelve undefined en vez de un array vacío ambiguo", () => {
@@ -150,7 +175,10 @@ test("validateServerCardDocument: un card malformado (sin serverInfo.name) falla
 
 test("validateServerCardDocument: un card malformado (sin serverInfo.version) falla ruidosamente", () => {
   assert.throws(
-    () => validateServerCardDocument("broken", { serverInfo: { name: "broken-mcp" } }),
+    () =>
+      validateServerCardDocument("broken", {
+        serverInfo: { name: "broken-mcp" },
+      }),
     /serverInfo\.version/,
   );
 });
@@ -194,7 +222,10 @@ test("filterWebsiteUrl: conserva una URL https", () => {
 });
 
 test("filterWebsiteUrl: el esquema es insensible a mayúsculas, y el valor sale verbatim", () => {
-  assert.equal(filterWebsiteUrl("HTTPS://jmrp.io/docs"), "HTTPS://jmrp.io/docs");
+  assert.equal(
+    filterWebsiteUrl("HTTPS://jmrp.io/docs"),
+    "HTTPS://jmrp.io/docs",
+  );
 });
 
 test("filterWebsiteUrl: descarta cualquier esquema que no sea https, sin lanzar", () => {
@@ -261,7 +292,11 @@ test("los dos cards committeados cumplen la forma mínima de authentication", ()
   for (const id of ["libgen", "gitlab"]) {
     const card = getServerCard(id);
     assert.ok(card, `${id} debería tener una card committeada`);
-    assert.equal(typeof card.authentication.required, "boolean", `${id}: required`);
+    assert.equal(
+      typeof card.authentication.required,
+      "boolean",
+      `${id}: required`,
+    );
     assert.ok(Array.isArray(card.authentication.schemes), `${id}: schemes`);
   }
 });
@@ -274,8 +309,12 @@ test("los dos cards committeados cumplen la forma mínima de authentication", ()
 // que borrar el filtro del resumen se note.
 test("summarizeServerCardDocument: un websiteUrl que no es https no llega al resumen que pinta la página", () => {
   const doc = validateServerCardDocument("wired", {
-    // eslint-disable-next-line sonarjs/no-clear-text-protocols, unicorn/prefer-https -- El literal http:// ES el caso bajo prueba: que un card que publique su sitio en claro pierda el enlace en vez de aparecer como "sitio oficial". Sustituirlo por https vaciaría la aserción.
-    serverInfo: { name: "wired-mcp", version: "1.0.0", websiteUrl: "http://jmrp.io/docs" },
+    serverInfo: {
+      name: "wired-mcp",
+      version: "1.0.0",
+      // eslint-disable-next-line sonarjs/no-clear-text-protocols, unicorn/prefer-https -- El literal http:// ES el caso bajo prueba: que un card que publique su sitio en claro pierda el enlace en vez de aparecer como "sitio oficial". Sustituirlo por https vaciaría la aserción.
+      websiteUrl: "http://jmrp.io/docs",
+    },
     authentication: { required: false, schemes: [] },
   });
 
@@ -288,7 +327,11 @@ test("summarizeServerCardDocument: un websiteUrl que no es https no llega al res
 
 test("summarizeServerCardDocument: un websiteUrl https sí llega al resumen, verbatim", () => {
   const doc = validateServerCardDocument("wired", {
-    serverInfo: { name: "wired-mcp", version: "1.0.0", websiteUrl: "https://jmrp.io/docs" },
+    serverInfo: {
+      name: "wired-mcp",
+      version: "1.0.0",
+      websiteUrl: "https://jmrp.io/docs",
+    },
     authentication: { required: false, schemes: [] },
   });
 
@@ -303,14 +346,21 @@ test("summarizeServerCardDocument: los iconos con esquema no permitido tampoco l
     serverInfo: {
       name: "wired-mcp",
       version: "1.0.0",
-      icons: [{ src: "javascript:alert(1)" }, { src: "data:image/svg+xml;base64,AAAA" }],
+      icons: [
+        { src: "javascript:alert(1)" },
+        { src: "data:image/svg+xml;base64,AAAA" },
+      ],
     },
     authentication: { required: false, schemes: [] },
-    tools: [{ name: "peligrosa", icons: [{ src: "https://evil.example/icon.svg" }] }],
+    tools: [
+      { name: "peligrosa", icons: [{ src: "https://evil.example/icon.svg" }] },
+    ],
   });
 
   const card = summarizeServerCardDocument("wired", doc);
-  assert.deepEqual(card.serverInfo.icons, [{ src: "data:image/svg+xml;base64,AAAA" }]);
+  assert.deepEqual(card.serverInfo.icons, [
+    { src: "data:image/svg+xml;base64,AAAA" },
+  ]);
   assert.equal(card.tools[0].icons, undefined);
 });
 
@@ -362,13 +412,19 @@ test("safeIcon: prefiere el SVG aunque el card lo publique en otra posición", (
   // le aplicaría el `filter: invert(1)` de ServerPage, pensado para SVG
   // monocromos: dos defectos visibles y ningún error.
   const webpFirst = [
-    { src: "data:image/webp;base64,AA==", mimeType: "image/webp", theme: "light" },
+    {
+      src: "data:image/webp;base64,AA==",
+      mimeType: "image/webp",
+      theme: "light",
+    },
     { src: "data:image/svg+xml;base64,BB==", mimeType: "image/svg+xml" },
   ];
   assert.equal(safeIcon(webpFirst).mimeType, "image/svg+xml");
 
   // Sin SVG, se coge el primero seguro en vez de no pintar nada.
-  const noSvg = [{ src: "data:image/webp;base64,AA==", mimeType: "image/webp" }];
+  const noSvg = [
+    { src: "data:image/webp;base64,AA==", mimeType: "image/webp" },
+  ];
   assert.equal(safeIcon(noSvg).mimeType, "image/webp");
 
   // Un SVG con `src` inseguro no gana por ser SVG.
@@ -398,14 +454,33 @@ test("gitlab: expone capabilities y subscriptions en el resumen curado", () => {
   assert.ok(card.subscriptions, "gitlab: falta subscriptions");
   const listen = card.subscriptions.methods["subscriptions/listen"];
   assert.ok(listen, "falta el método subscriptions/listen");
-  assert.equal(listen.available, true, "subscriptions/listen: disponible en este despliegue");
-  assert.equal(listen.since_protocol, "2026-07-28", "subscriptions/listen.since_protocol");
+  assert.equal(
+    listen.available,
+    true,
+    "subscriptions/listen: disponible en este despliegue",
+  );
+  assert.equal(
+    listen.since_protocol,
+    "2026-07-28",
+    "subscriptions/listen.since_protocol",
+  );
 
   const subscribe = card.subscriptions.methods["resources/subscribe"];
   assert.ok(subscribe, "falta el método resources/subscribe");
-  assert.equal(subscribe.available, false, "resources/subscribe: no disponible (stateless)");
-  assert.equal(typeof subscribe.requires, "string", "resources/subscribe.requires: string");
-  assert.ok(subscribe.requires.length > 0, "resources/subscribe.requires: no vacía");
+  assert.equal(
+    subscribe.available,
+    false,
+    "resources/subscribe: no disponible (stateless)",
+  );
+  assert.equal(
+    typeof subscribe.requires,
+    "string",
+    "resources/subscribe.requires: string",
+  );
+  assert.ok(
+    subscribe.requires.length > 0,
+    "resources/subscribe.requires: no vacía",
+  );
 
   // Sin recuentos fijados: el build re-sincroniza el snapshot y cada release
   // upstream los movería sin que el card deje de ser coherente. La coherencia
@@ -420,7 +495,10 @@ test("gitlab: el flag _meta suscribible se propaga curado y coincide con la list
   const card = getServerCard("gitlab");
   assert.ok(card?.subscriptions, "gitlab debería tener card y subscriptions");
 
-  assert.ok(card.resourceTemplates.length > 0, "gitlab publica resource templates");
+  assert.ok(
+    card.resourceTemplates.length > 0,
+    "gitlab publica resource templates",
+  );
   const flagged = card.resourceTemplates.filter((tmpl) => tmpl.subscribable);
   assert.equal(
     flagged.length,
@@ -432,25 +510,47 @@ test("gitlab: el flag _meta suscribible se propaga curado y coincide con la list
   // templates marcados por `_meta` debe ser EXACTAMENTE el que declara
   // `subscriptions.subscribable_uri_templates`. Si una release del servidor
   // actualiza una lista y no la otra, este deepEqual lo dice con nombres.
-  const fromMeta = flagged.map((tmpl) => tmpl.uriTemplate).sort((a, b) => a.localeCompare(b));
-  const declared = [...card.subscriptions.subscribable_uri_templates].sort((a, b) =>
-    a.localeCompare(b),
+  const fromMeta = flagged
+    .map((tmpl) => tmpl.uriTemplate)
+    .sort((a, b) => a.localeCompare(b));
+  const declared = [...card.subscriptions.subscribable_uri_templates].sort(
+    (a, b) => a.localeCompare(b),
   );
-  assert.deepEqual(fromMeta, declared, "las dos fuentes del card han derivado entre sí");
+  assert.deepEqual(
+    fromMeta,
+    declared,
+    "las dos fuentes del card han derivado entre sí",
+  );
 
   // `_meta` crudo no debe salir de la capa de datos — espejo de la aserción
   // sobre `annotations.title` del test de libgen.
   for (const tmpl of card.resourceTemplates) {
-    assert.equal("_meta" in tmpl, false, `${tmpl.uriTemplate}: _meta crudo en el resumen`);
+    assert.equal(
+      "_meta" in tmpl,
+      false,
+      `${tmpl.uriTemplate}: _meta crudo en el resumen`,
+    );
   }
 });
 
 test("libgen: capabilities sin subscriptions, y cero templates", () => {
   const card = getServerCard("libgen");
   assert.ok(card, "libgen debería tener una card committeada");
-  assert.equal(card.capabilities?.tools?.listChanged, true, "capabilities.tools.listChanged");
-  assert.equal(card.subscriptions, undefined, "libgen no publica subscriptions");
-  assert.deepEqual(card.resourceTemplates, [], "libgen no publica resource templates");
+  assert.equal(
+    card.capabilities?.tools?.listChanged,
+    true,
+    "capabilities.tools.listChanged",
+  );
+  assert.equal(
+    card.subscriptions,
+    undefined,
+    "libgen no publica subscriptions",
+  );
+  assert.deepEqual(
+    card.resourceTemplates,
+    [],
+    "libgen no publica resource templates",
+  );
 });
 
 test("validateServerCardDocument: capabilities que no es objeto falla ruidosamente", () => {
@@ -502,7 +602,9 @@ test("validateServerCardDocument: subscriptions sin methods / con available no b
     () =>
       validateServerCardDocument("broken", {
         ...base,
-        subscriptions: { methods: { "subscriptions/listen": { available: true } } },
+        subscriptions: {
+          methods: { "subscriptions/listen": { available: true } },
+        },
       }),
     /subscriptions\.subscribable_uri_templates is missing or not an array/,
   );

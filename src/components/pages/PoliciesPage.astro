@@ -33,57 +33,102 @@ const gitlabNoticeHref = `${homeHref}#gitlab-security`;
     <a href={homeHref}>{t.backToHome}</a>
   </p>
 
-  {/* Kicker + h1 + intro + hairline, matching jmrp.io's PrivacyPage.astro
+  {
+    /* Kicker + h1 + intro + hairline, matching jmrp.io's PrivacyPage.astro
       `.privacy-header` — see the `.subpage-header` comment in base.css for
-      why this page had none of it before. */}
+      why this page had none of it before. */
+  }
   <header class="subpage-header">
     <p class="section-title">{t.policiesEyebrow}</p>
     <h1 class="subpage-title">{t.policiesTitle}</h1>
     <p class="subpage-intro">{t.policiesIntro}</p>
   </header>
 
-  <section class="policies-section" aria-labelledby="privacy-h">
-    <h2 class="subsection-title" id="privacy-h">{t.privacyEyebrow}</h2>
+  <section
+    class="policies-section"
+    aria-labelledby="privacy-h"
+  >
+    <h2
+      class="subsection-title"
+      id="privacy-h"
+    >
+      {t.privacyEyebrow}
+    </h2>
     {t.privacyBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
-    {/* The pointer the last `privacyBody` paragraph stops short of. It is NOT
+    {
+      /* The pointer the last `privacyBody` paragraph stops short of. It is NOT
         part of that array on purpose: the array is printed as plain text, so
         an `<a>` cannot live inside one of its strings — the reason the copy
         is split across two keys (see `policies.credentialNotice`). Same
         shape as `InspectorPage.astro`'s `noticePointer`, deliberately: two
-        pages asking the same question have to land on the same answer. */}
+        pages asking the same question have to land on the same answer. */
+    }
     <p class="prose-text">
       {t.credentialNotice}{" "}
       <a href={gitlabNoticeHref}>{t.credentialNoticeLink}</a>
     </p>
   </section>
 
-  <section class="policies-section" aria-labelledby="logs-h">
-    <h2 class="subsection-title" id="logs-h">{t.logsEyebrow}</h2>
+  <section
+    class="policies-section"
+    aria-labelledby="logs-h"
+  >
+    <h2
+      class="subsection-title"
+      id="logs-h"
+    >
+      {t.logsEyebrow}
+    </h2>
     {t.logsBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
   </section>
 
-  <section class="policies-section" aria-labelledby="sla-h">
-    <h2 class="subsection-title" id="sla-h">{t.slaEyebrow}</h2>
+  <section
+    class="policies-section"
+    aria-labelledby="sla-h"
+  >
+    <h2
+      class="subsection-title"
+      id="sla-h"
+    >
+      {t.slaEyebrow}
+    </h2>
     {t.slaBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
   </section>
 
-  <section class="policies-section" aria-labelledby="egress-h">
-    <h2 class="subsection-title" id="egress-h">{t.egressEyebrow}</h2>
+  <section
+    class="policies-section"
+    aria-labelledby="egress-h"
+  >
+    <h2
+      class="subsection-title"
+      id="egress-h"
+    >
+      {t.egressEyebrow}
+    </h2>
     {t.egressBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
   </section>
 
-  <section class="policies-section" aria-labelledby="legal-h">
-    <h2 class="subsection-title" id="legal-h">{t.legalEyebrow}</h2>
+  <section
+    class="policies-section"
+    aria-labelledby="legal-h"
+  >
+    <h2
+      class="subsection-title"
+      id="legal-h"
+    >
+      {t.legalEyebrow}
+    </h2>
     {t.legalBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
   </section>
 
-  {/* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
-      cannot just live in the footer. */}
+  {
+    /* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
+      cannot just live in the footer. */
+  }
   <UpdatedLine lang={lang} />
 </div>
 
 <style>
-
   /* Heading size and the kicker+h1+intro shell now live in base.css's
      `.subpage-title`/`.subpage-header`/`.subpage-intro` — Inspector and
      Internals need the exact same shapes, so they stopped being per-page
@@ -100,13 +145,13 @@ const gitlabNoticeHref = `${homeHref}#gitlab-security`;
   }
 
   /* Copied from InspectorPage.astro's / HomePage.astro's shared rules: Astro
-     scopes <style> per component, so a class used on more than one page needs
+     scopes \3c style> per component, so a class used on more than one page needs
      its own copy here. */
   .back-link {
     margin: 0 0 1.5rem;
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: 0.8125rem;
+    color: var(--color-text-muted);
   }
 
   .back-link a {

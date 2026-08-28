@@ -31,7 +31,10 @@ import { SITE_ORIGIN } from "../../lib/seo";
   page="inspector"
   noindex
 >
-  <p class="callback-note" data-origin={SITE_ORIGIN}>
+  <p
+    class="callback-note"
+    data-origin={SITE_ORIGIN}
+  >
     Signing you in… you can close this window.
   </p>
 </Base>
@@ -63,8 +66,8 @@ import { SITE_ORIGIN } from "../../lib/seo";
 <style>
   .callback-note {
     padding: var(--space-lg) 0;
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
+    color: var(--color-text-muted);
     text-align: center;
   }
 </style>

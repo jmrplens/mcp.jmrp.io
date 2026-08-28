@@ -94,7 +94,9 @@ export function parseSseJsonRpc(text: string): unknown {
   // viendo un posible `undefined` en JSON.parse.
   const last = dataLines.at(-1);
   if (last === undefined) {
-    throw new Error(`respuesta no JSON del servidor MCP: ${trimmed.slice(0, 200)}`);
+    throw new Error(
+      `respuesta no JSON del servidor MCP: ${trimmed.slice(0, 200)}`,
+    );
   }
   return JSON.parse(last);
 }
@@ -157,7 +159,8 @@ function firstContentText(result: Record<string, unknown> | undefined): string {
   const content = result?.content;
   if (!Array.isArray(content)) return "";
   for (const item of content) {
-    if (typeof item !== "object" || item === null || !("text" in item)) continue;
+    if (typeof item !== "object" || item === null || !("text" in item))
+      continue;
     const text = (item as { text?: unknown }).text;
     if (typeof text === "string" && text) return text;
   }
@@ -183,7 +186,11 @@ export function classifyMcp(res: McpResponse): McpVerdict {
     };
   }
   if (res.parseError !== undefined || res.body === undefined) {
-    return { outcome: "transport", code: res.status, message: res.parseError ?? "" };
+    return {
+      outcome: "transport",
+      code: res.status,
+      message: res.parseError ?? "",
+    };
   }
   if (res.body.error) {
     return {
@@ -213,7 +220,9 @@ export type ListedItems = { kind: string; count: number };
  * @param body Cuerpo JSON-RPC ya parseado.
  * @returns Qué se listó y cuántos elementos, o `undefined` si no era un listado.
  */
-export function listedItems(body: JsonRpcBody | undefined): ListedItems | undefined {
+export function listedItems(
+  body: JsonRpcBody | undefined,
+): ListedItems | undefined {
   const result = body?.result;
   if (!result) return undefined;
   for (const kind of ["tools", "prompts", "resources", "resourceTemplates"]) {

@@ -97,7 +97,10 @@ const byName = (a, b) => a.localeCompare(b);
  */
 function read(name, encoding = "utf8") {
   const url = new URL(name, DIST);
-  assert.ok(fs.existsSync(url), `falta dist/${name} — el build no lo ha emitido`);
+  assert.ok(
+    fs.existsSync(url),
+    `falta dist/${name} — el build no lo ha emitido`,
+  );
   return fs.readFileSync(url, encoding);
 }
 
@@ -183,7 +186,8 @@ test("cada gemelo en markdown tiene su location y su canónico", (t) => {
   const root = fileURLToPath(DIST);
   const walk = (dir, prefix = "") => {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      if (entry.isDirectory()) walk(`${dir}/${entry.name}`, `${prefix}/${entry.name}`);
+      if (entry.isDirectory())
+        walk(`${dir}/${entry.name}`, `${prefix}/${entry.name}`);
       else if (entry.name === "index.md") twins.push(`${prefix}/index.md`);
     }
   };
@@ -198,7 +202,11 @@ test("cada gemelo en markdown tiene su location y su canónico", (t) => {
   // Named, not positional: `[, , block]` skips two slots in a row, which is
   // unreadable and the linter rightly refuses — nobody reading it can tell
   // which group is being dropped.
-  const prefixes = [...vhost.matchAll(/location \^~ (?<prefix>\S+) \{(?<block>[\s\S]*?)\n {4}\}/g)]
+  const prefixes = [
+    ...vhost.matchAll(
+      /location \^~ (?<prefix>\S+) \{(?<block>[\s\S]*?)\n {4}\}/g,
+    ),
+  ]
     .filter((match) => match.groups.block.includes(String.raw`\.md$`))
     .map((match) => match.groups.prefix);
   for (const twin of twins) {
@@ -344,7 +352,7 @@ test("las tarjetas sociales son PNG de 1200x630", () => {
     const png = read(`og-${lang}.png`, null);
     assert.deepEqual(
       [...png.subarray(0, 8)],
-      [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A],
+      [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
       `og-${lang}.png no es un PNG`,
     );
     // IHDR: ancho y alto son los dos enteros de 32 bits tras la cabecera.
@@ -364,7 +372,10 @@ test("el favicon existe y es un SVG", () => {
 test("el sitemap lleva lastmod y las anotaciones hreflang", () => {
   const sitemap = read("sitemap-0.xml");
   for (const url of [`${ORIGIN}/`, `${ORIGIN}/es/`]) {
-    assert.ok(sitemap.includes(`<loc>${url}</loc>`), `el sitemap no lista ${url}`);
+    assert.ok(
+      sitemap.includes(`<loc>${url}</loc>`),
+      `el sitemap no lista ${url}`,
+    );
     assert.ok(
       sitemap.includes(`hreflang="en" href="${ORIGIN}/"`),
       "sin xhtml:link en, el clúster solo vive en el <head>",
@@ -382,10 +393,7 @@ test("el sitemap lleva lastmod y las anotaciones hreflang", () => {
   const lastmods = [...sitemap.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)];
   assert.equal(lastmods.length, locs.length, "cada URL necesita su lastmod");
   for (const [, value] of lastmods) {
-    assert.ok(
-      !Number.isNaN(Date.parse(value)),
-      `lastmod ilegible: ${value}`,
-    );
+    assert.ok(!Number.isNaN(Date.parse(value)), `lastmod ilegible: ${value}`);
   }
 });
 
@@ -581,7 +589,11 @@ test("cada página emite Open Graph y Twitter Card completos", () => {
       "summary_large_image",
       `${name}: sin summary_large_image la tarjeta sale en miniatura`,
     );
-    for (const key of ["twitter:title", "twitter:description", "twitter:image"]) {
+    for (const key of [
+      "twitter:title",
+      "twitter:description",
+      "twitter:image",
+    ]) {
       assert.ok(meta(html, "name", key), `${name}: sin ${key}`);
     }
   }

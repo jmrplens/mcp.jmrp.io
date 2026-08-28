@@ -51,6 +51,12 @@ export default [
     ...eslintPluginUnicorn.configs.recommended,
     rules: {
       ...eslintPluginUnicorn.configs.recommended.rules,
+      // Prettier owns number formatting and lowercases hex digits, while this
+      // rule wants them uppercase — `0x4E` and `0x4e` each satisfy exactly one
+      // of the two, so with both on, `--fix` and `--write` undo each other
+      // forever. Same call the markdown config makes for MD060: where the
+      // formatter has an opinion, the linter yields.
+      "unicorn/number-literal-case": "off",
       "unicorn/prevent-abbreviations": "off", // Too strict (props, env, args, etc.)
       // New in v66–v68; same spirit as prevent-abbreviations / readability — off.
       "unicorn/name-replacements": "off", // Too strict (btn, msg, i, e, el, fn, …)

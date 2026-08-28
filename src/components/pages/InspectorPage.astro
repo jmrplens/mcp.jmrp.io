@@ -58,23 +58,39 @@ const noscriptCurl = noscriptServer
     <a href={homeHref}>{t.backToHome}</a>
   </p>
 
-  {/* Kicker + h1 + intro + hairline, matching jmrp.io's PrivacyPage.astro
-      `.privacy-header` — see the `.subpage-header` comment in base.css. */}
+  {
+    /* Kicker + h1 + intro + hairline, matching jmrp.io's PrivacyPage.astro
+      `.privacy-header` — see the `.subpage-header` comment in base.css. */
+  }
   <header class="subpage-header">
     <p class="section-title">{t.inspectorEyebrow}</p>
-    <h1 id="inspector-h" class="subpage-title">{t.inspectorTitle}</h1>
+    <h1
+      id="inspector-h"
+      class="subpage-title"
+    >
+      {t.inspectorTitle}
+    </h1>
     <p class="subpage-intro">{t.inspectorIntro}</p>
   </header>
 
-  <section class="inspector-section" aria-labelledby="inspector-h">
-    <Inspector client:load servers={servers} lang={lang} />
+  <section
+    class="inspector-section"
+    aria-labelledby="inspector-h"
+  >
+    <Inspector
+      client:load
+      servers={servers}
+      lang={lang}
+    />
 
-    {/* The only thing a crawler that runs no JavaScript can read on this page:
+    {
+      /* The only thing a crawler that runs no JavaScript can read on this page:
         the island above arrives as an empty shell. It sits inside the section
         it stands in for. Note for whoever styles it — Astro puts
         `data-astro-cid-*` on the CHILDREN of <noscript> but not on <noscript>
         itself, so a scoped `noscript { … }` rule matches nothing at all.
-        Style the classes instead. */}
+        Style the classes instead. */
+    }
     {
       noscriptServer && (
         <noscript>
@@ -85,7 +101,9 @@ const noscriptCurl = noscriptServer
               <figcaption class="ns-caption">
                 {t.noscript.requestLabel}
               </figcaption>
-              <pre class="ns-pre"><code>{noscriptCurl}</code></pre>
+              <pre class="ns-pre">
+                <code>{noscriptCurl}</code>
+              </pre>
             </figure>
             <p class="ns-body">{t.noscript.response}</p>
             <p class="ns-body">
@@ -103,13 +121,14 @@ const noscriptCurl = noscriptServer
     </p>
   </section>
 
-  {/* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
-      cannot just live in the footer. */}
+  {
+    /* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
+      cannot just live in the footer. */
+  }
   <UpdatedLine lang={lang} />
 </div>
 
 <style>
-
   /* Heading size and the kicker+h1+intro shell now live in base.css's
      `.subpage-title`/`.subpage-header`/`.subpage-intro` — Policies and
      Internals need the exact same shapes, so they stopped being per-page
@@ -124,13 +143,13 @@ const noscriptCurl = noscriptServer
     padding-bottom: var(--space-xl);
   }
 
-  /* Copied from HomePage.astro's shared rules: Astro scopes <style> per
+  /* Copied from HomePage.astro's shared rules: Astro scopes \3c style> per
      component, so a class used on both pages needs its own copy here. */
   .back-link {
     margin: 0 0 1.5rem;
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: 0.8125rem;
+    color: var(--color-text-muted);
   }
 
   .back-link a {
@@ -156,14 +175,14 @@ const noscriptCurl = noscriptServer
   .notice-pointer {
     max-width: var(--max-width-prose);
     margin: 1rem 0 0;
-    color: var(--color-text-muted);
     font-size: var(--text-base);
     line-height: 1.7;
+    color: var(--color-text-muted);
     text-wrap: pretty;
   }
 
   /* The <noscript> fallback. Copied shapes, not shared ones: Astro scopes
-     <style> per component, so ClientSetup.astro's code-block rules cannot be
+     \3c style> per component, so ClientSetup.astro's code-block rules cannot be
      reused here — the same reason `.back-link` above is a copy of the home
      page's. */
   .ns-fallback {
@@ -179,9 +198,9 @@ const noscriptCurl = noscriptServer
 
   .ns-body {
     margin: 0 0 1rem;
-    color: var(--color-text-muted);
     font-size: var(--text-base);
     line-height: 1.7;
+    color: var(--color-text-muted);
     text-wrap: pretty;
   }
 
@@ -195,11 +214,11 @@ const noscriptCurl = noscriptServer
 
   .ns-caption {
     margin-bottom: 0.3rem;
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: 0.7rem;
-    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
     text-transform: uppercase;
+    letter-spacing: 0.06em;
   }
 
   /* Same reason as ClientSetup.astro's <pre>: without its own overflow the
@@ -208,9 +227,10 @@ const noscriptCurl = noscriptServer
      which cannot see in here, so a focusable <pre> would never get the
      `<section aria-label>` wrapper that pass adds everywhere else. */
   .ns-pre {
-    margin: 0;
     padding: 0.6rem 0.75rem;
+    margin: 0;
     overflow-x: auto;
+
     /* Superficie, no tinte: `--color-bg-subtle` es un 5% translúcido y este
        bloque se apoya en el fondo de página, así que la rejilla lo cruzaba. */
     background: var(--color-bg-secondary);
@@ -219,8 +239,8 @@ const noscriptCurl = noscriptServer
   }
 
   .ns-pre code {
-    color: var(--color-text);
     font-family: var(--font-mono);
     font-size: 0.75rem;
+    color: var(--color-text);
   }
 </style>

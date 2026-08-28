@@ -56,10 +56,7 @@ test("las tres tabs válidas se aceptan", () => {
 });
 
 test("name se recorta de espacios y una cadena vacía cae a undefined", () => {
-  assert.equal(
-    parseDeepLink("?name=%20search%20", servers).name,
-    "search",
-  );
+  assert.equal(parseDeepLink("?name=%20search%20", servers).name, "search");
   assert.equal(parseDeepLink("?name=", servers).name, undefined);
   assert.equal(parseDeepLink("?name=%20%20", servers).name, undefined);
 });

@@ -127,7 +127,10 @@ export default function ActionSearch({
 
   return (
     <div className="action-search">
-      <label className="as-label" htmlFor="action-search-q">
+      <label
+        className="as-label"
+        htmlFor="action-search-q"
+      >
         {sp.searchLabel}
       </label>
       <input
@@ -152,7 +155,10 @@ export default function ActionSearch({
         {shown.length > 0 && (
           <ul className="as-list">
             {shown.map((entry) => (
-              <li key={entry.id} className="as-item">
+              <li
+                key={entry.id}
+                className="as-item"
+              >
                 {/* El id enlaza a su ficha de referencia: la página del
                     dominio, con el ancla de la acción (la isla de allí lo
                     abre; sin JS el navegador salta igual). */}

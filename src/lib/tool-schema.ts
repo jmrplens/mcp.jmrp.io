@@ -100,7 +100,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * deja la tabla de argumentos vacía sin decir por qué.
  */
 function inputSchemaOf(entry: Record<string, unknown>): JsonSchema | undefined {
-  const raw = isRecord(entry.inputSchema) ? entry.inputSchema : entry.input_schema;
+  const raw = isRecord(entry.inputSchema)
+    ? entry.inputSchema
+    : entry.input_schema;
   return isRecord(raw) ? raw : undefined;
 }
 
@@ -190,7 +192,8 @@ export function schemaFields(schema: JsonSchema | undefined): SchemaField[] {
 /** Valor de relleno para una propiedad, por tipo. */
 function placeholderFor(schema: JsonSchema): unknown {
   if (schema.default !== undefined) return schema.default;
-  if (Array.isArray(schema.enum) && schema.enum.length > 0) return schema.enum[0];
+  if (Array.isArray(schema.enum) && schema.enum.length > 0)
+    return schema.enum[0];
   switch (schema.type) {
     case "number":
     case "integer": {
@@ -247,13 +250,7 @@ export function skeletonFor(schema: JsonSchema | undefined): string {
 
 /** Control con el que se pide una propiedad. */
 export type FieldControl =
-  | "text"
-  | "textarea"
-  | "number"
-  | "checkbox"
-  | "select"
-  | "list"
-  | "json";
+  "text" | "textarea" | "number" | "checkbox" | "select" | "list" | "json";
 
 /** Una propiedad del esquema, ya resuelta a un control concreto. */
 export type FormField = SchemaField & {
@@ -396,7 +393,9 @@ export function valuesToArgs(
         try {
           args[field.name] = JSON.parse(raw);
         } catch (error) {
-          throw new TypeError(`${field.name}: JSON inválido — ${String(error)}`);
+          throw new TypeError(
+            `${field.name}: JSON inválido — ${String(error)}`,
+          );
         }
         break;
       }

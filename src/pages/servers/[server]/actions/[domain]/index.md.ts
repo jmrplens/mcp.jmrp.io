@@ -1,7 +1,10 @@
 import type { GetStaticPaths } from "astro";
 
 import { actionsDomainPaths } from "../../../../../data/surface";
-import { domainMarkdown, markdownResponse } from "../../../../../lib/page-markdown";
+import {
+  domainMarkdown,
+  markdownResponse,
+} from "../../../../../lib/page-markdown";
 
 /**
  * `/servers/<server>/actions/<domain>/index.md` — the markdown twin of each
@@ -12,7 +15,8 @@ import { domainMarkdown, markdownResponse } from "../../../../../lib/page-markdo
  * HTML of a filter island. Same `actionsDomainPaths()` the pages themselves
  * use, so the two cannot list different domains.
  */
-export const getStaticPaths = (() => actionsDomainPaths()) satisfies GetStaticPaths;
+export const getStaticPaths = (() =>
+  actionsDomainPaths()) satisfies GetStaticPaths;
 
 /**
  * Renders one domain's twin.
@@ -20,7 +24,17 @@ export const getStaticPaths = (() => actionsDomainPaths()) satisfies GetStaticPa
  * @param context Astro route context; `props` is what `getStaticPaths` passed.
  * @returns The markdown response.
  */
-export const GET = ({ props }: { props: ReturnType<typeof actionsDomainPaths>[number]["props"] }) =>
+export const GET = ({
+  props,
+}: {
+  props: ReturnType<typeof actionsDomainPaths>[number]["props"];
+}) =>
   markdownResponse(
-    domainMarkdown(props.server, props.domain, props.actions, props.aliasDomains, "en"),
+    domainMarkdown(
+      props.server,
+      props.domain,
+      props.actions,
+      props.aliasDomains,
+      "en",
+    ),
   );

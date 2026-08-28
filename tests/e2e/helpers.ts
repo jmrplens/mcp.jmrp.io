@@ -103,9 +103,6 @@ const CORS = {
  * @param reply Qué devolver para cada método JSON-RPC.
  * @returns El array donde se van anotando las peticiones que salen.
  */
-/**
- *
- */
 export async function stubMcp(
   page: Page,
   reply: (method: string) => McpStub,

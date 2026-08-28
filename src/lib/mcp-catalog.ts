@@ -69,12 +69,14 @@ export function promptsFrom(body: unknown): McpPrompt[] {
     description:
       typeof entry.description === "string" ? entry.description : undefined,
     arguments: Array.isArray(entry.arguments)
-      ? entry.arguments.filter((a) => isRecord(a)).map((a) => ({
-          name: str(a.name),
-          description:
-            typeof a.description === "string" ? a.description : undefined,
-          required: a.required === true,
-        }))
+      ? entry.arguments
+          .filter((a) => isRecord(a))
+          .map((a) => ({
+            name: str(a.name),
+            description:
+              typeof a.description === "string" ? a.description : undefined,
+            required: a.required === true,
+          }))
       : [],
   }));
 }

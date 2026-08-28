@@ -40,7 +40,13 @@
       "font-family": [
         "/^(?!var\\(|inherit|inline-icon|monospace|sans-serif|serif).*$/"
       ]
-    }
+    },
+    "property-no-vendor-prefix": [
+      true,
+      {
+        "ignoreProperties": ["-webkit-backdrop-filter"]
+      }
+    ]
   },
   "reportNeedlessDisables": true,
   "reportInvalidScopeDisables": true

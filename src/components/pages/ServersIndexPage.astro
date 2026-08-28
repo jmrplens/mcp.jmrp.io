@@ -8,7 +8,10 @@
  * to a post list, and each row links to that server's own page — see
  * `.superpowers/sdd/servers-section-spec.md`.
  */
-import type { ServerCardDocument, ServerCardSummary } from "../../data/server-cards";
+import type {
+  ServerCardDocument,
+  ServerCardSummary,
+} from "../../data/server-cards";
 import { getServerCard, getServerCardDocument } from "../../data/server-cards";
 import type { McpServer } from "../../data/servers";
 import { servers } from "../../data/servers";
@@ -109,9 +112,9 @@ const rows: ServerRow[] = servers.flatMap((server) => {
 
   .back-link {
     margin: 0 0 1.5rem;
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: 0.8125rem;
+    color: var(--color-text-muted);
   }
 
   .back-link a {
@@ -128,8 +131,8 @@ const rows: ServerRow[] = servers.flatMap((server) => {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
     gap: 1.25rem;
-    margin: 0;
     padding: 0;
+    margin: 0;
     list-style: none;
   }
 
@@ -138,9 +141,9 @@ const rows: ServerRow[] = servers.flatMap((server) => {
     flex-direction: column;
     height: 100%;
     padding: 1.5rem;
+    background: var(--color-bg-secondary);
     border: 1px solid var(--color-border);
     border-radius: 10px;
-    background: var(--color-bg-secondary);
   }
 
   .server-row-title {
@@ -161,8 +164,8 @@ const rows: ServerRow[] = servers.flatMap((server) => {
 
   .server-row-desc {
     margin: 0.6rem 0 0;
-    color: var(--color-text);
     font-size: var(--text-sm);
+    color: var(--color-text);
     text-wrap: pretty;
   }
 
@@ -170,8 +173,8 @@ const rows: ServerRow[] = servers.flatMap((server) => {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem 1rem;
-    margin: 1rem 0 0;
     padding-top: 0.9rem;
+    margin: 1rem 0 0;
     border-top: 1px solid var(--color-hair);
   }
 
@@ -181,25 +184,25 @@ const rows: ServerRow[] = servers.flatMap((server) => {
   }
 
   .server-row-stats dt {
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: var(--text-2xs);
+    color: var(--color-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.06em;
   }
 
   .server-row-stats dd {
     margin: 0;
-    color: var(--color-text-heading);
     font-family: var(--font-mono);
     font-size: var(--text-md);
+    color: var(--color-text-heading);
   }
 
   /* `margin-top: auto` sticks the link to the bottom of the (equal-height)
      grid card, same trick as ServerCard.astro's `.links`. */
   .server-row-cta {
-    margin: auto 0 0;
     padding-top: 0.9rem;
+    margin: auto 0 0;
     font-family: var(--font-mono);
     font-size: 0.8125rem;
   }

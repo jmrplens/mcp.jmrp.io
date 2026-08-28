@@ -4,7 +4,7 @@ Contexto para agentes de IA que trabajen en este repositorio.
 
 ## Qué es esto
 
-El sitio público de **https://mcp.jmrp.io**: lista los servidores MCP
+El sitio público de **[mcp.jmrp.io](https://mcp.jmrp.io)**: lista los servidores MCP
 self-hosted y deja probarlos desde el navegador. Astro + UnoCSS con una isla
 Preact, bilingüe (inglés en la raíz, español en `/es/`).
 
@@ -103,19 +103,19 @@ resincronizarlos a mano — es el precio de tener los repos separados.
 
 ## Dónde está cada cosa
 
-| Ruta | Qué es |
-|---|---|
-| `src/data/servers.ts` | **Única** fuente de verdad de la lista de MCP |
-| `src/i18n/ui.ts` | Cadenas EN/ES. Las dos ramas deben tener las mismas claves |
-| `src/components/Inspector.tsx` | La isla: pestañas y estado. No importes aquí nada con `node:fs` |
-| `src/components/ArgsForm.tsx` | Formulario generado del esquema |
-| `src/components/inspector-parts.tsx` | Piezas que solo pintan |
-| `src/lib/mcp-catalog.ts` | Lectura de `prompts/list` y `resources/list` |
-| `src/lib/mcp-client.ts` | POST + parseo de SSE. Sin DOM, testeable aparte |
-| `src/lib/identity.ts` | Nodo `#person` canónico (ver abajo) |
-| `src/lib/seo.ts` | URLs, hreflang y metadatos |
-| `scripts/deploy-live-mcp.mjs` | Despliegue: snippets → nginx → purga de CF |
-| `src/integrations/post-build/` | CSP, compresión y minificado |
+| Ruta                                 | Qué es                                                          |
+| ------------------------------------ | --------------------------------------------------------------- |
+| `src/data/servers.ts`                | **Única** fuente de verdad de la lista de MCP                   |
+| `src/i18n/ui.ts`                     | Cadenas EN/ES. Las dos ramas deben tener las mismas claves      |
+| `src/components/Inspector.tsx`       | La isla: pestañas y estado. No importes aquí nada con `node:fs` |
+| `src/components/ArgsForm.tsx`        | Formulario generado del esquema                                 |
+| `src/components/inspector-parts.tsx` | Piezas que solo pintan                                          |
+| `src/lib/mcp-catalog.ts`             | Lectura de `prompts/list` y `resources/list`                    |
+| `src/lib/mcp-client.ts`              | POST + parseo de SSE. Sin DOM, testeable aparte                 |
+| `src/lib/identity.ts`                | Nodo `#person` canónico (ver abajo)                             |
+| `src/lib/seo.ts`                     | URLs, hreflang y metadatos                                      |
+| `scripts/deploy-live-mcp.mjs`        | Despliegue: snippets → nginx → purga de CF                      |
+| `src/integrations/post-build/`       | CSP, compresión y minificado                                    |
 
 ## Identidad (`#person`)
 

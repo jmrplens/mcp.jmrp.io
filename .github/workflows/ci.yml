@@ -35,8 +35,25 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # `--max-warnings=0` so CI and `pnpm verify` agree on what "clean" is;
+      # without it a warning passes here and fails there.
       - name: Lint
-        run: pnpm lint
+        run: pnpm lint --max-warnings=0
+
+      - name: Format (Prettier)
+        run: pnpm exec prettier --check .
+
+      - name: Styles (Stylelint)
+        run: pnpm lint:css
+
+      - name: Spelling (CSpell)
+        run: pnpm spell
+
+      - name: Markdown
+        run: pnpm lint:md
+
+      - name: JSDoc coverage
+        run: node scripts/ci/calculate-jsdoc-coverage.mjs
 
       - name: Typecheck
         run: pnpm typecheck

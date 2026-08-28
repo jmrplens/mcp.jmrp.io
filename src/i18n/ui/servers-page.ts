@@ -19,7 +19,8 @@
  */
 export const serversPage = {
   en: {
-    metaTitleIndex: "MCP servers — every tool, prompt and resource · mcp.jmrp.io",
+    metaTitleIndex:
+      "MCP servers — every tool, prompt and resource · mcp.jmrp.io",
     eyebrowIndex: "MCP servers",
     titleIndex: "Server directory",
     /**
@@ -245,7 +246,8 @@ export const serversPage = {
     domainFilterLabel: "Filter this domain's actions",
     domainFilterPlaceholder: "Type to filter by id, title or description…",
     domainFilterCount: "{shown} of {total} actions",
-    domainFilterNoMatch: "No action matches. Clear the filter to see the full list.",
+    domainFilterNoMatch:
+      "No action matches. Clear the filter to see the full list.",
     domainChipDestructive: "destructive",
     domainChipReadOnly: "read-only",
     domainToggleDestructive: "Destructive only",
@@ -261,7 +263,8 @@ export const serversPage = {
   },
   es: {
     /** Ver `en.metaTitleIndex`. */
-    metaTitleIndex: "Servidores MCP — cada tool, prompt y resource · mcp.jmrp.io",
+    metaTitleIndex:
+      "Servidores MCP — cada tool, prompt y resource · mcp.jmrp.io",
     eyebrowIndex: "Servidores MCP",
     titleIndex: "Directorio de servidores",
     /** Ver `en.ledeIndex`: es también la meta description, de ahí la brevedad. */
@@ -432,9 +435,11 @@ export const serversPage = {
       "Todas las acciones que este dominio expone vía gitlab_execute_action, del manifiesto gitlab://tools. Cada entrada se despliega a su descripción completa y sus parámetros obligatorios.",
     domainBackToCard: "Volver a la ficha del servidor",
     domainFilterLabel: "Filtrar las acciones de este dominio",
-    domainFilterPlaceholder: "Escribe para filtrar por id, título o descripción…",
+    domainFilterPlaceholder:
+      "Escribe para filtrar por id, título o descripción…",
     domainFilterCount: "{shown} de {total} acciones",
-    domainFilterNoMatch: "Ninguna acción coincide. Borra el filtro para ver la lista completa.",
+    domainFilterNoMatch:
+      "Ninguna acción coincide. Borra el filtro para ver la lista completa.",
     domainChipDestructive: "destructiva",
     domainChipReadOnly: "solo lectura",
     domainToggleDestructive: "Solo destructivas",

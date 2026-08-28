@@ -1,7 +1,7 @@
 /**
  * Estilos de la isla del inspector.
  *
- * Va en un .css aparte y no en un <style> de Astro porque el componente es
+ * Va en un .css aparte y no en un \3c style> de Astro porque el componente es
  * Preact: Astro solo aplica sus estilos con ámbito a ficheros .astro.
  *
  * La pieza es la tarjeta de terminal de jmrp.io. Se reutiliza aquí porque lo
@@ -11,9 +11,9 @@
 
 .term {
   overflow: hidden;
+  background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
   border-radius: 10px;
-  background: var(--color-bg-secondary);
 }
 
 .term-bar {
@@ -21,8 +21,8 @@
   gap: 0.75rem;
   align-items: center;
   padding: 0.6rem 0.9rem;
-  border-bottom: 1px solid var(--color-hair);
   background: var(--color-bg-subtle);
+  border-bottom: 1px solid var(--color-hair);
 }
 
 .term-bar .lights {
@@ -33,8 +33,8 @@
 .term-bar .lights i {
   width: 0.6rem;
   height: 0.6rem;
-  border-radius: 50%;
   background: var(--color-border);
+  border-radius: 50%;
 }
 
 .term-bar .lights i:nth-child(1) {
@@ -50,16 +50,16 @@
 }
 
 .term-title {
-  color: var(--color-text-muted);
   font-family: var(--font-mono);
   font-size: 0.8125rem;
+  color: var(--color-text-muted);
 }
 
 /* El botón de copiar vive en la barra de la ventana, no entre los controles:
    pertenece a la salida, no a la petición. */
 .term .term-copy {
-  margin-inline-start: auto;
   padding: 0.25rem 0.6rem;
+  margin-inline-start: auto;
   font-size: 0.75rem;
 }
 
@@ -90,11 +90,11 @@
 }
 
 .term .field > span {
-  color: var(--color-text-muted);
   font-family: var(--font-mono);
   font-size: 0.7rem;
-  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
   text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .term select,
@@ -102,17 +102,18 @@
 .term textarea {
   width: 100%;
   padding: 0.5rem 0.65rem;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: var(--color-bg);
-  color: var(--color-text-heading);
   font-family: var(--font-mono);
+
   /* 16px ABSOLUTOS, no rem: por debajo de 16px iOS Safari hace auto-zoom al
      enfocar el campo y deja la página descuadrada, sin forma de volver.
      No vale 1rem porque base.css aplica `html { font-size: 90% }` por debajo
      de 900px —regla global heredada de jmrp.io, que no toco—, así que en móvil
      1rem serían 14,4px: exactamente el caso que hay que evitar. */
   font-size: 16px;
+  color: var(--color-text-heading);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
 }
 
 .term textarea {
@@ -137,42 +138,44 @@
 
 .term button {
   padding: 0.45rem 0.8rem;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: var(--color-bg);
-  color: var(--color-text-heading);
   font-family: var(--font-mono);
   font-size: 0.8125rem;
+  color: var(--color-text-heading);
   cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .term button:hover:not(:disabled) {
-  border-color: var(--color-accent);
   color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .term button.primary {
   align-self: end;
-  border-color: var(--accent-line);
-  background: var(--accent-dim);
   color: var(--color-accent);
+  background: var(--accent-dim);
+  border-color: var(--accent-line);
 }
 
 /* Cancelar: rojo, porque interrumpe. Aparece en el hueco de los métodos solo
    mientras hay algo en vuelo. */
 .term button.danger {
-  border-color: var(--color-danger);
-  background: var(--danger-dim);
   color: var(--color-danger);
+  background: var(--danger-dim);
+  border-color: var(--color-danger);
 }
 
 /* Aviso de cabecera obligatoria vacía. Explica por qué los botones están
    apagados: apagarlos sin decir el motivo es peor que dejar fallar. */
 .need-header {
   margin: 0;
-  color: var(--color-warning);
   font-size: 0.8125rem;
+  color: var(--color-warning);
 }
 
 .need-header code {
@@ -181,66 +184,66 @@
 
 .tool-hint {
   margin: 0;
-  color: var(--color-text-muted);
   font-size: 0.8125rem;
+  color: var(--color-text-muted);
 }
 
 /* El inputSchema de la tool elegida. */
 .schema {
   padding: 0.9rem 1rem;
+  background: var(--color-bg-subtle);
   border: 1px solid var(--color-hair);
   border-radius: 8px;
-  background: var(--color-bg-subtle);
 }
 
 .schema-head {
   margin: 0 0 0.75rem;
-  color: var(--color-text);
   font-size: 0.8125rem;
+  color: var(--color-text);
 }
 
 .schema-head code {
-  color: var(--color-accent);
   font-family: var(--font-mono);
+  color: var(--color-accent);
 }
 
 .schema table {
   width: 100%;
-  border-collapse: collapse;
   font-size: 0.8125rem;
   text-align: start;
+  border-collapse: collapse;
 }
 
 .schema caption {
   margin-block-end: 0.5rem;
-  color: var(--color-text-muted);
   font-family: var(--font-mono);
   font-size: 0.7rem;
-  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
   text-align: start;
   text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .schema th,
 .schema td {
   padding: 0.35rem 0.5rem 0.35rem 0;
-  border-block-end: 1px solid var(--color-hair);
-  color: var(--color-text);
   font-weight: 400;
-  text-align: start;
   vertical-align: top;
+  color: var(--color-text);
+  text-align: start;
+  border-block-end: 1px solid var(--color-hair);
 }
 
 .schema thead th {
-  color: var(--color-text-muted);
   font-size: 0.7rem;
-  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
   text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .schema code {
-  color: var(--color-text-heading);
   font-family: var(--font-mono);
+  color: var(--color-text-heading);
 }
 
 .schema tr.is-required code {
@@ -249,8 +252,8 @@
 
 .schema .req {
   display: block;
-  color: var(--color-text-muted);
   font-size: 0.7rem;
+  color: var(--color-text-muted);
 }
 
 .schema tr.is-required .req {
@@ -264,13 +267,13 @@
   flex-wrap: wrap;
   gap: 0.5rem;
   align-items: baseline;
-  margin: 0;
   padding: 0.6rem 1.25rem;
-  border-block-start: 1px solid var(--color-hair);
-  background: var(--color-bg-subtle);
-  color: var(--color-text-muted);
+  margin: 0;
   font-family: var(--font-mono);
   font-size: 0.75rem;
+  color: var(--color-text-muted);
+  background: var(--color-bg-subtle);
+  border-block-start: 1px solid var(--color-hair);
 }
 
 .term-status code {
@@ -284,24 +287,24 @@
 
 .term-status .chip {
   padding: 0.1rem 0.5rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   border: 1px solid var(--color-border);
   border-radius: 999px;
-  color: var(--color-text-muted);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .term-status.is-ok .chip {
-  border-color: var(--color-success);
-  background: var(--success-dim);
   color: var(--color-success);
+  background: var(--success-dim);
+  border-color: var(--color-success);
 }
 
 .term-status.is-running .chip {
-  border-color: var(--accent-line);
-  background: var(--accent-dim);
   color: var(--color-accent);
+  background: var(--accent-dim);
+  border-color: var(--accent-line);
 }
 
 /* Los tres fallos comparten color a propósito: para el visitante la pregunta
@@ -310,14 +313,14 @@
 .term-status.is-rpc .chip,
 .term-status.is-tool .chip,
 .term-status.is-client .chip {
-  border-color: var(--color-danger);
-  background: var(--danger-dim);
   color: var(--color-danger);
+  background: var(--danger-dim);
+  border-color: var(--color-danger);
 }
 
 .term button:disabled {
-  opacity: 0.45;
   cursor: not-allowed;
+  opacity: 45%;
 }
 
 /* El panel de salida: fondo del tema oscuro SIEMPRE, como una terminal real.
@@ -325,35 +328,36 @@
    deliberado: separa de un vistazo "lo que responde el servidor" de "la
    interfaz que lo pide". */
 .term-out {
+  min-height: 4rem;
   max-height: 26rem;
-  margin: 0;
   padding: 1rem 1.25rem;
+  margin: 0;
   overflow: auto;
-  border-top: 1px solid var(--color-hair);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+
   /* Base = tema OSCURO (así está montado tokens.css). Aquí no vale el negro:
      es exactamente el fondo de página en oscuro, y el panel se volvía
      invisible. Se usa la superficie elevada, que sí se despega de la tarjeta.
      El negro se reserva para el tema claro, más abajo. */
   background: var(--color-surface-2);
-  color: var(--color-text);
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  min-height: 4rem;
+  border-top: 1px solid var(--color-hair);
 }
 
 .term-out:empty::before {
-  content: "jmrp@mcp:~$ _";
   color: var(--color-text-muted);
+  content: "jmrp@mcp:~$ _";
 }
 
 /* Mientras vuela la siguiente petición, la respuesta anterior se atenúa en vez
    de borrarse: quien estaba leyéndola no se queda mirando un panel vacío
    durante los seis segundos que tarda una búsqueda real. */
 .term-out.is-stale {
-  opacity: 0.45;
+  opacity: 45%;
 }
 
 /* Un fallo se ve fallo también en el panel, no solo en el chip. El caso que
@@ -375,7 +379,7 @@
   }
 
   .term-out.is-stale {
-    opacity: 1;
+    opacity: 100%;
   }
 }
 
@@ -404,8 +408,8 @@
    lo pide». Se declara igual que en tokens.css: media query + override manual. */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) .term-out {
-    background: #0a0a0b;
     color: #b6b5ae;
+    background: #0a0a0b;
   }
 
   :root:not([data-theme="dark"]) .term-out:empty::before {
@@ -414,8 +418,8 @@
 }
 
 :root[data-theme="light"] .term-out {
-  background: #0a0a0b;
   color: #b6b5ae;
+  background: #0a0a0b;
 }
 
 :root[data-theme="light"] .term-out:empty::before {
@@ -425,6 +429,7 @@
 /* ── Pestañas ──────────────────────────────────────────────────────────────
    Las tres cosas que un servidor MCP puede ofrecer. Antes eran cuatro botones
    sueltos que solo listaban, y lo listado no se podía usar. */
+
 /* The ROW carries the layout; the inner `.tabs` is only the `role="tablist"`,
    which may contain nothing but `role="tab"` children. `initialize` and
    `cancel` are siblings of it, not children — that mismatch was the single
@@ -444,23 +449,23 @@
 }
 
 .term .tab {
-  border-color: transparent;
-  background: transparent;
   color: var(--color-text-muted);
+  background: transparent;
+  border-color: transparent;
 }
 
 .term .tab.is-active {
-  border-color: var(--accent-line);
-  background: var(--accent-dim);
   color: var(--color-accent);
+  background: var(--accent-dim);
+  border-color: var(--accent-line);
 }
 
 /* `initialize` no es una pestaña: es el saludo del protocolo, y se lanza sin
    cambiar de vista. Se separa con margen para que no parezca una más. */
 .term .tab-init {
   margin-inline-start: auto;
-  border-color: var(--color-border);
   font-size: 0.75rem;
+  border-color: var(--color-border);
 }
 
 .panel {
@@ -484,9 +489,9 @@
 }
 
 .catalog-count {
-  color: var(--color-text-muted);
   font-family: var(--font-mono);
   font-size: 0.75rem;
+  color: var(--color-text-muted);
 }
 
 .args-head {
@@ -508,9 +513,9 @@
 }
 
 .term .mode-btn.is-on {
-  border-color: var(--accent-line);
-  background: var(--accent-dim);
   color: var(--color-accent);
+  background: var(--accent-dim);
+  border-color: var(--accent-line);
 }
 
 /* ── Formulario de argumentos ──────────────────────────────────────────────
@@ -537,9 +542,9 @@
 }
 
 .arg-name {
-  color: var(--color-text-heading);
   font-family: var(--font-mono);
   font-size: 0.8125rem;
+  color: var(--color-text-heading);
 }
 
 .req-mark {
@@ -547,9 +552,9 @@
 }
 
 .arg-type {
-  color: var(--color-text-muted);
   font-family: var(--font-mono);
   font-size: 0.7rem;
+  color: var(--color-text-muted);
 }
 
 .arg-help {
@@ -558,15 +563,15 @@
   max-height: 4.5rem;
   margin: 0;
   overflow-y: auto;
-  color: var(--color-text-muted);
   font-size: 0.75rem;
+  color: var(--color-text-muted);
   text-wrap: pretty;
 }
 
 /* El checkbox no debe estirarse al ancho de la columna como los demás. */
 .arg input[type="checkbox"] {
-  width: auto;
   justify-self: start;
+  width: auto;
 }
 
 /* Línea de grupos de identificadores ("Exactly one of: md5 | id | doi"):
@@ -574,8 +579,8 @@
    requisito es un grupo anyOf/oneOf, así que se enuncia encima. */
 .schema-groups {
   margin: 0.15rem 0 0.5rem;
-  color: var(--color-text-muted);
   font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 .schema-groups code {
@@ -603,13 +608,13 @@
   align-items: center;
   align-self: flex-start;
   padding: 0.5rem 0.85rem;
-  border: 1px solid var(--color-hair);
-  border-radius: var(--radius-sm);
-  background: var(--color-bg-secondary);
-  color: var(--color-text-heading);
   font-family: var(--font-mono);
   font-size: 0.82rem;
+  color: var(--color-text-heading);
   cursor: pointer;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-hair);
+  border-radius: var(--radius-sm);
 }
 
 .signin-button:hover:not(:disabled) {
@@ -617,8 +622,8 @@
 }
 
 .signin-button:disabled {
-  opacity: 0.6;
   cursor: default;
+  opacity: 60%;
 }
 
 .signin-mark {
@@ -631,9 +636,9 @@
 .signin-or,
 .signin-error {
   margin: 0;
-  color: var(--color-text-muted);
   font-size: 0.8rem;
   line-height: 1.5;
+  color: var(--color-text-muted);
 }
 
 .signin-error {
