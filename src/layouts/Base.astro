@@ -781,47 +781,62 @@ const serverSubItems = servers.map((server) => ({
           </label>
         </div>
 
-        <ul class="drawer-links">
+        <div class="drawer-body">
           {
-            navItems.map((item) => (
-              <li>
-                <a
-                  href={item.href}
-                  aria-current={item.current ? "page" : undefined}
-                >
-                  {item.label}
-                </a>
-                {/* Aquí SIEMPRE desplegados, sin hover: el cajón es una lista
-                    vertical y no hay puntero que pasar por encima. */}
-                {item.id === "servers" && serverSubItems.length > 0 && (
-                  <ul class="drawer-sub">
-                    {serverSubItems.map((sub) => (
-                      <li>
-                        <a href={sub.href}>
-                          {sub.icon && (
-                            <ServerMark
-                              src={sub.icon}
-                              class="nav-sub-icon"
-                            />
-                          )}
-                          {sub.name}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </li>
-            ))
+            /* The two servers lead, and they are not a sub-list any more.
+              They were nested under "Servers", indented and set smaller —
+              which put the only two things on this site with a visual
+              identity of their own at the bottom of the hierarchy, drawn at
+              16px. They are what people come here for, so they get the one
+              piece of real estate in the panel: logo at a size where it
+              identifies, name under it, a surface to tap.
+
+              The pages below still list "Servers" in its nav order, so this
+              is a shortcut rather than a reordering — nothing is only
+              reachable from here. */
           }
-          <li>
-            <a
-              class="drawer-gh"
-              href="https://jmrp.io"
-            >
-              {t.authorSite}
-            </a>
-          </li>
-        </ul>
+          {
+            serverSubItems.length > 0 && (
+              <div class="drawer-servers">
+                <p class="drawer-kicker">{NAV_LABELS.servers}</p>
+                <div class="server-tiles">
+                  {serverSubItems.map((sub) => (
+                    <a
+                      class="server-tile"
+                      href={sub.href}
+                      aria-current={
+                        sub.href === Astro.url.pathname ? "page" : undefined
+                      }
+                    >
+                      {sub.icon && (
+                        <ServerMark
+                          src={sub.icon}
+                          class="server-tile-mark"
+                        />
+                      )}
+                      <span class="server-tile-name">{sub.name}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )
+          }
+
+          <ul class="drawer-links">
+            {
+              navItems.map((item) => (
+                <li>
+                  <a
+                    href={item.href}
+                    aria-current={item.current ? "page" : undefined}
+                  >
+                    <span class="drawer-link-word">{item.label}</span>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
 
         {
           /* The language pill also lives in the drawer panel, like jmrp.io's
@@ -834,6 +849,16 @@ const serverSubItems = servers.map((server) => ({
             from the bar behind the drawer. */
         }
         <div class="drawer-foot">
+          <a
+            class="drawer-away"
+            href="https://jmrp.io"
+          >
+            {t.authorSite}
+            <span
+              class="i-mdi:arrow-top-right"
+              aria-hidden="true"
+            ></span>
+          </a>
           <div
             class="lang-switch"
             role="group"
@@ -1206,8 +1231,7 @@ const serverSubItems = servers.map((server) => ({
     display: block;
   }
 
-  .nav-sub a,
-  .drawer-sub a {
+  .nav-sub a {
     display: flex;
     gap: 0.5rem;
     align-items: center;
@@ -1219,15 +1243,6 @@ const serverSubItems = servers.map((server) => ({
     flex-shrink: 0;
     width: 1rem;
     height: 1rem;
-  }
-
-  /* En el cajón no hay hover que valga: la lista va siempre desplegada,
-     sangrada bajo su padre. */
-  .drawer-sub {
-    padding: 0 0 0 0.9rem;
-    margin: 0.2rem 0 0;
-    list-style: none;
-    border-left: 1px solid var(--color-hair);
   }
 
   .nav-links {
@@ -1517,63 +1532,174 @@ const serverSubItems = servers.map((server) => ({
     background: var(--color-surface-2);
   }
 
-  /* Only this list scrolls if content ever outgrows the viewport — the head
-     above stays fixed in place. */
-  .drawer-links {
+  /* Only this scrolls; the head above and the foot below stay put. */
+  .drawer-body {
     display: flex;
     flex: 1;
     flex-direction: column;
-    gap: 4px;
-    padding: 12px 14px;
-    margin: 0;
+    gap: 20px;
+    padding: 16px 14px 20px;
     overflow-y: auto;
+  }
+
+  /* The site's own quiet kicker (`.subsection-title` in base.css), not the
+     louder accent-and-slashes `.eyebrow` this codebase deliberately retired
+     for being shouted once per section. */
+  .drawer-kicker {
+    margin: 0 0 10px;
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    font-weight: var(--fw-medium);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+
+  /* `auto-fit`, not a fixed `1fr 1fr`: the row fits as many tiles as there
+     are, up to three across at this width, each taking an equal share. Two
+     servers give two wide tiles; a third makes all three narrower and they
+     stay on the same row, which is where a set this small reads best.
+     `auto-fit` rather than `auto-fill` is what collapses the empty third
+     track so today's two still stretch edge to edge. */
+  .server-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+    gap: 8px;
+  }
+
+  /* The one place in the panel with a surface, a border and a logo at a size
+     that identifies. Everything else here is words — spending the weight in
+     exactly one place is what lets the rest stay quiet. */
+  .server-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    padding: 8px;
+    font-family: var(--font-display);
+    font-size: var(--text-base);
+    font-weight: var(--fw-medium);
+    color: var(--color-text-heading);
+    text-align: center;
+    text-decoration: none;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-hair);
+    border-radius: var(--radius-md);
+    transition:
+      border-color var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out);
+  }
+
+  .server-tile:hover {
+    border-color: var(--accent-line);
+  }
+
+  .server-tile:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .server-tile[aria-current="page"] {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  /* `:global`, and sized through `font-size`, for two separate reasons.
+     The img is rendered by ServerMark, so it carries THAT component's scope
+     attribute — a plain `.server-tile-mark` rule written here is scoped to
+     this file and never matches it, which is why every width set from here
+     was ignored. And ServerMark sizes itself with `width: 1em`, so driving
+     its font-size is working with the component rather than overriding it.
+     34px against 8px of padding leaves the tile shorter than it was with
+     12px padding and a 16px mark. */
+  .server-tile :global(.server-mark) {
+    font-size: 34px;
+  }
+
+  .server-tile-name {
+    min-width: 0;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  /* The pages are set as a plain typographic index: no boxes, no fills, no
+     rounded rows. At this size the words themselves are the interface, and
+     removing the chrome is what separates them from the tiles above. */
+  .drawer-links {
+    padding: 0;
+    margin: 0;
     list-style: none;
   }
 
-  /* Larger, heading-weight rows (jmrp.io's `.tree__row` sizing) — this is a
-     page list, not the terminal command tree, so no glyphs/paths, just a
-     bigger, more legible tap target. */
   .drawer-links a {
     display: flex;
     align-items: center;
-    min-height: 54px;
-    padding: 10px 12px;
-    font-size: var(--text-base);
-    font-weight: var(--fw-semibold);
+    min-height: 44px;
+    font-family: var(--font-body);
+    font-size: 1.0625rem;
+    font-weight: var(--fw-normal);
     color: var(--color-text-heading);
     text-decoration: none;
+
+    /* Invisible until focused — there is no background or border here. The
+       outline follows the element's corner radius, and a hard rectangle
+       around a word reads like an error box rather than a cursor. */
     border-radius: var(--radius-md);
-    transition:
-      background-color var(--dur-2) var(--ease-out),
-      box-shadow var(--dur-2) var(--ease-out);
+    transition: color var(--dur-2) var(--ease-out);
   }
 
-  .drawer-links a:hover,
+  .drawer-links a:hover {
+    color: var(--color-accent);
+  }
+
   .drawer-links a:focus-visible {
-    outline: none;
-    background: var(--color-surface-2);
-    box-shadow: inset 0 0 0 2px var(--accent-line);
+    outline: 2px solid var(--color-accent);
+    outline-offset: 4px;
   }
 
-  /* Current section: persistent accent-dim fill + left accent bar, like
-     jmrp.io's `.tree__row[aria-current="page"]`. */
+  /* The rule sits under the WORD, not across the row: it is the width of the
+     thing it marks. Not colour alone either — the underline is there or it is
+     not, which is what a reader who cannot separate amber from grey needs. */
+  .drawer-link-word {
+    padding-bottom: 3px;
+  }
+
   .drawer-links a[aria-current="page"] {
     color: var(--color-accent);
-    background: var(--accent-dim);
-    box-shadow: inset 3px 0 0 var(--color-accent);
   }
 
-  .drawer-gh {
-    margin-top: var(--space-sm);
-    border-top: var(--border-hair);
+  .drawer-links a[aria-current="page"] .drawer-link-word {
+    box-shadow: 0 2px 0 var(--color-accent);
   }
 
-  /* Footer row holding the language pill, pinned below the (flex: 1) link
-     list — same edge-to-edge hairline treatment as `.drawer-head` above,
-     and the same spot jmrp.io's `.drawer__foot` occupies in NavDrawer.astro. */
+  /* Set in mono and sized like the kicker: it is the one row that leaves this
+     site, so it reads as a control rather than another page. */
+  .drawer-away {
+    display: inline-flex;
+    gap: 5px;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    color: var(--color-text-muted);
+    text-decoration: none;
+    transition: color var(--dur-2) var(--ease-out);
+  }
+
+  .drawer-away:hover {
+    color: var(--color-accent);
+  }
+
+  .drawer-away:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 4px;
+    border-radius: var(--radius-sm);
+  }
+
   .drawer-foot {
     display: flex;
-    justify-content: flex-end;
+    gap: var(--space-sm);
+    align-items: center;
+    justify-content: space-between;
     padding: 11px 14px;
     border-top: 1px solid var(--color-hair);
   }
