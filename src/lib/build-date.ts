@@ -21,6 +21,9 @@ import { execFileSync } from "node:child_process";
 // devuelve undefined, que es el comportamiento previsto sin git.
 const GIT = "/usr/bin/git";
 
+/**
+ *
+ */
 export function contentDate(): string | undefined {
   const opts = {
     encoding: "utf8",

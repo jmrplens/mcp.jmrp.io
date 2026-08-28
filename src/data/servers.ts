@@ -203,6 +203,9 @@ export const servers: McpServer[] = [
     sameAs: [
       "https://glama.ai/mcp/servers/jmrplens/libgen-mcp",
       "https://cursor.directory/plugins/libgen-mcp",
+      // Comprobado, no supuesto: su ficha nombra mcp.jmrp.io 21 veces, así que
+      // describe ESTE despliegue y no solo el software.
+      "https://lobehub.com/mcp/jmrplens-libgen-mcp",
     ],
     tools: [
       {
@@ -352,6 +355,8 @@ export const servers: McpServer[] = [
       "https://mcpservers.org/servers/jmrplens/gitlab-mcp-server",
       "https://mcp.so/server/gitlab-mcp-server/jmrplens",
       "https://cursor.directory/plugins/gitlab-mcp-server",
+      // Idem: 26 menciones de mcp.jmrp.io en su ficha.
+      "https://lobehub.com/mcp/jmrplens-gitlab-mcp-server",
     ],
     tools: [
       {

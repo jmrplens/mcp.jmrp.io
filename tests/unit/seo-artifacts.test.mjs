@@ -16,6 +16,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { serverCards } from "../../src/data/server-cards.ts";
 import {
@@ -61,6 +62,9 @@ const SERVED_AT_ROOT = [
   "favicon.svg",
   "humans.txt",
   "index.html",
+  // El gemelo de la portada. Es el ÚNICO que cae en la raíz: los demás viven
+  // en el directorio de su página (internals/index.md), fuera de este test.
+  "index.md",
   "llms-full.txt",
   "llms.txt",
   // La ruta que adivinan los clientes MCP. No hay servidor aquí —este
@@ -156,6 +160,62 @@ test("cada página generada tiene su location en el vhost", (t) => {
       `${url} no tiene 'location' en el vhost: dará 404 en producción`,
     );
   }
+});
+
+test("cada gemelo en markdown tiene su location y su canónico", (t) => {
+  // Tercer hermano de los dos guardianes de arriba, y el que más falta hacía:
+  // un gemelo vive en `<página>/index.md`, así que no es fichero de la raíz
+  // (SERVED_AT_ROOT no lo ve) ni está en SERVED_PAGES (que lista index.html).
+  // Sin esto, añadir una página con gemelo y olvidar su `location` publica un
+  // 404 en la ruta que un agente va a DERIVAR sola, que es justo el caso que
+  // los gemelos existen para cubrir.
+  //
+  // Se recorren los generados, no una lista escrita a mano: aquí la lista
+  // fija sería el error, porque el build ya sabe cuáles hay.
+  if (!fs.existsSync(VHOST)) {
+    t.skip("el vhost no es legible en esta máquina");
+    return;
+  }
+  const vhost = fs.readFileSync(VHOST, "utf8");
+  const twins = [];
+  // `DIST` es una URL file://, que readdirSync acepta pero de la que no se
+  // puede derivar una subruta concatenando: hay que pasar a ruta real una vez.
+  const root = fileURLToPath(DIST);
+  const walk = (dir, prefix = "") => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isDirectory()) walk(`${dir}/${entry.name}`, `${prefix}/${entry.name}`);
+      else if (entry.name === "index.md") twins.push(`${prefix}/index.md`);
+    }
+  };
+  walk(root);
+
+  assert.ok(twins.length > 0, "el build no emitió ningún gemelo en markdown");
+  // Dos formas válidas de estar servido, y la segunda es imprescindible: los
+  // sesenta gemelos de dominio no pueden llevar una `location` exacta cada uno,
+  // así que caen en el bloque `^~` de su prefijo, que anida una `location ~
+  // \.md$`. Se exige que ese anidado exista, no basta con que el prefijo esté:
+  // sin él nginx probaría `$uri/index.html` sobre un fichero .md y daría 404.
+  // Nombrados, no posicionales: `[, , block]` con dos huecos seguidos es
+  // ilegible y el linter lo rechaza con razón — al leerlo nadie sabe cuál de
+  // los dos grupos se está saltando.
+  const prefixes = [...vhost.matchAll(/location \^~ (?<prefix>\S+) \{(?<block>[\s\S]*?)\n {4}\}/g)]
+    .filter((match) => match.groups.block.includes(String.raw`\.md$`))
+    .map((match) => match.groups.prefix);
+  for (const twin of twins) {
+    const exact = vhost.includes(`location = ${twin} `);
+    const covered = prefixes.some((prefix) => twin.startsWith(prefix));
+    assert.ok(
+      exact || covered,
+      `${twin} no está servido: ni 'location = ${twin}' ni un prefijo '^~' que trate .md`,
+    );
+  }
+  // Y que el map del canónico exista: sin él los gemelos se sirven huérfanos,
+  // sin decir de qué página son.
+  assert.match(
+    vhost,
+    /map \$uri \$md_link_header/,
+    "falta el map que pone el Link rel=canonical en los gemelos",
+  );
 });
 
 test("robots.txt deja pasar a todo el mundo y anuncia el sitemap", () => {
