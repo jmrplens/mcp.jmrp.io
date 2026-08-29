@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="mcp.jmrp.io">
   <title>mcp.jmrp.io</title>
-  <!-- Marca del sitio: el sigilo `~ ›` de la cabecera, reducido al chevron.
-       A 16 px cualquier texto sería ilegible, así que solo queda el gesto.
-       Fondo opaco propio (no transparente) para que se lea igual en una barra
-       de pestañas clara y en una oscura. -->
+  <!-- The site's mark: the header's `~ ›` sigil, reduced to the chevron. At
+       16 px any text would be illegible, so only the gesture is left. Its own
+       opaque background (not transparent) so it reads the same in a light tab
+       bar and in a dark one. -->
   <rect width="32" height="32" rx="7" fill="#0a0a0b" />
   <path
     d="M9 10.5 15.5 16 9 21.5"

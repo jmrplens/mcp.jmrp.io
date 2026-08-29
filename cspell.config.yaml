@@ -61,6 +61,9 @@ ignorePaths:
   - ops/**
   - docs/superpowers/**
   - .superpowers/**
+  - docs/nginx-vhost-reference.conf # a captured vhost, kept beside the code
+  - edge-nonce-worker/** # deployed from its own place; gitignored here
+  - secrets/** # gitignored operational copies, and one of them holds a salt
   - GEO-AUDIT-*.md
   - test-results/**
   - playwright-report/**

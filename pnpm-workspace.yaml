@@ -1,9 +1,9 @@
-# pnpm 11 ya no lee `package.json#pnpm`: la configuración del gestor vive aquí.
+# pnpm 11 no longer reads `package.json#pnpm`: the manager's configuration
+# lives here.
 #
-# allowBuilds: pnpm bloquea por defecto los scripts de instalación de las
-# dependencias. esbuild los necesita para descargar su binario nativo; sin
-# esta entrada `pnpm install` avisa con ERR_PNPM_IGNORED_BUILDS y el binario
-# puede quedar sin instalar.
+# allowBuilds: pnpm blocks dependency install scripts by default. esbuild needs
+# them to download its native binary; without this entry `pnpm install` warns
+# with ERR_PNPM_IGNORED_BUILDS and the binary can end up not installed.
 allowBuilds:
   esbuild: true
   # sonar-scanner downloads its own JRE + scanner binary on install; without

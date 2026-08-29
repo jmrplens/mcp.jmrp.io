@@ -194,10 +194,10 @@ export default [
 
   // 7. Playwright (E2E Testing)
   //
-  // Acotado a tests/e2e: los de tests/unit usan el runner nativo de node
-  // (`node:test` + `node:assert`), y el plugin de Playwright los evaluaba como
-  // suyos, marcando "Test has no assertions" en tests que sí asertan — solo que
-  // con `assert`, no con `expect`.
+  // Scoped to tests/e2e: the ones in tests/unit use node's native runner
+  // (`node:test` + `node:assert`), and the Playwright plugin evaluated them as
+  // its own, flagging "Test has no assertions" on tests that do assert — just
+  // with `assert`, not with `expect`.
   {
     ...playwright.configs["flat/recommended"],
     files: ["tests/e2e/**/*.{ts,tsx,js,jsx,mjs}"],
@@ -319,10 +319,10 @@ export default [
   // 15. SonarJS Overrides for specific files
   {
     files: [
-      // El `lastmod` del sitemap sale de `git log`, y `git` se resuelve por
-      // PATH igual que el `nginx -t` y el `systemctl` del script de despliegue:
-      // es herramienta de build ejecutada por quien ya controla la máquina, no
-      // entrada de usuario.
+      // The sitemap's `lastmod` comes from `git log`, and `git` is resolved
+      // through PATH just like the deployment script's `nginx -t` and
+      // `systemctl`: it is build tooling run by someone who already controls
+      // the machine, not user input.
       "astro.config.mjs",
       "src/integrations/post-build.ts",
       "scripts/**/*.mjs",
@@ -344,10 +344,10 @@ export default [
   {
     files: ["tests/unit/**/*.test.mjs"],
     rules: {
-      // Pasar `undefined` a propósito ES la aserción en estos tests: comprueban
-      // que `toolsFrom(undefined)`, `schemaFields(undefined)` y compañía
-      // devuelven algo utilizable en vez de reventar la isla. La regla existe
-      // para código de producción, donde el argumento sobra.
+      // Passing `undefined` deliberately IS the assertion in these tests: they
+      // check that `toolsFrom(undefined)`, `schemaFields(undefined)` and
+      // friends return something usable instead of blowing up the island. The
+      // rule exists for production code, where the argument is redundant.
       "unicorn/no-useless-undefined": "off",
     },
   },
