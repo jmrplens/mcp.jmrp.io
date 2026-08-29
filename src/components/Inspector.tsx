@@ -28,26 +28,24 @@ import Markdown from "./Markdown";
 import { useMcpCall } from "./use-mcp-call";
 
 /**
- * Isla Preact que introspecciona y ejercita los servidores MCP desde el
- * navegador.
+ * A Preact island that introspects and exercises the MCP servers from the
+ * browser.
  *
- * La lista de servidores llega por prop para que siga teniendo una única
- * fuente de verdad: `src/data/servers.ts`. `lang` también, porque las
- * etiquetas de campo y los mensajes de error SÍ son texto de interfaz de un
- * sitio bilingüe; lo que no se traduce son los identificadores del protocolo
- * (nombres de método, de cabecera y de tool), que son literalmente lo que hay
- * que teclear en un cliente MCP.
+ * The server list arrives as a prop so it keeps a single source of truth:
+ * `src/data/servers.ts`. So does `lang`, because the field labels and error
+ * messages ARE interface text on a bilingual site; what is never translated
+ * are the protocol's identifiers (method, header and tool names), which are
+ * literally what has to be typed into an MCP client.
  *
- * REGLA QUE NO SE PUEDE ROMPER: los valores de las cabeceras (el token de
- * GitLab entre ellos) viven SOLO en el estado del componente. Nada de
- * localStorage, sessionStorage, cookies, query string ni console.log: al
- * recargar tienen que desaparecer.
+ * THE RULE THAT CANNOT BE BROKEN: the header values (the GitLab token among
+ * them) live ONLY in component state. No localStorage, sessionStorage,
+ * cookies, query string or console.log: on reload they have to be gone.
  */
 
 /**
- * `initialize` es el único método que necesita parámetros: sin ellos el
- * servidor responde -32602. La versión es la del protocolo que hablan estos
- * servidores; si el servidor soporta otra, negocia y devuelve la suya.
+ * `initialize` is the only method that needs parameters: without them the
+ * server answers -32602. The version is the protocol these servers speak; if
+ * a server supports another it negotiates and returns its own.
  */
 const INIT_PARAMS = {
   protocolVersion: "2026-07-28",
@@ -56,16 +54,16 @@ const INIT_PARAMS = {
 };
 
 /**
- * "Exactly one of: md5 or id or doi" — el formulario no puede marcar ningún
- * campo suelto como obligatorio cuando el requisito es un GRUPO (libgen 1.7.1
- * los declara como anyOf/oneOf de ramas required), así que se enuncia encima
- * con las palabras del idioma de la página. A nivel de módulo por S3776: el
- * componente ya roza el límite de complejidad y esto son solo datos de render.
+ * "Exactly one of: md5 or id or doi" — the form cannot mark any single field
+ * as required when the requirement is a GROUP (libgen 1.7.1 declares them as
+ * anyOf/oneOf of required branches), so it is stated above the fields in the
+ * page's language. At module level because of S3776: the component already
+ * sits near the complexity ceiling and this is only render data.
  *
- * @param tab Pestaña activa; solo las tools llevan inputSchema con grupos.
- * @param schema El `inputSchema` de la tool elegida.
- * @param t Bloque de cadenas del inspector en el idioma de la página.
- * @returns La línea ya redactada, o undefined si no hay grupos legibles.
+ * @param tab The active tab; only tools carry an inputSchema with groups.
+ * @param schema The chosen tool's `inputSchema`.
+ * @param t The inspector's strings in the page's language.
+ * @returns The finished line, or undefined when there are no readable groups.
  */
 function requirementNoteFor(
   tab: Tab,
@@ -259,17 +257,17 @@ function ViewSwitch({
 }
 
 /**
- * Isla interactiva que habla con los servidores MCP desde el navegador del
- * visitante: introspección (initialize, tools/list, prompts/list,
- * resources/list) y ejecución de tools.
+ * The interactive island that talks to the MCP servers from the visitor's
+ * browser: introspection (initialize, tools/list, prompts/list,
+ * resources/list) and running tools.
  *
- * El token de GitLab que se teclea aquí vive SOLO en el estado de este
- * componente: no se escribe en localStorage ni sessionStorage, no viaja en la
- * URL y desaparece al recargar.
+ * The GitLab token typed in here lives ONLY in this component's state: it is
+ * never written to localStorage or sessionStorage, never travels in the URL,
+ * and is gone on reload.
  *
- * @param props.servers Lista de servidores, desde `src/data/servers.ts`.
- * @param props.lang Idioma de la página que monta la isla.
- * @returns El panel del inspector.
+ * @param props.servers The server list, from `src/data/servers.ts`.
+ * @param props.lang The language of the page mounting the island.
+ * @returns The inspector panel.
  */
 export default function Inspector({
   servers,
@@ -309,9 +307,9 @@ export default function Inspector({
 
   const [serverId, setServerId] = useState(servers[0]?.id ?? "");
   /**
-   * Valores de las cabeceras, en memoria y nada más. La clave lleva el id del
-   * servidor por delante: si dos MCP declarasen una cabecera con el mismo
-   * nombre, una clave compartida mandaría el secreto de uno al otro.
+   * The header values, in memory and nowhere else. The key is prefixed with
+   * the server's id: if two MCPs declared a header with the same name, a
+   * shared key would send one's secret to the other.
    */
   const [headerValues, setHeaderValues] = useState<Record<string, string>>({});
   const [tab, setTab] = useState<Tab>("tools");
@@ -323,7 +321,7 @@ export default function Inspector({
    * can say what happened instead of failing silently.
    */
   const [signIn, setSignIn] = useState<SignInState>("idle");
-  /** Catálogos del servidor activo. Se llenan con cada `list`. */
+  /** The active server's catalogs. Filled by each `list`. */
   const [tools, setTools] = useState<McpTool[]>([]);
   const [prompts, setPrompts] = useState<McpPrompt[]>([]);
   const [resources, setResources] = useState<McpResource[]>([]);
@@ -373,12 +371,12 @@ export default function Inspector({
       };
     }
   }, [servers]);
-  /** Lo tecleado en el formulario, por nombre de argumento. */
+  /** What has been typed into the form, by argument name. */
   const [argValues, setArgValues] = useState<Record<string, string>>({});
-  /** Escape para esquemas que ningún formulario representa con honestidad. */
+  /** The escape hatch for schemas no form represents honestly. */
   const [rawMode, setRawMode] = useState(false);
   const [toolArgs, setToolArgs] = useState("{}");
-  /** Aviso efímero del botón de copiar. */
+  /** The copy button's fleeting notice. */
   const [copyNote, setCopyNote] = useState("");
 
   const server = servers.find((s) => s.id === serverId) ?? servers[0];
@@ -389,11 +387,11 @@ export default function Inspector({
   const keyOf = (headerName: string) => `${server?.id ?? ""}:${headerName}`;
 
   /**
-   * Cabeceras obligatorias que siguen vacías.
+   * Required headers still left empty.
    *
-   * Sin esto, gitlab sin token devuelve un 400 con el texto literal del
-   * upstream, «no server available», que se lee como «el servidor está caído»
-   * — la conclusión exactamente equivocada. El dato para evitarlo ya estaba en
+   * Without this, gitlab with no token returns a 400 carrying the upstream's
+   * literal text, "no server available", which reads as "the server is down" —
+   * exactly the wrong conclusion. The data needed to prevent it was already in
    * `servers.ts`.
    */
   const missing = (server?.requiredHeaders ?? []).filter(
@@ -403,7 +401,7 @@ export default function Inspector({
 
   const selectedTool = tools.find((tool) => tool.name === toolName);
   const selectedPrompt = prompts.find((p) => p.name === promptName);
-  /** Campos del formulario activo: los de la tool o los del prompt. */
+  /** The active form's fields: the tool's or the prompt's. */
   const argFields =
     tab === "prompts"
       ? formFields(promptSchema(selectedPrompt?.arguments ?? []))
@@ -443,11 +441,11 @@ export default function Inspector({
   }
 
   /**
-   * Solo las cabeceras del servidor activo, y solo las que tienen valor.
+   * Only the active server's headers, and only those with a value.
    *
-   * El esquema (`valuePrefix`, hoy `"Bearer "` en gitlab) lo pone AQUÍ y no el
-   * visitante: lo que se teclea es el token, y pedirle además que escriba
-   * `Bearer ` delante convierte un espacio de más en un 401 sin explicación.
+   * The scheme (`valuePrefix`, today `"Bearer "` on gitlab) is added HERE and
+   * not by the visitor: what gets typed is the token, and asking them to write
+   * `Bearer ` in front too turns one stray space into an unexplained 401.
    */
   function authHeaders(): Record<string, string> {
     const headers: Record<string, string> = {};
@@ -459,10 +457,10 @@ export default function Inspector({
   }
 
   /**
-   * Cambiar de servidor tira el catálogo y los argumentos.
+   * Switching server throws away the catalog and the arguments.
    *
-   * Dejar las tools del servidor anterior sería peor que no tener lista: el
-   * selector ofrecería nombres que este otro servidor no implementa.
+   * Keeping the previous server's tools would be worse than having no list at
+   * all: the picker would offer names this other server does not implement.
    */
   function chooseServer(id: string) {
     setServerId(id);
@@ -476,7 +474,7 @@ export default function Inspector({
     setToolArgs("{}");
   }
 
-  /** Elegir tool limpia lo tecleado para la anterior y prepara el modo JSON. */
+  /** Picking a tool clears what was typed for the previous one and preps JSON mode. */
   function chooseTool(name: string) {
     setToolName(name);
     setArgValues({});
@@ -533,7 +531,7 @@ export default function Inspector({
     select(match);
   }
 
-  /** Los tres catálogos se piden igual; solo cambia dónde se guardan. */
+  /** All three catalogs are requested the same way; only where they land differs. */
   async function loadCatalog(kind: Tab) {
     const method = `${kind}/list`;
     const body = await sendRaw(method, {});
@@ -575,11 +573,11 @@ export default function Inspector({
   }
 
   /**
-   * Lanza un método y devuelve el cuerpo, para quien necesite leerlo.
+   * Fires a method and returns the body, for whoever needs to read it.
    *
-   * @param method Método JSON-RPC.
-   * @param params Parámetros.
-   * @returns El cuerpo de la respuesta.
+   * @param method The JSON-RPC method.
+   * @param params The parameters.
+   * @returns The response body.
    */
   async function sendRaw(method: string, params: unknown): Promise<unknown> {
     if (!server) return undefined;
@@ -587,10 +585,10 @@ export default function Inspector({
   }
 
   /**
-   * Construye los argumentos, del formulario o del JSON crudo.
+   * Builds the arguments, from the form or from the raw JSON.
    *
-   * @returns Los argumentos, o `null` si el visitante escribió algo inválido
-   *   (en cuyo caso ya se ha pintado el aviso).
+   * @returns The arguments, or `null` when the visitor typed something invalid
+   *   (in which case the notice has already been rendered).
    */
   function buildArgs(method: string): Record<string, unknown> | null {
     try {
@@ -601,9 +599,9 @@ export default function Inspector({
             badJson: t.argBadJson,
           });
     } catch (error) {
-      // Se avisa aquí y no se manda: el servidor devolvería un -32700 o un
-      // "unexpected additional properties" mucho menos claros que decir qué
-      // campo está mal.
+      // Reported here rather than sent: the server would return a -32700 or an
+      // "unexpected additional properties", both far less clear than saying
+      // which field is wrong.
       const message = `${t.badJson}: ${String(error)}`;
       call.setStatus({ method, outcome: "client", message });
       call.setOutput(message);
@@ -620,7 +618,7 @@ export default function Inspector({
   async function runPrompt() {
     const args = buildArgs("prompts/get");
     if (!args) return;
-    // Los argumentos de un prompt son cadenas por definición del protocolo.
+    // A prompt's arguments are strings by the protocol's definition.
     const stringArgs = Object.fromEntries(
       Object.entries(args).map(([k, v]) => [k, String(v)]),
     );
@@ -636,14 +634,14 @@ export default function Inspector({
       await navigator.clipboard.writeText(output);
       setCopyNote(t.copied);
     } catch {
-      // Sin permiso de portapapeles (o sin contexto seguro) no hay nada que
-      // hacer salvo decirlo: fallar en silencio deja al visitante creyendo
-      // que ya lo tiene copiado.
+      // Without clipboard permission (or outside a secure context) there is
+      // nothing to do but say so: failing silently leaves the visitor believing
+      // they already have it copied.
       setCopyNote(t.copyFailed);
     }
   }
 
-  /** El botón de leer solo aparece con un recurso ya elegido. */
+  /** The read button only appears once a resource has been chosen. */
   const showRead = tab === "resources" && resourceUri !== "";
 
   const failed =
@@ -654,9 +652,9 @@ export default function Inspector({
       className="term"
       data-testid="inspector"
     >
-      {/* Barra de ventana: la misma pieza que la tarjeta de terminal de
-          jmrp.io. Aquí no es decorativa — lo que hay debajo ES una consola
-          JSON-RPC, así que la forma dice la verdad sobre la función. */}
+      {/* The window bar: the same piece as jmrp.io's terminal card. Here it is
+          not decoration — what sits below IS a JSON-RPC console, so the shape
+          tells the truth about the function. */}
       <header className="term-bar">
         <span
           className="lights"
@@ -766,9 +764,9 @@ export default function Inspector({
           </p>
         ) : null}
 
-        {/* Pestañas: las tres cosas que un servidor MCP puede ofrecer. Antes
-            había cuatro botones sueltos que solo listaban, y lo listado no se
-            podía usar: se veía que había 37 prompts y ahí se acababa. */}
+        {/* Tabs: the three things an MCP server can offer. There used to be
+            four loose buttons that only listed, and what they listed could not
+            be used: you could see there were 37 prompts and that was that. */}
         {/* The two action buttons sit OUTSIDE the tablist. A `role="tablist"`
             may only contain `role="tab"` children, and `initialize` and
             `cancel` are not tabs: axe reported "Element has children which are
@@ -789,9 +787,10 @@ export default function Inspector({
                 role="tab"
                 id={`tab-${name}`}
                 aria-selected={tab === name}
-                // Solo el activo referencia el panel: se renderiza UN tabpanel,
-                // el de la pestaña elegida, así que los demás apuntarían a un id
-                // inexistente. html-validate lo caza con no-missing-references.
+                // Only the active one references the panel: exactly ONE
+                // tabpanel is rendered, the chosen tab's, so the others would
+                // point at an id that does not exist. html-validate catches it
+                // with no-missing-references.
                 aria-controls={tab === name ? `panel-${name}` : undefined}
                 className={tab === name ? "tab is-active" : "tab"}
                 onClick={() => setTab(name)}
@@ -896,10 +895,10 @@ export default function Inspector({
         lang={lang}
       />
 
-      {/* aria-live="off" a propósito: quien anuncia es la línea de estado de
-          arriba. tabindex + role + nombre para que el panel, que tiene scroll
-          propio, esté SIEMPRE en el orden de tabulación y con nombre — Chrome
-          lo hacía enfocable solo cuando el contenido desbordaba. */}
+      {/* aria-live="off" on purpose: the status line above is what announces.
+          tabindex + role + name so the panel, which has its own scroll, is
+          ALWAYS in the tab order and named — Chrome only made it focusable
+          when the content overflowed. */}
       {/* A div, not a pre: the reader view puts tables and lists inside,
           which would be invalid HTML within a pre. The pre stays in there
           for the JSON view, which is the one that needs its whitespace. */}
@@ -909,10 +908,10 @@ export default function Inspector({
         className={outputClass(busy, failed)}
         data-testid="inspector-output"
         aria-live="off"
-        // Contenedor con scroll propio: sin tabIndex, quien navega con teclado
-        // no puede desplazarlo. Es la excepción reconocida a "tabIndex solo en
-        // elementos interactivos" (WCAG SCR34); Chrome lo hace enfocable solo
-        // cuando el contenido desborda, y Firefox y Safari no lo hacen nunca.
+        // A container with its own scroll: without tabIndex, a keyboard user
+        // cannot scroll it. This is the recognized exception to "tabIndex only
+        // on interactive elements" (WCAG SCR34); Chrome makes it focusable
+        // only when the content overflows, and Firefox and Safari never do.
         tabIndex={0}
         aria-label={t.responseLabel}
       >

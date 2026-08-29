@@ -1,14 +1,14 @@
 ---
 /**
- * Layout del sitio.
+ * The site's layout.
  *
- * NO reutiliza la navegación de jmrp.io: aquella enlaza a rutas raíz
- * (`/about`, `/blog`) que en este dominio serían 404. Los enlaces cross-site
- * van en absoluto (`https://jmrp.io/...`).
+ * It does NOT reuse jmrp.io's navigation: that one links to root routes
+ * (`/about`, `/blog`) that would 404 on this domain. Cross-site links are
+ * absolute (`https://jmrp.io/...`).
  *
- * El lenguaje visual sí es el de jmrp.io, heredado de src/styles/tokens.css:
- * Space Grotesk para display, IBM Plex Sans de cuerpo, IBM Plex Mono para
- * etiquetas y datos, y la paleta con tema claro/oscuro automático.
+ * The visual language IS jmrp.io's, inherited from src/styles/tokens.css:
+ * Space Grotesk for display, IBM Plex Sans for body, IBM Plex Mono for labels
+ * and data, and the palette with its automatic light/dark theme.
  */
 import "../styles/global.css";
 
@@ -79,7 +79,7 @@ type Props = {
    */
   serverId?: string;
   /**
-   * Action-domain page under a server's ficha — forwarded verbatim to
+   * Action-domain page under a server's card — forwarded verbatim to
    * `buildSiteGraph`. See `jsonld.ts`'s `PageMeta.actionsDomain` doc:
    * unlike `serverId`, it does NOT make this page the home of the server's
    * nodes; it only derives the page's own URL/breadcrumb/mainEntity.
@@ -123,7 +123,7 @@ const lang = getLangFromUrl(Astro.url);
 // it was just write-as-you-go.
 const otherLang: Lang = lang === "en" ? "es" : "en";
 
-// La misma fecha que dateModified y el lastmod del sitemap: una sola verdad.
+// The same date as dateModified and the sitemap's lastmod: one single truth.
 // Shared, memoized build timestamp — the same value the JSON-LD and
 // <UpdatedLine> use. Calling `contentDate() ?? new Date()` here again
 // re-read the clock on a dirty tree, so the footer could disagree with
@@ -143,10 +143,10 @@ const alternate = new URL(
   hreflangCluster.find((entry) => entry.hreflang === otherLang)?.href ??
     pageUrl(otherLang, page),
 ).pathname;
-// Canonical, og:url y twitter:url son el MISMO valor a propósito: tres
-// declaraciones distintas de dónde vive esta página son tres oportunidades de
-// contradecirse. `canonicalOverride` for a per-server detail page (see the
-// prop doc above); `pageUrl()` for everything else.
+// Canonical, og:url and twitter:url are the SAME value on purpose: three
+// separate declarations of where this page lives are three chances to
+// contradict each other. `canonicalOverride` for a per-server detail page (see
+// the prop doc above); `pageUrl()` for everything else.
 const canonical = canonicalOverride ?? pageUrl(lang, page);
 // Footer link to `/policies/`, site-relative for the same reason `alternate`
 // is above. It is in the shared footer, not just on the home page, so every
@@ -163,9 +163,10 @@ const imageAlt = ogImageAlt(lang);
 const otherLocales = Object.entries(OG_LOCALES)
   .filter(([code]) => code !== lang)
   .map(([, locale]) => locale);
-// El grafo se serializa aquí, en el frontmatter, para que `set:html` reciba
-// una cadena ya escapada. `buildSiteGraph` descarga el documento de identidad de
-// jmrp.io de GitHub, con el snapshot commiteado como respaldo (ver identity.ts).
+// The graph is serialized here, in the frontmatter, so `set:html` receives an
+// already-escaped string. `buildSiteGraph` downloads jmrp.io's identity
+// document from GitHub, with the committed snapshot as a fallback (see
+// identity.ts).
 // An error body describes no entity, so it builds no graph. Emitting one made
 // the 404 redefine the home page's `@id` with a different name.
 // `serverId` is passed straight through — see the prop doc above for why a
@@ -206,12 +207,12 @@ const NAV_LABELS: Record<PageId, string> = {
   servers: t.navServers,
 };
 /**
- * El orden del menú, explícito y no el de `Object.keys(PAGE_PATHS)`.
+ * The menu's order, stated explicitly rather than `Object.keys(PAGE_PATHS)`'s.
  *
- * Importa más de lo que parece: en móvil el menú ES una lista vertical, así
- * que este orden es la jerarquía declarada del sitio. Va de qué hay → pruébalo
- * → cómo funciona → letra pequeña, y no alfabético, que es lo que salía de
- * heredar el orden de las claves del objeto.
+ * It matters more than it looks: on mobile the menu IS a vertical list, so this
+ * order is the site's declared hierarchy. It runs what is here → try it → how
+ * it works → the small print, and not alphabetically, which is what inheriting
+ * the object's key order produced.
  */
 const NAV_ORDER: PageId[] = [
   "home",
@@ -228,12 +229,12 @@ const navItems = NAV_ORDER.map((id) => ({
 }));
 
 /**
- * Los servidores, colgando de «Servers» en el menú.
+ * The servers, hanging off "Servers" in the menu.
  *
- * El icono sale de la tarjeta que publica cada servidor —el mismo que su
- * propia página— y viaja como `data:` dentro de ella, así que no añade una
- * petición. Un servidor sin icono simplemente no lo pinta: la lista no
- * depende de que exista.
+ * The icon comes from the card each server publishes — the same one its own
+ * page uses — and travels as a `data:` URI inside it, so it adds no request. A
+ * server without an icon simply does not draw one: the list does not depend on
+ * it existing.
  */
 const serverSubItems = servers.map((server) => ({
   href: new URL(serverPageUrl(lang, server.id)).pathname,
@@ -331,12 +332,12 @@ const serverSubItems = servers.map((server) => ({
     />
 
     {
-      /* Las anotaciones hreflang se emiten ENTERAS en las dos páginas, cada una
-        incluyéndose a sí misma. Google exige que toda versión liste todas las
-        versiones —ella incluida— y descarta el clúster completo si falta la
-        autorreferencia: EN y ES pasarían a competir entre sí en vez de
-        agruparse. Salen de `alternates()` y no de un ternario para que dar de
-        alta un idioma nuevo no pueda volver a dejar la lista coja. */
+      /* The hreflang annotations are emitted IN FULL on both pages, each one
+        including itself. Google requires every version to list every version —
+        itself included — and discards the whole cluster when the self-reference
+        is missing: EN and ES would then compete with each other instead of
+        being grouped. They come from `alternates()` and not from a ternary so
+        that adding a new language cannot leave the list short again. */
     }
     {
       !errorPage &&
@@ -350,9 +351,9 @@ const serverSubItems = servers.map((server) => ({
     }
 
     {
-      /* El índice de endpoints en JSON, declarado como representación
-        alternativa del documento. Estaba solo enlazado desde el cuerpo, así
-        que un agente que lea el `<head>` —que es lo que hacen— no lo veía. */
+      /* The endpoint index in JSON, declared as an alternate representation of
+        the document. It was only linked from the body, so an agent reading the
+        `<head>` — which is what they do — never saw it. */
     }
     <link
       rel="alternate"
@@ -362,9 +363,9 @@ const serverSubItems = servers.map((server) => ({
     />
 
     {
-      /* Mismo motivo que el `<link>` de arriba, para `/llms.txt`: el diseño ya
-        daba por hecho que la portada apuntaba a los dos, pero este nunca se
-        había llegado a añadir. */
+      /* Same reason as the `<link>` above, for `/llms.txt`: the design already
+        assumed the home page pointed at both, but this one had never actually
+        been added. */
     }
     <link
       rel="alternate"
@@ -379,9 +380,9 @@ const serverSubItems = servers.map((server) => ({
     />
 
     {
-      /* Icono en SVG, no .ico: el vhost contesta 204 a /favicon.ico (viene del
-        include `empty_apple_icons.conf` y hermanos) y ese 204 no se puede
-        cambiar desde aquí. Un SVG declarado explícitamente sí se sirve. */
+      /* An SVG icon, not .ico: the vhost answers 204 to /favicon.ico (it comes
+        from the `empty_apple_icons.conf` include and its siblings) and that 204
+        cannot be changed from here. An explicitly declared SVG is served. */
     }
     <link
       rel="icon"
@@ -395,10 +396,10 @@ const serverSubItems = servers.map((server) => ({
     />
 
     {
-      /* Tarjeta social. Sin este bloque, un enlace compartido en Bluesky,
-        Mastodon, Slack o WhatsApp sale como URL pelada: ni título, ni
-        descripción, ni imagen. `og:image` va en ABSOLUTO porque ninguno de
-        esos clientes resuelve rutas relativas. */
+      /* The social card. Without this block, a link shared on Bluesky,
+        Mastodon, Slack or WhatsApp comes out as a bare URL: no title, no
+        description, no image. `og:image` is ABSOLUTE because none of those
+        clients resolves relative paths. */
     }
     {
       /* Not on the error body: `og:url` and `twitter:url` are the canonical,
@@ -492,13 +493,12 @@ const serverSubItems = servers.map((server) => ({
     }
 
     {
-      /* Datos estructurados. `is:inline` es obligatorio: sin él Astro trata el
-        bloque como un script propio y lo saca a un módulo del bundle, con lo
-        que el JSON-LD desaparecería del HTML.
-
-        No hay nada que tocar en la CSP: `script-src` no aplica a un bloque de
-        datos `ld+json`, y aun así el post-build le pone el placeholder
-        `nonce="NGINX_CSP_NONCE"` como a cualquier `script:not([src])`. */
+      /* Structured data. `is:inline` is mandatory: without it Astro treats the
+        block as a script of its own and moves it into a bundle module, which
+        would make the JSON-LD disappear from the HTML.
+        There is nothing to change in the CSP: `script-src` does not apply to an
+        `ld+json` data block, and even so the post-build gives it the
+        `nonce="NGINX_CSP_NONCE"` placeholder like any `script:not([src])`. */
     }
     {
       jsonLd && (
@@ -511,11 +511,11 @@ const serverSubItems = servers.map((server) => ({
     }
 
     {
-      /* Sin estos <Font> Astro NO emite las variables --font-*, y como
-        tokens.css define --font-body como `var(--font-ibm-plex-sans), ...`,
-        un var() inexistente invalida la declaración entera: el navegador
-        ignora toda la cadena de fallback y cae a Times New Roman.
-        Configurar `fonts:` en astro.config no basta por sí solo. */
+      /* Without these <Font> tags Astro does NOT emit the --font-* variables,
+        and since tokens.css defines --font-body as `var(--font-ibm-plex-sans),
+        ...`, a non-existent var() invalidates the whole declaration: the
+        browser ignores the entire fallback chain and drops to Times New Roman.
+        Configuring `fonts:` in astro.config is not enough on its own. */
     }
     <Font
       cssVariable="--font-ibm-plex-sans"
@@ -617,11 +617,11 @@ const serverSubItems = servers.map((server) => ({
                     )}
                     {item.label}
                   </a>
-                  {/* Los servidores cuelgan de «Servers» sin quitarle su
-                      enlace: el `<a>` de arriba sigue llevando al índice, y
-                      esta lista solo aparece al pasar el ratón o al entrar con
-                      el teclado (`:focus-within`, que es lo que la hace
-                      alcanzable sin ratón). Cero JavaScript. */}
+                  {/* The servers hang off "Servers" without taking away its
+                      link: the `<a>` above still leads to the index, and this
+                      list only appears on hover or on keyboard entry
+                      (`:focus-within`, which is what makes it reachable
+                      without a mouse). Zero JavaScript. */}
                   {item.id === "servers" && serverSubItems.length > 0 && (
                     <ul class="nav-sub">
                       {serverSubItems.map((sub) => (
@@ -888,12 +888,11 @@ const serverSubItems = servers.map((server) => ({
           </div>
 
           {
-            /* El toggle de tema, duplicado aquí igual que la píldora de idioma
-              y por el mismo motivo: al abrir el cajón, los botones de la barra
-              quedan detrás del panel, así que en móvil no había forma de
-              cambiar de tema con el menú abierto. El de la barra se queda
-              donde está; esto es un segundo mando para el mismo estado, no un
-              reemplazo. */
+            /* The theme toggle, duplicated here like the language pill and for
+              the same reason: opening the drawer puts the bar's buttons behind
+              the panel, so on mobile there was no way to change theme with the
+              menu open. The bar's own stays where it is; this is a second
+              control for the same state, not a replacement. */
           }
           <button
             type="button"
@@ -919,13 +918,12 @@ const serverSubItems = servers.map((server) => ({
     <main id="main"><slot /></main>
 
     {
-      /* Identidad y frescura VISIBLES. Estaban completas en el JSON-LD y
-        ausentes para una persona: la auditoría lo llamó "autoridad regalada",
-        y las respuestas de IA que citan texto visible no tenían a quién
-        atribuir. El mailto también resuelve que security.txt existiera sin
-        estar enlazado desde ninguna parte — mismo motivo por el que
-        `/policies/` va aquí y no solo en la portada: cualquier página tiene
-        que poder llegar a ella. */
+      /* Identity and freshness, VISIBLE. They were complete in the JSON-LD and
+        absent to a person: the audit called it "authority given away", and AI
+        answers that quote visible text had nobody to attribute it to. The
+        mailto also resolves security.txt existing without being linked from
+        anywhere — the same reason `/policies/` goes here and not only on the
+        home page: every page has to be able to reach it. */
     }
     <footer class="site-footer">
       <p class="footer-id">
@@ -956,12 +954,10 @@ const serverSubItems = servers.map((server) => ({
     <script is:inline>
       (function () {
         // Theme button: reflect the live theme in aria-label and dispatch
-        // the toggle. One instance on this site, so plain `getElementById`
-        // is enough — no need for jmrp.io's class-based multi-instance sync.
-        // Todos los que lleven el gancho, no uno por id: desde que el cajón
-        // tiene su propia copia hay DOS, y con `getElementById` el segundo se
-        // quedaba mudo — sin etiqueta que anunciara el estado y sin reaccionar
-        // al clic.
+        // the toggle. Every element carrying the hook, not one by id: since the
+        // drawer got its own copy there are TWO, and with `getElementById` the
+        // second one went mute — no label announcing the state and no reaction
+        // to a click.
         var themeBtns = document.querySelectorAll("[data-theme-toggle]");
         if (themeBtns.length) {
           var updateThemeLabel = function () {
@@ -1071,7 +1067,7 @@ const serverSubItems = servers.map((server) => ({
 </html>
 
 <style>
-  /* Franja superior e inferior en mono, como la navegación de jmrp.io.
+  /* Top and bottom strips in mono, like jmrp.io's navigation.
 
      Sticky with the blur on ::before, NOT on .site-header directly: a
      `backdrop-filter` set on the header itself would make it the containing
@@ -1102,9 +1098,9 @@ const serverSubItems = servers.map((server) => ({
     align-items: center;
     justify-content: space-between;
 
-    /* width: 100% es obligatorio: body es un flex en columna y `margin-inline:
-       auto` sobre un hijo flex ANULA el stretch del eje cruzado, encogiendo la
-       franja al ancho de su contenido en vez de llegar a --max-width-container. */
+    /* width: 100% is mandatory: body is a column flex and `margin-inline: auto`
+       on a flex child CANCELS the cross-axis stretch, shrinking the strip to
+       its content's width instead of reaching --max-width-container. */
     width: 100%;
     max-width: var(--max-width-container);
     padding: 1rem var(--pad, 1.5rem);
@@ -1199,13 +1195,13 @@ const serverSubItems = servers.map((server) => ({
 
   /* ===== Desktop page nav — hidden below 40rem, replaced by the drawer === */
 
-  /* ===== Submenú de servidores ===============================================
-     Cuelga de «Servers» sin quitarle el enlace: el elemento padre sigue
-     llevando al índice y esto solo se despliega al pasar el ratón o al entrar
-     con el teclado. `:focus-within` es lo que lo hace alcanzable sin ratón —
-     sin él, tabular por el menú se saltaría los servidores enteros.
+  /* ===== Servers submenu =====================================================
+     Hangs off "Servers" without taking away its link: the parent element still
+     leads to the index and this only opens on hover or on keyboard entry.
+     `:focus-within` is what makes it reachable without a mouse — without it,
+     tabbing through the menu would skip the servers entirely.
 
-     Cero JavaScript, como el resto de la navegación. */
+     Zero JavaScript, like the rest of the navigation. */
   .nav-links > li {
     position: relative;
   }
@@ -1480,11 +1476,11 @@ const serverSubItems = servers.map((server) => ({
     flex-direction: column;
     width: var(--drawer-w);
 
-    /* OPACO. Estaba al 88% con desenfoque detrás, y el texto de la página se
-       leía a través del panel: un menú superpuesto por el que se ve lo que
-       tapa no se lee como una capa, se lee como suciedad. El cajón de jmrp.io
-       —que es de donde sale este patrón— es opaco. El desenfoque se queda
-       para el borde y la sombra, que sí ayudan a despegarlo. */
+    /* OPAQUE. It used to be 88% with a blur behind, and the page's text read
+       through the panel: an overlaid menu you can see through does not read as
+       a layer, it reads as dirt. jmrp.io's drawer — which is where this pattern
+       comes from — is opaque. The blur stays for the border and the shadow,
+       which do help lift it off. */
     background: var(--color-bg-secondary);
     border-inline-start: 1px solid var(--color-border);
     box-shadow: -30px 0 60px -30px rgb(0 0 0 / 55%);
@@ -1784,7 +1780,7 @@ const serverSubItems = servers.map((server) => ({
     margin-inline: auto;
   }
 
-  /* Enlace de salto: invisible hasta recibir foco por teclado. */
+  /* Skip link: invisible until it receives keyboard focus. */
   .skip {
     position: absolute;
     left: -9999px;
