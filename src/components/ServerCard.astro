@@ -1,7 +1,7 @@
 ---
 /**
- * Ficha de un servidor MCP. Se alimenta de `src/data/servers.ts`, que es la
- * única fuente de verdad: dar de alta un MCP nuevo no debe tocar markup.
+ * An MCP server's card. It feeds off `src/data/servers.ts`, which is the
+ * single source of truth: registering a new MCP must not touch markup.
  */
 import { getServerCard } from "../data/server-cards";
 import type { McpServer } from "../data/servers";
@@ -40,11 +40,11 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
 ---
 
 {
-  /* El `id` es el ÚNICO destino enlazable por servidor que tiene el sitio: sin
-    él no se puede apuntar a «el MCP de gitlab» desde fuera, y el `#gitlab` que
-    la gente escribiría a mano no llevaba a ninguna parte. Sale de
-    `server.id`, el mismo identificador estable que usan `/servers.json` y el
-    inspector. */
+  /* The `id` is the ONLY per-server linkable destination the site has: without
+    it there is no way to point at "gitlab's MCP" from outside, and the
+    `#gitlab` people would write by hand led nowhere. It comes from
+    `server.id`, the same stable identifier `/servers.json` and the inspector
+    use. */
 }
 <article
   class="card"
@@ -153,26 +153,24 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
   }
 
   {
-    /* La configuración por cliente VIVÍA AQUÍ, plegada. Se mudó a la página del
-      servidor (`ServerPage.astro`, sección «Conectar») cuando pasó a tener dos
-      caminos —OAuth y token— y triplicó de tamaño: metida en una tarjeta de la
-      portada, escondía tras un clic justo lo más largo de la página, y con un
-      tercer MCP a la vista la portada dejaba de escalar. La tarjeta ya lleva un
-      botón a la ficha, que es donde se contesta entera esa pregunta. */
+    /* The per-client configuration USED TO LIVE HERE, folded. It moved to the
+      server's page (`ServerPage.astro`, the "Connect" section) once it grew two
+      paths — OAuth and token — and tripled in size: inside a home-page card it
+      hid the longest thing on the page behind a click, and with a third MCP in
+      sight the home page stopped scaling. The card already carries a button to
+      the detail page, which is where that question is answered in full. */
   }
 
   {
-    /* El aviso de seguridad llega ABIERTO: es donde el visitante decide si
-       pega una credencial, y plegado quedaba visible la tranquilización
-       ("nunca se almacena") con todas las cautelas escondidas tras el clic —
-       el reparto exactamente al revés del correcto. Los demás sí se pliegan:
-       el problema de scroll que motivó los plegables era real, solo estaba
-       resuelto sobre el aviso equivocado.
+    /* The security notice arrives OPEN: it is where the visitor decides whether
+       to paste a credential, and folded it left the reassurance visible ("never
+       stored") with every caution hidden behind the click — exactly the wrong
+       way round. The others do fold: the scrolling problem that motivated the
+       folds was real, it was just solved on the wrong notice.
 
-       El título va en un <h4> DENTRO del summary (válido en HTML): sin él la
-       página tenía 734 palabras colgando de dos H2, y los recuperadores
-       trocean por encabezados — cada aviso pasa a ser un pasaje con ancla
-       propia. */
+       The title goes in an <h4> INSIDE the summary (valid HTML): without it the
+       page had 734 words hanging off two H2s, and retrievers chunk by heading —
+       each notice becomes a passage with an anchor of its own. */
     server.notices.map((notice) => (
       /* The id lives on the <details>, not on the notice body inside it, so
          that it wraps the QUESTION and its ANSWER. Two things depend on that:
@@ -294,8 +292,8 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
     filter: none;
   }
 
-  /* Lo primero que alguien necesita saber de un endpoint público es si le va
-     a pedir credenciales. Por eso va arriba y no enterrado en el cuerpo. */
+  /* The first thing anyone needs to know about a public endpoint is whether it
+     will ask them for credentials. Hence at the top, not buried in the body. */
   .badge {
     padding: 0.2rem 0.55rem;
     font-family: var(--font-mono);
@@ -325,8 +323,8 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
     margin: 0;
   }
 
-  /* El método va delante del endpoint porque GET devuelve 405 en estos
-     servidores: enseñar la URL sin el verbo invita a probarla en el navegador. */
+  /* The method goes before the endpoint because a GET is rejected on these
+     servers: showing the URL without the verb invites trying it in a browser. */
   .verb {
     padding: 0.15rem 0.4rem;
     font-family: var(--font-mono);
@@ -452,13 +450,13 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
     text-wrap: pretty;
   }
 
-  /* Plegables nativos: cero JavaScript, accesibles por teclado de fábrica y
-     —lo que importa aquí— el contenido sigue en el HTML, así que los
-     rastreadores y los LLM lo leen igual aunque esté cerrado.
+  /* Native disclosures: zero JavaScript, keyboard accessible out of the box
+     and — what matters here — the content stays in the HTML, so crawlers and
+     LLMs read it just the same while closed.
 
-     Cada ficha medía ~1.400 px en móvil y el inspector quedaba a 4 pantallas;
-     con cinco servidores habría estado a ocho. Lo que NO se pliega es lo
-     citable: descripción, endpoint, cabeceras y los nombres de las tools. */
+     Each card ran to ~1,400 px on mobile and left the inspector four screens
+     down; with five servers it would have been eight. What does NOT fold is
+     what is quotable: description, endpoint, headers and the tool names. */
   .fold {
     padding-top: 0.9rem;
     border-top: 1px solid var(--color-hair);
@@ -470,7 +468,7 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
     gap: 0.5rem;
     align-items: baseline;
 
-    /* Área táctil: sin esto el resumen se queda en ~19 px de alto. */
+    /* Touch target: without this the summary sits at ~19 px tall. */
     padding-block: 0.35rem;
     cursor: pointer;
     list-style: none;
@@ -480,8 +478,8 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
     display: none;
   }
 
-  /* Triángulo propio: el nativo no se puede colorear y desaparece en algunos
-     navegadores al quitar list-style. */
+  /* Our own triangle: the native one cannot be coloured and disappears in some
+     browsers once list-style is removed. */
   .fold summary::before {
     display: inline-block;
     font-family: var(--font-mono);
@@ -504,17 +502,17 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
     outline-offset: 2px;
   }
 
-  /* Vale para el <span> antiguo y para el <h4> actual (antes <h3>, movido un
-     nivel abajo cuando el nombre del servidor pasó de <h2> a <h3> — ver la
-     regla `h3` arriba): el heading llega con márgenes y tamaño de título de
-     base.css y aquí se le da aspecto de etiqueta. Sigue siendo un encabezado
-     para el outline y los extractores. */
+  /* Works for the old <span> and for today's <h4> (previously <h3>, moved one
+     level down when the server's name went from <h2> to <h3> — see the `h3`
+     rule above): the heading arrives with base.css's title margins and size,
+     and here it is given the look of a label. It is still a heading for the
+     outline and for extractors. */
   .fold-label {
-    /* flex:1 con basis 0: el summary tiene flex-wrap, y el salto de línea se
-       decide por la BASE del ítem (su max-content), no por el shrink — así
-       que un título largo saltaba entero a la línea siguiente y dejaba el
-       chevrón huérfano. Con basis 0 nunca salta: crece junto al chevrón y
-       envuelve por dentro. */
+    /* flex:1 with basis 0: the summary has flex-wrap, and the line break is
+       decided by the item's BASE (its max-content), not by the shrink — so a
+       long title jumped whole to the next line and left the chevron orphaned.
+       With basis 0 it never jumps: it grows alongside the chevron and wraps
+       inside itself. */
     flex: 1 1 0;
     min-width: 0;
     margin: 0;
@@ -572,8 +570,8 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
     gap: 1.25rem;
     padding-top: 0.9rem;
 
-    /* margin-top:auto pega los enlaces al fondo: las tarjetas de la rejilla
-       tienen la misma altura y sin esto la más corta dejaba un hueco muerto. */
+    /* margin-top:auto pins the links to the bottom: the grid's cards share a
+       height, and without this the shortest one left dead space. */
     margin: auto 0 0;
     font-family: var(--font-mono);
     font-size: 0.8125rem;

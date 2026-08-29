@@ -1,11 +1,12 @@
 ---
 /**
- * Fragmentos de conexión de un servidor para los clientes MCP habituales.
+ * A server's connection snippets for the usual MCP clients.
  *
- * Vive plegado en la ficha (ver ServerCard): es la respuesta a «¿cómo lo
- * añado a mi cliente?», que era la única pregunta de la página cuya respuesta
- * vivía fuera del dominio. Los fragmentos salen de `src/lib/client-config.ts`,
- * no de markup escrito a mano: un MCP nuevo llega con los suyos.
+ * It lives folded on the card (see ServerCard): it is the answer to "how do I
+ * add this to my client?", which was the only question on the page whose
+ * answer lived off the domain. The snippets come from
+ * `src/lib/client-config.ts`, not from hand-written markup: a new MCP arrives
+ * with its own.
  */
 import type { McpServer } from "../data/servers";
 import type { Lang } from "../i18n/ui";
@@ -27,15 +28,15 @@ interface Props {
 const { server, lang } = Astro.props;
 const t = ui[lang];
 
-// Cada bloque nombra su fichero porque ahí está el error clásico: Cursor lee
-// `mcpServers`, VS Code lee `servers`.
+// Each block names its file because that is where the classic mistake is:
+// Cursor reads `mcpServers`, VS Code reads `servers`.
 //
-// Dos grupos, y el orden no es cosmético: primero el flujo OAuth, que es lo
-// que este despliegue hace de verdad y lo que evita que nadie tenga que
-// manejar un token; después el token pegado a mano, que sigue siendo la única
-// salida para lo que no puede abrir un navegador. Un servidor sin `oauth` (o
-// sin credenciales, como libgen) sólo enseña el segundo grupo, sin encabezados
-// que anuncien una elección que no existe.
+// Two groups, and the order is not cosmetic: first the OAuth flow, which is
+// what this deployment actually does and what saves anyone from handling a
+// token; then the hand-pasted token, which is still the only way out for
+// anything that cannot open a browser. A server without `oauth` (or without
+// credentials, like libgen) shows only the second group, with no headings
+// announcing a choice that does not exist.
 const oauthBlocks = server.oauth
   ? [
       { label: "Claude Code", code: claudeCodeOauthCommand(server) },
@@ -108,17 +109,17 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
 </div>
 
 {
-  /* Copiar al portapapeles. Delegado en `document` y no un listener por botón:
-    la página pinta seis, y con delegación el coste es uno.
+  /* Copy to clipboard. Delegated on `document` rather than a listener per
+    button: the page renders six, and with delegation the cost is one.
 
-    La página YA envía JavaScript (arranque de tema, su toggle y el cargador de
-    islas de Astro), así que esto no estrena una excepción — sigue el mismo
-    patrón que el toggle, y el nonce de la CSP se lo pone el post-build.
+    The page ALREADY ships JavaScript (the theme bootstrap, its toggle and
+    Astro's island loader), so this starts no new exception — it follows the
+    same pattern as the toggle, and the post-build gives it the CSP nonce.
 
-    Si el navegador no expone `navigator.clipboard` (contexto no seguro, o
-    permiso denegado) el botón no desaparece ni miente: se queda sin efecto y
-    el texto sigue estando seleccionable a mano, que es como se copiaba antes
-    de que existiera este botón. */
+    If the browser does not expose `navigator.clipboard` (an insecure context,
+    or permission denied) the button neither disappears nor lies: it simply has
+    no effect, and the text is still selectable by hand, which is how it was
+    copied before this button existed. */
 }
 <script>
   document.addEventListener("click", (event) => {
@@ -159,25 +160,25 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
     margin-bottom: 0.7rem;
   }
 
-  /* Cada fragmento va plegado y nombra su fichero: con dos caminos (OAuth y
-     token) y tres clientes son SEIS bloques, y desplegados convertían la
-     sección de apertura de la página en un muro de JSON. Plegados, la sección
-     se lee como prosa con seis etiquetas y cada quien abre el suyo. */
+  /* Every snippet is folded and names its file: with two paths (OAuth and
+     token) across three clients that is SIX blocks, and unfolded they turned
+     the page's opening section into a wall of JSON. Folded, the section reads
+     as prose with six labels and each reader opens their own. */
   .snippet {
     margin: 0 0 0.45rem;
 
-    /* Superficie OPACA, como las tarjetas de jmrp.io: con solo borde, la
-       rejilla del fondo atraviesa la caja y en tema claro deja de leerse como
-       una superficie. `--color-bg-subtle` tampoco vale para esto — es un 5%
-       translúcido, así que la rejilla se ve igual. */
+    /* An OPAQUE surface, like jmrp.io's cards: with only a border, the
+       background grid runs through the box and in light mode it stops reading
+       as a surface. `--color-bg-subtle` will not do either — it is 5%
+       translucent, so the grid shows through just the same. */
     background: var(--color-bg-secondary);
     border: 1px solid var(--color-hair);
     border-radius: var(--radius-sm);
   }
 
-  /* Color, chevron y hover vienen de `.disclosure` (utilities.css). Aquí solo
-     lo propio de este bloque: la caja táctil y la voz monoespaciada, porque la
-     etiqueta es un nombre de fichero. */
+  /* Colour, chevron and hover come from `.disclosure` (utilities.css). Only
+     what is specific to this block lives here: the touch box and the monospace
+     voice, because the label is a file name. */
   .snippet summary {
     padding: 0.45rem 0.6rem;
     font-family: var(--font-mono);
@@ -194,8 +195,8 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
     position: relative;
   }
 
-  /* Encima del código, en su esquina. `opacity` y no `display` para que siga
-     siendo alcanzable con el teclado: aparece igualmente al recibir el foco. */
+  /* Above the code, in its corner. `opacity` and not `display` so it stays
+     reachable by keyboard: it appears on focus just the same. */
   .snippet-copy {
     position: absolute;
     top: 0.35rem;
@@ -217,25 +218,25 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
     opacity: 100%;
   }
 
-  /* Sin puntero fino (móvil, táctil) no hay hover que revele el botón, así que
-     ahí vive siempre visible. */
+  /* Without a fine pointer (mobile, touch) there is no hover to reveal the
+     button, so there it lives permanently visible. */
   @media (hover: none) {
     .snippet-copy {
       opacity: 100%;
     }
   }
 
-  /* El bloque desborda en horizontal DENTRO de sí mismo: la ficha vive en una
-     rejilla con minmax(…, 1fr) y un <pre> sin overflow propio la ensancha
-     entera en móvil. */
+  /* The block overflows horizontally WITHIN itself: the card lives in a grid
+     with minmax(…, 1fr), and a <pre> with no overflow of its own widens the
+     whole thing on mobile. */
   pre {
     padding: 0.6rem 0.75rem;
     margin: 0;
     overflow-x: auto;
 
-    /* El fondo de PÁGINA sobre la superficie de la tarjeta: así el bloque de
-       código se distingue de ella sin recurrir a una translucidez que dejaría
-       pasar la rejilla. */
+    /* The PAGE background over the card's surface: that is what sets the code
+       block apart from it without resorting to a translucency that would let
+       the grid through. */
     background: var(--color-bg);
     border: 1px solid var(--color-hair);
     border-radius: 6px;

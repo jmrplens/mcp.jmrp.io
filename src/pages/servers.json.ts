@@ -6,16 +6,16 @@ import { actionCatalogs } from "../data/surface";
 import { SITE_ORIGIN } from "../lib/seo";
 
 /**
- * Catálogos de acciones dinámicas con snapshot committeado, desde el registro
- * único de `src/data/surface.ts`. El loader memoiza y nunca lanza: un
- * checkout sin snapshot simplemente no emite la clave `actionCatalog`.
+ * Dynamic action catalogs with a committed snapshot, from the single registry
+ * in `src/data/surface.ts`. The loader memoizes and never throws: a checkout
+ * without a snapshot simply emits no `actionCatalog` key.
  */
 const catalogs = actionCatalogs();
 
 /**
- * Índice para máquinas. Sustituye al JSON que servía `location = /` en nginx
- * antes de que existiera el sitio: los clientes que lo consumían siguen
- * teniendo un endpoint estable, ahora en `/servers.json`.
+ * The machine-readable index. It replaces the JSON nginx served at
+ * `location = /` before the site existed: the clients that consumed it still
+ * have a stable endpoint, now at `/servers.json`.
  */
 export const GET: APIRoute = () =>
   new Response(
@@ -23,32 +23,32 @@ export const GET: APIRoute = () =>
       {
         service: "mcp.jmrp.io",
         transport: "streamable-http",
-        // El mapa plano se mantiene tal cual: es la interfaz que consumen los
-        // clientes existentes (Smithery lo lee). Solo se AÑADE; nunca se le
-        // cambia la forma.
+        // The flat map stays exactly as it is: it is the interface existing
+        // clients consume (Smithery reads it). Things are only ADDED; its
+        // shape is never changed.
         endpoints: Object.fromEntries(servers.map((s) => [s.id, s.endpoint])),
         docs: "https://mcp.jmrp.io/",
-        // Ficha completa por servidor: con 207 bytes, un agente que llegara
-        // aquí sabía DÓNDE llamar pero no qué sabe hacer cada servidor ni qué
-        // cabeceras necesita — y este fichero está enlazado justo para eso.
+        // A full entry per server: at 207 bytes, an agent arriving here knew
+        // WHERE to call but not what each server can do nor which headers it
+        // needs — and this file is linked for exactly that.
         servers: servers.map((s) => {
-          // Prompts, recursos y plantillas son tres capacidades MCP distintas
-          // de las herramientas, y este índice solo listaba herramientas: las
-          // enumera el inspector en vivo, pero ningún rastreador ejecuta el
-          // inspector. Salen del card committeado y no de `servers.ts` porque
-          // ahí solo hay copia escrita a mano, que gitlab no tiene para sus 37
-          // prompts; el card lo refresca `scripts/sync-server-cards.sh` en cada
-          // release, así que no puede desviarse de lo que responde el servidor.
-          // Se comprueba en vez de indexar a secas: un servidor puede estar
-          // dado de alta antes de que aterrice su snapshot.
+          // Prompts, resources and templates are three MCP capabilities
+          // distinct from tools, and this index only listed tools: the
+          // inspector enumerates them live, but no crawler runs the inspector.
+          // They come from the committed card and not from `servers.ts`
+          // because that only holds hand-written copy, which gitlab does not
+          // have for its 37 prompts; `scripts/sync-server-cards.sh` refreshes
+          // the card on every release, so it cannot drift from what the server
+          // answers. It is checked rather than indexed blindly: a server can be
+          // registered before its snapshot lands.
           const card = serverCardDocuments[s.id];
           const summary = serverCards[s.id];
           const catalog = catalogs[s.id];
           const prompts = s.prompts?.length
             ? s.prompts.map((prompt) => prompt.name)
             : (card?.prompts ?? []).map((prompt) => prompt.name);
-          // Recursos y plantillas van por URI, no por nombre: `resources/read`
-          // direcciona por URI y el nombre a solas no es invocable.
+          // Resources and templates go by URI, not by name: `resources/read`
+          // addresses by URI and the name alone is not invocable.
           const resources = (card?.resources ?? []).map(
             (resource) => resource.uri,
           );
@@ -62,20 +62,20 @@ export const GET: APIRoute = () =>
             transport: "streamable-http",
             description: s.description.en,
             tools: s.tools.map((tool) => tool.name),
-            // Cada familia se omite entera cuando está vacía, para que un
-            // servidor que no la exponga conserve exactamente el juego de
-            // claves que ya tenía: nada de lo que hoy parsea este fichero ve
-            // aparecer una clave vacía.
+            // Each family is omitted entirely when empty, so a server that
+            // does not expose it keeps exactly the key set it already had:
+            // nothing that parses this file today sees a new empty key
+            // appear.
             ...(prompts.length > 0 && { prompts }),
             ...(resources.length > 0 && { resources }),
             ...(resourceTemplates.length > 0 && { resourceTemplates }),
-            // Suscripciones: solo si el card declara el contrato (gitlab
-            // desde 2.7.x; libgen no lo trae y conserva su juego de claves
-            // exacto). `methods` viaja tal cual (available/requires/
-            // since_protocol); la lista de plantillas suscribibles sale del
-            // flag `subscribable` que server-cards.ts CURA desde `_meta` —
-            // el `_meta` crudo no sale de la capa de datos, y así un cambio
-            // en la semántica de la clave se aplica en un solo sitio.
+            // Subscriptions: only when the card declares the contract (gitlab
+            // since 2.7.x; libgen does not carry it and keeps its exact key
+            // set). `methods` travels as-is (available/requires/
+            // since_protocol); the list of subscribable templates comes from
+            // the `subscribable` flag server-cards.ts CURATES out of `_meta` —
+            // the raw `_meta` never leaves the data layer, so a change in that
+            // key's semantics applies in one place.
             ...(summary?.subscriptions && {
               subscriptions: {
                 methods: summary.subscriptions.methods,
@@ -84,38 +84,39 @@ export const GET: APIRoute = () =>
                   .map((t) => t.uriTemplate),
               },
             }),
-            // Catálogo de acciones dinámicas: solo para servidores con
-            // snapshot committeado en `src/data/surface/`. Las cifras salen
-            // SIEMPRE del snapshot — el catálogo es la superficie del token
-            // con que se leyó (`cacheScope: "private"`), así que el recuento
-            // se mueve con el token y con cada release; de ahí la nota
-            // "Free-tier" pegada al número.
+            // The dynamic action catalog: only for servers with a committed
+            // snapshot in `src/data/surface/`. The figures ALWAYS come from
+            // the snapshot — the catalog is the surface of the token it was
+            // read with (`cacheScope: "private"`), so the count moves with the
+            // token and with each release; hence the "Free-tier" note attached
+            // to the number.
             ...(catalog && {
               actionCatalog: {
                 source: catalog.meta.resourceUri,
-                // Mismo nombre que el campo del snapshot del que sale
-                // (`meta.actionCount`, solo acciones): el `entryCount`
-                // upstream incluye además las entradas visible_tool y
-                // publicarlo bajo otro nombre invitaba a confundirlos.
+                // The same name as the snapshot field it comes from
+                // (`meta.actionCount`, actions only): the upstream
+                // `entryCount` also includes visible_tool entries, and
+                // publishing it under another name invited confusing the two.
                 actionCount: catalog.meta.actionCount,
                 domainCount: catalog.domains.length,
                 note: "Counted with a Free-tier token; the catalog is scoped to the token that asks, so tier and token permissions both move the count.",
                 index: `${SITE_ORIGIN}/servers/${s.id}/actions.json`,
               },
             }),
-            // Nombre Y forma del valor. Con solo el nombre, una máquina que
-            // leyera esto mandaría `Authorization: <token>` — sin `Bearer `,
-            // que es sintaxis inválida y otro 401. El índice para máquinas es
-            // justo donde esa diferencia no se puede dar por sabida.
+            // The name AND the value's shape. With the name alone, a machine
+            // reading this would send `Authorization: <token>` — without
+            // `Bearer `, which is invalid syntax and another 401. A
+            // machine-readable index is exactly where that difference cannot
+            // be assumed known.
             requiredHeaders: s.requiredHeaders.map((h) =>
               h.valuePrefix ? `${h.name}: ${h.valuePrefix}<token>` : h.name,
             ),
             optionalHeaders: s.optionalHeaders.map((h) => h.name),
-            // Cómo se consigue la credencial, no solo dónde se pone. Sin esto
-            // el índice decía que hace falta una cabecera y se callaba el
-            // flujo entero: el Application ID que hay que configurar en cada
-            // cliente, quién emite los tokens y dónde está el documento que lo
-            // declara. Ausente en un servidor que no delega en OAuth.
+            // How the credential is obtained, not just where it goes. Without
+            // this the index said a header was needed and said nothing about
+            // the whole flow: the Application ID to configure in each client,
+            // who issues the tokens, and where the document declaring it is.
+            // Absent on a server that does not delegate to OAuth.
             ...(s.oauth && {
               oauth: {
                 clientId: s.oauth.clientId,
