@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 /**
- * Refresca el snapshot commiteado de la entidad `#person` canónica.
+ * Refreshes the committed snapshot of the canonical `#person` entity.
  *
- * El build descarga el documento vivo (ver src/lib/identity.ts); este snapshot
- * es solo el respaldo para cuando no hay red. Se refresca a propósito —con
- * este script y en su propio commit— para que la identidad que este sitio
- * publicaría sin red se vea en la revisión, en vez de quedarse congelada en lo
- * que fuera el día que se creó el fichero.
+ * The build downloads the live document (see src/lib/identity.ts); this
+ * snapshot is only the fallback for when there is no network. It is refreshed
+ * deliberately — with this script and in its own commit — so the identity this
+ * site would publish with no network is visible in review, rather than staying
+ * frozen at whatever it was the day the file was created.
  *
- * Mismo script que en los otros sitios de documentación de los repos.
+ * The same script as in the repos' other documentation sites.
  *
- * Uso:
- *   node scripts/sync-identity.mjs           # escribe el snapshot
- *   node scripts/sync-identity.mjs --check   # falla si está obsoleto (CI)
+ * Usage:
+ *   node scripts/sync-identity.mjs           # writes the snapshot
+ *   node scripts/sync-identity.mjs --check   # fails when it is stale (CI)
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -24,7 +24,7 @@ const TARGET = path.join(process.cwd(), "identity", "person.snapshot.json");
 
 const response = await fetch(SOURCE, { signal: AbortSignal.timeout(15_000) });
 if (!response.ok) {
-  console.error(`✗ No se pudo descargar ${SOURCE} — HTTP ${response.status}`);
+  console.error(`✗ Could not download ${SOURCE} — HTTP ${response.status}`);
   process.exit(1);
 }
 const latest = `${JSON.stringify(await response.json(), null, 2)}\n`;
@@ -35,20 +35,20 @@ if (process.argv.includes("--check")) {
     committed = readFileSync(TARGET, "utf8");
   } catch {
     console.error(
-      "✗ Falta identity/person.snapshot.json — créalo con: pnpm run identity:sync",
+      "✗ identity/person.snapshot.json is missing — create it with: pnpm run identity:sync",
     );
     process.exit(1);
   }
   if (committed !== latest) {
     console.error(
-      "✗ identity/person.snapshot.json está obsoleto.\n" +
-        "  Refréscalo con: pnpm run identity:sync",
+      "✗ identity/person.snapshot.json is out of date.\n" +
+        "  Refresh it with: pnpm run identity:sync",
     );
     process.exit(1);
   }
-  console.log("✓ El snapshot coincide con el documento canónico.");
+  console.log("✓ The snapshot matches the canonical document.");
 } else {
   mkdirSync(path.dirname(TARGET), { recursive: true });
   writeFileSync(TARGET, latest);
-  console.log("✓ identity/person.snapshot.json refrescado");
+  console.log("✓ identity/person.snapshot.json refreshed");
 }

@@ -171,8 +171,8 @@ export async function processHtmlFiles(
   const targetDir = path.join(distDir, ASSETS_DIR);
   if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
 
-  // El endurecido del beacon de Cloudflare (`scripts/cf-beacon.js`) que hace
-  // aquí jmrp.io no se copia: este sitio no carga analítica de ningún tipo.
+  // The Cloudflare beacon hardening jmrp.io does here (`scripts/cf-beacon.js`)
+  // is not copied over: this site loads no analytics of any kind.
 
   let modifiedFilesCount = 0;
   let updatedSriTags = 0;

@@ -261,7 +261,7 @@ async function runVerify() {
     { name: "Static: ESLint", command: "pnpm lint --max-warnings=0" },
     { name: "Static: Prettier", command: "pnpm exec prettier --check ." },
     { name: "Lint: CSS (Stylelint)", command: "pnpm lint:css" },
-    { name: "Lint: Spelling (CSpell)", command: "pnpm exec cspell lint ." },
+    { name: "Lint: Spelling (CSpell)", command: "pnpm spell" },
     // jmrp.io carries the same markdownlint config but nothing runs it; here
     // it is wired in, scoped to the three tracked documents.
     { name: "Lint: Markdown", command: "pnpm lint:md" },

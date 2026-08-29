@@ -1,24 +1,24 @@
 import { execFileSync } from "node:child_process";
 
 /**
- * Fecha de la última modificación REAL del contenido, para `dateModified`,
- * el `lastmod` del sitemap y la línea "Actualizado" del pie.
+ * The content's REAL last-modified date, for `dateModified`, the sitemap's
+ * `lastmod` and the footer's "Updated" line.
  *
- * Regla: árbol limpio → fecha del commit de HEAD; árbol sucio → hora actual,
- * porque lo que se está construyendo es más nuevo que cualquier commit.
+ * The rule: clean tree → HEAD's commit date; dirty tree → the current time,
+ * because what is being built is newer than any commit.
  *
- * La regla existe por un fallo real que cazó una auditoría externa: el flujo
- * de despliegue construye ANTES de commitear, así que `git log -1` apuntaba
- * siempre al commit anterior y el sitio publicó un `dateModified` desfasado.
+ * The rule exists because of a real defect an external audit caught: the
+ * deployment flow builds BEFORE committing, so `git log -1` always pointed at
+ * the previous commit and the site published a stale `dateModified`.
  *
- * Y no `new Date()` incondicional: con la hora del build, cada despliegue
- * anunciaría contenido nuevo aunque no cambiara una coma, y los buscadores
- * acaban ignorando el campo. Sin git (tarball, contenedor), `undefined`:
- * una fecha ausente es correcta; una inventada, no.
+ * And not an unconditional `new Date()`: with the build's clock, every deploy
+ * would announce new content even when not a comma changed, and search engines
+ * end up ignoring the field. Without git (a tarball, a container),
+ * `undefined`: an absent date is correct; an invented one is not.
  */
-// Ruta absoluta y no "git" a secas: resolver por PATH es un vector clásico y
-// sonarjs lo veta. Si en algún entorno git vive en otro sitio, el catch
-// devuelve undefined, que es el comportamiento previsto sin git.
+// An absolute path and not a bare "git": resolving through PATH is a classic
+// vector and sonarjs forbids it. If git lives elsewhere in some environment,
+// the catch returns undefined, which is the intended behaviour without git.
 const GIT = "/usr/bin/git";
 
 /**
@@ -63,11 +63,11 @@ export function buildDate(): string {
 }
 
 /**
- * Fecha de publicación del sitio, para `datePublished`: el primer commit.
+ * The site's publication date, for `datePublished`: the first commit.
  *
- * Es un hecho, no una elección: el repositorio nació con el sitio. La misma
- * regla que arriba para el caso sin git — `undefined` y el campo se omite,
- * porque una fecha ausente es correcta y una inventada no.
+ * It is a fact, not a choice: the repository was born with the site. The same
+ * rule as above for the no-git case — `undefined`, and the field is omitted,
+ * because an absent date is correct and an invented one is not.
  */
 export function publishedDate(): string | undefined {
   const opts = {
@@ -80,8 +80,8 @@ export function publishedDate(): string | undefined {
       ["log", "--max-parents=0", "--format=%cI"],
       opts,
     ).trim();
-    // Un repo puede tener varias raíces (merges de historias); la más antigua
-    // es la última línea.
+    // A repo can have several roots (merged histories); the oldest one is the
+    // last line.
     return out.split("\n").at(-1) || undefined;
   } catch {
     return undefined;

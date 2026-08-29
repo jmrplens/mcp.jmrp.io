@@ -10,7 +10,7 @@
  * DomainActionsFilter's header for the match/order/open rules).
  *
  * Action ids, titles, domains and descriptions are protocol DATA, rendered
- * verbatim and never translated — the same rule the ficha applies to the
+ * verbatim and never translated — the same rule the card applies to the
  * card's content. Single line breaks inside a description paragraph render
  * as explicit `<br />` because the post-build minifier collapses raw
  * newlines in text nodes (see ServerPage's `paragraphLines`).
@@ -27,7 +27,7 @@ interface Props {
   domain: string;
   /** This domain's actions, in the snapshot's stable by-id order. */
   actions: GitlabActionEntry[];
-  /** The token-scope caveat, shared verbatim with the ficha's catalog. */
+  /** The token-scope caveat, shared verbatim with the card's catalog. */
   tokenNote: string;
   /**
    * Domain of each `alias_of` target present in `actions`, resolved by the
@@ -42,7 +42,7 @@ const { lang, serverId, domain, actions, tokenNote, aliasDomains } =
 const sp = serversPage[lang];
 
 const localePrefix = lang === "es" ? "/es/" : "/";
-const fichaHref = `${localePrefix}${serverPagePath(serverId)}`;
+const cardHref = `${localePrefix}${serverPagePath(serverId)}`;
 
 const destructiveCount = actions.filter((a) => a.destructive).length;
 const readOnlyCount = actions.filter((a) => a.read_only).length;
@@ -74,10 +74,10 @@ function domainHref(target: string): string {
   <h1 class="domain-title"><code>{domain}</code></h1>
   <p class="domain-intro">{sp.domainPageIntro}</p>
   {
-    /* Datos y LEYENDA a la vez: el punto de cada cifra es el mismo que llevan
-      las tarjetas de abajo — en móvil los chips con texto no cabían y partían
-      línea, así que cada acción lleva solo su punto y la palabra vive aquí
-      (y en sr-only dentro de cada tarjeta: el color nunca es la única señal). */
+    /* Data and LEGEND at once: each figure's dot is the same one the cards
+      below carry — on mobile the chips with text did not fit and broke onto
+      another line, so each action carries only its dot and the word lives here
+      (and in sr-only inside each card: colour is never the only signal). */
   }
   <p class="domain-facts">
     <span class="fact"
@@ -99,7 +99,7 @@ function domainHref(target: string): string {
     </span>
   </p>
   <p class="domain-note">{tokenNote}</p>
-  <p class="domain-back"><a href={fichaHref}>{sp.domainBackToCard}</a></p>
+  <p class="domain-back"><a href={cardHref}>{sp.domainBackToCard}</a></p>
 
   <DomainActionsFilter
     client:idle
@@ -231,17 +231,17 @@ function domainHref(target: string): string {
     font-size: var(--text-sm);
   }
 
-  /* Cada dato es su propio inline-flex con hueco: sin esto el punto de la
-     leyenda quedaba pegado al número ("●24") — el espacio en blanco del
-     markup no sobrevive al minificador. */
+  /* Each datum is its own inline-flex with a gap: without this the legend's
+     dot ended up glued to the number ("●24") — the markup's whitespace does
+     not survive the minifier. */
   .fact {
     display: inline-flex;
     gap: 0.4rem;
     align-items: center;
   }
 
-  /* En estrecho, tres datos no caben en una línea y el wrap partía por
-     cualquier sitio (captura del autor): columna limpia, un dato por línea. */
+  /* When narrow, three data points do not fit on one line and the wrap broke
+     at any old point (the author's screenshot): a clean column, one per row. */
   @media (width <= 480px) {
     .domain-facts {
       flex-direction: column;
@@ -269,8 +269,8 @@ function domainHref(target: string): string {
     font-size: var(--text-sm);
   }
 
-  /* Contenedor flex en columna A PROPÓSITO: la isla reordena con CSS
-     `order` (coincidencias por descripción al final) sin mover el DOM. */
+  /* A column flex container ON PURPOSE: the island reorders with CSS `order`
+     (description matches last) without moving the DOM. */
   .actions-list {
     display: flex;
     flex-direction: column;
@@ -320,9 +320,9 @@ function domainHref(target: string): string {
     margin-left: auto;
   }
 
-  /* Puntos en lugar de chips con texto: en móvil los chips partían el
-     summary en dos líneas. La palabra vive en la leyenda de arriba y en el
-     sr-only de cada punto — el color nunca es la única señal. */
+  /* Dots instead of chips with text: on mobile the chips broke the summary
+     onto two lines. The word lives in the legend above and in each dot's
+     sr-only — colour is never the only signal. */
   .action-dot {
     display: inline-block;
     flex: none;

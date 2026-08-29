@@ -40,7 +40,7 @@ export function isSafeIconSrc(src: string): boolean {
  * meant to take the first entry it supports. Both cards happen to list a
  * `currentColor` SVG first and 16×16 WebP theme variants after it, so taking
  * `icons[0]` worked — but that order is the server's choice, not something
- * this site can hold it to. If a future card led with the WebP, the ficha
+ * this site can hold it to. If a future card led with the WebP, the card
  * would silently start painting a 16px raster into a slot rendered at `1em`
  * (blurry at 2× DPI) AND apply `ServerPage.astro`'s `filter: invert(1)` — a
  * rule that exists to recolor monochrome `currentColor` SVGs — to an image

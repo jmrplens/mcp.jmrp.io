@@ -3,25 +3,25 @@ import { ui } from "../i18n/ui";
 import type { FormField } from "../lib/tool-schema";
 
 /**
- * Formulario de argumentos, generado del esquema.
+ * The arguments form, generated from the schema.
  *
- * Sustituye al campo de JSON crudo que había antes. El JSON crudo es la
- * interfaz que necesita un LLM: obliga a saberse de memoria los nombres de las
- * propiedades, su tipo y cuáles son obligatorias. Una persona necesita ver los
- * campos, cuáles tiene que rellenar y qué valores admite cada uno.
+ * It replaces the raw JSON field that used to be here. Raw JSON is the
+ * interface an LLM needs: it requires knowing the property names, their types
+ * and which are required by heart. A person needs to see the fields, which
+ * ones they must fill in, and what values each one accepts.
  *
- * El modo JSON sigue estando, pero como escape: hay esquemas con `oneOf`,
- * `$ref` o composición que ningún formulario honesto puede representar.
+ * JSON mode is still there, but as an escape hatch: there are schemas with
+ * `oneOf`, `$ref` or composition that no honest form can represent.
  */
 
 export interface ArgsFormProps {
   fields: FormField[];
-  /** Enter en un control de una línea lanza la llamada. */
+  /** Enter in a single-line control fires the call. */
   onSubmit?: () => void;
   values: Record<string, string>;
   onChange: (name: string, value: string) => void;
   lang: Lang;
-  /** Los controles se bloquean mientras hay una llamada en vuelo. */
+  /** The controls lock while a call is in flight. */
   disabled: boolean;
 }
 
@@ -74,9 +74,9 @@ function ArgControl({
             onChange(field.name, (e.target as HTMLSelectElement).value)
           }
         >
-          {/* Vacío el primero: un opcional con enum debe poder no
-              mandarse, y sin esta opción el desplegable elegiría el
-              primer valor por el visitante. */}
+          {/* The empty one first: an optional with an enum must be allowed to
+              go unsent, and without this option the dropdown would pick the
+              first value on the visitor's behalf. */}
           <option value="">{field.required ? t.pickOne : t.omit}</option>
           {field.options.map((option) => (
             <option
@@ -172,6 +172,27 @@ function ArgControl({
  * @param props.onKey Enter submits, except in a textarea.
  * @returns The field's row.
  */
+/**
+ * What a control expects, in one line, under the field.
+ *
+ * It lives here and not on `FormField` because it is presentation, not schema:
+ * baking it into `formFields` meant one hardcoded string for every reader, and
+ * the string that got baked in was Spanish — so an English visitor read a
+ * Spanish sentence under every array field.
+ *
+ * @param control The control the property resolved to.
+ * @param t Inspector strings in the page's language.
+ * @returns The hint, or an empty string when the format is self-evident.
+ */
+function hintFor(
+  control: FormField["control"],
+  t: (typeof ui)[Lang]["insp"],
+): string {
+  if (control === "list") return t.hintList;
+  if (control === "json") return t.hintJson;
+  return "";
+}
+
 function ArgField({
   field,
   value,
@@ -188,7 +209,8 @@ function ArgField({
   onKey: (e: KeyboardEvent) => void;
 }>) {
   const id = `arg-${field.name}`;
-  const described = field.description || field.hint;
+  const hint = hintFor(field.control, t);
+  const described = field.description || hint;
   const describedBy = described ? `${id}-d` : undefined;
 
   return (
@@ -225,8 +247,8 @@ function ArgField({
           id={`${id}-d`}
         >
           {field.description}
-          {field.description && field.hint ? " · " : ""}
-          {field.hint}
+          {field.description && hint ? " · " : ""}
+          {hint}
         </p>
       ) : null}
     </div>
@@ -234,14 +256,14 @@ function ArgField({
 }
 
 /**
- * Pinta un control por propiedad del esquema.
+ * Renders one control per schema property.
  *
- * @param props.fields Campos ya resueltos por `formFields`.
- * @param props.values Lo tecleado hasta ahora, por nombre de propiedad.
- * @param props.onChange Se llama con el nombre y el valor nuevo.
- * @param props.lang Idioma de la página.
- * @param props.disabled Si los controles están bloqueados.
- * @returns El formulario, o un aviso si la tool no admite argumentos.
+ * @param props.fields The fields `formFields` already resolved.
+ * @param props.values What has been typed so far, by property name.
+ * @param props.onChange Called with the name and the new value.
+ * @param props.lang The page's language.
+ * @param props.disabled Whether the controls are locked.
+ * @returns The form, or a notice when the tool takes no arguments.
  */
 export default function ArgsForm({
   fields,
@@ -251,7 +273,7 @@ export default function ArgsForm({
   lang,
   disabled,
 }: Readonly<ArgsFormProps>) {
-  /** Enter envía, salvo en textarea, donde es un salto de línea legítimo. */
+  /** Enter submits, except in a textarea, where it is a legitimate newline. */
   function onKey(e: KeyboardEvent) {
     if (!(e.key === "Enter" && onSubmit)) {
       return;

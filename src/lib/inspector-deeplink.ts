@@ -16,8 +16,8 @@ import type { McpServer } from "../data/servers";
  *
  * NEVER add a parameter for a credential here. This module is the single
  * place that decides what the URL is allowed to carry, and the visitor's
- * GitLab token must never be one of those things — see the "REGLA QUE NO SE
- * PUEDE ROMPER" comment at the top of `Inspector.tsx`.
+ * GitLab token must never be one of those things — see the "THE RULE THAT
+ * CANNOT BE BROKEN" comment at the top of `Inspector.tsx`.
  */
 
 /** The three things a server can offer through the inspector. */

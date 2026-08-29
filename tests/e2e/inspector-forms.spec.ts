@@ -3,18 +3,18 @@ import { expect, test } from "@playwright/test";
 import { inspector, serverSelect, stubMcp } from "./helpers";
 
 /**
- * El formulario es lo que separa "probar un MCP" de "saberse su esquema".
- * Antes el inspector pedía los argumentos como JSON crudo: la interfaz que
- * necesita un LLM, no una persona.
+ * The form is what separates "trying an MCP" from "knowing its schema". The
+ * inspector used to ask for the arguments as raw JSON: the interface an LLM
+ * needs, not a person.
  */
 
 // eslint-disable-next-line playwright/no-skipped-test
 test.skip(
   !!process.env.E2E_NO_NETWORK,
-  "requiere salida a Internet contra mcp.jmrp.io",
+  "requires Internet access to mcp.jmrp.io",
 );
 
-test("las tools se eligen de una lista y su esquema se vuelve formulario", async ({
+test("tools are picked from a list and their schema becomes a form", async ({
   page,
 }) => {
   await page.goto("/inspector/");
@@ -27,15 +27,15 @@ test("las tools se eligen de una lista y su esquema se vuelve formulario", async
   const form = page.getByTestId("args-form");
   await expect(form).toBeVisible();
 
-  // `query` es obligatorio en libgen y se marca como tal.
+  // `query` is required on libgen and is marked as such.
   await expect(form.getByText("query", { exact: false }).first()).toBeVisible();
-  // Un enum se pide con desplegable, no escribiendo el valor a ciegas.
+  // An enum is asked for with a dropdown, not by typing the value blind.
   await expect(form.locator("select").first()).toBeVisible();
-  // Y un entero con un control numérico.
+  // And an integer with a numeric control.
   await expect(form.locator('input[type="number"]').first()).toBeVisible();
 });
 
-test("una búsqueda real se lanza desde el formulario, sin escribir JSON", async ({
+test("a real search is launched from the form, with no JSON typed", async ({
   page,
 }) => {
   // Against the real server: a search hits several mirrors and takes longer
@@ -63,7 +63,7 @@ test("una búsqueda real se lanza desde el formulario, sin escribir JSON", async
   await expect(page.getByTestId("inspector-output")).toContainText("result");
 });
 
-test("los prompts se listan con sus argumentos y se pueden renderizar", async ({
+test("prompts are listed with their arguments and can be rendered", async ({
   page,
 }) => {
   await page.goto("/inspector/");
@@ -74,11 +74,11 @@ test("los prompts se listan con sus argumentos y se pueden renderizar", async ({
   await expect(picker).toBeVisible({ timeout: 40_000 });
   await picker.selectOption("acquire_book");
 
-  // El prompt declara `title` obligatorio: tiene que salir como campo.
+  // The prompt declares `title` as required: it has to show up as a field.
   const form = page.getByTestId("args-form");
   await expect(form.getByText("title", { exact: false }).first()).toBeVisible();
 
-  await form.locator("input, textarea").first().fill("El Hobbit");
+  await form.locator("input, textarea").first().fill("The Hobbit");
   await page.getByRole("button", { name: /Render prompt/i }).click();
   await expect(page.getByTestId("inspector-status")).toContainText(
     "prompts/get",
@@ -86,13 +86,13 @@ test("los prompts se listan con sus argumentos y se pueden renderizar", async ({
   );
 });
 
-test("los resources se listan con su tipo MIME y se pueden leer", async ({
+test("resources are listed with their MIME type and can be read", async ({
   page,
 }) => {
-  // Con stub y no contra producción: lo que se comprueba es que el catálogo se
-  // pinta y que `resources/read` sale con el URI elegido, no lo que conteste
-  // gitlab hoy. Además el servidor real tarda lo bastante como para agotar el
-  // límite del test.
+  // Stubbed rather than against production: what is checked is that the
+  // catalog renders and that `resources/read` goes out with the chosen URI, not
+  // what gitlab answers today. The real server also takes long enough to run
+  // the test out of time.
   const sent = await stubMcp(page, (method) =>
     method === "resources/list"
       ? {
@@ -115,14 +115,14 @@ test("los resources se listan con su tipo MIME y se pueden leer", async ({
 
   await page.goto("/inspector/");
   await serverSelect(page).selectOption("gitlab");
-  await inspector(page).getByLabel("Authorization").fill("glpat-falso");
+  await inspector(page).getByLabel("Authorization").fill("glpat-fake");
 
   await page.getByRole("tab", { name: "Resources" }).click();
   await page.getByTestId("load-resources").click();
 
   const picker = page.getByTestId("catalog-resources").locator("select");
   await expect(picker).toBeVisible();
-  // El tipo MIME va en la opción: dice qué se va a leer antes de leerlo.
+  // The MIME type travels in the option: it says what will be read before reading it.
   await expect(picker).toContainText("text/markdown");
 
   await picker.selectOption("gitlab://guides/code-review");
@@ -135,7 +135,7 @@ test("los resources se listan con su tipo MIME y se pueden leer", async ({
   expect(read?.body.params).toEqual({ uri: "gitlab://guides/code-review" });
 });
 
-test("cambiar de servidor no deja el catálogo del anterior", async ({
+test("switching servers does not leave the previous one's catalog behind", async ({
   page,
 }) => {
   await page.goto("/inspector/");

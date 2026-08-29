@@ -2,18 +2,18 @@ import { expect, test } from "@playwright/test";
 
 import { inspector, loadButton, serverSelect } from "./helpers";
 
-// Estos tests llaman al endpoint real de producción: es intencionado, validan
-// el camino completo (navegador -> POST -> parseo SSE -> pintado). Si el
-// entorno no tiene salida a Internet, exporta E2E_NO_NETWORK=1 para saltarlos.
-// Salto CONDICIONAL por entorno, no un test aparcado: sin salida a Internet
-// estos tests no pueden pasar.
+// These tests call the real production endpoint: that is deliberate, they
+// validate the complete path (browser -> POST -> SSE parsing -> rendering). If
+// the environment has no Internet access, export E2E_NO_NETWORK=1 to skip them.
+// A CONDITIONAL skip driven by the environment, not a parked test: with no
+// Internet access these tests cannot pass.
 // eslint-disable-next-line playwright/no-skipped-test
 test.skip(
   !!process.env.E2E_NO_NETWORK,
-  "requiere salida a Internet contra mcp.jmrp.io",
+  "requires Internet access to mcp.jmrp.io",
 );
 
-test("tools/list contra libgen devuelve las herramientas", async ({ page }) => {
+test("tools/list against libgen returns the tools", async ({ page }) => {
   await page.goto("/inspector/");
   await serverSelect(page).selectOption("libgen");
   await loadButton(page).click();
@@ -22,7 +22,7 @@ test("tools/list contra libgen devuelve las herramientas", async ({ page }) => {
   await expect(out).toContainText("download");
 });
 
-test("initialize contra libgen devuelve el protocolo", async ({ page }) => {
+test("initialize against libgen returns the protocol", async ({ page }) => {
   await page.goto("/inspector/");
   const mcp = inspector(page);
   await serverSelect(page).selectOption("libgen");
@@ -33,13 +33,11 @@ test("initialize contra libgen devuelve el protocolo", async ({ page }) => {
   );
 });
 
-// Ejercita la isla, no su markup: el HTML del <select> y los <button> lo pinta
-// el servidor, así que comprobar que se ven pasaría igual con la isla sin
-// hidratar (sin `client:load`). Pulsar y esperar la respuesta sí verifica que
-// /es/ monta el inspector de verdad.
-test("el inspector también funciona en la página en español", async ({
-  page,
-}) => {
+// This exercises the island, not its markup: the server renders the <select>
+// and the <button> HTML, so checking they are visible would pass just as well
+// with the island never hydrated (no `client:load`). Clicking and waiting for the
+// response does verify that /es/ really mounts the inspector.
+test("the inspector works on the Spanish page too", async ({ page }) => {
   await page.goto("/es/inspector/");
   await loadButton(page).click();
   await expect(page.getByTestId("inspector-output")).toContainText("search", {

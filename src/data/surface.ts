@@ -409,14 +409,14 @@ export function gitlabActionDetailUri(
 }
 
 /**
- * Registro ÚNICO de los servidores con catálogo de acciones committeado en
- * `src/data/surface/` (hoy solo gitlab). Los cuatro publicadores del catálogo
- * (`/servers.json`, `/servers/[server]/actions.json` y las rutas de dominio
- * de ambos idiomas) consumen ESTE mapa: declararlo en cada uno era invitar a
- * que un servidor nuevo apareciera en una superficie y no en otra.
+ * The SINGLE registry of servers with a committed action catalog in
+ * `src/data/surface/` (today only gitlab). All four publishers of the catalog
+ * (`/servers.json`, `/servers/[server]/actions.json` and both languages'
+ * domain routes) consume THIS map: declaring it in each one was an invitation
+ * for a new server to appear on one surface and not another.
  *
- * @returns Mapa id → snapshot; la clave existe aunque el loader devuelva
- *   undefined (checkout sin snapshot), y cada consumidor filtra.
+ * @returns A map of id → snapshot; the key exists even when the loader returns
+ *   undefined (a checkout with no snapshot), and each consumer filters.
  */
 export function actionCatalogs(): Record<
   string,
@@ -425,24 +425,24 @@ export function actionCatalogs(): Record<
   return { gitlab: getGitlabActions() };
 }
 
-/** Una ruta estática de página de dominio, con sus props ya montadas. */
+/** One static domain-page route, with its props already assembled. */
 export interface ActionsDomainPath {
   params: { server: string; domain: string };
   props: {
     server: string;
     domain: string;
     actions: GitlabActionEntry[];
-    /** Dominio real de cada id apuntado por un alias_of de esta página. */
+    /** The real domain of each id this page's alias_of entries point at. */
     aliasDomains: Record<string, string>;
   };
 }
 
 /**
- * El cuerpo de `getStaticPaths` de las páginas de dominio, compartido por las
- * rutas EN y ES para que no puedan derivar: una corrección al resolutor de
- * alias o a la forma de las props se hace UNA vez aquí.
+ * The body of the domain pages' `getStaticPaths`, shared by the EN and ES
+ * routes so they cannot drift: a fix to the alias resolver or to the props'
+ * shape is made ONCE, here.
  *
- * @returns Una ruta por (servidor con catálogo, dominio).
+ * @returns One route per (server with a catalog, domain).
  */
 export function actionsDomainPaths(): ActionsDomainPath[] {
   return Object.entries(actionCatalogs())
@@ -450,9 +450,9 @@ export function actionsDomainPaths(): ActionsDomainPath[] {
       (pair): pair is [string, GitlabActionsSnapshot] => pair[1] !== undefined,
     )
     .flatMap(([server, catalog]) => {
-      // Dominio real de cada id, para resolver el destino de los alias_of —
-      // el objetivo puede vivir en OTRO dominio (issue.list_group →
-      // group.issues) y la página no puede derivarlo del prefijo del id.
+      // The real domain of each id, to resolve where an alias_of points — the
+      // target can live in ANOTHER domain (issue.list_group → group.issues)
+      // and the page cannot derive it from the id's prefix.
       const domainOf = new Map(catalog.entries.map((e) => [e.id, e.domain]));
       return catalog.domains.map((d) => {
         const actions = catalog.entries.filter((e) => e.domain === d.domain);

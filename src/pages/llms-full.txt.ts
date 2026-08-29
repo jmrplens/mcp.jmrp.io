@@ -1,14 +1,14 @@
 /**
- * `/llms-full.txt` — ficha completa de cada MCP para motores generativos.
+ * `/llms-full.txt` — each MCP's full entry, for generative engines.
  *
- * El contenido se genera en `src/lib/llms.ts` a partir de `servers.ts` y
- * `ui.ts`, no se escribe a mano.
+ * The content is generated in `src/lib/llms.ts` from `servers.ts` and `ui.ts`;
+ * it is not written by hand.
  */
 import type { APIRoute } from "astro";
 
 import { buildLlmsFullTxt } from "../lib/llms";
 
-/** Sirve el documento largo como texto plano UTF-8. */
+/** Serves the long document as plain UTF-8 text. */
 export const GET: APIRoute = () =>
   new Response(buildLlmsFullTxt(), {
     headers: { "content-type": "text/plain; charset=utf-8" },

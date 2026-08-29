@@ -6,32 +6,32 @@ import type { Lang } from "../i18n/ui";
 import { serversPage } from "../i18n/ui/servers-page";
 
 /**
- * Isla del filtro de una página de dominio
- * (`/servers/<id>/actions/<dominio>/`).
+ * The filter island for a domain page
+ * (`/servers/<id>/actions/<domain>/`).
  *
- * Progresiva como `ActionSearch`: el pase SSR emite `null`, así que sin
- * JavaScript no existe ningún control y la lista completa de `<details>`
- * colapsados — que la página pinta por SSR — es el contenido íntegro y
- * navegable. Al hidratar aparecen el input y los dos conmutadores.
+ * Progressive like `ActionSearch`: the SSR pass emits `null`, so without
+ * JavaScript no control exists and the complete list of collapsed `<details>`
+ * — which the page renders server-side — is the entire, navigable content. On
+ * hydration the input and the two toggles appear.
  *
- * A diferencia de `ActionSearch`, aquí NO se descarga ningún índice: el dato
- * ya está en el DOM (la página lo publica entero, que es el punto de que sea
- * indexable). La isla solo LEE los `<details data-*>` que la página emitió —
- * la descripción del TEXTO ya renderizado, no de un data-attr que la
- * duplicaría (~300 KB en `project`) — y los muestra/oculta/reordena:
+ * Unlike `ActionSearch`, NO index is downloaded here: the data is already in
+ * the DOM (the page publishes all of it, which is the point of it being
+ * indexable). The island only READS the `<details data-*>` the page emitted —
+ * the description from the ALREADY-RENDERED text, not from a data-attr that
+ * would duplicate it (~300 KB on `project`) — and shows/hides/reorders them:
  *
- * - Coincidencia por id/título → visible, en su orden natural (order 0).
- * - Coincidencia solo por descripción → visible al final (order 1) y
- *   ABIERTA, para que se vea por qué casa; al limpiar el filtro se cierra.
- * - Sin coincidencia → oculta.
+ * - A match on id/title → visible, in its natural order (order 0).
+ * - A match on the description only → visible at the end (order 1) and OPEN,
+ *   so it is clear why it matched; clearing the filter closes it again.
+ * - No match → hidden.
  *
- * La reordenación es CSS `order` sobre el contenedor flex — el DOM no se
- * mueve, así que los anclajes (`#<id>`) y el estado abierto/cerrado del
- * usuario sobreviven al filtrado.
+ * The reordering is CSS `order` on the flex container — the DOM does not move,
+ * so the anchors (`#<id>`) and the reader's own open/closed state survive the
+ * filtering.
  *
- * El deep-link `#<action-id>` también vive aquí: al montar, si el hash nombra
- * una acción, se abre y se hace scroll. Sin JS el ancla sigue funcionando
- * (el navegador salta al `<details>`, solo que colapsado).
+ * The `#<action-id>` deep link lives here too: on mount, if the hash names an
+ * action, it is opened and scrolled to. Without JS the anchor still works (the
+ * browser jumps to the `<details>`, just collapsed).
  */
 
 /** The per-card handle the island reads once from the SSR'd DOM. */
@@ -101,10 +101,10 @@ function applyFilter(
     const descHit = q !== "" && !nameHit && card.desc.includes(q);
     const show = passesToggles && (nameHit || descHit);
     card.item.hidden = !show;
-    // Reordenación sin mover el DOM: ver el comentario de cabecera.
+    // Reordering without moving the DOM: see the header comment.
     card.item.style.order = descHit ? "1" : "0";
-    // Solo se fuerza el estado en coincidencias por descripción; el
-    // abierto/cerrado que el usuario haya dejado en el resto se respeta.
+    // The state is only forced on description matches; whatever open/closed
+    // state the reader left on the rest is respected.
     if (descHit) {
       card.el.open = true;
       card.el.dataset.autoOpened = "true";
@@ -119,7 +119,7 @@ function applyFilter(
 
 /**
  * Opens and scrolls to the action the URL hash names, if any.
- * decodeURIComponent por si el cliente codifica el punto de los ids.
+ * decodeURIComponent in case the client encodes the dot in the ids.
  */
 function openHashTarget(): void {
   const hash = decodeURIComponent(globalThis.location.hash.slice(1));
@@ -150,8 +150,8 @@ export default function DomainActionsFilter({
   const [onlyReadOnly, setOnlyReadOnly] = useState(false);
   const [shown, setShown] = useState(total);
 
-  // Handles del DOM en estado (una sola escritura al montar): los helpers de
-  // módulo son quienes los mutan; el componente solo decide CUÁNDO.
+  // DOM handles in state (written once on mount): the module helpers are what
+  // mutate them; the component only decides WHEN.
   const [cards, setCards] = useState<readonly CardRef[]>([]);
 
   useEffect(() => {
@@ -207,12 +207,12 @@ export default function DomainActionsFilter({
           {sp.domainToggleReadOnly}
         </label>
       </div>
-      {/* Fila propia para leyenda + contador: dejarlos en el flex de los
-          conmutadores hacía que en móvil el wrap partiera la leyenda por
-          cualquier sitio (captura del autor). Dos filas deliberadas: arriba
-          los conmutadores; aquí la leyenda a la izquierda y el contador a la
-          derecha. Los estilos del punto viven en el CSS de la isla: los
-          scoped de la página no alcanzan al DOM renderizado en cliente. */}
+      {/* A row of its own for the legend and the counter: leaving them in the
+          toggles' flex meant that on mobile the wrap broke the legend at any
+          old point (the author's screenshot). Two rows, deliberately: the
+          toggles above; here the legend on the left and the counter on the
+          right. The dot's styles live in the island's CSS: the page's scoped
+          ones do not reach DOM rendered on the client. */}
       <div className="domain-filter-status">
         <span className="domain-legend">
           <span

@@ -6,11 +6,11 @@
  * MCP with a catalog gains its pages by landing a snapshot, never a route.
  *
  * Canonical/hreflang come from `actionsDomainPageUrl`/`Alternates` for the
- * same reason the ficha uses `serverPageUrl`: `page="servers"` alone would
+ * same reason the card uses `serverPageUrl`: `page="servers"` alone would
  * canonicalize every domain page to the `/servers/` INDEX. `actionsDomain`
  * (NOT `serverId`) is what Base forwards to the graph: these pages describe
  * a slice of the server's API and must not re-emit its `WebAPI` node — the
- * define-once rule the ficha owns.
+ * define-once rule the card owns.
  */
 import type { GetStaticPaths } from "astro";
 
@@ -41,8 +41,8 @@ if (!serverMeta) {
 }
 
 const title = `${domain} — ${serverMeta.name} ${sp.domainPageTitleSuffix}`;
-// `() =>` y no el valor directo: unicorn/no-unsafe-string-replacement — un
-// replacement de cadena interpretaría `$&` y compañía.
+// `() =>` and not the value directly: unicorn/no-unsafe-string-replacement —
+// a string replacement would interpret `$&` and friends.
 const description = sp.domainMetaDescription
   .replace("{count}", () => String(actions.length))
   .replace("{domain}", () => domain);

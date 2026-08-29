@@ -8,7 +8,7 @@ import { parseInline, parseMarkdown } from "../../src/lib/md.ts";
  * `search` answers with, which is the reason the parser exists at all.
  */
 
-test("un párrafo suelto es un párrafo", () => {
+test("a lone paragraph is a paragraph", () => {
   const [b] = parseMarkdown("Found 4 results on page 1.");
   assert.equal(b.kind, "paragraph");
   assert.deepEqual(b.spans, [
@@ -16,13 +16,13 @@ test("un párrafo suelto es un párrafo", () => {
   ]);
 });
 
-test("las almohadillas son encabezados, con su nivel", () => {
-  const [b] = parseMarkdown("### Resultados");
+test("hashes are headings, with their level", () => {
+  const [b] = parseMarkdown("### Results");
   assert.equal(b.kind, "heading");
   assert.equal(b.level, 3);
 });
 
-test("la tabla de libgen se parsea con cabecera y filas", () => {
+test("libgen's table parses into a header and rows", () => {
   const src = [
     "| # | Title | Ext |",
     "| - | ----- | --- |",
@@ -36,14 +36,14 @@ test("la tabla de libgen se parsea con cabecera y filas", () => {
   assert.deepEqual(b.rows[0][1], [{ kind: "text", text: "Attention" }]);
 });
 
-test("tuberías SIN fila de guiones no son una tabla", () => {
+test("pipes with NO dashes row are not a table", () => {
   // Otherwise any paragraph containing a pipe would become a table.
   const [b] = parseMarkdown("a | b | c");
   assert.equal(b.kind, "paragraph");
 });
 
-test("los enlaces se extraen con su destino", () => {
-  const spans = parseInline("ver [libgen](https://libgen.vg/x) aquí");
+test("links are extracted with their target", () => {
+  const spans = parseInline("see [libgen](https://libgen.vg/x) here");
   assert.deepEqual(spans[1], {
     kind: "link",
     text: "libgen",
@@ -51,9 +51,9 @@ test("los enlaces se extraen con su destino", () => {
   });
 });
 
-test("un enlace javascript: NO llega a ser enlace", () => {
+test("a javascript: link does NOT become a link", () => {
   // A third party writes this text, so this is not hypothetical.
-  const spans = parseInline("pulsa [aquí](javascript:alert(1))");
+  const spans = parseInline("click [here](javascript:alert(1))");
   assert.equal(
     spans.some((s) => s.kind === "link"),
     false,
@@ -61,7 +61,7 @@ test("un enlace javascript: NO llega a ser enlace", () => {
   assert.equal(spans.at(-1).kind, "text");
 });
 
-test("negrita, cursiva y código en línea", () => {
+test("bold, italic and inline code", () => {
   const spans = parseInline("**a** *b* `c`");
   assert.deepEqual(
     spans.filter((s) => s.kind !== "text").map((s) => [s.kind, s.text]),
@@ -73,12 +73,12 @@ test("negrita, cursiva y código en línea", () => {
   );
 });
 
-test("dentro de código en línea no se interpreta nada más", () => {
-  const spans = parseInline("`**no**`");
-  assert.deepEqual(spans, [{ kind: "code", text: "**no**" }]);
+test("nothing else is interpreted inside inline code", () => {
+  const spans = parseInline("`**not**`");
+  assert.deepEqual(spans, [{ kind: "code", text: "**not**" }]);
 });
 
-test("el bloque de código se copia literal, con su lenguaje", () => {
+test("a code block is copied verbatim, with its language", () => {
   const src = ["```json", '{ "a": **1** }', "```"].join("\n");
   const [b] = parseMarkdown(src);
   assert.equal(b.kind, "code");
@@ -86,23 +86,23 @@ test("el bloque de código se copia literal, con su lenguaje", () => {
   assert.equal(b.text, '{ "a": **1** }');
 });
 
-test("listas con guion y listas numeradas", () => {
-  const [bullets] = parseMarkdown("- uno\n- dos");
+test("dash lists and numbered lists", () => {
+  const [bullets] = parseMarkdown("- one\n- two");
   assert.equal(bullets.kind, "list");
   assert.equal(bullets.ordered, false);
   assert.equal(bullets.items.length, 2);
 
-  const [numbered] = parseMarkdown("1. uno\n2. dos");
+  const [numbered] = parseMarkdown("1. one\n2. two");
   assert.equal(numbered.ordered, true);
   assert.equal(numbered.items.length, 2);
 });
 
-test("texto vacío no produce bloques", () => {
+test("empty text produces no blocks", () => {
   assert.deepEqual(parseMarkdown(""), []);
   assert.deepEqual(parseMarkdown("\n\n  \n"), []);
 });
 
-test("texto plano sin marcas sobrevive intacto", () => {
+test("plain text with no markup survives untouched", () => {
   // The commonest case: a server error, which carries no Markdown at all.
   const src = 'validating "arguments": unexpected additional properties';
   const [b] = parseMarkdown(src);

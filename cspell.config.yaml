@@ -2,15 +2,8 @@
 # Bilingual spell checker (English + Spanish)
 # Docs: https://cspell.org/configuration/
 
-# Both languages everywhere, deliberately. In jmrp.io Spanish lives in its
-# own files, so it is switched on by path overrides. Here the two are
-# interleaved: `src/i18n/ui/*.ts` holds the English and the Spanish copy in
-# ONE file, and the code comments are still largely Spanish (their
-# translation is a backlog item). Per-path overrides cannot express that,
-# and without this every ordinary Spanish word was reported — 21,668 of
-# them, which is the same as having no spell check at all.
 version: "0.2"
-language: en,es
+language: en
 
 # Import Spanish dictionary
 import:
@@ -50,7 +43,13 @@ ignoreRegExpList:
   - /sha384-[A-Za-z0-9+/=]+/g
   - /sha512-[A-Za-z0-9+/=]+/g
 
-# Files and directories to skip entirely
+# Files and directories to skip entirely.
+#
+# `pnpm spell` runs with `--dot --gitignore`, so everything git ignores is
+# already out and dotfiles are already in. Both matter: without `--dot`,
+# `.github/workflows/*.yml` and `src/pages/.well-known/security.txt.ts` were
+# never checked at all, and the last one PUBLISHES its body. The entries below
+# still stand on their own, for a run that does not pass those flags.
 ignorePaths:
   - node_modules
   - dist
@@ -60,6 +59,20 @@ ignorePaths:
   - plan
   - .git
   - plan/** # gitignored working notes (Spanish prose), not part of the project
+  # Untracked working notes, not repo prose. `git ls-files` returns nothing for
+  # any of these: captured vhosts, audit reports and design specs kept beside
+  # the code for reference. Spell-checking them says nothing about the project
+  # and buries the code findings this check exists for — 18,799 issues, of
+  # which the overwhelming majority were here.
+  - ops/**
+  - docs/superpowers/**
+  - .superpowers/**
+  - docs/nginx-vhost-reference.conf # a captured vhost, kept beside the code
+  - edge-nonce-worker/** # deployed from its own place; gitignored here
+  - secrets/** # gitignored operational copies, and one of them holds a salt
+  - GEO-AUDIT-*.md
+  - test-results/**
+  - playwright-report/**
   - CHANGELOG-review.md # Spanish design-review report, not project content
   - design-audit/** # temporary generated screenshots + HTML for the design review
   - pnpm-lock.yaml
@@ -95,9 +108,32 @@ ignorePaths:
 # The bilingual overrides jmrp.io carries here are gone: they named its own
 # paths (`src/content/posts/es/**`, `src/content/cv/es.yaml`, the About/Uses/Now
 # pages), none of which exist in this repo, so they matched nothing. Spanish is
-# enabled globally above instead.
+# switched on file by file instead, which is what makes a Spanish word anywhere
+# else a reported misspelling rather than an accepted one.
 overrides:
+  # The bilingual UI strings: every key here exists twice, once per language.
+  - filename: "src/i18n/ui/*.ts"
+    language: en,es
+  # Server descriptions and notices, also written in both languages.
+  - filename: "src/data/servers.ts"
+    language: en,es
+  # One page for both languages: nginx cannot know which one you were browsing,
+  # so the 404 carries an English body with a Spanish line beside it.
+  - filename: "src/pages/404.astro"
+    language: en,es
   # Generated from the live servers; the tool names and descriptions are the
   # binaries' own vocabulary, not prose this repo writes.
   - filename: "src/data/cards/*.json"
     enabled: false
+  # Downloaded from jmrp.io at build time (see src/lib/identity.ts). It is that
+  # site's identity document, in its own words and its own language.
+  - filename: "identity/person.snapshot.json"
+    enabled: false
+  # Two specs whose assertions ARE the Spanish the site serves: the /es/ page's
+  # link names and its server descriptions, and the inspector island's Spanish
+  # label. Translating those would not translate a comment, it would assert
+  # against text the site does not render.
+  - filename: "tests/e2e/i18n.spec.ts"
+    language: en,es
+  - filename: "tests/e2e/inspector-ui.spec.ts"
+    language: en,es

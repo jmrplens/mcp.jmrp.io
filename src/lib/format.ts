@@ -1,25 +1,25 @@
 /**
- * Formateo de las magnitudes que enseña el inspector.
+ * Formatting for the quantities the inspector shows.
  *
- * En un módulo aparte para que la línea de estado pueda vivir fuera del
- * componente sin arrastrarlo entero.
+ * In a module of its own so the status line can live outside the component
+ * without dragging the whole thing along.
  */
 
 /**
- * Duración legible: milisegundos por debajo del segundo, segundos por encima.
+ * A readable duration: milliseconds below a second, seconds above.
  *
- * @param ms Duración en milisegundos.
- * @returns La duración con su unidad.
+ * @param ms The duration in milliseconds.
+ * @returns The duration with its unit.
  */
 export function formatMs(ms: number): string {
   return ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(1)} s`;
 }
 
 /**
- * Tamaño legible del cuerpo de la respuesta.
+ * A readable size for the response's body.
  *
- * @param bytes Tamaño en bytes.
- * @returns El tamaño con su unidad.
+ * @param bytes The size in bytes.
+ * @returns The size with its unit.
  */
 export function formatBytes(bytes: number): string {
   return bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} kB`;
@@ -37,7 +37,8 @@ export function formatBytes(bytes: number): string {
  *
  * @param iso ISO date, the same one `contentDate()` returns.
  * @param lang Page language.
- * @returns The long-form date ("22 August 2026" / "22 de agosto de 2026").
+ * @returns The long-form date, in the page language ("22 August 2026", or its
+ *   Spanish equivalent).
  */
 export function humanDate(iso: string, lang: "en" | "es"): string {
   return new Intl.DateTimeFormat(lang === "es" ? "es-ES" : "en-GB", {

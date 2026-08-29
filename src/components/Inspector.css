@@ -1,12 +1,12 @@
 /**
- * Estilos de la isla del inspector.
+ * The inspector island's styles.
  *
- * Va en un .css aparte y no en un \3c style> de Astro porque el componente es
- * Preact: Astro solo aplica sus estilos con ámbito a ficheros .astro.
+ * They live in a separate .css and not in an Astro \3c style> block because the
+ * component is Preact: Astro only scopes its styles to .astro files.
  *
- * La pieza es la tarjeta de terminal de jmrp.io. Se reutiliza aquí porque lo
- * que contiene es literalmente una consola JSON-RPC: la forma describe la
- * función en vez de decorarla.
+ * The piece is jmrp.io's terminal card. It is reused here because what it
+ * holds is literally a JSON-RPC console: the shape describes the function
+ * rather than decorating it.
  */
 
 .term {
@@ -55,8 +55,8 @@
   color: var(--color-text-muted);
 }
 
-/* El botón de copiar vive en la barra de la ventana, no entre los controles:
-   pertenece a la salida, no a la petición. */
+/* The copy button lives in the window bar, not among the controls: it belongs
+   to the output, not to the request. */
 .term .term-copy {
   padding: 0.25rem 0.6rem;
   margin-inline-start: auto;
@@ -104,11 +104,11 @@
   padding: 0.5rem 0.65rem;
   font-family: var(--font-mono);
 
-  /* 16px ABSOLUTOS, no rem: por debajo de 16px iOS Safari hace auto-zoom al
-     enfocar el campo y deja la página descuadrada, sin forma de volver.
-     No vale 1rem porque base.css aplica `html { font-size: 90% }` por debajo
-     de 900px —regla global heredada de jmrp.io, que no toco—, así que en móvil
-     1rem serían 14,4px: exactamente el caso que hay que evitar. */
+  /* 16px ABSOLUTE, not rem: below 16px iOS Safari auto-zooms on focus and
+     leaves the page off-kilter with no way back. 1rem will not do, because
+     base.css applies `html { font-size: 90% }` below 900px — a global rule
+     inherited from jmrp.io, which is not touched here — so on mobile 1rem
+     would be 14.4px: exactly the case to avoid. */
   font-size: 16px;
   color: var(--color-text-heading);
   background: var(--color-bg);
@@ -162,16 +162,16 @@
   border-color: var(--accent-line);
 }
 
-/* Cancelar: rojo, porque interrumpe. Aparece en el hueco de los métodos solo
-   mientras hay algo en vuelo. */
+/* Cancel: red, because it interrupts. It appears in the methods' slot only
+   while something is in flight. */
 .term button.danger {
   color: var(--color-danger);
   background: var(--danger-dim);
   border-color: var(--color-danger);
 }
 
-/* Aviso de cabecera obligatoria vacía. Explica por qué los botones están
-   apagados: apagarlos sin decir el motivo es peor que dejar fallar. */
+/* The notice for an empty required header. It explains why the buttons are
+   off: switching them off without saying why is worse than letting it fail. */
 .need-header {
   margin: 0;
   font-size: 0.8125rem;
@@ -188,7 +188,7 @@
   color: var(--color-text-muted);
 }
 
-/* El inputSchema de la tool elegida. */
+/* The chosen tool's inputSchema. */
 .schema {
   padding: 0.9rem 1rem;
   background: var(--color-bg-subtle);
@@ -260,8 +260,8 @@
   color: var(--color-warning);
 }
 
-/* Línea de estado: la única región que se anuncia, y la única que distingue
-   de un vistazo un acierto de los TRES tipos de fallo. */
+/* The status line: the only region that is announced, and the only one that
+   tells a success from the THREE kinds of failure at a glance. */
 .term-status {
   display: flex;
   flex-wrap: wrap;
@@ -307,8 +307,8 @@
   border-color: var(--accent-line);
 }
 
-/* Los tres fallos comparten color a propósito: para el visitante la pregunta
-   es «¿ha funcionado?», y la clase exacta ya la dice la palabra del chip. */
+/* The three failures share a colour on purpose: for the visitor the question
+   is "did it work?", and the exact kind is already named by the chip's word. */
 .term-status.is-transport .chip,
 .term-status.is-rpc .chip,
 .term-status.is-tool .chip,
@@ -323,10 +323,10 @@
   opacity: 45%;
 }
 
-/* El panel de salida: fondo del tema oscuro SIEMPRE, como una terminal real.
-   Es el único punto de la página donde se rompe el tema claro, y es
-   deliberado: separa de un vistazo "lo que responde el servidor" de "la
-   interfaz que lo pide". */
+/* The output panel: the dark theme's background ALWAYS, like a real terminal.
+   It is the one place on the page where light mode is broken, and that is
+   deliberate: it separates "what the server answers" from "the interface that
+   asks for it" at a glance. */
 .term-out {
   min-height: 4rem;
   max-height: 26rem;
@@ -339,10 +339,10 @@
   color: var(--color-text);
   overflow-wrap: anywhere;
 
-  /* Base = tema OSCURO (así está montado tokens.css). Aquí no vale el negro:
-     es exactamente el fondo de página en oscuro, y el panel se volvía
-     invisible. Se usa la superficie elevada, que sí se despega de la tarjeta.
-     El negro se reserva para el tema claro, más abajo. */
+  /* Base = the DARK theme (that is how tokens.css is built). Black will not do
+     here: it is exactly the page background in dark, and the panel became
+     invisible. The raised surface is used instead, which does lift off the
+     card. Black is reserved for the light theme, further down. */
   background: var(--color-surface-2);
   border-top: 1px solid var(--color-hair);
 }
@@ -352,16 +352,16 @@
   content: "jmrp@mcp:~$ _";
 }
 
-/* Mientras vuela la siguiente petición, la respuesta anterior se atenúa en vez
-   de borrarse: quien estaba leyéndola no se queda mirando un panel vacío
-   durante los seis segundos que tarda una búsqueda real. */
+/* While the next request is in flight, the previous answer dims rather than
+   being cleared: whoever was reading it is not left staring at an empty panel
+   for the six seconds a real search takes. */
 .term-out.is-stale {
   opacity: 45%;
 }
 
-/* Un fallo se ve fallo también en el panel, no solo en el chip. El caso que
-   obliga a esto es `tools/call` con `isError: true`: HTTP 200, forma de
-   `result`, y hasta aquí exactamente el mismo gris que un acierto. */
+/* A failure looks like a failure in the panel too, not only in the chip. The
+   case that forces this is `tools/call` with `isError: true`: HTTP 200, the
+   shape of a `result`, and until now exactly the same grey as a success. */
 .term-out.is-error {
   border-block-start: 2px solid var(--color-danger);
   box-shadow: inset 0 0 0 100vmax rgb(229 101 91 / 6%);
@@ -388,10 +388,10 @@
     align-items: stretch;
   }
 
-  /* Al pasar la fila a columna, el eje principal es el VERTICAL: los
-     `flex-basis` de 12rem y 20rem de los campos dejan de ser anchos mínimos y
-     se convierten en ALTURAS mínimas. Eso metía cientos de píxeles de hueco
-     muerto dentro del inspector en móvil. Se devuelven a tamaño de contenido. */
+  /* Turning the row into a column makes the main axis VERTICAL: the fields'
+     12rem and 20rem `flex-basis` stop being minimum widths and become minimum
+     HEIGHTS. That put hundreds of pixels of dead space inside the inspector on
+     mobile. They are returned to content size. */
   .term .field,
   .term .field-args {
     flex: 0 0 auto;
@@ -402,9 +402,10 @@
   }
 }
 
-/* Tema claro: aquí el negro sí separa el panel de la página crema, que es la
-   intención original — «lo que responde el servidor» frente a «la interfaz que
-   lo pide». Se declara igual que en tokens.css: media query + override manual. */
+/* Light theme: here black does separate the panel from the cream page, which
+   is the original intent — "what the server answers" against "the interface
+   that asks for it". Declared as tokens.css does it: media query + manual
+   override. */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) .term-out {
     color: #b6b5ae;
@@ -425,9 +426,9 @@
   color: #8c8a82;
 }
 
-/* ── Pestañas ──────────────────────────────────────────────────────────────
-   Las tres cosas que un servidor MCP puede ofrecer. Antes eran cuatro botones
-   sueltos que solo listaban, y lo listado no se podía usar. */
+/* ── Tabs ─────────────────────────────────────────────────────────────────
+   The three things an MCP server can offer. They used to be four loose buttons
+   that only listed, and what they listed could not be used. */
 
 /* The ROW carries the layout; the inner `.tabs` is only the `role="tablist"`,
    which may contain nothing but `role="tab"` children. `initialize` and
@@ -459,8 +460,9 @@
   border-color: var(--accent-line);
 }
 
-/* `initialize` no es una pestaña: es el saludo del protocolo, y se lanza sin
-   cambiar de vista. Se separa con margen para que no parezca una más. */
+/* `initialize` is not a tab: it is the protocol's greeting, and it fires
+   without changing view. A margin sets it apart so it does not look like one
+   more. */
 .term .tab-init {
   margin-inline-start: auto;
   font-size: 0.75rem;
@@ -517,9 +519,9 @@
   border-color: var(--accent-line);
 }
 
-/* ── Formulario de argumentos ──────────────────────────────────────────────
-   Un control por propiedad del esquema. Sustituye al JSON crudo, que obligaba
-   a saberse de memoria los nombres, los tipos y cuáles eran obligatorios. */
+/* ── Arguments form ───────────────────────────────────────────────────────
+   One control per schema property. It replaces the raw JSON, which required
+   knowing the names, the types and which ones were required by heart. */
 .args {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
@@ -557,8 +559,8 @@
 }
 
 .arg-help {
-  /* Acotada: hay descripciones de 40 líneas (extra_sources de libgen) que
-     descuadraban la rejilla entera y empujaban el botón fuera de la vista. */
+  /* Capped: there are 40-line descriptions (libgen's extra_sources) that threw
+     the whole grid out and pushed the button off screen. */
   max-height: 4.5rem;
   margin: 0;
   overflow-y: auto;
@@ -567,15 +569,15 @@
   text-wrap: pretty;
 }
 
-/* El checkbox no debe estirarse al ancho de la columna como los demás. */
+/* The checkbox must not stretch to the column's width like the others. */
 .arg input[type="checkbox"] {
   justify-self: start;
   width: auto;
 }
 
-/* Línea de grupos de identificadores ("Exactly one of: md5 | id | doi"):
-   el formulario no puede marcar un campo suelto como required cuando el
-   requisito es un grupo anyOf/oneOf, así que se enuncia encima. */
+/* The identifier-group line ("Exactly one of: md5 | id | doi"): the form
+   cannot mark a single field as required when the requirement is an
+   anyOf/oneOf group, so it is stated above them. */
 .schema-groups {
   margin: 0.15rem 0 0.5rem;
   font-size: var(--text-sm);

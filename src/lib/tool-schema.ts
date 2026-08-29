@@ -1,24 +1,23 @@
 /**
- * Lectura del catálogo de tools que devuelve `tools/list` y del `inputSchema`
- * de cada una.
+ * Reading the tool catalog `tools/list` returns, and each tool's
+ * `inputSchema`.
  *
- * Existe aparte del componente por dos razones. La primera es que se puede
- * probar con `node --test` sin navegador ni red. La segunda es que lo que hay
- * aquí es la diferencia entre adivinar los argumentos y saberlos: los
- * servidores validan estricto (una propiedad de más aborta la llamada con
- * `unexpected additional properties`), así que el esqueleto que sale de
- * `skeletonFor` es la única forma de que el primer intento del visitante no
- * falle siempre.
+ * It lives apart from the component for two reasons. The first is that it can
+ * be tested with `node --test`, no browser and no network. The second is that
+ * what is here is the difference between guessing the arguments and knowing
+ * them: the servers validate strictly (one extra property aborts the call with
+ * `unexpected additional properties`), so the skeleton `skeletonFor` produces
+ * is the only thing that stops a visitor's first attempt from always failing.
  *
- * NO se valida el JSON Schema: solo se lee la parte que se puede pintar
- * (`properties`, `required`, `type`, `description`, `enum`, `default`). Un
- * esquema con `oneOf`, `$ref` o composición se enseña igualmente por lo que
- * tenga de esas claves y el visitante completa el resto a mano.
+ * The JSON Schema is NOT validated: only the part that can be rendered is read
+ * (`properties`, `required`, `type`, `description`, `enum`, `default`). A
+ * schema with `oneOf`, `$ref` or composition is still shown for whatever it
+ * has of those keys, and the visitor fills the rest in by hand.
  */
 
-/** Trozo de JSON Schema que este módulo sabe leer. */
+/** The slice of JSON Schema this module knows how to read. */
 export type JsonSchema = {
-  /** Puede ser un array: `["null","array"]` marca un opcional. */
+  /** May be an array: `["null","array"]` marks an optional. */
   type?: string | string[];
   title?: string;
   description?: string;
@@ -27,12 +26,12 @@ export type JsonSchema = {
   items?: JsonSchema;
   enum?: unknown[];
   default?: unknown;
-  /** Composición: libgen 1.7.1 declara sus grupos de identificadores así. */
+  /** Composition: libgen 1.7.1 declares its identifier groups this way. */
   anyOf?: JsonSchema[];
   oneOf?: JsonSchema[];
 };
 
-/** Una tool tal y como la declara `tools/list`. */
+/** A tool exactly as `tools/list` declares it. */
 export type McpTool = {
   name: string;
   title?: string;
@@ -40,28 +39,29 @@ export type McpTool = {
   inputSchema?: JsonSchema;
 };
 
-/** Una propiedad del `inputSchema`, ya aplanada para pintarla en una tabla. */
+/** One `inputSchema` property, flattened for rendering in a table. */
 export type SchemaField = {
   name: string;
-  /** Tipo legible: `string`, `string[]`, `"a" | "b"`… Vacío si no se declara. */
+  /** Readable type: `string`, `string[]`, `"a" | "b"`… Empty when undeclared. */
   type: string;
   required: boolean;
   description: string;
 };
 
 /**
- * Grupos de requisitos alternativos del esquema, si los declara.
+ * The schema's alternative requirement groups, when it declares any.
  *
- * libgen 1.7.1 (a petición de la auditoría de este sitio) codifica el
- * "al menos uno de md5/isbn/doi" como `anyOf` de ramas `{required: [...]}`,
- * y el "exactamente uno" de get_details como `oneOf`. Este lector extrae
- * SOLO esa forma: ramas cuyo `required` sea una lista no vacía de strings.
- * Cualquier otra composición devuelve undefined y el formulario calla —
- * media verdad sobre un esquema es peor que enseñarlo tal cual (la regla
- * del módulo: no se valida, se pinta lo legible).
+ * libgen 1.7.1 (at this site's audit's request) encodes "at least one of
+ * md5/isbn/doi" as an `anyOf` of `{required: [...]}` branches, and
+ * get_details' "exactly one" as a `oneOf`. This reader extracts ONLY that
+ * shape: branches whose `required` is a non-empty list of strings. Any other
+ * composition returns undefined and the form says nothing — half a truth about
+ * a schema is worse than showing it as it is (the module's rule: nothing is
+ * validated, what is readable is rendered).
  *
- * @param schema El `inputSchema` de la tool.
- * @returns Las ramas con su clase, o undefined si no hay grupos legibles.
+ * @param schema The tool's `inputSchema`.
+ * @returns The branches with their kind, or undefined when there are no
+ *   readable groups.
  */
 export function requirementGroups(
   schema: JsonSchema | undefined,
@@ -87,17 +87,17 @@ export function requirementGroups(
   return groups.length > 0 ? { kind, groups } : undefined;
 }
 
-/** `true` si el valor es un objeto plano (no null, no array). */
+/** `true` when the value is a plain object (not null, not an array). */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 /**
- * El `inputSchema` de una entrada de `tools/list`.
+ * The `inputSchema` of a `tools/list` entry.
  *
- * Se acepta también `input_schema`: es el nombre del spec en snake_case y
- * algún servidor lo emite así. Aceptar los dos cuesta una línea; no aceptarlo
- * deja la tabla de argumentos vacía sin decir por qué.
+ * `input_schema` is accepted too: it is the spec's snake_case name and some
+ * servers emit it that way. Accepting both costs one line; not accepting it
+ * leaves the arguments table empty without saying why.
  */
 function inputSchemaOf(entry: Record<string, unknown>): JsonSchema | undefined {
   const raw = isRecord(entry.inputSchema)
@@ -107,14 +107,14 @@ function inputSchemaOf(entry: Record<string, unknown>): JsonSchema | undefined {
 }
 
 /**
- * Saca la lista de tools de un cuerpo JSON-RPC de `tools/list`.
+ * Pulls the tool list out of a `tools/list` JSON-RPC body.
  *
- * Devuelve `[]` ante cualquier forma inesperada en vez de lanzar: esto se
- * llama sobre lo que conteste un servidor cualquiera, y una respuesta rara no
- * puede tumbar la isla entera.
+ * Returns `[]` for any unexpected shape rather than throwing: this is called
+ * on whatever an arbitrary server answers, and one odd response must not take
+ * the whole island down.
  *
- * @param body Cuerpo JSON-RPC ya parseado.
- * @returns Las tools con nombre, en el orden en que las dio el servidor.
+ * @param body The parsed JSON-RPC body.
+ * @returns The named tools, in the order the server gave them.
  */
 export function toolsFrom(body: unknown): McpTool[] {
   if (!isRecord(body)) return [];
@@ -139,15 +139,15 @@ export function toolsFrom(body: unknown): McpTool[] {
   return tools;
 }
 
-/** Nombre legible del tipo de una propiedad, incluido el de los arrays y enums. */
+/** A property type's readable name, arrays and enums included. */
 /**
- * El tipo declarado, descartando `"null"`.
+ * The declared type, with `"null"` discarded.
  *
- * `type` puede venir como array —`["null","array"]` marca un opcional— y
- * pintarlo tal cual daba "nullarray", que no es el tipo de nada.
+ * `type` can arrive as an array — `["null","array"]` marks an optional — and
+ * rendering it as-is gave "nullarray", which is nothing's type.
  *
- * @param type El `type` del esquema.
- * @returns El tipo real, o `undefined` si no se declara.
+ * @param type The schema's `type`.
+ * @returns The real type, or `undefined` when undeclared.
  */
 function baseType(type: string | string[] | undefined): string | undefined {
   return Array.isArray(type) ? type.find((x) => x !== "null") : type;
@@ -166,14 +166,14 @@ function typeLabel(schema: JsonSchema): string {
 }
 
 /**
- * Aplana `inputSchema.properties` a una tabla de propiedades.
+ * Flattens `inputSchema.properties` into a table of properties.
  *
- * Las obligatorias van primero: son las que el visitante tiene que rellenar
- * sí o sí, y en esquemas con quince propiedades opcionales quedaban
- * enterradas.
+ * The required ones come first: they are what the visitor has to fill in no
+ * matter what, and in schemas with fifteen optional properties they were
+ * buried.
  *
- * @param schema El `inputSchema` de una tool.
- * @returns Las propiedades, obligatorias primero y por orden de declaración.
+ * @param schema A tool's `inputSchema`.
+ * @returns The properties, required first and otherwise in declaration order.
  */
 export function schemaFields(schema: JsonSchema | undefined): SchemaField[] {
   if (!schema?.properties) return [];
@@ -184,12 +184,12 @@ export function schemaFields(schema: JsonSchema | undefined): SchemaField[] {
     required: required.has(name),
     description: prop?.description ?? "",
   }));
-  // sort() es estable en JS, así que dentro de cada grupo se respeta el orden
-  // de declaración del servidor, que suele ser el orden en que tienen sentido.
+  // sort() is stable in JS, so within each group the server's declaration
+  // order survives, which is usually the order in which they make sense.
   return fields.sort((a, b) => Number(b.required) - Number(a.required));
 }
 
-/** Valor de relleno para una propiedad, por tipo. */
+/** A property's filler value, by type. */
 function placeholderFor(schema: JsonSchema): unknown {
   if (schema.default !== undefined) return schema.default;
   if (Array.isArray(schema.enum) && schema.enum.length > 0)
@@ -215,17 +215,16 @@ function placeholderFor(schema: JsonSchema): unknown {
 }
 
 /**
- * Esqueleto de argumentos para una tool: JSON con SOLO las propiedades
- * obligatorias.
+ * A tool's argument skeleton: JSON with ONLY the required properties.
  *
- * Solo las obligatorias, y esto es deliberado: mandar todas las opcionales con
- * su valor por defecto cambia el significado de la llamada (un `page: 0` que
- * el visitante no pidió), y algunos servidores rechazan valores vacíos que no
- * habrían rechazado si la propiedad no viniera. Las opcionales se enseñan en
- * la tabla, no se envían.
+ * Only the required ones, and that is deliberate: sending every optional with
+ * its default changes what the call means (a `page: 0` the visitor never asked
+ * for), and some servers reject empty values they would not have rejected had
+ * the property been absent. The optionals are shown in the table, not sent.
  *
- * @param schema El `inputSchema` de la tool elegida.
- * @returns JSON indentado, listo para el textarea. `{}` si no hay obligatorias.
+ * @param schema The chosen tool's `inputSchema`.
+ * @returns Indented JSON, ready for the textarea. `{}` when nothing is
+ *   required.
  */
 export function skeletonFor(schema: JsonSchema | undefined): string {
   const required = schema?.required ?? [];
@@ -240,38 +239,36 @@ export function skeletonFor(schema: JsonSchema | undefined): string {
 }
 
 /* ==========================================================================
- * Formularios
+ * Forms
  *
- * Lo de arriba describe un esquema para LEERLO; lo de aquí, para RELLENARLO.
- * El inspector pedía los argumentos como JSON crudo, que es la interfaz que
- * necesita un LLM y no una persona: obliga a saber de memoria los nombres de
- * las propiedades, su tipo y cuáles son obligatorias.
+ * Everything above describes a schema in order to READ it; everything here, in
+ * order to FILL IT IN. The inspector used to ask for arguments as raw JSON,
+ * which is the interface an LLM needs and a person does not: it requires
+ * knowing the property names, their types and which are required by heart.
  * ========================================================================== */
 
-/** Control con el que se pide una propiedad. */
+/** The control a property is asked for with. */
 export type FieldControl =
   "text" | "textarea" | "number" | "checkbox" | "select" | "list" | "json";
 
-/** Una propiedad del esquema, ya resuelta a un control concreto. */
+/** One schema property, already resolved to a concrete control. */
 export type FormField = SchemaField & {
   control: FieldControl;
-  /** Opciones del `select`, si las hay. */
+  /** The `select`'s options, when there are any. */
   options: string[];
-  /** Valor inicial, ya en texto. Sale del `default` del esquema. */
+  /** The initial value, already as text. Comes from the schema's `default`. */
   initial: string;
-  /** Para `list` y `json`: qué se espera, en una línea. */
-  hint: string;
 };
 
 /**
- * Elige el control de una propiedad.
+ * Picks a property's control.
  *
- * `enum` gana al tipo: si el servidor enumera los valores válidos, un
- * desplegable evita el error antes de cometerlo. Lo demás sigue al `type`, y
- * lo que no se reconoce cae a JSON, que siempre funciona.
+ * `enum` beats the type: if the server enumerates the valid values, a dropdown
+ * prevents the mistake before it is made. Everything else follows `type`, and
+ * whatever is not recognized falls back to JSON, which always works.
  *
- * @param schema Esquema de la propiedad.
- * @returns El control con el que pedirla.
+ * @param schema The property's schema.
+ * @returns The control to ask for it with.
  */
 function controlFor(schema: JsonSchema): FieldControl {
   if (Array.isArray(schema.enum) && schema.enum.length > 0) return "select";
@@ -284,8 +281,8 @@ function controlFor(schema: JsonSchema): FieldControl {
       return "number";
     }
     case "array": {
-      // Una lista de valores simples se teclea línea a línea; una de objetos
-      // no hay forma honesta de pedirla sin JSON.
+      // A list of simple values is typed line by line; there is no honest way
+      // to ask for a list of objects without JSON.
       const item = baseType(schema.items?.type);
       return item === undefined || ["object", "array"].includes(item)
         ? "json"
@@ -295,8 +292,8 @@ function controlFor(schema: JsonSchema): FieldControl {
       return "json";
     }
     case "string": {
-      // Los textos largos (una consulta, un cuerpo) se agradecen en textarea.
-      // La heurística es la descripción, que es lo único que hay.
+      // Long text (a query, a body) is far better in a textarea. The heuristic
+      // is the description, which is all there is.
       const d = (schema.description ?? "").toLowerCase();
       return d.includes("markdown") || d.includes("body") || d.includes("text")
         ? "textarea"
@@ -308,17 +305,12 @@ function controlFor(schema: JsonSchema): FieldControl {
   }
 }
 
-/** Qué se espera en los controles cuyo formato no es evidente. */
-const HINTS: Partial<Record<FieldControl, string>> = {
-  list: "un valor por línea",
-  json: "JSON",
-};
-
 /**
- * Valor inicial de un campo, en texto.
+ * A field's initial value, as text.
  *
- * @param value El `default` declarado por el esquema.
- * @returns El valor tal cual si ya es texto, su JSON si no, o vacío.
+ * @param value The `default` the schema declares.
+ * @returns The value as-is when it is already text, its JSON when not, or
+ *   empty.
  */
 function initialValue(value: unknown): string {
   if (value === undefined) return "";
@@ -326,10 +318,10 @@ function initialValue(value: unknown): string {
 }
 
 /**
- * Describe el formulario de una tool o de un prompt.
+ * Describes a tool's or a prompt's form.
  *
- * @param schema El `inputSchema` de la tool.
- * @returns Un campo por propiedad, obligatorios primero.
+ * @param schema The tool's `inputSchema`.
+ * @returns One field per property, required ones first.
  */
 export function formFields(schema: JsonSchema | undefined): FormField[] {
   if (!schema?.properties) return [];
@@ -342,26 +334,41 @@ export function formFields(schema: JsonSchema | undefined): FormField[] {
       control,
       options: Array.isArray(prop.enum) ? prop.enum.map(String) : [],
       initial,
-      hint: HINTS[control] ?? "",
     };
   });
 }
 
+/** The two messages this can throw, already in the reader's language. */
+export interface ArgErrors {
+  /** `{field}` and `{value}` are substituted. */
+  notANumber: string;
+  /** `{field}` and `{detail}` are substituted. */
+  badJson: string;
+}
+
 /**
- * Convierte lo tecleado en el formulario a los argumentos de la llamada.
+ * Turns what was typed into the call's arguments.
  *
- * Las cadenas vacías se OMITEN en vez de mandarse: los servidores validan
- * estricto y un opcional vacío se rechaza igual que uno mal escrito. Es la
- * diferencia entre «no lo relleno» y «lo relleno con nada».
+ * Empty strings are OMITTED rather than sent: the servers validate strictly and
+ * an empty optional is rejected just like a malformed one. It is the difference
+ * between "I am not filling this in" and "I am filling it in with nothing".
  *
- * @param fields Campos del formulario.
- * @param values Lo tecleado, por nombre de propiedad.
- * @returns Los argumentos listos para `tools/call`.
- * @throws Si un campo JSON o de número no se puede convertir.
+ * The error texts are passed in rather than written here. They used to be
+ * hardcoded in one language while the panel appends them to a localized
+ * prefix, so a reader in the other language was shown a message that was
+ * half translated. This module has no locale of its own, so the caller
+ * supplies both.
+ *
+ * @param fields The form's fields.
+ * @param values What was typed, by property name.
+ * @param errors The messages to throw, in the page's language.
+ * @returns The arguments, ready for `tools/call`.
+ * @throws When a JSON or number field cannot be converted.
  */
 export function valuesToArgs(
   fields: FormField[],
   values: Record<string, string>,
+  errors: ArgErrors,
 ): Record<string, unknown> {
   const args: Record<string, unknown> = {};
 
@@ -377,7 +384,11 @@ export function valuesToArgs(
       case "number": {
         const n = Number(raw);
         if (Number.isNaN(n)) {
-          throw new TypeError(`${field.name}: "${raw}" no es un número`);
+          throw new TypeError(
+            errors.notANumber
+              .replace("{field}", () => field.name)
+              .replace("{value}", () => raw),
+          );
         }
         args[field.name] = n;
         break;
@@ -394,7 +405,9 @@ export function valuesToArgs(
           args[field.name] = JSON.parse(raw);
         } catch (error) {
           throw new TypeError(
-            `${field.name}: JSON inválido — ${String(error)}`,
+            errors.badJson
+              .replace("{field}", () => field.name)
+              .replace("{detail}", () => String(error)),
           );
         }
         break;

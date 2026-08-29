@@ -1,32 +1,33 @@
 import type { APIRoute } from "astro";
 
 /**
- * RFC 9116 — a dónde escribir si encuentras un fallo.
+ * RFC 9116 — where to write if you find a flaw.
  *
- * Un sitio que invita a pegar un Personal Access Token y no dice dónde
- * reportar un problema es incoherente con el resto de su higiene: la auditoría
- * GEO lo marcó como crítico y tenía razón.
+ * A site that invites you to paste a Personal Access Token and does not say
+ * where to report a problem is inconsistent with the rest of its hygiene: the
+ * GEO audit flagged it as critical and was right.
  *
- * `Expires` es obligatorio en la RFC y debe estar en el futuro; se calcula a
- * un año del build para que no caduque en silencio: cada despliegue lo renueva.
+ * `Expires` is mandatory in the RFC and has to be in the future; it is computed
+ * a year out from the build so it cannot lapse silently: every deployment
+ * renews it.
  */
 export const GET: APIRoute = () => {
   const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
   expires.setUTCHours(0, 0, 0, 0);
 
   const body = [
-    "# Servidores MCP self-hosted — https://mcp.jmrp.io",
+    "# Self-hosted MCP servers — https://mcp.jmrp.io",
     "",
     "Contact: mailto:mail@jmrp.io",
     `Expires: ${expires.toISOString().replace(/\.\d{3}Z$/, "Z")}`,
     "Preferred-Languages: es, en",
     "Canonical: https://mcp.jmrp.io/.well-known/security.txt",
     "",
-    "# Código del sitio y de los servidores",
+    "# Source for the site and the servers",
     "Policy: https://github.com/jmrplens/mcp.jmrp.io",
     "",
-    "# Si el fallo afecta a uno de los servidores MCP, su repositorio tiene",
-    "# habilitados los avisos de seguridad privados de GitHub:",
+    "# If the flaw affects one of the MCP servers, its repository has",
+    "# GitHub private security advisories enabled:",
     "#   https://github.com/jmrplens/libgen-mcp/security",
     "#   https://github.com/jmrplens/gitlab-mcp-server/security",
     "",

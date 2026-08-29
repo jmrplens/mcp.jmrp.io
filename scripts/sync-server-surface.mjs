@@ -1,73 +1,74 @@
 #!/usr/bin/env node
 /**
- * Refresca los snapshots commiteados de la "superficie" viva de cada MCP
- * (src/data/surface/*.json): el resultado de `server/discover` de libgen y
- * gitlab, y el manifiesto de acciones `gitlab://tools` reducido.
+ * Refreshes the committed snapshots of each MCP's live "surface"
+ * (src/data/surface/*.json): the result of `server/discover` for libgen and
+ * gitlab, and the reduced `gitlab://tools` action manifest.
  *
- * MISMO PATRÓN que src/lib/identity.ts y scripts/sync-server-cards.sh: se
- * consulta la fuente viva en cada build y el snapshot commiteado es el
- * respaldo para builds sin red o sin secretos (CI). Por eso un fallo de
- * red/token/forma es BLANDO (aviso + exit 0, snapshot intacto): un build en
- * CI sin credenciales debe seguir compilando con lo que hay en el repo.
+ * SAME PATTERN as src/lib/identity.ts and scripts/sync-server-cards.sh: the
+ * live source is queried on every build and the committed snapshot is the
+ * fallback for builds with no network or no secrets (CI). That is why a
+ * network/token/shape failure is SOFT (warning + exit 0, snapshot untouched):
+ * a CI build with no credentials has to keep compiling with what is in the
+ * repo.
  *
- * PROYECCIÓN POR WHITELIST, no passthrough: ningún campo futuro desconocido
- * de la respuesta puede colarse en el repo (que es público), los iconos ya
- * viven en src/data/cards/<id>.json y duplicarlos invita a divergencia, y el
- * manifiesto de 516 KB se reduce a lo que consumen las superficies del
- * sitio: el buscador (id, title, domain, destructive, read_only) y, desde
- * las páginas por dominio, también description y required_params. Los
- * inputSchema completos siguen fuera.
+ * PROJECTION BY ALLOWLIST, not passthrough: no unknown future field of the
+ * response can slip into the repo (which is public), the icons already live
+ * in src/data/cards/<id>.json and duplicating them invites divergence, and
+ * the 516 KB manifest is reduced to what the site's surfaces consume: the
+ * search box (id, title, domain, destructive, read_only) and, from the
+ * per-domain pages, description and required_params as well. The full
+ * inputSchema stays out.
  *
- * GUARDIA ANTI-FUGA (fallo DURO, exit 1, antes de escribir un solo byte):
- * la instancia GitLab del autor no debe aparecer jamás en el repo. Si alguno
- * de los hosts de MCP_SURFACE_FORBIDDEN_HOSTS asoma en cualquier byte
- * descargado o en cualquier snapshot serializado, se aborta la cadena de build
- * entera. Ningún mensaje de este script imprime esa variable ni el token.
+ * ANTI-LEAK GUARD (HARD failure, exit 1, before a single byte is written):
+ * the author's GitLab instance must never appear in the repo. If any of the
+ * hosts in MCP_SURFACE_FORBIDDEN_HOSTS shows up in any downloaded byte or in
+ * any serialized snapshot, the whole build chain is aborted. No message in
+ * this script prints that variable or the token.
  *
- * La guardia tiene VARIABLE PROPIA desde que el endpoint pasó a OAuth, y el
- * motivo importa: antes las agujas se derivaban de la instancia a la que se
- * llamaba, así que al dejar de llamar a la instancia interna la guardia se
- * habría desarmado sola — justo cuando ya nadie la estaría mirando. Lo que
- * vigila no es «no filtres el host al que llamas», es «que el host interno no
- * vuelva a colarse en el repo por ninguna vía», y eso no depende de a quién se
- * consulte. Desacoplarla es lo que la mantiene viva.
+ * The guard has HAD ITS OWN VARIABLE since the endpoint moved to OAuth, and
+ * the reason matters: the needles used to be derived from the instance being
+ * called, so the moment it stopped calling the internal instance the guard
+ * would have disarmed itself — exactly when nobody would be watching it. What
+ * it watches is not "do not leak the host you call", it is "the internal host
+ * must never get into the repo by any route", and that does not depend on who
+ * is being queried. Decoupling it is what keeps it alive.
  *
- * ESCRITURA: determinista (orden de claves fijo, listas ordenadas por
- * comparación de bytes — nunca localeCompare, que depende de ICU) y solo si
- * hay cambio REAL ignorando meta.generatedAt: así `git diff` documenta
- * cambios de la API, no pasadas del build, y generatedAt queda como la fecha
- * del último cambio de verdad. Escritura atómica (temporal + rename en el
- * mismo directorio), como sync_one en sync-server-cards.sh.
+ * WRITING: deterministic (fixed key order, lists sorted by byte comparison —
+ * never localeCompare, which depends on ICU) and only when there is a REAL
+ * change ignoring meta.generatedAt: that way `git diff` documents API
+ * changes, not build passes, and generatedAt is left as the date of the last
+ * real change. Atomic write (temporary file + rename in the same directory),
+ * like sync_one in sync-server-cards.sh.
  *
- * Los cache hints (ttlMs/cacheScope) se persisten como evidencia y se honran
- * refrescando por build, no por petición. `cacheScope: "private"` en gitlab
- * significa que el catálogo es la superficie DEL token usado, no universal —
- * de ahí que el sitio lo etiquete como obtenido "con un token Free" (copy
- * i18n del sitio, no de este snapshot: el extractor no puede saber el tier).
+ * The cache hints (ttlMs/cacheScope) are persisted as evidence and honoured
+ * by refreshing per build, not per request. `cacheScope: "private"` on gitlab
+ * means the catalog is the surface OF THE TOKEN used, not a universal one —
+ * hence the site labelling it as obtained "with a Free-tier token" (the
+ * site's i18n copy, not this snapshot's: the extractor cannot know the tier).
  *
- * Uso: node scripts/sync-server-surface.mjs
+ * Usage: node scripts/sync-server-surface.mjs
  */
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
-// El .env del repo (gitignorado) trae MCP_PERSONAL_GITLAB_COM_TOKEN y
-// MCP_SURFACE_FORBIDDEN_HOSTS en el
-// servidor. Mismo patrón que deploy-live-mcp.mjs: `loadEnvFile` NO pisa lo que
-// ya venga del entorno (shell > .env; exportar vacío anula), y sin .env se
-// sigue con lo que haya.
+// The repo's .env (gitignored) carries MCP_PERSONAL_GITLAB_COM_TOKEN and
+// MCP_SURFACE_FORBIDDEN_HOSTS on the
+// server. Same pattern as deploy-live-mcp.mjs: `loadEnvFile` does NOT override
+// what already comes from the environment (shell > .env; exporting an empty
+// value opts out), and with no .env it carries on with whatever is there.
 //
-// Los nombres llevan prefijo de proyecto A PROPÓSITO. La primera versión leía
-// GITLAB_TOKEN/GITLAB_URL a secas y el ~/.bashrc de este host exporta un
-// GITLAB_TOKEN de OTRO tooling: con shell > .env, el script heredaba ese token
-// en silencio y publicaba la superficie de OTRA identidad (~100 acciones de
-// diferencia, sin los dominios de administración; visto el 2026-08-26). Un
-// nombre genérico convierte cualquier export ajeno en una colisión invisible;
-// uno con prefijo no puede chocar a ciegas.
+// The names carry a project prefix ON PURPOSE. The first version read a bare
+// GITLAB_TOKEN/GITLAB_URL and this host's ~/.bashrc exports a GITLAB_TOKEN
+// belonging to OTHER tooling: with shell > .env, the script silently inherited
+// that token and published the surface of ANOTHER identity (~100 actions of
+// difference, without the administration domains; seen on 2026-08-26). A
+// generic name turns any unrelated export into an invisible collision; a
+// prefixed one cannot collide blindly.
 try {
   process.loadEnvFile(new URL("../.env", import.meta.url));
 } catch {
-  // Sin .env (CI): se sigue con lo que traiga el entorno.
+  // No .env (CI): carry on with whatever the environment brings.
 }
 
 const PROTOCOL_VERSION = "2026-07-28";
@@ -75,19 +76,19 @@ const BASE = "https://mcp.jmrp.io";
 const SURFACE_DIR = path.join(process.cwd(), "src", "data", "surface");
 const TAG = "[sync-server-surface]";
 
-// El endpoint corre con --auth-mode=oauth y la instancia FIJADA a gitlab.com,
-// así que la credencial es un Bearer de gitlab.com y la cabecera GITLAB-URL
-// por petición ya no se honra. Un -40100 significa que el token no vale
-// (caducado o revocado): fallo blando, el snapshot commiteado se conserva.
-// JAMÁS debe acabar en un log ni en un snapshot.
+// The endpoint runs with --auth-mode=oauth and the instance PINNED to
+// gitlab.com, so the credential is a gitlab.com Bearer and the per-request
+// GITLAB-URL header is no longer honoured. A -40100 means the token is no
+// good (expired or revoked): soft failure, the committed snapshot is kept.
+// It must NEVER end up in a log or in a snapshot.
 const GITLAB_TOKEN = process.env.MCP_PERSONAL_GITLAB_COM_TOKEN;
 
 /**
- * Hosts que no pueden aparecer en nada descargado, escrito ni logueado, en
- * minúsculas y con sus variantes con y sin puerto. Se leen de
- * MCP_SURFACE_FORBIDDEN_HOSTS (lista separada por comas) — su PROPIA variable,
- * no la del transporte: ver la nota de la cabecera del módulo. Vacío si no
- * está definida, y entonces `main()` se niega a extraer nada.
+ * Hosts that cannot appear in anything downloaded, written or logged, in
+ * lowercase and with their variants with and without a port. They are read
+ * from MCP_SURFACE_FORBIDDEN_HOSTS (a comma-separated list) — its OWN
+ * variable, not the transport's: see the note in the module header. Empty if
+ * it is not defined, and then `main()` refuses to extract anything.
  */
 const FORBIDDEN_HOSTS = (() => {
   const raw = process.env.MCP_SURFACE_FORBIDDEN_HOSTS;
@@ -101,19 +102,19 @@ const FORBIDDEN_HOSTS = (() => {
       const u = new URL(entry.includes("://") ? entry : `https://${entry}`);
       parsed = [u.host, u.hostname].filter(Boolean);
     } catch {
-      // Sin esquema y sin dos puntos: new URL lanza; cae al crudo, abajo.
+      // No scheme and no colon: new URL throws; falls through to the raw value below.
     }
     if (parsed.length === 0) {
-      // Valor sin esquema ("host.ejemplo.com"), O con dos puntos y sin esquema
-      // ("host.ejemplo.com:8443"): a este último new URL NO le lanza — lo
-      // parsea como esquema + ruta opaca con host VACÍO, y sin este respaldo la
-      // guardia se desarmaría en silencio justo con la variable puesta. En
-      // ambos casos: el valor crudo como host, y recortado por si llevara
-      // puerto.
-      // MISMO respaldo que resolveNeedles() en
-      // tests/unit/surface-guards.test.mjs: si los dos resolutores divergen, el
-      // build y su red de seguridad inspeccionan cosas distintas y una fuga
-      // podría publicarse.
+      // A value with no scheme ("host.example.com"), OR with a colon and no
+      // scheme ("host.example.com:8443"): new URL does NOT throw on the latter
+      // — it parses it as a scheme plus an opaque path with an EMPTY host, and
+      // without this fallback the guard would silently disarm itself with the
+      // variable set. In both cases: the raw value as the host, trimmed in case
+      // it carried a port.
+      // SAME fallback as resolveNeedles() in
+      // tests/unit/surface-guards.test.mjs: if the two resolvers diverge, the
+      // build and its safety net inspect different things and a leak could get
+      // published.
       parsed = [entry, entry.split(":", 1)[0]];
     }
     for (const h of parsed) {
@@ -124,9 +125,8 @@ const FORBIDDEN_HOSTS = (() => {
 })();
 
 /**
- * Sustituye el host prohibido en un texto destinado a un log. Los mensajes de
- * error del servidor podrían ecoarlo; esto garantiza que ni siquiera un log
- * de fallo lo imprima.
+ * Replaces the forbidden host in a text bound for a log. The server's error
+ * messages could echo it; this guarantees not even a failure log prints it.
  */
 function sanitizeForLog(text) {
   let out = String(text);
@@ -137,7 +137,7 @@ function sanitizeForLog(text) {
   return out;
 }
 
-/** `true` si algún texto contiene el host de la instancia (sin distinguir mayúsculas). */
+/** `true` when some text contains the instance's host (case-insensitively). */
 function containsForbiddenHost(texts) {
   return texts.some((t) => {
     const lower = t.toLowerCase();
@@ -145,39 +145,39 @@ function containsForbiddenHost(texts) {
   });
 }
 
-/** Aviso de fallo blando: el snapshot commiteado se conserva tal cual. */
+/** Soft-failure warning: the committed snapshot is kept exactly as it is. */
 function softWarn(file, reason) {
   console.warn(
-    `${TAG} ⚠ ${file}: se conserva el snapshot commiteado (${sanitizeForLog(reason)})`,
+    `${TAG} ⚠ ${file}: keeping the committed snapshot (${sanitizeForLog(reason)})`,
   );
 }
 
 /**
- * Instante actual en ISO-8601 UTC sin milisegundos, el formato de
- * meta.generatedAt en los snapshots (p.ej. "2026-08-26T10:04:00Z").
+ * The current instant in ISO-8601 UTC without milliseconds, the format of
+ * meta.generatedAt in the snapshots (e.g. "2026-08-26T10:04:00Z").
  */
 function nowIso() {
   return new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
 }
 
 /**
- * Extrae el JSON-RPC de un cuerpo que puede venir como SSE: si no empieza por
- * "{", se toma la primera línea "data: " y se le quita el prefijo.
+ * Pulls the JSON-RPC out of a body that may arrive as SSE: if it does not
+ * start with "{", the first "data: " line is taken and the prefix stripped.
  */
 function parseJsonRpc(raw) {
   const trimmed = raw.trimStart();
   if (trimmed.startsWith("{")) return JSON.parse(trimmed);
   const dataLine = raw.split("\n").find((line) => line.startsWith("data: "));
   if (!dataLine) {
-    throw new Error("respuesta sin cuerpo JSON ni línea 'data: ' de SSE");
+    throw new Error("response with no JSON body and no SSE 'data: ' line");
   }
   return JSON.parse(dataLine.slice("data: ".length));
 }
 
 /**
- * POST JSON-RPC al endpoint MCP indicado. Devuelve el texto crudo (para la
- * guardia anti-fuga) y el objeto JSON-RPC ya parseado. fetch nativo y no
- * curl: el token no debe aparecer en la línea de comandos de ningún proceso.
+ * A JSON-RPC POST to the given MCP endpoint. Returns the raw text (for the
+ * anti-leak guard) and the already-parsed JSON-RPC object. Native fetch and
+ * not curl: the token must not appear in any process's command line.
  */
 async function postRpc(endpoint, method, params, extraHeaders = {}) {
   const response = await fetch(endpoint, {
@@ -199,7 +199,7 @@ async function postRpc(endpoint, method, params, extraHeaders = {}) {
   return { raw, rpc: parseJsonRpc(raw) };
 }
 
-/** params de server/discover, con las tres claves _meta que exige el protocolo. */
+/** server/discover params, with the three _meta keys the protocol requires. */
 function discoverParams() {
   return {
     _meta: {
@@ -213,7 +213,7 @@ function discoverParams() {
   };
 }
 
-/** Comparación por bytes (a<b), nunca localeCompare: ICU no es determinista entre máquinas. */
+/** Byte comparison (a<b), never localeCompare: ICU is not deterministic across machines. */
 function byteCompare(a, b) {
   if (a < b) return -1;
   if (a > b) return 1;
@@ -225,14 +225,15 @@ const isPlainObject = (v) =>
 const isNonEmptyString = (v) => typeof v === "string" && v.length > 0;
 
 /**
- * Valida y proyecta el result de server/discover al contrato del snapshot.
- * Whitelist explícita: serverInfo se aplana desde _meta y pierde `icons`
- * (ya viven en src/data/cards/); resultType se exige "complete" y se
- * descarta (es detalle de transporte). Lanza si la forma no es la esperada
- * (el llamador lo degrada a fallo blando).
+ * Validates the server/discover result and projects it onto the snapshot's
+ * contract. Explicit allowlist: serverInfo is flattened out of _meta and
+ * loses `icons` (they already live in src/data/cards/); resultType is
+ * required to be "complete" and then discarded (it is a transport detail).
+ * Throws when the shape is not the expected one (the caller degrades that to
+ * a soft failure).
  */
 function buildDiscoverSnapshot(endpoint, result, generatedAt) {
-  if (!isPlainObject(result)) throw new Error("result no es un objeto");
+  if (!isPlainObject(result)) throw new Error("result is not an object");
   if (result.resultType !== "complete") {
     throw new Error(
       `resultType ${JSON.stringify(result.resultType)} !== "complete"`,
@@ -244,7 +245,7 @@ function buildDiscoverSnapshot(endpoint, result, generatedAt) {
     !isNonEmptyString(si.name) ||
     !isNonEmptyString(si.version)
   ) {
-    throw new Error("serverInfo sin name/version válidos");
+    throw new Error("serverInfo without a valid name/version");
   }
   if (
     !Array.isArray(result.supportedVersions) ||
@@ -253,7 +254,7 @@ function buildDiscoverSnapshot(endpoint, result, generatedAt) {
     throw new Error("supportedVersions no es un array de strings");
   }
   if (!isPlainObject(result.capabilities)) {
-    throw new Error("capabilities no es un objeto");
+    throw new Error("capabilities is not an object");
   }
 
   const serverInfo = { name: si.name };
@@ -271,8 +272,8 @@ function buildDiscoverSnapshot(endpoint, result, generatedAt) {
     },
     serverInfo,
     supportedVersions: result.supportedVersions,
-    // Passthrough literal: la forma de capabilities es la del protocolo y el
-    // loader (src/data/surface.ts) solo lee sub-campos opcionales.
+    // Literal passthrough: the shape of capabilities is the protocol's and the
+    // loader (src/data/surface.ts) only reads optional sub-fields.
     capabilities: result.capabilities,
   };
   if (isNonEmptyString(result.instructions)) {
@@ -285,12 +286,13 @@ function buildDiscoverSnapshot(endpoint, result, generatedAt) {
 }
 
 /**
- * Valida el envoltorio JSON-RPC de resources/read y devuelve el manifiesto
- * parseado de contents[0].text. Extraído de buildActionsSnapshot por S3776:
- * cada capa de validación con su nombre en vez de una función de 29.
+ * Validates the resources/read JSON-RPC envelope and returns the manifest
+ * parsed out of contents[0].text. Extracted from buildActionsSnapshot for
+ * S3776: each validation layer with its own name instead of one 29-line
+ * function.
  */
 function parseManifestEnvelope(result) {
-  if (!isPlainObject(result)) throw new Error("result no es un objeto");
+  if (!isPlainObject(result)) throw new Error("result is not an object");
   const content = Array.isArray(result.contents)
     ? result.contents[0]
     : undefined;
@@ -305,7 +307,7 @@ function parseManifestEnvelope(result) {
     typeof result.ttlMs !== "number" ||
     !isNonEmptyString(result.cacheScope)
   ) {
-    throw new Error("envoltorio sin ttlMs/cacheScope");
+    throw new Error("envelope without ttlMs/cacheScope");
   }
   return {
     manifest: JSON.parse(content.text),
@@ -315,19 +317,19 @@ function parseManifestEnvelope(result) {
   };
 }
 
-/** Forma mínima del manifiesto: claves de cabecera y recuentos coherentes. */
+/** The manifest's minimal shape: header keys and coherent counts. */
 function validateManifestHeader(manifest) {
   if (
     !isNonEmptyString(manifest.surface) ||
     !isNonEmptyString(manifest.uri_template)
   ) {
-    throw new Error("manifiesto sin surface/uri_template");
+    throw new Error("manifest without surface/uri_template");
   }
   if (
     !Number.isSafeInteger(manifest.entry_count) ||
     !Array.isArray(manifest.entries)
   ) {
-    throw new TypeError("manifiesto sin entry_count/entries válidos");
+    throw new TypeError("manifest without a valid entry_count/entries");
   }
   if (manifest.entry_count !== manifest.entries.length) {
     throw new Error(
@@ -335,7 +337,7 @@ function validateManifestHeader(manifest) {
     );
   }
   if (!Array.isArray(manifest.visible_tools)) {
-    throw new TypeError("manifiesto sin visible_tools");
+    throw new TypeError("manifest without visible_tools");
   }
 }
 
@@ -382,7 +384,7 @@ function hasValidAnyOfGroups(entry) {
   );
 }
 
-/** Una entrada dynamic_action con todos sus campos bien tipados. */
+/** A dynamic_action entry with all its fields correctly typed. */
 function isWellTypedAction(entry) {
   return (
     isNonEmptyString(entry.title) &&
@@ -396,20 +398,20 @@ function isWellTypedAction(entry) {
   );
 }
 
-/** Valida entries (ids únicos, kinds conocidos, campos) y visible_tools. */
+/** Validates entries (unique ids, known kinds, fields) and visible_tools. */
 function validateManifestEntries(manifest) {
   const seenIds = new Set();
   for (const entry of manifest.entries) {
-    if (!isPlainObject(entry)) throw new Error("entrada que no es un objeto");
+    if (!isPlainObject(entry)) throw new Error("entry that is not an object");
     if (entry.kind !== "dynamic_action" && entry.kind !== "visible_tool") {
-      throw new Error(`kind desconocido ${JSON.stringify(entry.kind)}`);
+      throw new Error(`unknown kind ${JSON.stringify(entry.kind)}`);
     }
     if (!isNonEmptyString(entry.id) || seenIds.has(entry.id)) {
-      throw new Error(`id ausente o duplicado ${JSON.stringify(entry.id)}`);
+      throw new Error(`missing or duplicate id ${JSON.stringify(entry.id)}`);
     }
     seenIds.add(entry.id);
     if (entry.kind === "dynamic_action" && !isWellTypedAction(entry)) {
-      throw new Error(`entrada ${entry.id} con campos mal tipados`);
+      throw new Error(`entry ${entry.id} has badly typed fields`);
     }
   }
   for (const tool of manifest.visible_tools) {
@@ -420,17 +422,18 @@ function validateManifestEntries(manifest) {
       typeof tool.destructive !== "boolean" ||
       typeof tool.read_only !== "boolean"
     ) {
-      throw new Error("visible_tools con forma inesperada");
+      throw new Error("visible_tools has an unexpected shape");
     }
   }
 }
 
 /**
- * Valida el manifiesto gitlab://tools y lo reduce al contrato del snapshot:
- * solo las entradas kind==="dynamic_action", con los cinco campos que
- * el buscador necesita, más el recuento por dominio precalculado para el SSR.
- * `sourceVersion` ata el catálogo a la release del discover de la MISMA
- * extracción. Lanza si la forma no cuadra (el llamador lo degrada a blando).
+ * Validates the gitlab://tools manifest and reduces it to the snapshot's
+ * contract: only the kind==="dynamic_action" entries, with the five fields
+ * the search box needs, plus the per-domain count precomputed for the SSR.
+ * `sourceVersion` ties the catalog to the discover release of the SAME
+ * extraction. Throws when the shape does not add up (the caller degrades it
+ * to soft).
  */
 function buildActionsSnapshot(endpoint, result, sourceVersion, generatedAt) {
   const { manifest, resourceUri, ttlMs, cacheScope } =
@@ -438,15 +441,15 @@ function buildActionsSnapshot(endpoint, result, sourceVersion, generatedAt) {
   validateManifestHeader(manifest);
   validateManifestEntries(manifest);
 
-  // Proyección: campos verbatim upstream (snake_case read_only incluido — es
-  // una proyección, no una transformación) y orden estable por id.
+  // Projection: fields verbatim from upstream (snake_case read_only included —
+  // this is a projection, not a transformation) and a stable order by id.
   //
-  // `description` y `required_params` entraron con las páginas por dominio
-  // (/servers/<id>/actions/<dominio>/): son el contenido de referencia que
-  // esas páginas publican. Lo que sigue fuera — `inputSchema`, `kind`,
-  // `tool`, `backing_*`, `detail_uri` — o es derivable o no lo consume
-  // ninguna superficie del sitio. El endpoint actions.json NO emite estos
-  // dos campos: su proyección es aparte y sigue compacta.
+  // `description` and `required_params` came in with the per-domain pages
+  // (/servers/<id>/actions/<domain>/): they are the reference content those
+  // pages publish. What stays out — `inputSchema`, `kind`, `tool`,
+  // `backing_*`, `detail_uri` — is either derivable or consumed by no surface
+  // of the site. The actions.json endpoint does NOT emit these two fields: its
+  // projection is separate and stays compact.
   const entries = manifest.entries
     .filter((e) => e.kind === "dynamic_action")
     .map((e) => ({
@@ -464,9 +467,9 @@ function buildActionsSnapshot(endpoint, result, sourceVersion, generatedAt) {
     }))
     .sort((a, b) => byteCompare(a.id, b.id));
 
-  // Orden alfabético por dominio: un cambio de count es un diff de 1 línea.
-  // El SSR reordena por count al pintar. Nombres *Count explícitos para que
-  // nadie los lea como booleanos junto a entries.
+  // Alphabetical order by domain: a change of count is a one-line diff. The
+  // SSR reorders by count when rendering. Explicit *Count names so nobody
+  // reads them as booleans sitting next to entries.
   const byDomain = new Map();
   for (const e of entries) {
     const d = byDomain.get(e.domain) ?? {
@@ -484,10 +487,10 @@ function buildActionsSnapshot(endpoint, result, sourceVersion, generatedAt) {
     byteCompare(a.domain, b.domain),
   );
 
-  // visible_tools preserva las herramientas visibles que entries excluye:
-  // entryCount (procedencia upstream: acciones + entradas visible_tool) y
-  // actionCount (la cifra publicable, solo acciones) cuadran gracias a esta
-  // lista, sin depender de recuentos concretos de ninguna release.
+  // visible_tools preserves the visible tools that entries excludes:
+  // entryCount (upstream provenance: actions + visible_tool entries) and
+  // actionCount (the publishable figure, actions only) add up thanks to this
+  // list, without depending on any release's concrete counts.
   const visibleTools = manifest.visible_tools
     .map((t) => ({
       name: t.name,
@@ -502,7 +505,7 @@ function buildActionsSnapshot(endpoint, result, sourceVersion, generatedAt) {
       endpoint,
       resourceUri,
       surface: manifest.surface,
-      // El UI deriva cada detail_uri de esta plantilla, no lo hardcodea.
+      // The UI derives each detail_uri from this template, it does not hardcode it.
       uriTemplate: manifest.uri_template,
       sourceVersion,
       entryCount: manifest.entry_count,
@@ -517,16 +520,17 @@ function buildActionsSnapshot(endpoint, result, sourceVersion, generatedAt) {
   };
 }
 
-/** Serialización canónica de un snapshot (pasa `prettier --check` tal cual). */
+/** Canonical serialization of a snapshot (passes `prettier --check` as is). */
 function serialize(snapshot) {
   return `${JSON.stringify(snapshot, null, 2)}\n`;
 }
 
 /**
- * Escribe el snapshot solo si difiere del existente IGNORANDO
- * meta.generatedAt: así un build sin novedad no ensucia el árbol de git y
- * generatedAt documenta el último cambio real. Escritura atómica: temporal
- * en el MISMO directorio (mismo filesystem ⇒ rename atómico) y rename final.
+ * Writes the snapshot only when it differs from the existing one IGNORING
+ * meta.generatedAt: that way a build with no news does not dirty the git tree
+ * and generatedAt documents the last real change. Atomic write: a temporary
+ * file in the SAME directory (same filesystem ⇒ atomic rename) and a final
+ * rename.
  */
 function writeIfChanged(target, snapshot) {
   const body = serialize(snapshot);
@@ -543,11 +547,11 @@ function writeIfChanged(target, snapshot) {
       if (isPlainObject(a.meta)) delete a.meta.generatedAt;
       if (isPlainObject(b.meta)) delete b.meta.generatedAt;
       if (JSON.stringify(a) === JSON.stringify(b)) {
-        console.log(`${TAG} = ${path.basename(target)}: sin cambios`);
+        console.log(`${TAG} = ${path.basename(target)}: no changes`);
         return;
       }
     } catch {
-      // Existente corrupto: se sobrescribe con el candidato válido.
+      // Corrupt existing file: it is overwritten with the valid candidate.
     }
   }
   const tmp = path.join(
@@ -556,10 +560,10 @@ function writeIfChanged(target, snapshot) {
   );
   fs.writeFileSync(tmp, body);
   fs.renameSync(tmp, target);
-  console.log(`${TAG} ✓ ${path.basename(target)}: actualizado`);
+  console.log(`${TAG} ✓ ${path.basename(target)}: updated`);
 }
 
-/** libgen — server/discover, sin autenticación. Fallo blando por separado. */
+/** libgen — server/discover, unauthenticated. Soft failure on its own. */
 async function collectLibgenDiscover(pending, generatedAt) {
   try {
     const endpoint = `${BASE}/libgen/mcp`;
@@ -581,8 +585,8 @@ async function collectLibgenDiscover(pending, generatedAt) {
 }
 
 /**
- * gitlab · discover. Devuelve el sourceVersion de ESTA pasada (ata el
- * catálogo a la release) o undefined si degradó a blando.
+ * gitlab · discover. Returns THIS pass's sourceVersion (which ties the
+ * catalog to the release) or undefined when it degraded to soft.
  */
 async function collectGitlabDiscover(pending, endpoint, generatedAt) {
   try {
@@ -605,11 +609,11 @@ async function collectGitlabDiscover(pending, endpoint, generatedAt) {
     return snapshot.serverInfo.version;
   } catch (error) {
     softWarn("gitlab-discover.json", error.message);
-    return; // eslint quiere el return desnudo: mismo undefined para el llamador
+    return; // eslint wants the bare return: the same undefined for the caller
   }
 }
 
-/** gitlab · manifiesto gitlab://tools, atado al sourceVersion del discover. */
+/** gitlab · the gitlab://tools manifest, tied to the discover's sourceVersion. */
 async function collectGitlabActions(
   pending,
   endpoint,
@@ -617,9 +621,9 @@ async function collectGitlabActions(
   generatedAt,
 ) {
   try {
-    // resources/read exige, además del token, params._meta con las mismas
-    // tres claves que discover y la cabecera Mcp-Name con la URI del recurso
-    // (sin ella el edge responde -32020, verificado).
+    // resources/read requires, besides the token, params._meta with the same
+    // three keys as discover and the Mcp-Name header carrying the resource's
+    // URI (without it the edge answers -32020, verified).
     const uri = "gitlab://tools";
     const { raw, rpc } = await postRpc(
       endpoint,
@@ -627,16 +631,16 @@ async function collectGitlabActions(
       { uri, _meta: discoverParams()._meta },
       {
         Authorization: `Bearer ${GITLAB_TOKEN}`,
-        // Mcp-Name sigue siendo obligatoria: identifica el recurso pedido.
+        // Mcp-Name is still mandatory: it identifies the resource being asked for.
         "Mcp-Name": uri,
       },
     );
     if (rpc.error) {
-      // -32601 = el método/recurso no existe en esta release: no es un
-      // error, simplemente aún no hay nada nuevo que snapshotear.
+      // -32601 = the method/resource does not exist in this release: not an
+      // error, there is simply nothing new to snapshot yet.
       if (rpc.error.code === -32_601) {
         console.log(
-          `${TAG} = gitlab-actions.json: resources/read no disponible (-32601)`,
+          `${TAG} = gitlab-actions.json: resources/read unavailable (-32601)`,
         );
         return;
       }
@@ -658,26 +662,28 @@ async function collectGitlabActions(
 }
 
 /**
- * Orquesta las tres extracciones. Cada una degrada a fallo blando por
- * separado (como sync-server-cards.sh: un MCP caído no bloquea al otro);
- * solo la guardia anti-fuga es fallo duro, y corre ANTES de escribir nada.
- * Plano a propósito (S3776): cada fase vive en su collect* con nombre.
+ * Orchestrates the three extractions. Each one degrades to a soft failure on
+ * its own (like sync-server-cards.sh: one MCP being down does not block the
+ * other); only the anti-leak guard is a hard failure, and it runs BEFORE
+ * anything is written. Flat on purpose (S3776): each phase lives in its own
+ * named collect*.
  */
 async function main() {
   fs.mkdirSync(SURFACE_DIR, { recursive: true });
   const generatedAt = nowIso();
-  // Candidatos acumulados: nada se escribe hasta pasar la guardia anti-fuga.
+  // Accumulated candidates: nothing is written until the anti-leak guard passes.
   const pending = [];
 
   await collectLibgenDiscover(pending, generatedAt);
 
-  // gitlab — la instancia la fija el servidor (--gitlab-url=https://gitlab.com),
-  // así que ya no hay cabecera que elegirla: lo único que hace falta es el
-  // Bearer. Se sigue exigiendo ADEMÁS la variable de la guardia anti-fuga, y no
-  // porque el transporte la necesite —no la necesita— sino porque sin agujas no
-  // se puede inspeccionar lo descargado, y este script no escribe nada derivado
-  // de gitlab que no haya podido mirar antes. En CI sin secretos se conservan
-  // ambos snapshots: esa ES la semántica de respaldo.
+  // gitlab — the instance is pinned by the server
+  // (--gitlab-url=https://gitlab.com), so there is no longer a header choosing
+  // it: all that is needed is the Bearer. The guard's variable is STILL
+  // required as well, and not because the transport needs it — it does not —
+  // but because without needles what was downloaded cannot be inspected, and
+  // this script writes nothing derived from gitlab that it could not look at
+  // first. In CI with no secrets both snapshots are kept: that IS the fallback
+  // semantics.
   if (GITLAB_TOKEN && FORBIDDEN_HOSTS.length > 0) {
     const endpoint = `${BASE}/gitlab/mcp`;
     const sourceVersion = await collectGitlabDiscover(
@@ -688,29 +694,26 @@ async function main() {
     if (sourceVersion) {
       await collectGitlabActions(pending, endpoint, sourceVersion, generatedAt);
     } else {
-      softWarn(
-        "gitlab-actions.json",
-        "sin discover del que atar sourceVersion",
-      );
+      softWarn("gitlab-actions.json", "no discover to tie sourceVersion to");
     }
   } else {
     const reason = GITLAB_TOKEN
-      ? "falta MCP_SURFACE_FORBIDDEN_HOSTS y sin ella la guardia anti-fuga no puede armarse"
-      : "falta MCP_PERSONAL_GITLAB_COM_TOKEN";
+      ? "MCP_SURFACE_FORBIDDEN_HOSTS is missing and without it the anti-leak guard cannot be armed"
+      : "MCP_PERSONAL_GITLAB_COM_TOKEN is missing";
     softWarn("gitlab-discover.json", reason);
     softWarn("gitlab-actions.json", reason);
   }
 
-  // GUARDIA ANTI-FUGA — fallo DURO antes de escribir un solo fichero. Se
-  // inspecciona el texto CRUDO descargado y cada snapshot ya serializado. El
-  // mensaje es genérico a propósito: imprimir el host aquí sería la fuga.
+  // ANTI-LEAK GUARD — a HARD failure before a single file is written. The RAW
+  // downloaded text and each already-serialized snapshot are inspected. The
+  // message is generic on purpose: printing the host here would be the leak.
   const inspectable = pending.flatMap((p) => [
     ...p.raws,
     serialize(p.snapshot),
   ]);
   if (containsForbiddenHost(inspectable)) {
     console.error(
-      `${TAG} ✗ una respuesta o snapshot contiene un host prohibido; extracción abortada sin escribir nada`,
+      `${TAG} ✗ a response or snapshot contains a forbidden host; extraction aborted without writing anything`,
     );
     process.exit(1);
   }

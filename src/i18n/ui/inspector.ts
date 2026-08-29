@@ -82,6 +82,10 @@ export const inspector = {
         "The token is read-only, expires in two hours, and lives in this tab's memory alone — no localStorage, no cookies, never in the address bar, gone on reload. It travels to gitlab.com to be issued and to this site's own endpoint to be used, nowhere else.",
       signInVerify: "How to check that yourself",
       noArgs: "This tool takes no arguments.",
+      /** What a `list` control expects, shown under the field. */
+      hintList: "one value per line",
+      /** Same, for a `json` control. */
+      hintJson: "JSON",
       pickOne: "— choose —",
       omit: "— omit —",
       required: "required",
@@ -152,6 +156,8 @@ export const inspector = {
       errTool: "tool error",
       errClient: "not sent",
       badJson: "Arguments must be valid JSON",
+      argNotANumber: '{field}: "{value}" is not a number',
+      argBadJson: "{field}: malformed JSON — {detail}",
       networkError: "The request never reached the server",
     },
   },
@@ -193,6 +199,8 @@ export const inspector = {
         "El token es de solo lectura, caduca a las dos horas y vive únicamente en la memoria de esta pestaña — sin localStorage, sin cookies, nunca en la barra de direcciones, y desaparece al recargar. Viaja a gitlab.com para que lo emitan y al endpoint de este sitio para usarlo, a ningún otro sitio.",
       signInVerify: "Cómo comprobarlo tú mismo",
       noArgs: "Esta tool no admite argumentos.",
+      hintList: "un valor por línea",
+      hintJson: "JSON",
       pickOne: "— elige —",
       omit: "— omitir —",
       required: "obligatorio",
@@ -266,6 +274,10 @@ export const inspector = {
       errTool: "error de la tool",
       errClient: "no se ha enviado",
       badJson: "Los argumentos tienen que ser JSON válido",
+      /** See `en.argNotANumber`. */
+      argNotANumber: '{field}: "{value}" no es un número',
+      /** See `en.argBadJson`. */
+      argBadJson: "{field}: JSON inválido — {detail}",
       networkError: "La petición no llegó al servidor",
     },
   },

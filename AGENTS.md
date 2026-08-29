@@ -1,161 +1,187 @@
 # AGENTS.md
 
-Contexto para agentes de IA que trabajen en este repositorio.
+Context for AI agents working in this repository.
 
-## Qué es esto
+## What this is
 
-El sitio público de **[mcp.jmrp.io](https://mcp.jmrp.io)**: lista los servidores MCP
-self-hosted y deja probarlos desde el navegador. Astro + UnoCSS con una isla
-Preact, bilingüe (inglés en la raíz, español en `/es/`).
+The public site for **[mcp.jmrp.io](https://mcp.jmrp.io)**: it lists the
+self-hosted MCP servers and lets you try them from the browser. Astro + UnoCSS
+with one Preact island, bilingual (English at the root, Spanish under `/es/`).
 
-**Este repo NO es jmrp.io.** Sirve a otro dominio, con su propio despliegue y
-su propia configuración de nginx.
+**This repo is NOT jmrp.io.** It serves a different domain, with its own
+deployment and its own nginx configuration.
 
-La infraestructura de los servidores MCP (stack de Portainer, egreso por los
-VPS, actualizaciones) está documentada aparte, en `/root/mcp_server_info.md`
-del servidor.
+The MCP servers' infrastructure (Portainer stack, egress through the VPSs,
+updates) is documented separately, in `/root/mcp_server_info.md` on the server.
 
-## Restricciones que no se pueden violar
+## Constraints that cannot be broken
 
-Las cinco rompen algo **en silencio**: nada falla, y te enteras tarde.
+All five break something **silently**: nothing fails, and you find out late.
 
-1. **Todo artefacto que este repo despliegue en `/etc/nginx/` lleva sufijo
-   `_mcp`.** jmrp.io despliega los suyos al mismo directorio de snippets: un
-   nombre repetido deja al otro sitio con la CSP equivocada.
+1. **Every artifact this repo deploys into `/etc/nginx/` carries the `_mcp`
+   suffix.** jmrp.io deploys its own into the same snippets directory: a
+   repeated name leaves the other site with the wrong CSP.
 
-2. **El HTML nunca se precomprime.** El nonce de la CSP lo inyecta nginx con
-   `sub_filter`, que no puede reescribir un fichero comprimido. Los assets sí
-   se precomprimen; el HTML no. Hay un test que lo vigila.
+2. **HTML is never pre-compressed.** nginx injects the CSP nonce with
+   `sub_filter`, which cannot rewrite a compressed file. Assets are
+   pre-compressed; HTML is not. There is a test watching this.
 
-3. **`/libgen*` y `/gitlab*` nunca pasan por el Worker de Cloudflare.** Son
-   proxy vivo con respuestas SSE y healthchecks: una caché de edge de 24 h los
-   congelaría. Están dados de alta como rutas de zona sin worker.
+3. **`/libgen*` and `/gitlab*` never go through the Cloudflare Worker.** They
+   are a live proxy with SSE responses and healthchecks: a 24 h edge cache
+   would freeze them. They are registered as zone routes with no worker.
 
-4. **El token de GitLab del inspector nunca se persiste.** Ni `localStorage`,
-   ni `sessionStorage`, ni query string, ni logs: vive en el estado del
-   componente y desaparece al recargar. Hay tests e2e que lo comprueban.
+4. **The inspector's GitLab token is never persisted.** Not `localStorage`,
+   not `sessionStorage`, not the query string, not logs: it lives in component
+   state and disappears on reload. There are e2e tests that check it.
 
-5. **El vhost sirve por lista blanca.** Un fichero nuevo en `dist/` da **404**
-   hasta que se le añade su `location`. `scripts/deploy-live-mcp.mjs` avisa de
-   los que falten e imprime la línea exacta; el vhost lo edita un humano.
+5. **The vhost serves by allowlist.** A new file in `dist/` returns **404**
+   until its `location` is added. `scripts/deploy-live-mcp.mjs` warns about the
+   missing ones and prints the exact line; a human edits the vhost.
 
-## Cosas que ya mordieron
+## Things that have already bitten
 
-- **Las fuentes necesitan el componente `<Font>` en el `<head>`, no solo
-  `fonts:` en `astro.config`.** `tokens.css` define `--font-body` como
-  `var(--font-ibm-plex-sans), …`; si esa variable no existe, la declaración
-  entera es inválida y el navegador **ignora toda la cadena de fallback**. El
-  sitio salió a producción en Times New Roman por esto.
+- **The fonts need the `<Font>` component in the `<head>`, not just `fonts:`
+  in `astro.config`.** `tokens.css` defines `--font-body` as
+  `var(--font-ibm-plex-sans), …`; if that variable does not exist the whole
+  declaration is invalid and the browser **ignores the entire fallback chain**.
+  The site went to production in Times New Roman because of this.
 
-- **`margin-inline: auto` sobre un hijo de flex column anula el `stretch`.**
-  `body` es `display: flex; flex-direction: column`, así que las franjas se
-  encogían al ancho de su contenido. Llevan `width: 100%`.
+- **`margin-inline: auto` on a flex-column child cancels the `stretch`.**
+  `body` is `display: flex; flex-direction: column`, so the strips shrank to
+  their content's width. They carry `width: 100%`.
 
-- **En una fila que pasa a `flex-direction: column`, el `flex-basis` deja de
-  ser ancho y pasa a ser altura.** El inspector tenía cientos de píxeles de
-  hueco muerto en móvil por eso.
+- **In a row that switches to `flex-direction: column`, `flex-basis` stops
+  being a width and becomes a height.** That is why the inspector had hundreds
+  of pixels of dead space on mobile.
 
-- **Los campos de formulario llevan `font-size: 16px` absolutos, no `1rem`.**
-  `base.css` aplica `html { font-size: 90% }` por debajo de 900 px, así que en
-  móvil `1rem` son 14,4 px — y por debajo de 16 px iOS Safari hace auto-zoom al
-  enfocar el campo.
+- **Form fields carry an absolute `font-size: 16px`, not `1rem`.** `base.css`
+  applies `html { font-size: 90% }` below 900 px, so on mobile `1rem` is
+  14.4 px — and below 16 px iOS Safari auto-zooms when the field is focused.
 
-- **Cloudflare cachea los 404.** Un fichero nuevo sigue dando 404 en el dominio
-  aunque el origen ya lo sirva. El script de despliegue purga la caché.
+- **Cloudflare caches 404s.** A new file keeps returning 404 on the domain even
+  once the origin serves it. The deployment script purges the cache.
 
-- **`rewrite … break` corta la fase de rewrite**, y con ella los `if` que vengan
-  después en la misma `location`. Por eso el `include` del snippet de proxy va
-  **antes** del `rewrite` en el vhost.
+- **`rewrite … break` ends the rewrite phase**, and with it any `if` that comes
+  later in the same `location`. That is why the proxy snippet's `include` goes
+  **before** the `rewrite` in the vhost.
 
-## El inspector
+## The inspector
 
-Tres pestañas, una por cosa que un servidor MCP puede ofrecer: **tools**,
-**prompts** y **resources**. Cada una carga su catálogo, deja elegir una
-entrada y la invoca (`tools/call`, `prompts/get`, `resources/read`).
+Three tabs, one per thing an MCP server can offer: **tools**, **prompts** and
+**resources**. Each one loads its catalog, lets you pick an entry and invokes
+it (`tools/call`, `prompts/get`, `resources/read`).
 
-Los argumentos se piden con un **formulario generado del esquema**, no como
-JSON crudo. El JSON crudo es la interfaz que necesita un LLM: obliga a saberse
-de memoria los nombres de las propiedades, su tipo y cuáles son obligatorias.
-`formFields()` resuelve cada propiedad a un control —`enum` gana al tipo, así
-que un valor enumerado se pide con desplegable— y `valuesToArgs()` convierte lo
-tecleado a los tipos JSON correctos.
+Arguments are asked for with a **form generated from the schema**, not as raw
+JSON. Raw JSON is the interface an LLM needs: it forces you to know the
+property names, their types and which ones are required by heart.
+`formFields()` resolves each property to a control — `enum` beats the type, so
+an enumerated value is asked for with a dropdown — and `valuesToArgs()`
+converts what was typed into the right JSON types.
 
-Dos decisiones que parecen detalles y no lo son:
+Two decisions that look like details and are not:
 
-- **Los campos vacíos se omiten**, no se mandan vacíos. Los servidores validan
-  estricto y un opcional vacío se rechaza igual que uno mal escrito.
-- **El modo JSON sigue existiendo** como escape: hay esquemas con `oneOf`,
-  `$ref` o composición que ningún formulario representa con honestidad.
+- **Empty fields are omitted**, not sent empty. The servers validate strictly
+  and an empty optional is rejected just like a malformed one.
+- **JSON mode still exists** as an escape hatch: there are schemas with
+  `oneOf`, `$ref` or composition that no form represents honestly.
 
-Los prompts declaran sus argumentos como un array, no como JSON Schema;
-`promptSchema()` los traduce para que el formulario se genere con el mismo
-código y no haya dos generadores que se desincronicen.
+Prompts declare their arguments as an array, not as a JSON Schema;
+`promptSchema()` translates them so the form is generated by the same code and
+there are not two generators to drift apart.
 
-## Estilo
+Everything that reaches the network goes through `useMcpCall`, which applies
+the brake in `src/lib/rate-limit.ts`: a minimum gap between two calls to the
+same method, a window cap, and a cooldown when the window is exceeded. It is
+not a security control — the vhost is — but it keeps the inspector from being
+a convenient way to hammer the origin.
 
-Los estilos son una **copia** de jmrp.io: `src/styles/{tokens,base,global,
-utilities}.css` y la configuración de UnoCSS. Si cambian allí, aquí hay que
-resincronizarlos a mano — es el precio de tener los repos separados.
+## Styles
 
-**No reutilices la navegación de jmrp.io**: enlaza a rutas raíz (`/about`,
-`/blog`) que en este dominio serían 404. Los enlaces cross-site van en
-**absoluto** (`https://jmrp.io/…`).
+The styles are a **copy** of jmrp.io's: `src/styles/{tokens,base,global,
+utilities}.css` and the UnoCSS configuration. If they change there, they have
+to be synced across by hand — that is the price of keeping the repos separate.
 
-## Dónde está cada cosa
+**Do not reuse jmrp.io's navigation**: it links to root routes (`/about`,
+`/blog`) that would 404 on this domain. Cross-site links are **absolute**
+(`https://jmrp.io/…`).
 
-| Ruta                                 | Qué es                                                          |
-| ------------------------------------ | --------------------------------------------------------------- |
-| `src/data/servers.ts`                | **Única** fuente de verdad de la lista de MCP                   |
-| `src/i18n/ui.ts`                     | Cadenas EN/ES. Las dos ramas deben tener las mismas claves      |
-| `src/components/Inspector.tsx`       | La isla: pestañas y estado. No importes aquí nada con `node:fs` |
-| `src/components/ArgsForm.tsx`        | Formulario generado del esquema                                 |
-| `src/components/inspector-parts.tsx` | Piezas que solo pintan                                          |
-| `src/lib/mcp-catalog.ts`             | Lectura de `prompts/list` y `resources/list`                    |
-| `src/lib/mcp-client.ts`              | POST + parseo de SSE. Sin DOM, testeable aparte                 |
-| `src/lib/identity.ts`                | Nodo `#person` canónico (ver abajo)                             |
-| `src/lib/seo.ts`                     | URLs, hreflang y metadatos                                      |
-| `scripts/deploy-live-mcp.mjs`        | Despliegue: snippets → nginx → purga de CF                      |
-| `src/integrations/post-build/`       | CSP, compresión y minificado                                    |
+## Where everything lives
 
-## Identidad (`#person`)
+| Path                                 | What it is                                                     |
+| ------------------------------------ | -------------------------------------------------------------- |
+| `src/data/servers.ts`                | The **single** source of truth for the MCP list                |
+| `src/i18n/ui/`                       | EN/ES strings. Both branches must carry the same keys          |
+| `src/components/Inspector.tsx`       | The island: tabs and state. Import nothing with `node:fs` here |
+| `src/components/ArgsForm.tsx`        | The form generated from the schema                             |
+| `src/components/inspector-parts.tsx` | Pieces that only render                                        |
+| `src/components/Markdown.tsx`        | The laid-out view of a response, built from `src/lib/md.ts`    |
+| `src/lib/mcp-catalog.ts`             | Reading `prompts/list` and `resources/list`                    |
+| `src/lib/mcp-client.ts`              | POST + SSE parsing. No DOM, testable on its own                |
+| `src/lib/rate-limit.ts`              | The inspector's request brake. Pure, no timers                 |
+| `src/lib/identity.ts`                | The canonical `#person` node (see below)                       |
+| `src/lib/seo.ts`                     | URLs, hreflang and metadata                                    |
+| `scripts/run-verify.mjs`             | The QA pipeline (see Commands)                                 |
+| `scripts/deploy-live-mcp.mjs`        | Deployment: snippets → nginx → CF purge                        |
+| `src/integrations/post-build/`       | CSP, compression and minification                              |
 
-El nodo `Person` canónico se descarga en build de
+## Identity (`#person`)
+
+The canonical `Person` node is downloaded at build time from
 `raw.githubusercontent.com/jmrplens/jmrp.io/main/public/identity/person.jsonld`,
-con `identity/person.snapshot.json` como respaldo.
+with `identity/person.snapshot.json` as a fallback.
 
-Es **el mismo método que los otros sitios de documentación** (libgen-mcp,
-gitlab-mcp-server, phonometry…). No lo cambies por leer el fichero del disco
-local aunque compiles en la misma máquina que jmrp.io: el CI de GitHub Actions
-no tiene esa ruta, y el mismo commit produciría un build con identidad en
-producción y sin ella en CI.
+It is **the same method the other documentation sites use** (libgen-mcp,
+gitlab-mcp-server, phonometry…). Do not change it to read the file from the
+local disk even though you build on the same machine as jmrp.io: GitHub
+Actions' CI does not have that path, and the same commit would produce a build
+with an identity in production and without one in CI.
 
-Refrescar el snapshot: `pnpm run identity:sync`. El CI lo vigila con
+Refresh the snapshot with `pnpm run identity:sync`. CI watches it with
 `pnpm run identity:check`.
 
-## Añadir un servidor MCP
+## Adding an MCP server
 
-1. Una entrada en `src/data/servers.ts`.
-2. En el vhost, un `upstream` y un `location ^~` (lo hace un humano).
-3. Una línea en el array `SERVICES` de `/root/scripts/mcp_update.sh`.
+1. One entry in `src/data/servers.ts`.
+2. In the vhost, an `upstream` and a `location ^~` (a human does this).
+3. One line in the `SERVICES` array of `/root/scripts/mcp_update.sh`.
 
-No hace falta tocar el markup ni el DNS. Y `connect-src 'self'` de la CSP
-sigue valiendo: **todos los MCP cuelgan siempre de `mcp.jmrp.io`**.
+Neither the markup nor the DNS needs touching. And the CSP's `connect-src
+'self'` still holds: **every MCP always hangs off `mcp.jmrp.io`**.
 
-## Comandos
+## Language
+
+Everything in this repository is written in **English**: code comments,
+configuration, commit messages, pull requests and replies to review bots. The
+only Spanish is the site's own Spanish content — the `es` half of
+`src/i18n/ui/`, the Spanish copy in `src/data/servers.ts`, and the one
+deliberate Spanish line on the 404 page.
+
+`pnpm spell` enforces it: the Spanish dictionary is switched on only for those
+files, so a Spanish word anywhere else is reported as a misspelling.
+
+## Commands
 
 ```bash
-pnpm dev                  # desarrollo
-pnpm build                # build a dist/
-pnpm deploy               # build + snippets a nginx + purga de Cloudflare
+pnpm dev                  # development
+pnpm build                # build AND deploy (swaps the symlink, publishes)
+pnpm verify               # the full QA pipeline — run this before a PR
 pnpm lint                 # eslint
+pnpm lint:css             # stylelint
+pnpm lint:md              # markdownlint
+pnpm spell                # cspell
 pnpm typecheck            # astro check
 pnpm test:unit            # node:test
-pnpm validate:html        # html-validate sobre dist/
-pnpm test:e2e --workers=1 # playwright (llama a los endpoints reales)
-pnpm check                # lint + typecheck + build + unit + html
-pnpm identity:sync        # refresca el snapshot del #person
+pnpm validate:html        # html-validate over dist/
+pnpm test:e2e --workers=1 # playwright (calls the real endpoints)
+pnpm identity:sync        # refreshes the #person snapshot
 ```
 
-`pnpm check` agrupa todo menos los e2e. Ejecútalo antes de dar nada por
-terminado: `html-validate` vivía solo en CI y por eso dos veces se subió HTML
-que fallaba allí y pasaba aquí.
+`pnpm verify` is the gate, and it is what to run before calling anything
+finished: static analysis first, then a build into the inactive colour
+**without swapping it in**, then the checks that read that build, then Sonar,
+then the e2e suite. It reports every failure across every phase in one run
+instead of stopping at the first.
+
+Note that `pnpm build` **deploys**: it retargets the `dist` symlink and runs
+`deploy-live-mcp.mjs`, which touches nginx and purges Cloudflare. Use
+`pnpm verify` to check your work.

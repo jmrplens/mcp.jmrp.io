@@ -30,7 +30,7 @@ import { pageUrl, serverPageUrl, SITE_ORIGIN } from "./seo";
  * WHAT IS DELIBERATELY NOT MIRRORED
  * The inspector is an interactive island: its twin describes what the page
  * offers and points at the endpoints, because a transcript of a form nobody
- * can submit from a text file would be noise. The server fichas do not
+ * can submit from a text file would be noise. The server cards do not
  * repeat their whole tool catalog either — `llms-full.txt` already carries
  * it, in one place, and the twin links there rather than shipping a second
  * copy that can disagree with the first.
@@ -43,7 +43,7 @@ export const MARKDOWN_HEADERS = {
   "Content-Type": "text/markdown; charset=utf-8",
 } as const;
 
-/** Pages that have a twin, beyond the per-server fichas. */
+/** Pages that have a twin, beyond the per-server cards. */
 export type TwinPage =
   "home" | "inspector" | "internals" | "policies" | "servers";
 
@@ -235,7 +235,7 @@ export function serversIndexMarkdown(lang: Lang): string {
 }
 
 /**
- * One server's ficha. Counts come from the committed Server Card, so they
+ * One server's card. Counts come from the committed Server Card, so they
  * cannot claim a surface the snapshot does not have; the catalog itself
  * stays in `llms-full.txt` rather than being copied here.
  *
@@ -360,20 +360,15 @@ export function domainMarkdown(
     })
     .join("\n\n");
   // Two catalogue domains hold exactly one action, so the count needs a
-  // singular in both languages.
-  const one = actions.length === 1;
-  let countLabel: string;
-  if (lang === "es") {
-    countLabel = one ? "acción" : "acciones";
-  } else {
-    countLabel = one ? "action" : "actions";
-  }
+  // singular. Both forms come from i18n rather than an inline ternary: a
+  // Spanish string in a lib file is one no translator would ever find.
+  const countLabel = actions.length === 1 ? t.mdActionOne : t.mdActionMany;
   return (
     head(
       `${domain} — ${server}`,
       `${actions.length} ${countLabel}`,
       url,
       lang,
-    ) + `\n\n## ${lang === "es" ? "Acciones" : "Actions"}\n\n${body}\n`
+    ) + `\n\n## ${t.mdActionsHead}\n\n${body}\n`
   );
 }

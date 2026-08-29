@@ -12,24 +12,25 @@ import ArgsForm from "./ArgsForm";
 import type { Status } from "./use-mcp-call";
 
 /**
- * Trozos del inspector que solo pintan.
+ * Pieces of the inspector that only render.
  *
- * Están fuera de `Inspector.tsx` porque el JSX del componente acumulaba ~26
- * puntos de decisión —cada ternario y cada `&&` cuenta— y con eso pasaba de la
- * complejidad cognitiva que Sonar admite. Ninguno de estos tiene estado: se les
- * pasa lo ya calculado y devuelven markup.
+ * They live outside `Inspector.tsx` because the component's JSX had built up
+ * ~26 decision points — every ternary and every `&&` counts — and with that it
+ * went past the cognitive complexity Sonar allows. None of these holds state:
+ * they are handed what is already computed and return markup.
  */
 
 /**
- * Esquema de argumentos de la tool elegida.
+ * The chosen tool's argument schema.
  *
- * Sin esto el visitante adivina los argumentos: una búsqueda con `limit` se
- * rechaza con «unexpected additional properties», y sin argumentos con
- * «query is required». La tabla dice qué acepta y qué es obligatorio.
+ * Without this the visitor guesses the arguments: a search with `limit` is
+ * rejected with "unexpected additional properties", and one with no arguments
+ * with "query is required". The table says what it accepts and what is
+ * required.
  *
- * @param props.tool Tool elegida, o `null` si aún no hay ninguna.
- * @param props.lang Idioma de la página.
- * @returns La tabla del esquema, o nada si no hay tool.
+ * @param props.tool The chosen tool, or `null` when there is none yet.
+ * @param props.lang The page's language.
+ * @returns The schema table, or nothing when there is no tool.
  */
 export function ToolSchema({
   tool,
@@ -106,16 +107,16 @@ export function ToolSchema({
 }
 
 /**
- * Resumen de la última llamada: la única región que se anuncia.
+ * The last call's summary: the only region that is announced.
  *
- * El `aria-live` vivía en el `<pre>` del volcado, así que un lector de pantalla
- * leía 43.000 caracteres de una tacada y dos veces por acción. Aquí caben
- * cuatro datos y se distingue un acierto de los tres tipos de fallo.
+ * The `aria-live` used to live on the dump's `<pre>`, so a screen reader read
+ * 43,000 characters in one go, twice per action. Four facts fit here, and a
+ * success is told apart from the three kinds of failure.
  *
- * @param props.status Resultado de la última llamada, o `null` si no hay.
- * @param props.copyNote Aviso efímero del botón de copiar.
- * @param props.lang Idioma de la página.
- * @returns La línea de estado.
+ * @param props.status The last call's result, or `null` when there is none.
+ * @param props.copyNote The copy button's fleeting notice.
+ * @param props.lang The page's language.
+ * @returns The status line.
  */
 export function StatusLine({
   status,
@@ -124,7 +125,7 @@ export function StatusLine({
 }: Readonly<{ status: Status | null; copyNote: string; lang: Lang }>) {
   const t = ui[lang].insp;
 
-  /** Palabra del chip, por clase de resultado. */
+  /** The chip's word, by result kind. */
   const label: Record<Status["outcome"], string> = {
     running: t.running,
     ok: t.ok,
@@ -134,7 +135,7 @@ export function StatusLine({
     client: t.errClient,
   };
 
-  /** Los datos opcionales se pintan igual; solo cambia cómo se formatean. */
+  /** The optional facts render the same way; only their formatting differs. */
   const facts: string[] = [];
   if (status) {
     if (status.code !== undefined) facts.push(String(status.code));
@@ -168,14 +169,15 @@ export function StatusLine({
 }
 
 /**
- * La lista de lo que ofrece el servidor en la pestaña activa.
+ * The list of what the server offers in the active tab.
  *
- * Antes esto era un botón que volcaba JSON: se veía que había 37 prompts y no
- * se podía hacer nada con ellos. Aquí cada entrada es seleccionable y enseña su
- * descripción, que es lo que permite elegir sin saberse el catálogo de memoria.
+ * This used to be a button that dumped JSON: you could see there were 37
+ * prompts and could do nothing with them. Here each entry is selectable and
+ * shows its description, which is what lets someone choose without knowing the
+ * catalog by heart.
  *
- * @param props Estado de los tres catálogos y los manejadores de selección.
- * @returns El selector del catálogo activo.
+ * @param props The three catalogs' state and the selection handlers.
+ * @returns The active catalog's picker.
  */
 export function Catalog({
   tab,
@@ -210,8 +212,8 @@ export function Catalog({
 }>) {
   const t = ui[lang].insp;
 
-  // Un mapa en vez de tres ternarios encadenados: dar de alta otra categoría
-  // es una entrada más, no otro nivel de anidamiento.
+  // A map instead of three chained ternaries: registering another category is
+  // one more entry, not another level of nesting.
   const {
     count,
     load: loadLabel,
@@ -325,15 +327,15 @@ export function Catalog({
 }
 
 /**
- * El panel de invocación: cabecera de lo elegido, formulario y botón.
+ * The invocation panel: a header for what is chosen, the form and the button.
  *
- * Fuera del componente por el mismo motivo que los demás: cada rama del JSX
- * suma complejidad, y con las tres pestañas el inspector volvía a pasarse.
- * Aquí además queda junto lo que comparten tools y prompts, que se invocan
- * igual salvo el nombre del método.
+ * Outside the component for the same reason as the others: every JSX branch
+ * adds complexity, and with the three tabs the inspector went over again. It
+ * also keeps together what tools and prompts share, since they are invoked the
+ * same way apart from the method's name.
  *
- * @param props Lo elegido, el estado del formulario y los manejadores.
- * @returns El panel, o nada si no hay nada elegido.
+ * @param props What is chosen, the form's state and the handlers.
+ * @returns The panel, or nothing when nothing is chosen.
  */
 export function InvokePanel({
   kind,
@@ -376,8 +378,8 @@ export function InvokePanel({
   const t = ui[lang].insp;
   if (!name) return <p className="tool-hint">{t.pickTool}</p>;
 
-  // El modo JSON solo tiene sentido en tools: los argumentos de un prompt son
-  // cadenas planas por definición del protocolo, no hay esquema que escapar.
+  // JSON mode only makes sense for tools: a prompt's arguments are flat
+  // strings by the protocol's definition, so there is no schema to escape.
   const showRaw = kind === "tools";
 
   return (

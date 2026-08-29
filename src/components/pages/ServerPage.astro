@@ -190,8 +190,8 @@ const catalogRows = actions
 // `getStaticPaths` filters on it), which is the same `actions` gate the
 // island renders behind — derived from the id, never hardcoded.
 const actionsIndexHref = `/servers/${id}/actions.json`;
-// Prefijo localizado de las páginas por dominio; el nombre del dominio
-// (dato del manifiesto) se concatena tal cual.
+// The localized prefix for the per-domain pages; the domain's name (manifest
+// data) is concatenated as-is.
 const actionsDomainBase = `${lang === "es" ? "/es/" : "/"}${serverPagePath(id)}actions/`;
 
 // Subscriptions block + per-template "subscribable" chips, from the curated
@@ -202,14 +202,14 @@ const subs = card.subscriptions;
 const subscribableCount = subs?.subscribable_uri_templates.length ?? 0;
 
 const tocFamilies = [
-  // Primero lo NUESTRO, después lo que se lee del binario. `connect-h` abre la
-  // lista porque es la única sección que el visitante necesita ANTES de poder
-  // usar nada de lo que viene detrás.
+  // OURS first, then what is read off the binary. `connect-h` opens the list
+  // because it is the only section the visitor needs BEFORE they can use
+  // anything that follows.
   { id: "connect-h", label: sp.connectHead },
   // No count: it is prose, not a family of entries — see `TocFamily.count`.
   { id: "context-h", label: sp.contextHead },
-  // `overview-h` no aparece aquí: ServerToc lo pinta aparte, con
-  // `overviewLabel`. Ver la llamada al componente más abajo.
+  // `overview-h` is absent here: ServerToc renders it separately, with
+  // `overviewLabel`. See the component's call further down.
   ...(instructions
     ? [{ id: "instructions-h", label: sp.instructionsHead }]
     : []),
@@ -405,11 +405,11 @@ function toolAnnotationChips(
 
     <div class="server-content">
       {
-        /* NUESTRO contenido primero, el del binario después: la página empieza
-          contestando «cómo conecto esto» y sólo entonces pasa a describir lo
-          que el servidor declara de sí mismo. Antes el orden era el inverso y
-          la respuesta ni siquiera estaba aquí — vivía plegada en una tarjeta
-          de la portada. */
+        /* OUR content first, the binary's after: the page starts by answering
+          "how do I connect this" and only then goes on to describe what the
+          server declares about itself. The order used to be the reverse, and
+          the answer was not even here — it lived folded inside a card on the
+          home page. */
       }
       <section
         class="server-family"
@@ -550,7 +550,7 @@ function toolAnnotationChips(
       {
         /* The server's own connect-time instructions (`server/discover`),
           quoted verbatim from the committed surface snapshot — data, not
-          chrome, so it is never translated (the ES intro says "(en inglés)",
+          chrome, so it is never translated (the Spanish intro flags it as English,
           same convention as `cardDescriptionLabel`). Placed after the
           service context — whose own comment defends its spot right behind
           the overview — and before the 1,300 words of tools, where whoever
@@ -775,8 +775,8 @@ function toolAnnotationChips(
                   {catalogRows.map((row) => (
                     <tr>
                       <th scope="row">
-                        {/* Cada dominio tiene su página de referencia con la
-                            lista completa (colapsada) y su propio filtro. */}
+                        {/* Each domain has its own reference page with the
+                            full list (collapsed) and its own filter. */}
                         <a href={`${actionsDomainBase}${row.domain}/`}>
                           <code>{row.domain}</code>
                         </a>
@@ -1312,10 +1312,10 @@ function toolAnnotationChips(
     color: var(--color-text);
     text-wrap: pretty;
 
-    /* Superficie, no tinte: `--color-bg-subtle` es un 5% translúcido y aquí
-       este bloque se apoya en el fondo de página, así que la rejilla lo
-       cruzaba. Donde ese token SÍ vale es encima de una tarjeta ya opaca
-       (los chips, el verbo POST): ahí es un matiz, no la superficie. */
+    /* A surface, not a tint: `--color-bg-subtle` is 5% translucent and here
+       this block sits on the page background, so the grid ran through it.
+       Where that token DOES work is over an already-opaque card (the chips,
+       the POST verb): there it is a shade, not the surface. */
     background: var(--color-bg-secondary);
     border-radius: var(--radius-md);
   }
@@ -1344,22 +1344,22 @@ function toolAnnotationChips(
   .entry {
     padding: 1rem 1.1rem;
 
-    /* SIN sombra, y es deliberado. jmrp.io/projects tampoco la lleva en sus
-       tarjetas (cero `box-shadow` en esa página): las separa la superficie
-       opaca y el filete, nada más. Y los dos únicos tokens de sombra que
-       existen aquí —`--sh-card` y `--sh-pop`— son caídas de 60-70px pensadas
-       para una tarjeta grande y sola; repetidas en cientos de fichas seguidas
-       ensuciarían la columna entera. Inventar un tercer token para esto sería
-       ampliar el sistema de diseño sin mandato. */
+    /* NO shadow, and that is deliberate. jmrp.io/projects carries none on its
+       cards either (zero `box-shadow` on that page): the opaque surface and the
+       hairline are what separate them, nothing more. And the only two shadow
+       tokens that exist here — `--sh-card` and `--sh-pop` — are 60-70px drops
+       meant for one large card on its own; repeated across hundreds of entries
+       in a row they would muddy the whole column. Inventing a third token for
+       this would be extending the design system without a mandate. */
 
     /* Anchor target offset: without this, jumping to #tool-x lands the
        entry's top edge flush under the sticky site header. */
     scroll-margin-top: calc(var(--header-height) + 1rem);
 
-    /* Superficie OPACA, como las tarjetas de jmrp.io: con solo borde, la
-       rejilla del fondo atraviesa la caja y en tema claro deja de leerse como
-       una superficie. `--color-bg-subtle` tampoco vale para esto — es un 5%
-       translúcido, así que la rejilla se ve igual. */
+    /* An OPAQUE surface, like jmrp.io's cards: with only a border, the
+       background grid runs through the box and in light mode it stops reading
+       as a surface. `--color-bg-subtle` will not do either — it is 5%
+       translucent, so the grid shows through just the same. */
     background: var(--color-bg-secondary);
     border: 1px solid var(--color-hair);
     border-radius: var(--radius-md);
@@ -1416,7 +1416,7 @@ function toolAnnotationChips(
   }
 
   /* The one chip that must stand out: it says a tool can change or delete
-     something. Meaning rides on the TEXT ("destructive"/"destructiva"), not
+     something. Meaning rides on the TEXT, which is translated in both, not
      just the color, so this reads the same under a color-vision deficiency —
      the color is emphasis on top of that, not the only signal. */
   .a-chip--destructive {
@@ -1475,9 +1475,9 @@ function toolAnnotationChips(
     margin-top: 0.9rem;
   }
 
-  /* Ver `.disclosure` en utilities.css: de ahí salen el chevron, el color y el
-     hover. Estos <details> nacieron sin ellos y por eso no se distinguían de
-     una etiqueta muerta. */
+  /* See `.disclosure` in utilities.css: the chevron, the colour and the hover
+     come from there. These <details> were born without them, which is why they
+     were indistinguishable from a dead label. */
   .returns > summary {
     font-family: var(--font-mono);
     font-size: 0.7rem;

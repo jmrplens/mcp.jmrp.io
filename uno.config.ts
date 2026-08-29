@@ -1,17 +1,18 @@
 /**
  * UnoCSS Configuration — mcp.jmrp.io
  *
- * Copia recortada de la de jmrp.io. Los cambios respecto al original:
+ * A trimmed copy of jmrp.io's. The changes from the original:
  *
- * - `iconCollections` se reduce a las colecciones que este sitio podría usar.
- *   El original listaba ocho porque el sitio principal las usa; aquí cada
- *   colección extra sólo añade falsos positivos al extractor.
- * - `safelist` se vacía: sus entradas eran iconos de componentes de jmrp.io
- *   (Footer, Timeline, BrowserSupport, FileDownload…) que no existen en este
- *   repo. Además la safelist SÍ se resuelve en build, así que mantenerla
- *   obligaría a instalar los `@iconify-json/*` correspondientes para nada.
+ * - `iconCollections` is reduced to the collections this site could use. The
+ *   original listed eight because the main site uses them; here every extra
+ *   collection only adds false positives to the extractor.
+ * - `safelist` is emptied: its entries were icons belonging to jmrp.io
+ *   components (Footer, Timeline, BrowserSupport, FileDownload…) that do not
+ *   exist in this repo. The safelist IS resolved at build time as well, so
+ *   keeping it would force installing the matching `@iconify-json/*` packages
+ *   for nothing.
  *
- * Cuando se use el primer icono, instalar su colección:
+ * When the first icon is used, install its collection:
  *   pnpm add -D @iconify-json/<collection>
  */
 import { defineConfig, presetIcons, presetWind4 } from "unocss";

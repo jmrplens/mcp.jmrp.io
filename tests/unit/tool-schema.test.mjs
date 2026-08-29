@@ -1,10 +1,10 @@
 /**
- * Lectura del catálogo de `tools/list` y del `inputSchema`.
+ * Reading the `tools/list` catalog and the `inputSchema`.
  *
- * Los esquemas de este fichero son los REALES de libgen (recortados): son los
- * que hicieron fallar la auditoría en producción, con `unexpected additional
- * properties ["limit"]` por inventarse un argumento y con `query is required`
- * por mandar `{}`. Si `skeletonFor` deja de emitir `query`, ese error vuelve.
+ * The schemas in this file are libgen's REAL ones (trimmed): they are the ones
+ * that failed the audit in production, with `unexpected additional properties
+ * ["limit"]` for inventing an argument and with `query is required` for sending
+ * `{}`. If `skeletonFor` stops emitting `query`, that error comes back.
  */
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -34,7 +34,7 @@ const LIBGEN_SEARCH = {
 
 const body = (tools) => ({ jsonrpc: "2.0", id: 1, result: { tools } });
 
-test("toolsFrom saca nombre, descripción y esquema del catálogo", () => {
+test("toolsFrom takes the name, description and schema out of the catalog", () => {
   const tools = toolsFrom(
     body([
       {
@@ -52,27 +52,27 @@ test("toolsFrom saca nombre, descripción y esquema del catálogo", () => {
   assert.deepEqual(tools[0].inputSchema.required, ["query"]);
 });
 
-test("toolsFrom acepta también input_schema en snake_case", () => {
+test("toolsFrom also accepts input_schema in snake_case", () => {
   const tools = toolsFrom(
     body([{ name: "search", input_schema: LIBGEN_SEARCH }]),
   );
   assert.deepEqual(tools[0].inputSchema.required, ["query"]);
 });
 
-test("toolsFrom devuelve [] ante cualquier forma inesperada", () => {
-  // Una respuesta rara de un servidor cualquiera no puede tumbar la isla.
+test("toolsFrom returns [] for any unexpected shape", () => {
+  // An odd response from any server must not take the island down.
   assert.deepEqual(toolsFrom(undefined), []);
   assert.deepEqual(toolsFrom({ result: {} }), []);
   assert.deepEqual(toolsFrom({ result: { tools: "nope" } }), []);
   assert.deepEqual(toolsFrom({ error: { code: -32_602 } }), []);
-  // Entradas sin nombre se descartan: un <option> sin valor no sirve de nada.
-  assert.deepEqual(toolsFrom(body([{ description: "sin nombre" }, "x"])), []);
+  // Nameless entries are discarded: an <option> with no value is no use.
+  assert.deepEqual(toolsFrom(body([{ description: "no name" }, "x"])), []);
 });
 
-test("schemaFields pone las obligatorias primero y etiqueta los tipos", () => {
+test("schemaFields puts the required ones first and labels the types", () => {
   const rows = schemaFields(LIBGEN_SEARCH);
 
-  assert.equal(rows[0].name, "query", "la obligatoria va primero");
+  assert.equal(rows[0].name, "query", "the required one comes first");
   assert.equal(rows[0].required, true);
   assert.equal(rows[0].description, "What to look for");
 
@@ -83,21 +83,21 @@ test("schemaFields pone las obligatorias primero y etiqueta los tipos", () => {
   assert.equal(byName.order.type, '"year" | "size"');
 });
 
-test("schemaFields no revienta sin esquema", () => {
+test("schemaFields does not blow up with no schema", () => {
   assert.deepEqual(schemaFields(undefined), []);
   assert.deepEqual(schemaFields({ type: "object" }), []);
 });
 
-test("skeletonFor prerrellena SOLO las obligatorias", () => {
+test("skeletonFor pre-fills ONLY the required ones", () => {
   const skeleton = JSON.parse(skeletonFor(LIBGEN_SEARCH));
 
   assert.deepEqual(skeleton, { query: "" });
-  // Mandar las opcionales cambiaría el significado de la llamada, y algunos
-  // servidores rechazan valores vacíos que no habrían rechazado ausentes.
+  // Sending the optional ones would change the call's meaning, and some
+  // servers reject empty values they would not have rejected when absent.
   assert.equal("results_per_page" in skeleton, false);
 });
 
-test("skeletonFor usa el tipo, el default y el primer valor del enum", () => {
+test("skeletonFor uses the type, the default and the enum's first value", () => {
   const skeleton = JSON.parse(
     skeletonFor({
       required: ["n", "flag", "list", "mode", "obj", "page"],
@@ -122,7 +122,7 @@ test("skeletonFor usa el tipo, el default y el primer valor del enum", () => {
   });
 });
 
-test("skeletonFor da {} cuando la tool no exige nada", () => {
+test("skeletonFor gives {} when the tool requires nothing", () => {
   assert.equal(skeletonFor(undefined), "{}");
   assert.equal(
     skeletonFor({ type: "object", properties: { q: { type: "string" } } }),
@@ -130,13 +130,13 @@ test("skeletonFor da {} cuando la tool no exige nada", () => {
   );
 });
 
-test("el esqueleto sale indentado, que es lo que se pega en el textarea", () => {
+test("the skeleton comes out indented, which is what gets pasted into the textarea", () => {
   assert.equal(skeletonFor(LIBGEN_SEARCH), '{\n  "query": ""\n}');
 });
 
-test("requirementGroups: anyOf de ramas required → grupos con su clase", () => {
-  // La forma exacta que libgen 1.7.1 publica: ramas con required y un
-  // refinamiento non-blank en properties, que el lector debe ignorar.
+test("requirementGroups: an anyOf of required branches → groups with their kind", () => {
+  // The exact shape libgen 1.7.1 publishes: branches with required plus a
+  // non-blank refinement in properties, which the reader must ignore.
   const groups = requirementGroups({
     type: "object",
     properties: { md5: { type: "string" }, doi: { type: "string" } },
@@ -148,7 +148,7 @@ test("requirementGroups: anyOf de ramas required → grupos con su clase", () =>
   assert.deepEqual(groups, { kind: "anyOf", groups: [["md5"], ["doi"]] });
 });
 
-test("requirementGroups: oneOf gana la clase, y las ramas multi-campo se conservan", () => {
+test("requirementGroups: oneOf wins the kind, and multi-field branches are kept", () => {
   const groups = requirementGroups({
     oneOf: [{ required: ["file_name", "content"] }, { required: ["files"] }],
   });
@@ -158,9 +158,10 @@ test("requirementGroups: oneOf gana la clase, y las ramas multi-campo se conserv
   });
 });
 
-test("requirementGroups: composición que no es de ramas-required → undefined, no media verdad", () => {
-  // Una rama sin required legible invalida el conjunto entero: enseñar solo
-  // parte de los grupos afirmaría un requisito distinto del real.
+test("requirementGroups: a composition that is not of required branches → undefined, not half a truth", () => {
+  // One branch with no readable required invalidates the whole set: showing
+  // only some of the groups would assert a requirement other than the real
+  // one.
   assert.equal(
     requirementGroups({ anyOf: [{ required: ["md5"] }, { type: "string" }] }),
     undefined,

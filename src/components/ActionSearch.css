@@ -1,13 +1,12 @@
 /**
- * Estilos de la isla del buscador del catálogo de acciones.
+ * Styles for the action-catalog search island.
  *
- * En un .css aparte y no en un \3c style> de Astro porque el componente es
- * Preact: Astro solo aplica sus estilos con ámbito a ficheros .astro (el
- * mismo motivo que documenta Inspector.css). La forma base del chip viene
- * de `.chip` (utilities.css, global); aquí solo se añaden los colores de
- * las variantes, calcados de los `.a-chip--*` de ServerPage.astro — esas
- * reglas tienen ámbito de componente y no alcanzan al DOM que esta isla
- * pinta en el cliente.
+ * In a separate .css and not in an Astro \3c style> block because the component
+ * is Preact: Astro only scopes its styles to .astro files (the same reason
+ * Inspector.css documents). The chip's base shape comes from `.chip`
+ * (utilities.css, global); only the variants' colours are added here, traced
+ * from ServerPage.astro's `.a-chip--*` — those rules are component-scoped and
+ * do not reach the DOM this island renders on the client.
  */
 
 .action-search {
@@ -76,16 +75,16 @@
   color: var(--color-text);
 }
 
-/* Informativo, tan discreto como el resto de metadatos (calca `.a-chip--info`). */
+/* Informational, as quiet as the other metadata (traces `.a-chip--info`). */
 .as-chip--domain {
   color: var(--color-text-muted);
   background: var(--color-bg-subtle);
 }
 
-/* El único chip que debe destacar: dice que la acción puede cambiar o borrar
-   algo. El significado va en el TEXTO ("destructive"/"destructiva"); el color
-   solo lo subraya (mismo razonamiento de accesibilidad que
-   `.a-chip--destructive` en ServerPage.astro). */
+/* The one chip that must stand out: it says the action can change or delete
+   something. The meaning rides on the TEXT, which is translated in both; the
+   colour only underlines it (the same accessibility reasoning as
+   `.a-chip--destructive` in ServerPage.astro). */
 .as-chip--destructive {
   font-weight: var(--fw-medium);
   color: var(--color-danger);
@@ -93,8 +92,8 @@
   border-color: var(--color-danger);
 }
 
-/* El id del resultado es ahora un enlace a la página de su dominio; hereda
-   el aspecto mono del <code> interior y solo añade la señal de enlace. */
+/* The result's id is now a link to its domain's page; it inherits the mono
+   look of the <code> inside and only adds the link's cue. */
 .as-id-link {
   text-decoration: none;
 }

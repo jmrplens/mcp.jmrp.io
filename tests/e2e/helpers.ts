@@ -3,28 +3,28 @@ import type { Locator, Page } from "@playwright/test";
 import { type Lang, ui } from "../../src/i18n/ui";
 
 /**
- * Localizadores compartidos por los e2e.
+ * Locators shared by the e2e suite.
  *
- * Existen para que los tests apunten a la INFORMACIÓN y no al markup: el diseño
- * de la página se ha rehecho una vez (la línea "Required headers: X" pasó a ser
- * una insignia más una `<dl>`) y volverá a cambiar. Lo que no puede cambiar sin
- * que sea un fallo de contenido es qué dice cada ficha y qué controles ofrece
- * el inspector.
+ * They exist so the tests point at the INFORMATION and not at the markup: the
+ * page's design has been redone once (the "Required headers: X" line became a
+ * badge plus a `<dl>`) and will change again. What cannot change without it
+ * being a content defect is what each card says and which controls the
+ * inspector offers.
  *
- * Este fichero NO es una spec: Playwright solo recoge `*.spec.ts`.
+ * This file is NOT a spec: Playwright only collects `*.spec.ts`.
  */
 
 /**
- * Ficha de un servidor, identificada por su heading.
+ * A server's card, identified by its heading.
  *
- * Se devuelve la tarjeta entera para poder afirmar que un dato está en SU
- * servidor. Buscar el texto suelto en la página no distingue si "Authorization"
- * sale en la ficha de gitlab o en la de libgen, y esa confusión es justo el
- * error que estos tests tienen que cazar.
+ * The whole card is returned so a fact can be asserted to be on ITS OWN
+ * server. Searching for loose text on the page does not tell whether
+ * "Authorization" shows up on gitlab's card or on libgen's, and that confusion
+ * is exactly the mistake these tests have to catch.
  *
- * @param page Página bajo test.
- * @param name Nombre del servidor, tal cual sale en `src/data/servers.ts`.
- * @returns El `<article>` de esa ficha.
+ * @param page The page under test.
+ * @param name The server's name, exactly as it appears in `src/data/servers.ts`.
+ * @returns That card's `<article>`.
  */
 export function serverCard(page: Page, name: string): Locator {
   return page
@@ -33,42 +33,41 @@ export function serverCard(page: Page, name: string): Locator {
 }
 
 /**
- * La isla del inspector.
+ * The inspector island.
  *
- * Acotar a la isla no es cosmética: la sección de servidores es una región con
- * nombre accesible ("Servers" / "Servidores"), así que un `getByLabel` a nivel
- * de página engancha la región y el `<select>` a la vez y revienta por modo
- * estricto.
+ * Scoping to the island is not cosmetic: the servers section is a region with
+ * an accessible name ("Servers" / "Servidores"), so a page-level `getByLabel`
+ * catches both the region and the `<select>` and blows up under strict mode.
  *
- * @param page Página bajo test.
- * @returns El contenedor de la isla.
+ * @param page The page under test.
+ * @returns The island's container.
  */
 export function inspector(page: Page): Locator {
   return page.getByTestId("inspector");
 }
 
 /**
- * El desplegable de servidor de la isla.
+ * The island's server dropdown.
  *
- * La etiqueta sale de `ui.ts` y no de un literal: cuando pasó de "Server" a
- * "Endpoint" —para dejar de chocar con el eyebrow "Servers"— nueve tests se
- * pusieron en rojo a la vez por tenerla escrita a mano.
+ * The label comes from `ui.ts` and not from a literal: when it went from
+ * "Server" to "Endpoint" — to stop colliding with the "Servers" eyebrow — nine
+ * tests went red at once for having it written out by hand.
  *
- * @param page Página bajo test.
- * @param lang Idioma de la página.
- * @returns El `<select>` de servidor.
+ * @param page The page under test.
+ * @param lang The page's language.
+ * @returns The server `<select>`.
  */
 export function serverSelect(page: Page, lang: Lang = "en"): Locator {
   return inspector(page).getByLabel(ui[lang].insp.server);
 }
 
 /**
- * Respuesta con la que el stub contesta a un método.
+ * The response the stub answers a method with.
  *
- * `json` se envuelve en SSE (`data: {…}`), que es como contestan de verdad
- * estos servidores; `body` va tal cual, para poder devolver el texto pelado de
- * un error de transporte. `hang` no contesta nunca: es la única forma de
- * probar el botón de cancelar.
+ * `json` is wrapped in SSE (`data: {…}`), which is how these servers really
+ * answer; `body` goes through as it is, so a transport error's bare text can be
+ * returned. `hang` never answers: it is the only way to test the cancel
+ * button.
  */
 export type McpStub = {
   status?: number;
@@ -77,15 +76,16 @@ export type McpStub = {
   hang?: boolean;
 };
 
-/** Petición que salió del navegador hacia un MCP, ya capturada. */
+/** A request that left the browser towards an MCP, already captured. */
 export type SentRequest = {
   url: string;
   headers: Record<string, string>;
   body: { method?: string; params?: unknown };
 };
 
-// Peticiones a otro origen (mcp.jmrp.io desde localhost), así que sin estas
-// cabeceras el navegador tira la respuesta y la isla solo ve un TypeError.
+// These are cross-origin requests (mcp.jmrp.io from localhost), so without
+// these headers the browser drops the response and the island only sees a
+// TypeError.
 const CORS = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "*",
@@ -93,15 +93,15 @@ const CORS = {
 };
 
 /**
- * Intercepta los endpoints MCP y responde según el método pedido.
+ * Intercepts the MCP endpoints and answers according to the method asked for.
  *
- * Los tests de interfaz NO pueden depender de lo que conteste el servidor de
- * producción: lo que se comprueba aquí es que un `isError: true` se pinta
- * distinto de un acierto, y para eso hace falta poder provocar cada caso.
+ * The interface tests must NOT depend on what the production server answers:
+ * what is checked here is that an `isError: true` renders differently from a
+ * success, and for that each case has to be reachable on demand.
  *
- * @param page Página bajo test.
- * @param reply Qué devolver para cada método JSON-RPC.
- * @returns El array donde se van anotando las peticiones que salen.
+ * @param page The page under test.
+ * @param reply What to return for each JSON-RPC method.
+ * @returns The array the outgoing requests are recorded into.
  */
 export async function stubMcp(
   page: Page,
@@ -129,11 +129,11 @@ export async function stubMcp(
 }
 
 /**
- * Catálogo de ejemplo para `tools/list`.
+ * A sample catalog for `tools/list`.
  *
- * Es el de libgen recortado, con el `inputSchema` real de `search`: una sola
- * propiedad obligatoria (`query`) y otra opcional. Esa forma es la que hace
- * fallar a quien adivina los argumentos, y por tanto la que hay que probar.
+ * It is libgen's, trimmed, with `search`'s real `inputSchema`: a single
+ * required property (`query`) and an optional one. That shape is the one that
+ * trips up anyone guessing the arguments, and therefore the one to test.
  */
 export const TOOLS_LIST = {
   jsonrpc: "2.0",
@@ -158,14 +158,14 @@ export const TOOLS_LIST = {
 };
 
 /**
- * El botón que carga un catálogo (`tools/list`, `prompts/list`…).
+ * The button that loads a catalog (`tools/list`, `prompts/list`…).
  *
- * Por `data-testid` y no por rótulo: el rediseño cambió "tools/list" por
- * "Load tools" y con él se cayeron seis tests a la vez.
+ * By `data-testid` and not by label: the redesign changed "tools/list" to
+ * "Load tools" and took six tests down with it.
  *
- * @param page Página bajo test.
- * @param kind Catálogo a cargar.
- * @returns El botón.
+ * @param page The page under test.
+ * @param kind The catalog to load.
+ * @returns The button.
  */
 export function loadButton(
   page: Page,
@@ -175,11 +175,11 @@ export function loadButton(
 }
 
 /**
- * El botón que ejecuta lo elegido.
+ * The button that runs whatever is selected.
  *
- * @param page Página bajo test.
- * @param lang Idioma de la página.
- * @returns El botón de ejecutar.
+ * @param page The page under test.
+ * @param lang The page's language.
+ * @returns The run button.
  */
 export function runButton(page: Page, lang: Lang = "en"): Locator {
   return inspector(page).getByRole("button", {
@@ -189,14 +189,14 @@ export function runButton(page: Page, lang: Lang = "en"): Locator {
 }
 
 /**
- * Recorre el flujo del inspector hasta dejar una tool lista para invocar:
- * cargar el catálogo, elegirla y esperar a su formulario.
+ * Walks the inspector's flow until a tool is ready to invoke: load the catalog,
+ * pick it and wait for its form.
  *
- * En un helper porque el rediseño cambió ese camino —antes el nombre de la
- * tool se tecleaba a mano— y el flujo aparece en media docena de tests.
+ * In a helper because the redesign changed that path — the tool's name used to
+ * be typed by hand — and the flow appears in half a dozen tests.
  *
- * @param page Página bajo test.
- * @param name Nombre de la tool.
+ * @param page The page under test.
+ * @param name The tool's name.
  */
 export async function pickTool(page: Page, name: string): Promise<void> {
   await loadButton(page, "tools").click();
@@ -207,11 +207,11 @@ export async function pickTool(page: Page, name: string): Promise<void> {
 }
 
 /**
- * Pasa el formulario a modo JSON y escribe los argumentos en crudo.
+ * Switches the form to JSON mode and writes the raw arguments.
  *
- * @param page Página bajo test.
- * @param json Argumentos como texto JSON.
- * @param lang Idioma de la página.
+ * @param page The page under test.
+ * @param json The arguments as JSON text.
+ * @param lang The page's language.
  */
 export async function fillRawArgs(
   page: Page,
@@ -224,14 +224,14 @@ export async function fillRawArgs(
 }
 
 /**
- * El desplegable de tools del catálogo.
+ * The catalog's tools dropdown.
  *
- * Acotado al catálogo y no por etiqueta: la pestaña "Tools" es un `tabpanel`
- * con nombre accesible, así que un `getByLabel("Tool")` a nivel de isla
- * resuelve a dos elementos y revienta por modo estricto.
+ * Scoped to the catalog and not by label: the "Tools" tab is a `tabpanel` with
+ * an accessible name, so an island-level `getByLabel("Tool")` resolves to two
+ * elements and blows up under strict mode.
  *
- * @param page Página bajo test.
- * @returns El `<select>` de tools.
+ * @param page The page under test.
+ * @returns The tools `<select>`.
  */
 export function toolSelect(page: Page): Locator {
   return page.getByTestId("catalog-tools").locator("select");

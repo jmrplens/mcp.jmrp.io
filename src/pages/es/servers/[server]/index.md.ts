@@ -7,7 +7,7 @@ import {
 } from "../../../../lib/page-markdown";
 
 /**
- * `/es/servers/<id>/index.md` — the markdown twin of each server's ficha.
+ * `/es/servers/<id>/index.md` — the markdown twin of each server's card.
  *
  * One route per server via `getStaticPaths`, the same way `[server].astro`
  * builds the pages themselves: a third MCP server gets its twin from the day

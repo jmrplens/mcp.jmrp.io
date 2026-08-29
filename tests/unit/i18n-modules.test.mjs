@@ -19,7 +19,7 @@ const MERGED = { common, home, inspector, policies };
 /** `sort()` compares as strings by default; ESLint wants that made explicit. */
 const sorted = (keys) => [...keys].sort((a, b) => a.localeCompare(b));
 
-test("ningún par de módulos mezclados comparte una clave", () => {
+test("no pair of merged modules shares a key", () => {
   for (const lang of ["en", "es"]) {
     const owner = new Map();
     for (const [name, mod] of Object.entries(MERGED)) {
@@ -28,7 +28,7 @@ test("ningún par de módulos mezclados comparte una clave", () => {
         assert.equal(
           previous,
           undefined,
-          `"${key}" está en ${previous} y en ${name} (${lang}): el spread de ui.ts descartaría uno`,
+          `"${key}" is in both ${previous} and ${name} (${lang}): ui.ts's spread would drop one`,
         );
         owner.set(key, name);
       }
@@ -54,11 +54,11 @@ const leafPaths = (value, prefix = "") => {
   return [prefix];
 };
 
-// `internals` y `serversPage` quedan fuera de MERGED a propósito (sus claves
-// chocan con las de `common`), así que la paridad de idiomas del resto no los
-// cubría: eran los únicos módulos cuyo español podía quedarse corto sin que
-// nada se quejara.
-test("los dos idiomas exponen exactamente las mismas claves", () => {
+// `internals` and `serversPage` are deliberately left out of MERGED (their
+// keys collide with `common`'s), so the language parity of the rest did not
+// cover them: they were the only modules whose Spanish could fall short with
+// nothing complaining.
+test("both languages expose exactly the same keys", () => {
   for (const [name, mod] of Object.entries({
     ...MERGED,
     internals,
@@ -67,7 +67,7 @@ test("los dos idiomas exponen exactamente las mismas claves", () => {
     assert.deepEqual(
       sorted(leafPaths(mod.en)),
       sorted(leafPaths(mod.es)),
-      `${name}: en y es no tienen las mismas claves`,
+      `${name}: en and es do not have the same keys`,
     );
   }
   assert.deepEqual(sorted(leafPaths(ui.en)), sorted(leafPaths(ui.es)));

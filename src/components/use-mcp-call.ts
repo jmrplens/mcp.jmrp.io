@@ -14,20 +14,20 @@ import {
 } from "../lib/rate-limit";
 
 /**
- * La máquina de peticiones del inspector: una llamada en vuelo como mucho, con
- * su estado, su reloj y su cancelación.
+ * The inspector's request machine: at most one call in flight, with its state,
+ * its clock and its cancellation.
  *
- * Vive fuera del componente porque allí se mezclaba con el formulario —qué
- * servidor está elegido, qué cabeceras ha tecleado el visitante, qué tool— y
- * entre las dos cosas el componente pasaba de la complejidad cognitiva que
- * Sonar admite. Aquí queda "cómo se llama a un servidor MCP" y allí "qué
- * pinta el formulario", que además se pueden leer por separado.
+ * It lives outside the component because in there it mixed with the form —
+ * which server is picked, which headers the visitor typed, which tool — and
+ * between the two the component went past the cognitive complexity Sonar
+ * allows. What is left here is "how an MCP server is called" and there "what
+ * the form renders", and the two can now be read separately.
  */
 
-/** Resultado de una llamada, tal y como lo pinta la línea de estado. */
+/** A call's result, exactly as the status line renders it. */
 export type Status = {
   method: string;
-  /** `running` mientras vuela; `client` si ni siquiera llegó a salir. */
+  /** `running` while in flight; `client` when it never even left. */
   outcome: McpOutcome | "running" | "client";
   code?: number;
   ms?: number;
@@ -37,17 +37,17 @@ export type Status = {
 };
 
 /**
- * Techo propio, por debajo del corte de Cloudflare (100 s, ver
+ * Our own ceiling, below Cloudflare's cut-off (100 s, see
  * /root/mcp_server_info.md).
  *
- * Que corte Cloudflare y que corte el inspector se ven igual de mal, pero solo
- * uno de los dos puede explicarse: si esperamos a los 100 s, el visitante
- * recibe una página de error del edge y concluye que el servidor devuelve
- * basura. Abandonando a los 90 s el mensaje lo escribimos nosotros.
+ * Cloudflare cutting and the inspector cutting look equally bad, but only one
+ * of the two can be explained: waiting for 100 s hands the visitor an edge
+ * error page and they conclude the server returns garbage. Giving up at 90 s
+ * means we write the message.
  */
 const TIMEOUT_MS = 90_000;
 
-/** Textos que el hook necesita para redactar sus propios mensajes de error. */
+/** The texts the hook needs to write its own error messages. */
 export interface CallTexts {
   networkError: string;
   timedOut: string;
@@ -59,17 +59,17 @@ export interface CallTexts {
 }
 
 export interface McpCall {
-  /** Volcado que se pinta en el panel. */
+  /** The dump rendered in the panel. */
   output: string;
   setOutput: (value: string) => void;
-  /** Resumen de la última llamada, o `null` si aún no se ha lanzado ninguna. */
+  /** The last call's summary, or `null` when none has been fired yet. */
   status: Status | null;
   setStatus: (value: Status) => void;
-  /** Hay una petición en vuelo. */
+  /** A request is in flight. */
   busy: boolean;
-  /** Segundos que lleva en vuelo. Sin esto, 6 s parecen colgarse. */
+  /** Seconds it has been in flight. Without this, 6 s feels like a hang. */
   elapsed: number;
-  /** Último método lanzado, para la línea de prompt del panel. */
+  /** The last method fired, for the panel's prompt line. */
   lastCmd: string;
   /**
    * The last response's body, as an object.
@@ -97,10 +97,10 @@ export interface McpCall {
 }
 
 /**
- * Estado y acciones para hablar con un servidor MCP.
+ * State and actions for talking to an MCP server.
  *
- * @param texts Mensajes de error, ya traducidos.
- * @returns La llamada en curso y las acciones para lanzarla o abortarla.
+ * @param texts Error messages, already translated.
+ * @returns The call in progress and the actions to fire or abort it.
  */
 export function useMcpCall(texts: CallTexts): McpCall {
   const [output, setOutput] = useState("");
@@ -109,7 +109,7 @@ export function useMcpCall(texts: CallTexts): McpCall {
   const [elapsed, setElapsed] = useState(0);
   const [lastCmd, setLastCmd] = useState("");
   const [lastBody, setLastBody] = useState<unknown>(undefined);
-  /** Petición en vuelo, para poder cancelarla desde el botón. */
+  /** The request in flight, so the button can cancel it. */
   const abortRef = useRef<AbortController | null>(null);
   /**
    * The brake's state. In a ref rather than component state because it
@@ -126,7 +126,7 @@ export function useMcpCall(texts: CallTexts): McpCall {
     return () => clearInterval(id);
   }, [cooldown]);
 
-  // El contador de segundos solo existe mientras hay algo en vuelo.
+  // The seconds counter only exists while something is in flight.
   useEffect(() => {
     if (!busy) return;
     const id = setInterval(() => setElapsed((n) => n + 1), 1000);
@@ -138,13 +138,13 @@ export function useMcpCall(texts: CallTexts): McpCall {
   }
 
   /**
-   * Lanza una llamada y deja el estado listo para pintarse.
+   * Fires a call and leaves the state ready to render.
    *
-   * @param endpoint URL del servidor MCP.
-   * @param method Método JSON-RPC.
-   * @param params Parámetros del método.
-   * @param headers Cabeceras de autenticación del servidor activo.
-   * @returns El cuerpo de la respuesta, o `undefined` si falló.
+   * @param endpoint The MCP server's URL.
+   * @param method The JSON-RPC method.
+   * @param params The method's parameters.
+   * @param headers The active server's authentication headers.
+   * @returns The response body, or `undefined` when it failed.
    */
   async function send(
     endpoint: string,
@@ -186,9 +186,9 @@ export function useMcpCall(texts: CallTexts): McpCall {
     setBusy(true);
     setElapsed(0);
     setLastCmd(method);
-    // La salida anterior NO se borra: se atenúa. Borrarla dejaba al visitante
-    // mirando un panel vacío durante los segundos que tarda la respuesta,
-    // habiendo perdido lo que estaba leyendo.
+    // The previous output is NOT cleared: it dims. Clearing it left the visitor
+    // staring at an empty panel for however long the response takes, having
+    // lost what they were reading.
     setStatus({ method, outcome: "running", message: "" });
 
     try {

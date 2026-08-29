@@ -1,87 +1,89 @@
 /**
- * Nodo `#person` canónico de jmrp.io, resuelto en tiempo de BUILD.
+ * jmrp.io's canonical `#person` node, resolved at BUILD time.
  *
- * MISMO MÉTODO que los otros sitios de documentación (libgen-mcp,
- * gitlab-mcp-server, phonometry…): se descarga de GitHub y hay un snapshot
- * commiteado como respaldo. Un único método para los seis sitios, y un build
- * que se reproduce en cualquier máquina.
+ * THE SAME METHOD as the other documentation sites (libgen-mcp,
+ * gitlab-mcp-server, phonometry…): it is downloaded from GitHub with a
+ * committed snapshot as a fallback. One method for all six sites, and a build
+ * that reproduces on any machine.
  *
- * Antes esto leía `/var/www/jmrp.io/public/identity/person.jsonld` del disco,
- * aprovechando que compilamos en la misma máquina. Se descartó: el CI de
- * GitHub Actions NO tiene esa ruta, así que el mismo commit habría producido
- * un build con identidad en producción y sin ella en CI. Dos caminos según
- * dónde compiles es exactamente cómo uno de los dos se pudre sin que nadie se
- * entere.
+ * This used to read `/var/www/jmrp.io/public/identity/person.jsonld` off disk,
+ * taking advantage of building on the same machine. That was dropped: GitHub
+ * Actions' CI does NOT have that path, so the same commit would have produced
+ * a build with an identity in production and without one in CI. Two paths
+ * depending on where you build is exactly how one of the two rots without
+ * anyone noticing.
  *
- * Se descarga de `raw.githubusercontent.com` y no de `https://jmrp.io` por el
- * mismo motivo que el resto de sitios: jmrp.io está detrás de Cloudflare,
- * CrowdSec y el bouncer de MikroTik, donde una IP de runner bloqueada
- * degradaría el sitio a un snapshot obsoleto en silencio. GitHub sirve los
- * mismos bytes y ya es dependencia dura del build.
+ * It is downloaded from `raw.githubusercontent.com` and not from
+ * `https://jmrp.io` for the same reason as the other sites: jmrp.io sits
+ * behind Cloudflare, CrowdSec and the MikroTik bouncer, where a blocked runner
+ * IP would silently degrade the site to a stale snapshot. GitHub serves the
+ * same bytes and is already a hard dependency of the build.
  *
- * NO se usa `import … from "….jsonld"`: Vite no conoce esa extensión y
- * rolldown parsea el fichero como JavaScript (PARSE_ERROR, verificado).
+ * `import … from "….jsonld"` is NOT used: Vite does not know that extension
+ * and rolldown parses the file as JavaScript (PARSE_ERROR, verified).
  *
- * ESTE MÓDULO NO DEBE IMPORTARSE NUNCA DESDE UNA ISLA (`Inspector.tsx`):
- * `node:fs` en el bundle de cliente rompe el build — que es, de hecho, la red
- * de seguridad que garantiza que nadie lo haga por accidente.
+ * THIS MODULE MUST NEVER BE IMPORTED FROM AN ISLAND (`Inspector.tsx`):
+ * `node:fs` in the client bundle breaks the build — which is, in fact, the
+ * safety net that guarantees nobody does it by accident.
  */
 import fs from "node:fs";
 import path from "node:path";
 
-/** Documento canónico que genera `jmrp.io/scripts/ci/build-identity.mjs`. */
+/** The canonical document `jmrp.io/scripts/ci/build-identity.mjs` generates. */
 export const IDENTITY_URL =
   process.env.IDENTITY_URL ??
   "https://raw.githubusercontent.com/jmrplens/jmrp.io/main/public/identity/person.jsonld";
 
-/** Respaldo commiteado. Se refresca con `pnpm run identity:sync`. */
+/** The committed fallback. Refreshed with `pnpm run identity:sync`. */
 export const SNAPSHOT_PATH = path.join(
   process.cwd(),
   "identity",
   "person.snapshot.json",
 );
 
-/** `@id` que el documento DEBE declarar; si cambia, el contrato se rompió. */
+/** The `@id` the document MUST declare; if it changes, the contract broke. */
 export const PERSON_ID = "https://jmrp.io/#person";
 
-/** Nodo Person listo para empalmar en un `@graph` (ya sin `@context` propio). */
+/** A Person node ready to splice into a `@graph` (its own `@context` removed). */
 export type PersonNode = Record<string, unknown>;
 
 /**
- * Comprueba el contrato y quita el `@context` propio.
+ * Checks the contract and strips the document's own `@context`.
  *
- * El `@context` sobra porque el nodo entra en un `@graph` que ya lo declara, y
- * un `@context` anidado en un nodo del grafo no es JSON-LD válido.
+ * The `@context` is redundant because the node goes into a `@graph` that
+ * already declares one, and a `@context` nested in a graph node is not valid
+ * JSON-LD.
  *
- * @param parsed Documento ya parseado.
- * @param origen De dónde salió, para el mensaje de error.
- * @returns El nodo normalizado.
+ * @param parsed The already-parsed document.
+ * @param origin Where it came from, for the error message.
+ * @returns The normalized node.
  */
-function normalize(parsed: unknown, origen: string): PersonNode {
+function normalize(parsed: unknown, origin: string): PersonNode {
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-    throw new Error(`[identity] ${origen}: no es un objeto JSON-LD`);
+    throw new Error(`[identity] ${origin}: not a JSON-LD object`);
   }
   const node = parsed as Record<string, unknown>;
   if (node["@type"] !== "Person" || node["@id"] !== PERSON_ID) {
     throw new Error(
-      `[identity] ${origen}: contrato roto — @type=${String(node["@type"])} @id=${String(node["@id"])}`,
+      `[identity] ${origin}: contract broken — @type=${String(node["@type"])} @id=${String(node["@id"])}`,
     );
   }
-  // Filtrado en vez de rest destructuring: `no-unused-vars` no tiene
-  // `varsIgnorePattern` configurado en este repo.
+  // Filtering rather than rest destructuring: `no-unused-vars` has no
+  // `varsIgnorePattern` configured in this repo.
   return Object.fromEntries(
     Object.entries(node).filter(([key]) => key !== "@context"),
   );
 }
 
 /**
- * Descarga el documento canónico; si falla, cae al snapshot commiteado.
+ * Downloads the canonical document; on failure, falls back to the committed
+ * snapshot.
  *
- * El aviso del respaldo es deliberadamente ruidoso: una identidad obsoleta no
- * debe publicarse sin que nadie lo vea. Que el snapshot esté al día lo vigila
- * `scripts/sync-identity.mjs --check` en el CI.
+ * The fallback's warning is deliberately loud: a stale identity must not be
+ * published without anyone seeing it. `scripts/sync-identity.mjs --check`
+ * watches in CI that the snapshot is up to date.
  *
- * @returns El nodo Person listo para el grafo.
+ * @returns The Person node, ready for the graph.
  */
 export async function loadPersonNode(): Promise<PersonNode> {
   try {
@@ -93,9 +95,9 @@ export async function loadPersonNode(): Promise<PersonNode> {
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
     console.warn(
-      `\n⚠ [identity] No se pudo descargar la entidad Person canónica (${reason}).\n` +
-        `  Se usa el snapshot commiteado — este build puede publicar una identidad obsoleta.\n` +
-        `  Refrescar con: pnpm run identity:sync\n`,
+      `\n⚠ [identity] Could not download the canonical Person entity (${reason}).\n` +
+        `  Falling back to the committed snapshot — this build may publish a stale identity.\n` +
+        `  Refresh with: pnpm run identity:sync\n`,
     );
     return normalize(
       JSON.parse(fs.readFileSync(SNAPSHOT_PATH, "utf8")) as unknown,

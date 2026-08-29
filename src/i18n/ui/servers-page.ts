@@ -206,6 +206,12 @@ export const serversPage = {
      * Free tier's surface, not a universal one.
      */
     catalogHead: "Action catalog",
+    // The markdown twins' heading and count word. They were inline
+    // `lang === "es" ? … : …` ternaries in page-markdown.ts, which put Spanish
+    // UI strings in a lib file where no translator would ever look for them.
+    mdActionsHead: "Actions",
+    mdActionOne: "action",
+    mdActionMany: "actions",
     catalogIntro:
       "Behind the tools above sits a catalog of fine-grained actions, invoked through gitlab_execute_action and published as the gitlab://tools resource. This table only counts it, by domain — the full list is the resource itself.",
     catalogTokenNote:
@@ -394,6 +400,12 @@ export const serversPage = {
 
     /** Ver `en.catalogHead`. */
     catalogHead: "Catálogo de acciones",
+    /** See `en.mdActionsHead`. */
+    mdActionsHead: "Acciones",
+    /** See `en.mdActionOne`. */
+    mdActionOne: "acción",
+    /** See `en.mdActionMany`. */
+    mdActionMany: "acciones",
     /** Ver `en.catalogIntro`. */
     catalogIntro:
       "Detrás de las tools de arriba hay un catálogo de acciones de grano fino, invocadas vía gitlab_execute_action y publicadas como el resource gitlab://tools. Esta tabla solo lo cuenta, por dominio — la lista completa es el propio resource.",

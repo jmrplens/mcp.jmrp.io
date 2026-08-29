@@ -20,7 +20,7 @@
     "check": "pnpm lint && pnpm typecheck && pnpm build && pnpm test:unit && pnpm validate:html",
     "lint:css": "stylelint \"src/**/*.{astro,css}\"",
     "lint:html": "html-validate \"${DIST_DIR:-dist}\"",
-    "spell": "cspell lint .",
+    "spell": "cspell lint --dot --gitignore .",
     "verify": "node scripts/run-verify.mjs",
     "lint:md": "markdownlint-cli2"
   },

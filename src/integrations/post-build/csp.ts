@@ -73,10 +73,10 @@ export async function finalizeCspConfig(
     "form-action 'self'",
     "frame-ancestors 'none'",
     "upgrade-insecure-requests",
-    // SIN `report-uri`: jmrp.io tiene un colector en `/csp-report`; este
-    // dominio no. Apuntar ahí generaría un chorro de POST contra el
-    // catch-all `location / { return 404; }` del vhost, que es justo el
-    // patrón de 404 masivos que hace que CrowdSec banee al visitante.
+    // NO `report-uri`: jmrp.io has a collector at `/csp-report`; this domain
+    // does not. Pointing there would produce a stream of POSTs against the
+    // vhost's catch-all `location / { return 404; }`, which is exactly the
+    // mass-404 pattern that gets a visitor banned by CrowdSec.
   ];
 
   // Nonce-only CSP: all scripts/styles use nonces, external same-origin covered by 'self'
@@ -220,10 +220,10 @@ add_header Content-Security-Policy "${assetsCspHeader}" always;
 add_header Permissions-Policy "${permissionsPolicy}" always;
 `;
 
-  // SUFIJO `_mcp` OBLIGATORIO: jmrp.io genera y despliega su propio
-  // `security_headers.conf` al mismo directorio de snippets de nginx
-  // (`/etc/nginx/snippets/`). Sin renombrar, el despliegue de este sitio le
-  // pisaría la CSP al otro sitio y ninguno de los dos se enteraría.
+  // The `_mcp` SUFFIX IS MANDATORY: jmrp.io generates and deploys its own
+  // `security_headers.conf` into the same nginx snippets directory
+  // (`/etc/nginx/snippets/`). Without the rename, this site's deploy would
+  // clobber the other site's CSP and neither of the two would notice.
   await Promise.all([
     fs.promises.writeFile(
       path.join(distDir, "security_headers_mcp.conf"),

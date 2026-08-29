@@ -9,9 +9,9 @@ import postBuild from "./src/integrations/post-build.ts";
 import { contentDate } from "./src/lib/build-date.ts";
 import { DEFAULT_LANG } from "./src/lib/seo.ts";
 
-// La fecha del contenido sale del helper compartido con el JSON-LD y el pie:
-// tres superficies, una sola verdad. Ver src/lib/build-date.ts para la regla
-// (HEAD si el árbol está limpio, ahora si está sucio) y su porqué.
+// The content date comes from the helper shared with the JSON-LD and the
+// footer: three surfaces, one single truth. See src/lib/build-date.ts for the
+// rule (HEAD when the tree is clean, now when it is dirty) and its reasoning.
 const LASTMOD = contentDate();
 
 export default defineConfig({
@@ -21,16 +21,16 @@ export default defineConfig({
     locales: ["en", "es"],
     routing: { prefixDefaultLocale: false },
   },
-  // postBuild va el ÚLTIMO: su hook `astro:build:done` transforma el `dist/`
-  // que ya han escrito los demás (nonces, SRI, .conf de nginx, compresión).
-  // Fuentes self-hosted por Astro, igual que jmrp.io. NO es opcional: los
-  // tokens copiados definen --font-body como `var(--font-ibm-plex-sans), ...`,
-  // y si esa variable no existe la declaración entera queda inválida en tiempo
-  // de cómputo — el navegador ignora TODA la cadena de fallback y cae a Times
-  // New Roman. Además, servirlas nosotros es lo que permite `font-src 'self'`.
+  // postBuild goes LAST: its `astro:build:done` hook transforms the `dist/`
+  // the others have already written (nonces, SRI, nginx .conf, compression).
+  // Fonts self-hosted by Astro, the same as jmrp.io. It is NOT optional: the
+  // copied tokens define --font-body as `var(--font-ibm-plex-sans), ...`, and
+  // if that variable does not exist the whole declaration is invalid at compute
+  // time — the browser ignores the ENTIRE fallback chain and drops to Times New
+  // Roman. Serving them ourselves is also what allows `font-src 'self'`.
   fonts: [
     {
-      // Display: titulares.
+      // Display: headings.
       name: "Space Grotesk",
       provider: fontProviders.fontsource(),
       cssVariable: "--font-space-grotesk",
@@ -42,13 +42,13 @@ export default defineConfig({
       optimizedFallbacks: true,
     },
     {
-      // Cuerpo: párrafos y texto de interfaz.
-      // `styles` incluye "italic" para que coincida con jmrp.io
-      // (BaseHead.astro allí): sin la cara itálica real, cualquier <em> o
-      // font-style:italic futuro caería en la itálica SINTÉTICA del
-      // navegador (oblicua, no la fuente de verdad) en vez de silenciarse —
-      // hoy no hay ningún <em> en el contenido, pero declarar la familia
-      // completa deja el hueco cerrado antes de que haga falta.
+      // Body: paragraphs and interface text.
+      // `styles` includes "italic" so it matches jmrp.io (BaseHead.astro
+      // there): without the real italic face, any future <em> or
+      // font-style:italic would fall back to the browser's SYNTHETIC italic
+      // (an oblique, not the real font) instead of being quietly correct —
+      // there is no <em> in the content today, but declaring the complete
+      // family closes the gap before it is needed.
       name: "IBM Plex Sans",
       provider: fontProviders.fontsource(),
       cssVariable: "--font-ibm-plex-sans",
@@ -60,7 +60,7 @@ export default defineConfig({
       optimizedFallbacks: true,
     },
     {
-      // Mono: etiquetas, endpoints, datos y el panel del inspector.
+      // Mono: labels, endpoints, data and the inspector's panel.
       name: "IBM Plex Mono",
       provider: fontProviders.fontsource(),
       cssVariable: "--font-ibm-plex-mono",
@@ -75,10 +75,10 @@ export default defineConfig({
 
   integrations: [
     preact(),
-    // `i18n` hace que cada <url> del sitemap lleve sus `xhtml:link` con las dos
-    // versiones. Sin ellos el sitemap declaraba el namespace xhtml y no lo
-    // usaba, así que las anotaciones hreflang solo vivían en el <head> — y una
-    // sola vía es una sola oportunidad de que Google agrupe bien el clúster.
+    // `i18n` makes every sitemap <url> carry its `xhtml:link` entries with both
+    // versions. Without them the sitemap declared the xhtml namespace and never
+    // used it, so the hreflang annotations lived only in the <head> — and one
+    // single channel is one single chance for Google to group the cluster.
     //
     // `x-default` is added in serialize because `i18n` has NO option for it:
     // it emits one xhtml:link per locale and nothing else. Without this the
