@@ -102,7 +102,8 @@ ignorePaths:
 # The bilingual overrides jmrp.io carries here are gone: they named its own
 # paths (`src/content/posts/es/**`, `src/content/cv/es.yaml`, the About/Uses/Now
 # pages), none of which exist in this repo, so they matched nothing. Spanish is
-# enabled globally above instead.
+# switched on file by file instead, which is what makes a Spanish word anywhere
+# else a reported misspelling rather than an accepted one.
 overrides:
   # The bilingual UI strings: every key here exists twice, once per language.
   - filename: "src/i18n/ui/*.ts"
@@ -118,3 +119,11 @@ overrides:
   # binaries' own vocabulary, not prose this repo writes.
   - filename: "src/data/cards/*.json"
     enabled: false
+  # Two specs whose assertions ARE the Spanish the site serves: the /es/ page's
+  # link names and its server descriptions, and the inspector island's Spanish
+  # label. Translating those would not translate a comment, it would assert
+  # against text the site does not render.
+  - filename: "tests/e2e/i18n.spec.ts"
+    language: en,es
+  - filename: "tests/e2e/inspector-ui.spec.ts"
+    language: en,es

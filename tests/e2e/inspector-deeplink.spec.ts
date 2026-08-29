@@ -14,7 +14,7 @@ import {
  * instead of "open the inspector, pick a server, pick a tab, find it".
  *
  * All responses are stubbed, same rationale as `inspector-ui.spec.ts`: these
- * tests are about what the URL does to the isla's OWN state, not about what a
+ * tests are about what the URL does to the island's OWN state, not about what a
  * real MCP server answers.
  */
 
@@ -49,10 +49,10 @@ const RESOURCES_LIST = {
 
 /** Fills GitLab's only required header so its catalogs can load. */
 async function unblockGitlab(page: Parameters<typeof inspector>[0]) {
-  await inspector(page).getByLabel("Authorization").fill("glpat-de-mentira");
+  await inspector(page).getByLabel("Authorization").fill("glpat-fake");
 }
 
-test("server+tab+name válidos: la pestaña y el servidor ya están puestos al entrar", async ({
+test("valid server+tab+name: the tab and the server are already set on entry", async ({
   page,
 }) => {
   await stubMcp(page, (method) => ({
@@ -61,16 +61,16 @@ test("server+tab+name válidos: la pestaña y el servidor ya están puestos al e
   await page.goto("/inspector/?server=gitlab&tab=prompts&name=review_mr");
   const mcp = inspector(page);
 
-  // El servidor y la pestaña se leen de la URL sin que nadie toque nada.
+  // The server and the tab are read from the URL without anyone touching anything.
   await expect(serverSelect(page)).toHaveValue("gitlab");
   await expect(mcp.getByRole("tab", { name: "Prompts" })).toHaveAttribute(
     "aria-selected",
     "true",
   );
 
-  // Antes de cargar el catálogo no hay nada que seleccionar: el `name` de la
-  // URL no puede aplicarse hasta que `prompts/list` conteste. Esto es lo que
-  // prueba que el enganche está en el sitio correcto y no antes de tiempo.
+  // Before the catalog loads there is nothing to select: the URL's `name`
+  // cannot be applied until `prompts/list` answers. This is what proves the
+  // hook is in the right place and not too early.
   await expect(
     page.getByTestId("catalog-prompts").locator("select"),
   ).toHaveCount(0);
@@ -80,17 +80,17 @@ test("server+tab+name válidos: la pestaña y el servidor ya están puestos al e
 
   const picker = page.getByTestId("catalog-prompts").locator("select");
   await expect(picker).toBeVisible();
-  // Y aquí sí: el prompt de la URL queda elegido solo, sin tocar el desplegable.
+  // And here it does: the URL's prompt selects itself, without touching the dropdown.
   await expect(picker).toHaveValue("review_mr");
-  // La cabecera de invocación (nombre + descripción) confirma que se aplicó
-  // la MISMA selección que haría `choosePrompt`, no solo el valor del
-  // `<select>` por dentro. `review_mr` no declara argumentos, así que no hay
-  // `args-form` — el hueco lo llena el aviso de "sin argumentos".
+  // The invocation header (name + description) confirms the SAME selection
+  // `choosePrompt` would make was applied, not just the `<select>`'s internal
+  // value. `review_mr` declares no arguments, so there is no `args-form` — the
+  // "no arguments" notice fills that slot.
   await expect(mcp).toContainText("review_mr — Review a merge request");
   await expect(mcp).toContainText("This tool takes no arguments.");
 });
 
-test("un name que es la uri de un resource se selecciona por su uri, no por su nombre visible", async ({
+test("a name that is a resource's uri selects by uri, not by its visible name", async ({
   page,
 }) => {
   await stubMcp(page, () => ({ json: RESOURCES_LIST }));
@@ -110,14 +110,15 @@ test("un name que es la uri de un resource se selecciona por su uri, no por su n
   const picker = page.getByTestId("catalog-resources").locator("select");
   await expect(picker).toBeVisible();
   await expect(picker).toHaveValue(uri);
-  // El botón de leer solo aparece con un recurso elegido: prueba indirecta de
-  // que la selección se aplicó de verdad y no solo el `<select>` por dentro.
+  // The read button only appears with a resource selected: indirect proof the
+  // selection really was applied and not just the `<select>`'s internal
+  // value.
   await expect(
     page.getByRole("button", { name: /Read resource/i }),
   ).toBeVisible();
 });
 
-test("server, tab y name inválidos caen a los valores por defecto sin romper la isla", async ({
+test("an invalid server, tab and name fall back to the defaults without breaking the island", async ({
   page,
 }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
@@ -126,9 +127,9 @@ test("server, tab y name inválidos caen a los valores por defecto sin romper la
   );
   const mcp = inspector(page);
 
-  // Servidor: el primero de la lista, como una entrada a /inspector/ sin nada.
+  // Server: the first in the list, like entering /inspector/ with nothing.
   await expect(serverSelect(page)).toHaveValue("libgen");
-  // Tab: "tools", el valor por defecto — no lo que venía en la URL.
+  // Tab: "tools", the default — not what came in the URL.
   await expect(mcp.getByRole("tab", { name: "Tools" })).toHaveAttribute(
     "aria-selected",
     "true",
@@ -137,11 +138,11 @@ test("server, tab y name inválidos caen a los valores por defecto sin romper la
   await loadButton(page, "tools").click();
   const picker = page.getByTestId("catalog-tools").locator("select");
   await expect(picker).toBeVisible();
-  // Nada preseleccionado: la invitación a elegir sigue siendo la opción activa.
+  // Nothing preselected: the invitation to choose is still the active option.
   await expect(picker).toHaveValue("");
 });
 
-test("un name que no existe en el catálogo real no selecciona nada, pero el catálogo carga normal", async ({
+test("a name that does not exist in the real catalog selects nothing, but the catalog loads normally", async ({
   page,
 }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
@@ -153,7 +154,7 @@ test("un name que no existe en el catálogo real no selecciona nada, pero el cat
   const picker = page.getByTestId("catalog-tools").locator("select");
   await expect(picker).toBeVisible();
   await expect(picker).toHaveValue("");
-  // El catálogo en sí no se ve afectado: las dos tools reales siguen ahí.
+  // The catalog itself is unaffected: both real tools are still there.
   await expect(picker.locator("option")).toHaveText([
     /pick a tool/,
     "search",
@@ -161,12 +162,12 @@ test("un name que no existe en el catálogo real no selecciona nada, pero el cat
   ]);
 });
 
-test("un parámetro ajeno como Authorization en la URL no rellena el campo del token", async ({
+test("an unrelated parameter such as Authorization in the URL does not fill the token field", async ({
   page,
 }) => {
-  // Este es el caso que la regla "nunca un parámetro de credencial" existe
-  // para evitar: alguien pega un enlace con un token de mentira (o de
-  // verdad) esperando que "ya venga puesto", y el inspector NO debe leerlo.
+  // This is the case the "never a credential parameter" rule exists to
+  // prevent: someone pastes a link with a fake token (or a real one) expecting
+  // it to "come pre-filled", and the inspector must NOT read it.
   await page.goto(
     "/inspector/?server=gitlab&Authorization=glpat-should-be-ignored",
   );

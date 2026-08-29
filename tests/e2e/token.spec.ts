@@ -10,27 +10,28 @@ import {
   TOOLS_LIST,
 } from "./helpers";
 
-// Token de mentira: si alguna vez aparece en storage, cookies o URL, el test
-// falla. No hace falta que sea válido porque estos tests no llaman al servidor.
-const TOKEN = "glpat-secreto-de-prueba";
+// A fake token: if it ever shows up in storage, cookies or the URL, the test
+// fails. It does not need to be valid, because these tests never call the
+// server.
+const TOKEN = "glpat-test-secret";
 
 /**
- * Petición que el navegador intentó mandar a un MCP, ya capturada.
- * `headers` viene con los nombres en minúscula (así los da Playwright).
+ * A request the browser tried to send to an MCP, already captured. `headers`
+ * arrives with lowercase names (that is how Playwright gives them).
  */
 type Sent = { url: string; headers: Record<string, string>; body: unknown };
 
-// La respuesta se sirve desde el propio test, así que estos tests NO necesitan
-// salida a Internet. Al ser peticiones a otro origen (mcp.jmrp.io desde
-// localhost) hay que devolver las cabeceras de CORS o el navegador tira la
-// respuesta y el inspector solo vería un TypeError.
+// The response is served from the test itself, so these tests do NOT need
+// Internet access. Since they are cross-origin requests (mcp.jmrp.io from
+// localhost), the CORS headers have to be returned or the browser drops the
+// response and the inspector would only see a TypeError.
 const CORS = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "*",
   "access-control-allow-headers": "*",
 };
 
-/** Respuesta de una tool que funciona. */
+/** The response of a tool that works. */
 const TOOL_OK = {
   jsonrpc: "2.0",
   id: 1,
@@ -40,9 +41,9 @@ const TOOL_OK = {
 const SSE_BODY = 'data: {"jsonrpc":"2.0","id":1,"result":{"tools":[]}}\n\n';
 
 /**
- * Intercepta los endpoints MCP y devuelve el array donde se van anotando las
- * peticiones. Es lo que permite comprobar QUÉ sale del navegador: cabeceras y
- * cuerpo, que es justo el cableado que construye esta tarea.
+ * Intercepts the MCP endpoints and returns the array the requests are recorded
+ * into. It is what makes it possible to check WHAT leaves the browser: headers
+ * and body, which is exactly the wiring this task builds.
  */
 async function stubMcp(page: Page): Promise<Sent[]> {
   const sent: Sent[] = [];
@@ -66,10 +67,12 @@ async function stubMcp(page: Page): Promise<Sent[]> {
   return sent;
 }
 
-test("el campo de token es password y no se persiste", async ({ page }) => {
+test("the token field is a password field and is not persisted", async ({
+  page,
+}) => {
   await page.goto("/inspector/");
-  // Acotado a la isla: la sección de servidores es una región llamada
-  // "Servers", así que un getByLabel a nivel de página es ambiguo.
+  // Scoped to the island: the servers section is a region named "Servers", so
+  // a page-level getByLabel is ambiguous.
   const mcp = inspector(page);
   await serverSelect(page).selectOption("gitlab");
   const field = mcp.getByLabel("Authorization");
@@ -85,8 +88,8 @@ test("el campo de token es password y no se persiste", async ({ page }) => {
   );
   expect(stored).not.toContain(TOKEN);
 
-  // Ni cookies ni query string: son las otras dos formas de que un secreto
-  // sobreviva a la pestaña o acabe en los logs de un proxy.
+  // Neither cookies nor the query string: those are the other two ways a
+  // secret outlives the tab or ends up in a proxy's logs.
   const cookies = JSON.stringify(await page.context().cookies());
   expect(cookies).not.toContain(TOKEN);
   expect(page.url()).not.toContain(TOKEN);
@@ -96,23 +99,23 @@ test("el campo de token es password y no se persiste", async ({ page }) => {
   await expect(mcp.getByLabel("Authorization")).toHaveValue("");
 });
 
-test("gitlab expone su cabecera opcional y libgen no pide nada", async ({
+test("gitlab exposes its optional header and libgen asks for nothing", async ({
   page,
 }) => {
   await page.goto("/inspector/");
   const mcp = inspector(page);
   await serverSelect(page).selectOption("gitlab");
-  // gitlab ya no declara ninguna cabecera opcional: desde --auth-mode=oauth la
-  // instancia está fijada en el servidor y `GITLAB-URL` dejó de honrarse, así
-  // que el formulario no debe seguir ofreciéndola.
+  // gitlab no longer declares any optional header: since --auth-mode=oauth the
+  // instance is pinned on the server and `GITLAB-URL` stopped being honoured,
+  // so the form must not keep offering it.
   await expect(mcp.getByLabel("GITLAB-URL")).toHaveCount(0);
 
-  // libgen no declara cabeceras: pedirle credenciales sería mentir al visitante.
+  // libgen declares no headers: asking for credentials would be lying to the visitor.
   await serverSelect(page).selectOption("libgen");
   await expect(mcp.getByLabel("Authorization")).toHaveCount(0);
 });
 
-test("el token del visitante viaja como Authorization: Bearer", async ({
+test("the visitor's token travels as Authorization: Bearer", async ({
   page,
 }) => {
   const sent = await stubMcp(page);
@@ -124,14 +127,14 @@ test("el token del visitante viaja como Authorization: Bearer", async ({
 
   await expect.poll(() => sent.length).toBe(1);
   expect(sent[0].url).toContain("/gitlab");
-  // El esquema lo compone el inspector, no el visitante: lo que se teclea es
-  // el token pelado y lo que sale por el cable lleva `Bearer ` delante. Es
-  // justo la mitad que se rompería en silencio si alguien quitara
-  // `valuePrefix` de la ficha del servidor.
+  // The scheme is composed by the inspector, not by the visitor: what gets
+  // typed is the bare token and what goes over the wire carries `Bearer ` in
+  // front. It is exactly the half that would break silently if someone removed
+  // `valuePrefix` from the server's entry.
   expect(sent[0].headers.authorization).toBe(`Bearer ${TOKEN}`);
 });
 
-test("el token no se filtra al servidor que no lo declara", async ({
+test("the token does not leak to the server that does not declare it", async ({
   page,
 }) => {
   const sent = await stubMcp(page);
@@ -140,9 +143,9 @@ test("el token no se filtra al servidor que no lo declara", async ({
   await serverSelect(page).selectOption("gitlab");
   await mcp.getByLabel("Authorization").fill(TOKEN);
 
-  // Cambiar de servidor sin recargar: el valor tecleado sigue en memoria, y
-  // esta es la razón de que la clave del estado lleve el id del servidor
-  // delante. Sin eso, el secreto de gitlab saldría hacia libgen.
+  // Switching servers without reloading: the typed value is still in memory,
+  // and this is why the state's key carries the server's id in front. Without
+  // that, gitlab's secret would go out towards libgen.
   await serverSelect(page).selectOption("libgen");
   await loadButton(page).click();
 
@@ -152,7 +155,7 @@ test("el token no se filtra al servidor que no lo declara", async ({
   expect(JSON.stringify(sent[0].headers)).not.toContain(TOKEN);
 });
 
-test("los argumentos del formulario viajan con su tipo, no como texto", async ({
+test("the form's arguments travel with their type, not as text", async ({
   page,
 }) => {
   const sent = await stubMcpByMethod(page, (method: string) =>
@@ -161,8 +164,8 @@ test("los argumentos del formulario viajan con su tipo, no como texto", async ({
   await page.goto("/inspector/");
 
   await pickTool(page, "search");
-  // Se teclea en los campos del formulario, no en un JSON que haya que
-  // saberse: eso es lo que el rediseño vino a arreglar.
+  // Typing happens in the form's fields, not in a JSON you have to know by
+  // heart: that is what the redesign came to fix.
   await page
     .getByTestId("args-form")
     .locator("input, textarea")
@@ -172,8 +175,8 @@ test("los argumentos del formulario viajan con su tipo, no como texto", async ({
 
   const calls = () => sent.filter((r) => r.body.method === "tools/call");
   await expect.poll(() => calls().length).toBe(1);
-  // `query` sale como cadena dentro de un objeto: el formulario convierte,
-  // no concatena.
+  // `query` goes out as a string inside an object: the form converts, it does
+  // not concatenate.
   expect(calls()[0].body).toMatchObject({
     method: "tools/call",
     params: { name: "search", arguments: { query: "x" } },

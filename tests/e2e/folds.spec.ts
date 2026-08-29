@@ -3,19 +3,19 @@ import { expect, test } from "@playwright/test";
 import { serverCards } from "../../src/data/server-cards";
 
 /**
- * Los plegables de las fichas, y lo que las reemplazó.
+ * The cards' folds, and what replaced them.
  *
- * Las tools/prompts DEJARON de plegarse aquí: ese contenido se mudó a su
- * propia página, `/servers/<id>/` (ver `.superpowers/sdd/servers-section-spec.md`),
- * sin plegar — el objetivo explícito de la mudanza es más contenido citable,
- * no menos. Lo que queda plegado en esta página (config por cliente, avisos)
- * sigue existiendo porque el problema de scroll que motivó los plegables
- * seguía siendo real para ese contenido. Lo que NO puede pasar es que plegar
- * esconda contenido de los rastreadores: el `<details>` nativo lo mantiene en
- * el HTML, y eso es justo lo que se fija aquí.
+ * tools/prompts STOPPED being folded here: that content moved to its own page,
+ * `/servers/<id>/` (see `.superpowers/sdd/servers-section-spec.md`), unfolded —
+ * the explicit goal of the move is more citable content, not less. What is
+ * still folded on this page (per-client config, notices) is still folded
+ * because the scrolling problem that motivated the folds remained real for that
+ * content. What must NOT happen is folding hiding content from crawlers: the
+ * native `<details>` keeps it in the HTML, and that is exactly what is pinned
+ * here.
  */
 
-test("la ficha de un servidor enlaza a /servers/<id>/ con las cuentas reales, sin plegar nada", async ({
+test("a server's card links to /servers/<id>/ with the real counts, folding nothing", async ({
   page,
 }) => {
   await page.goto("/");
@@ -33,27 +33,27 @@ test("la ficha de un servidor enlaza a /servers/<id>/ con las cuentas reales, si
   );
 });
 
-test("el contenido plegado sigue en el HTML servido", async ({ request }) => {
+test("folded content is still in the served HTML", async ({ request }) => {
   const html = await (await request.get("/")).text();
-  // Dos hechos que siguen dentro de plegables EN LA PORTADA (avisos legal y
-  // de límites). Si algún día se cambian por carga diferida con JS, esto se
-  // pone rojo — y con razón: dejarían de ser citables.
+  // Two facts that are still inside folds ON THE HOME PAGE (the legal and
+  // limits notices). If they are ever swapped for JS lazy loading, this goes
+  // red — and rightly so: they would stop being citable.
   expect(html).toContain("third-party public indexes");
   expect(html).toContain("no SLA");
 });
 
-test("las tools de una ficha no van plegadas: se leen sin abrir nada", async ({
+test("a page's tools are not folded: they read without opening anything", async ({
   request,
 }) => {
-  // Lo contrario del test anterior, a propósito: `get_details` vivía dentro
-  // de un <details> plegado en la portada; en su página propia es texto
-  // corrido, ni siquiera necesita el truco "presente pero no visible" que
-  // exigía un <details> cerrado.
+  // The opposite of the previous test, on purpose: `get_details` used to live
+  // inside a folded <details> on the home page; on its own page it is running
+  // text, and does not even need the "present but not visible" trick a closed
+  // <details> required.
   const html = await (await request.get("/servers/libgen/")).text();
   expect(html).toContain("get_details");
 });
 
-test("el resumen de un plegable que queda es alcanzable por teclado y tiene área táctil", async ({
+test("a remaining fold's summary is reachable by keyboard and has a touch target", async ({
   page,
 }) => {
   await page.goto("/");
@@ -74,15 +74,14 @@ test("el resumen de un plegable que queda es alcanzable por teclado y tiene áre
   await expect(client).toHaveAttribute("open", /.*/);
 });
 
-test("el aviso del token llega CERRADO pero abre; la tranquilización nunca sin las cautelas", async ({
+test("the token notice arrives CLOSED but opens; the reassurance never without the caveats", async ({
   page,
 }) => {
   await page.goto("/");
-  // Estos avisos arrancaban abiertos, para que la cautela estuviera a la
-  // vista junto a la tranquilización. El autor pidió cerrarlos: la
-  // contrapartida es que la advertencia queda a un clic, así que lo que se
-  // vigila ahora es que ese clic funcione y que el contenido siga entero —
-  // plegado no es lo mismo que ausente.
+  // These notices used to start open, so the caveat sat in view next to the
+  // reassurance. The author asked for them closed: the trade-off is that the
+  // warning is one click away, so what is watched now is that the click works
+  // and that the content is still whole — folded is not the same as absent.
   const security = page.locator("details.fold-security").first();
   await expect(security).not.toHaveAttribute("open", /.*/);
   await security.locator("summary").click();

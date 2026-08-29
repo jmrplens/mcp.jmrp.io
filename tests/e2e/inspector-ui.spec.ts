@@ -12,17 +12,17 @@ import {
 } from "./helpers";
 
 /**
- * Lo que convierte el volcado de JSON en un inspector usable: elegir la tool de
- * una lista, ver qué argumentos acepta, y distinguir un fallo de un acierto.
+ * What turns a JSON dump into a usable inspector: picking the tool from a list,
+ * seeing which arguments it accepts, and telling a failure from a success.
  *
- * Todas las respuestas están stubbeadas a propósito. Estos tests no comprueban
- * que los MCP funcionen —de eso se encarga `inspector.spec.ts` contra
- * producción— sino que la interfaz pinta cada caso de forma distinta, y hay
- * casos (un `isError: true`, un 400, una petición que no vuelve nunca) que no
- * se pueden provocar a voluntad contra el servidor real.
+ * Every response is stubbed on purpose. These tests do not check that the MCPs
+ * work — `inspector.spec.ts` does that against production — but that the
+ * interface renders each case differently, and there are cases (an
+ * `isError: true`, a 400, a request that never comes back) that cannot be
+ * provoked at will against the real server.
  */
 
-/** Un `tools/call` que falla DENTRO de la tool: HTTP 200 y forma de `result`. */
+/** A `tools/call` that fails INSIDE the tool: HTTP 200 and the shape of a `result`. */
 const TOOL_ERROR = {
   jsonrpc: "2.0",
   id: 1,
@@ -41,14 +41,14 @@ const TOOL_OK = {
 const status = (page: Parameters<typeof inspector>[0]) =>
   page.getByTestId("inspector-status");
 
-test("tras tools/list la tool se elige de una lista, no se teclea", async ({
+test("after tools/list the tool is picked from a list, not typed", async ({
   page,
 }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
   await page.goto("/inspector/");
   const mcp = inspector(page);
 
-  // Antes de cargar no hay catálogo ni forma de elegir: solo la invitación.
+  // Before loading there is no catalog and no way to choose: only the invitation.
   await expect(toolSelect(page)).toHaveCount(0);
   await expect(mcp).toContainText("No tools loaded yet");
 
@@ -57,7 +57,7 @@ test("tras tools/list la tool se elige de una lista, no se teclea", async ({
 
   const tool = toolSelect(page);
   await expect(tool).toHaveRole("combobox");
-  // Los nombres salen del servidor, no de una lista escrita en el sitio.
+  // The names come from the server, not from a list written into the site.
   await expect(tool.locator("option")).toHaveText([
     /pick a tool/,
     "search",
@@ -65,7 +65,7 @@ test("tras tools/list la tool se elige de una lista, no se teclea", async ({
   ]);
 });
 
-test("elegir una tool enseña su inputSchema y prerrellena lo obligatorio", async ({
+test("picking a tool shows its inputSchema and pre-fills what is required", async ({
   page,
 }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
@@ -76,21 +76,21 @@ test("elegir una tool enseña su inputSchema y prerrellena lo obligatorio", asyn
 
   await toolSelect(page).selectOption("search");
 
-  // El formulario sustituyó al JSON crudo: cada propiedad es un campo, con su
-  // descripción y marcada si es obligatoria. Mandar `{}` daba "query is
-  // required" e inventarse una propiedad daba "unexpected additional
-  // properties"; las dos cosas pasaron de verdad en la auditoría.
+  // The form replaced the raw JSON: each property is a field, with its
+  // description and marked when it is required. Sending `{}` gave "query is
+  // required" and inventing a property gave "unexpected additional
+  // properties"; both really happened during the audit.
   const form = page.getByTestId("args-form");
   await expect(form).toBeVisible();
   await expect(form).toContainText("query");
   await expect(form).toContainText("What to look for");
-  // También las opcionales, que es lo que evita adivinar de más.
+  // The optional ones too, which is what stops people over-guessing.
   await expect(form).toContainText("results_per_page");
-  // La descripción de la tool acompaña al formulario.
+  // The tool's description travels with the form.
   await expect(mcp).toContainText("Search Library Genesis");
 });
 
-test("cambiar de servidor no deja ofreciendo las tools del anterior", async ({
+test("switching servers does not keep offering the previous one's tools", async ({
   page,
 }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
@@ -99,12 +99,12 @@ test("cambiar de servidor no deja ofreciendo las tools del anterior", async ({
   await expect(toolSelect(page)).toHaveRole("combobox");
 
   await serverSelect(page).selectOption("gitlab");
-  // Ofrecer las tools del servidor anterior sería peor que no ofrecer nada:
-  // el desplegable daría nombres que este otro no implementa.
+  // Offering the previous server's tools would be worse than offering nothing:
+  // the dropdown would give names this other one does not implement.
   await expect(toolSelect(page)).toHaveCount(0);
 });
 
-test("un acierto y un isError:true NO se ven igual", async ({ page }) => {
+test("a success and an isError:true do NOT look the same", async ({ page }) => {
   await stubMcp(page, (method) => ({
     json: method === "tools/call" ? TOOL_OK : TOOLS_LIST,
   }));
@@ -120,11 +120,11 @@ test("un acierto y un isError:true NO se ven igual", async ({ page }) => {
   await expect(out).not.toHaveClass(/is-error/);
 });
 
-test("un tools/call con isError:true se pinta como fallo aunque sea HTTP 200", async ({
+test("a tools/call with isError:true renders as a failure even though it is HTTP 200", async ({
   page,
 }) => {
   await stubMcp(page, (method) => ({
-    // 200 a propósito: este es EL caso que se colaba como éxito.
+    // 200 on purpose: this is THE case that slipped through as a success.
     status: 200,
     json: method === "tools/call" ? TOOL_ERROR : TOOLS_LIST,
   }));
@@ -140,7 +140,7 @@ test("un tools/call con isError:true se pinta como fallo aunque sea HTTP 200", a
   await expect(page.getByTestId("inspector-output")).toHaveClass(/is-error/);
 });
 
-test("un error de transporte dice su código HTTP", async ({ page }) => {
+test("a transport error states its HTTP code", async ({ page }) => {
   await stubMcp(page, () => ({ status: 400, body: "no server available" }));
   await page.goto("/inspector/");
   await loadButton(page).click();
@@ -150,7 +150,9 @@ test("un error de transporte dice su código HTTP", async ({ page }) => {
   await expect(page.getByTestId("inspector-output")).toHaveClass(/is-error/);
 });
 
-test("un error JSON-RPC lleva su código, no el HTTP", async ({ page }) => {
+test("a JSON-RPC error carries its own code, not the HTTP one", async ({
+  page,
+}) => {
   await stubMcp(page, () => ({
     json: {
       jsonrpc: "2.0",
@@ -166,7 +168,7 @@ test("un error JSON-RPC lleva su código, no el HTTP", async ({ page }) => {
   await expect(status(page)).toContainText("unexpected additional properties");
 });
 
-test("la línea de estado da método, código, tiempo y tamaño", async ({
+test("the status line gives the method, the code, the time and the size", async ({
   page,
 }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
@@ -176,26 +178,26 @@ test("la línea de estado da método, código, tiempo y tamaño", async ({
   const line = status(page);
   await expect(line).toContainText("tools/list");
   await expect(line).toContainText("200");
-  // Un tiempo (ms o s) y un tamaño (B o kB): las dos cifras que faltaban.
+  // A time (ms or s) and a size (B or kB): the two figures that were missing.
   await expect(line).toContainText(/\d+(\.\d+)? (ms|s)/);
   await expect(line).toContainText(/\d+(\.\d+)? (B|kB)/);
 });
 
-test("el lector de pantalla oye el resumen, no el volcado entero", async ({
+test("the screen reader hears the summary, not the whole dump", async ({
   page,
 }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
   await page.goto("/inspector/");
   const out = page.getByTestId("inspector-output");
 
-  // El aria-live colgaba del <pre>: 43.260 caracteres anunciados de una tacada.
+  // The aria-live used to hang off the <pre>: 43,260 characters announced in one go.
   await expect(out).toHaveAttribute("aria-live", "off");
   await expect(out).toHaveAttribute("tabindex", "0");
   await expect(out).toHaveRole("region");
   await expect(status(page)).toHaveRole("status");
 });
 
-test("la respuesta se puede copiar", async ({ page, context }) => {
+test("the response can be copied", async ({ page, context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
   await page.goto("/inspector/");
@@ -210,7 +212,7 @@ test("la respuesta se puede copiar", async ({ page, context }) => {
   expect(clipboard).toContain('"search"');
 });
 
-test("una petición en vuelo se puede cancelar", async ({ page }) => {
+test("an in-flight request can be cancelled", async ({ page }) => {
   await stubMcp(page, () => ({ hang: true }));
   await page.goto("/inspector/");
   await loadButton(page).click();
@@ -222,11 +224,11 @@ test("una petición en vuelo se puede cancelar", async ({ page }) => {
   await cancel.click();
   await expect(status(page)).toContainText("Cancelled");
   await expect(cancel).toBeHidden();
-  // Y se vuelve a poder pedir algo: cancelar no deja la isla inservible.
+  // And something can be asked for again: cancelling does not leave the island useless.
   await expect(loadButton(page)).toBeEnabled();
 });
 
-test("una cabecera obligatoria vacía bloquea el envío y dice por qué", async ({
+test("an empty required header blocks sending and says why", async ({
   page,
 }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
@@ -234,8 +236,8 @@ test("una cabecera obligatoria vacía bloquea el envío y dice por qué", async 
   const mcp = inspector(page);
   await serverSelect(page).selectOption("gitlab");
 
-  // Sin esto el visitante recibía un 400 con el texto del upstream, «no server
-  // available», que se lee como «el servidor está caído».
+  // Without this the visitor got a 400 carrying the upstream's text, "no
+  // server available", which reads as "the server is down".
   await expect(page.getByTestId("inspector-missing-header")).toContainText(
     "Authorization",
   );
@@ -245,36 +247,36 @@ test("una cabecera obligatoria vacía bloquea el envío y dice por qué", async 
     "true",
   );
 
-  await mcp.getByLabel("Authorization").fill("glpat-de-mentira");
+  await mcp.getByLabel("Authorization").fill("glpat-fake");
   await expect(loadButton(page)).toBeEnabled();
   await expect(page.getByTestId("inspector-missing-header")).toHaveCount(0);
 });
 
-test("la isla habla español en /es/", async ({ page }) => {
+test("the island speaks Spanish on /es/", async ({ page }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
   await page.goto("/es/inspector/");
   const mcp = inspector(page);
 
   await expect(mcp.getByLabel("Servidor")).toBeVisible();
-  // Las pestañas también están traducidas.
+  // The tabs are translated too.
   await expect(mcp.getByRole("tab", { name: "Prompts" })).toBeVisible();
-  // Los identificadores del protocolo NO se traducen: son lo que hay que
-  // teclear en un cliente MCP de verdad.
+  // The protocol's identifiers are NOT translated: they are what has to be
+  // typed into a real MCP client.
   await expect(loadButton(page)).toBeVisible();
 
   await loadButton(page).click();
   await expect(status(page)).toContainText("2 tools");
 });
 
-test("Enter en el formulario lanza la llamada", async ({ page }) => {
+test("Enter in the form fires the call", async ({ page }) => {
   const sent = await stubMcp(page, (method) =>
     method === "tools/call" ? { json: TOOL_OK } : { json: TOOLS_LIST },
   );
   await page.goto("/inspector/");
 
   await pickTool(page, "search");
-  // Enter en un control de una línea envía: bajar al botón con el formulario
-  // ya relleno es fricción gratuita.
+  // Enter in a single-line control submits: going down to the button with the
+  // form already filled in is friction for nothing.
   await page.locator(".arg input, .arg textarea").first().press("Enter");
 
   await expect
@@ -286,7 +288,7 @@ test("Enter en el formulario lanza la llamada", async ({ page }) => {
   });
 });
 
-test("el freno corta una ráfaga: quince clics no son quince peticiones", async ({
+test("the brake cuts a burst: fifteen clicks are not fifteen requests", async ({
   page,
 }) => {
   // The point of the brake is not that it refuses — it is that the requests
@@ -309,7 +311,7 @@ test("el freno corta una ráfaga: quince clics no son quince peticiones", async 
   expect(sent.length).toBeLessThan(15);
 });
 
-test("la respuesta se lee maquetada, y el JSON sigue a un clic", async ({
+test("the response reads laid out, and the JSON is still one click away", async ({
   page,
 }) => {
   await stubMcp(page, (method) => ({
@@ -337,7 +339,7 @@ test("la respuesta se lee maquetada, y el JSON sigue a un clic", async ({
   await expect(out).toContainText("jsonrpc");
 });
 
-test("sin nada que maquetar el selector no aparece: el JSON ES la respuesta", async ({
+test("with nothing to lay out the switch does not appear: the JSON IS the answer", async ({
   page,
 }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
