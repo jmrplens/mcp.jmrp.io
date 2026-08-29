@@ -596,7 +596,10 @@ export default function Inspector({
     try {
       return rawMode
         ? (JSON.parse(toolArgs || "{}") as Record<string, unknown>)
-        : valuesToArgs(argFields, argValues);
+        : valuesToArgs(argFields, argValues, {
+            notANumber: t.argNotANumber,
+            badJson: t.argBadJson,
+          });
     } catch (error) {
       // Se avisa aquí y no se manda: el servidor devolvería un -32700 o un
       // "unexpected additional properties" mucho menos claros que decir qué

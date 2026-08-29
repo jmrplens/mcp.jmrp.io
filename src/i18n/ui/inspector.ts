@@ -152,6 +152,8 @@ export const inspector = {
       errTool: "tool error",
       errClient: "not sent",
       badJson: "Arguments must be valid JSON",
+      argNotANumber: '{field}: "{value}" is not a number',
+      argBadJson: "{field}: malformed JSON — {detail}",
       networkError: "The request never reached the server",
     },
   },
@@ -266,6 +268,10 @@ export const inspector = {
       errTool: "error de la tool",
       errClient: "no se ha enviado",
       badJson: "Los argumentos tienen que ser JSON válido",
+      /** See `en.argNotANumber`. */
+      argNotANumber: '{field}: "{value}" no es un número',
+      /** See `en.argBadJson`. */
+      argBadJson: "{field}: JSON inválido — {detail}",
       networkError: "La petición no llegó al servidor",
     },
   },

@@ -9,6 +9,15 @@ import {
 import { formFields, valuesToArgs } from "../../src/lib/tool-schema.ts";
 
 /**
+ * The messages the caller supplies. They used to be hardcoded Spanish inside
+ * the module, which the panel then appended to a localised prefix.
+ */
+const ERRORS = {
+  notANumber: '{field}: "{value}" is not a number',
+  badJson: "{field}: malformed JSON — {detail}",
+};
+
+/**
  * El formulario es lo que separa "rellenar una tool" de "saberse su esquema de
  * memoria". Estos tests fijan las decisiones que hacen que el primer intento
  * del visitante no falle.
@@ -58,7 +67,7 @@ test("los campos vacíos se OMITEN, no se mandan vacíos", () => {
     type: "object",
     properties: { query: { type: "string" }, autor: { type: "string" } },
   });
-  const args = valuesToArgs(fields, { query: "tolkien", autor: "  " });
+  const args = valuesToArgs(fields, { query: "tolkien", autor: "  " }, ERRORS);
   assert.deepEqual(args, { query: "tolkien" });
 });
 
@@ -72,12 +81,16 @@ test("cada control convierte a su tipo JSON", () => {
       filtro: { type: "object" },
     },
   });
-  const args = valuesToArgs(fields, {
-    limit: "3",
-    exact: "true",
-    topics: "fiction\n comics ",
-    filtro: '{"year":1996}',
-  });
+  const args = valuesToArgs(
+    fields,
+    {
+      limit: "3",
+      exact: "true",
+      topics: "fiction\n comics ",
+      filtro: '{"year":1996}',
+    },
+    ERRORS,
+  );
   assert.deepEqual(args, {
     limit: 3,
     exact: true,
@@ -86,12 +99,17 @@ test("cada control convierte a su tipo JSON", () => {
   });
 });
 
-test("un número mal escrito se avisa por su nombre", () => {
+test("un número mal escrito se avisa por su nombre, en el idioma dado", () => {
   const fields = formFields({
     type: "object",
     properties: { limit: { type: "integer" } },
   });
-  assert.throws(() => valuesToArgs(fields, { limit: "tres" }), /limit/);
+  // Both placeholders have to be filled: the field name is what tells the
+  // reader WHICH box is wrong, and the value is what they typed.
+  assert.throws(
+    () => valuesToArgs(fields, { limit: "tres" }, ERRORS),
+    /limit: "tres" is not a number/,
+  );
 });
 
 test("prompts/list se normaliza con sus argumentos", () => {
