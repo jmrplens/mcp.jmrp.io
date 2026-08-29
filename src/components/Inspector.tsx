@@ -12,6 +12,7 @@ import {
   promptsFrom,
   resourcesFrom,
 } from "../lib/mcp-catalog";
+import { readableText } from "../lib/mcp-client";
 import { signInWithPopup } from "../lib/oauth-popup";
 import {
   formFields,
@@ -23,6 +24,7 @@ import {
   valuesToArgs,
 } from "../lib/tool-schema";
 import { Catalog, InvokePanel, StatusLine } from "./inspector-parts";
+import Markdown from "./Markdown";
 import { useMcpCall } from "./use-mcp-call";
 
 /**
@@ -165,6 +167,98 @@ function outputClass(busy: boolean, failed: boolean): string {
 }
 
 /**
+ * Whether anything that sends a request is unavailable right now.
+ *
+ * At module level for the same reason as `outputClass` above (S3776): a
+ * derivation is not a branch of the render, and inline it counted as one.
+ *
+ * @param busy Whether a call is in flight.
+ * @param cooldown Seconds of brake left.
+ * @returns True while nothing may be sent.
+ */
+function isFrozen(busy: boolean, cooldown: number): boolean {
+  return busy || cooldown > 0;
+}
+
+/**
+ * Where the privacy note sends a reader who wants to check it rather than
+ * believe it: the section of /internals/ describing what this island keeps.
+ *
+ * At module level with the other derivations above (S3776).
+ *
+ * @param lang The page's locale.
+ * @returns The link target.
+ */
+function storageHref(lang: Lang): string {
+  const prefix = lang === "es" ? "/es" : "";
+  return `${prefix}/internals/#inspector-storage-h`;
+}
+
+/**
+ * Whether the laid-out view is the one to show.
+ *
+ * Reader is the default, but only where there is something to lay out: with
+ * no readable text the JSON is the answer, and pretending otherwise would
+ * hide it.
+ *
+ * @param view The view the reader last picked.
+ * @param readable The response's readable text, if any.
+ * @returns True when the reader view should render.
+ */
+function showsReaderView(view: string, readable: string | undefined): boolean {
+  return view === "reader" && readable !== undefined;
+}
+
+/**
+ * Picks how the answer is shown: laid out, or as the body that arrived.
+ *
+ * A component of its own for the reason `SignInBlock` is (S3776) — its
+ * branches counted against the panel — and because the two buttons need
+ * labels that stand on their own. There is a second "JSON" button in the
+ * arguments form, and the two mean different things: that one picks how you
+ * WRITE the call, this one how you READ the answer. A `role="group"` around
+ * them would have said so only to a screen reader that announces group names,
+ * so each button carries the whole label instead.
+ *
+ * @param props.t Inspector strings in the page's language.
+ * @param props.reader Whether the laid-out view is the one showing.
+ * @param props.onPick Reports the view the reader chose.
+ * @returns The switch.
+ */
+function ViewSwitch({
+  t,
+  reader,
+  onPick,
+}: Readonly<{
+  t: (typeof ui)[Lang]["insp"];
+  reader: boolean;
+  onPick: (view: "reader" | "json") => void;
+}>) {
+  return (
+    <div className="view-switch">
+      <button
+        type="button"
+        aria-pressed={reader}
+        aria-label={`${t.viewLabel}: ${t.viewFormatted}`}
+        title={t.viewFormattedHint}
+        onClick={() => onPick("reader")}
+      >
+        {t.viewFormatted}
+      </button>
+      <button
+        type="button"
+        aria-pressed={!reader}
+        aria-label={`${t.viewLabel}: ${t.viewRaw}`}
+        title={t.viewRawHint}
+        onClick={() => onPick("json")}
+      >
+        {t.viewRaw}
+      </button>
+    </div>
+  );
+}
+
+/**
  * Isla interactiva que habla con los servidores MCP desde el navegador del
  * visitante: introspección (initialize, tools/list, prompts/list,
  * resources/list) y ejecución de tools.
@@ -182,22 +276,36 @@ export default function Inspector({
   lang,
 }: Readonly<{ servers: McpServer[]; lang: Lang }>) {
   const t = ui[lang].insp;
-  /**
-   * Where the privacy note sends a reader who wants to check it rather than
-   * believe it: the section of /internals/ that describes what the inspector
-   * keeps, and how to see for yourself with the browser's own tools.
-   *
-   * Built here rather than passed in because it is the only link this island
-   * makes off its own page, and threading a prop through for one string would
-   * be more moving parts than the string.
-   */
-  const inspectorStorageHref = `${lang === "es" ? "/es" : ""}/internals/#inspector-storage-h`;
+  const inspectorStorageHref = storageHref(lang);
   const call = useMcpCall({
     networkError: t.networkError,
     timedOut: t.timedOut,
     cancelled: t.cancelled,
+    tooFast: t.tooFast,
+    cooling: t.cooling,
   });
-  const { output, status, busy, elapsed, lastCmd } = call;
+  const { output, status, busy, elapsed, lastCmd, lastBody, cooldown } = call;
+
+  /**
+   * Nothing that sends a request is available while the block lasts.
+   *
+   * Only what calls is frozen: the server picker and the credential field
+   * stay live, because getting the next call ready while you wait is exactly
+   * what should still be possible.
+   */
+  const frozen = isFrozen(busy, cooldown);
+
+  /**
+   * The last response's readable text, when there is one.
+   *
+   * A `tools/call` answers Markdown — libgen's search returns a table of
+   * links — while a `tools/list` or an error does not. With nothing to lay
+   * out the view switch does not appear at all: there, the JSON is the
+   * answer.
+   */
+  const readable = readableText(lastBody as never);
+  const [view, setView] = useState<"reader" | "json">("reader");
+  const showReader = showsReaderView(view, readable);
 
   const [serverId, setServerId] = useState(servers[0]?.id ?? "");
   /**
@@ -566,6 +674,13 @@ export default function Inspector({
         >
           {t.copy}
         </button>
+        {readable !== undefined && (
+          <ViewSwitch
+            t={t}
+            reader={showReader}
+            onPick={setView}
+          />
+        )}
       </header>
 
       <div className="term-body">
@@ -720,7 +835,7 @@ export default function Inspector({
             toolName={toolName}
             promptName={promptName}
             resourceUri={resourceUri}
-            busy={busy}
+            busy={frozen}
             blocked={blocked}
             lang={lang}
             onLoad={() => {
@@ -761,7 +876,7 @@ export default function Inspector({
               onRawMode={setRawMode}
               rawValue={toolArgs}
               onRawValue={setToolArgs}
-              busy={busy}
+              busy={frozen}
               blocked={blocked}
               lang={lang}
               onRun={() => {
@@ -782,7 +897,12 @@ export default function Inspector({
           arriba. tabindex + role + nombre para que el panel, que tiene scroll
           propio, esté SIEMPRE en el orden de tabulación y con nombre — Chrome
           lo hacía enfocable solo cuando el contenido desbordaba. */}
-      <pre
+      {/* A div, not a pre: the reader view puts tables and lists inside,
+          which would be invalid HTML within a pre. The pre stays in there
+          for the JSON view, which is the one that needs its whitespace. */}
+      {/* A <section> with a name, rather than a div carrying role="region":
+          same role, and it is the element the role was named after. */}
+      <section
         className={outputClass(busy, failed)}
         data-testid="inspector-output"
         aria-live="off"
@@ -793,9 +913,15 @@ export default function Inspector({
         tabIndex={0}
         aria-label={t.responseLabel}
       >
-        {lastCmd ? `jmrp@mcp:~$ ${lastCmd}\n` : ""}
-        {output}
-      </pre>
+        {showReader ? (
+          <Markdown source={readable} />
+        ) : (
+          <pre className="term-raw">
+            {lastCmd ? `jmrp@mcp:~$ ${lastCmd}\n` : ""}
+            {output}
+          </pre>
+        )}
+      </section>
     </section>
   );
 }

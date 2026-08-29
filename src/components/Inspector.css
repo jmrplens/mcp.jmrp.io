@@ -338,7 +338,6 @@
   line-height: 1.6;
   color: var(--color-text);
   overflow-wrap: anywhere;
-  white-space: pre-wrap;
 
   /* Base = tema OSCURO (así está montado tokens.css). Aquí no vale el negro:
      es exactamente el fondo de página en oscuro, y el panel se volvía
@@ -648,4 +647,166 @@
 
 .signin-or {
   font-family: var(--font-mono);
+}
+
+/* ===== The response's two views ==========================================
+   `.term-out` went from <pre> to container: the reader view puts tables and
+   lists inside, which within a <pre> would be invalid HTML. The <pre> is
+   still in there for the JSON view, the one that needs its whitespace. */
+
+.term-raw {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* Segmented, the same shape as the drawer's language pill: it is the same
+   gesture — two mutually exclusive states of one thing — and deserves the
+   same look. It only appears when there is something to lay out. */
+.view-switch {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  margin-inline-start: auto;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-hair);
+  border-radius: var(--radius-sm);
+}
+
+.view-switch button {
+  padding: 2px 8px;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: 3px;
+  transition:
+    color var(--dur-2) var(--ease-out),
+    background-color var(--dur-2) var(--ease-out);
+}
+
+.view-switch button:hover {
+  color: var(--color-text-heading);
+}
+
+/* The `:hover` is not redundant. `.term button:hover:not(:disabled)` sets the
+   accent as the text colour and outranks a plain `[aria-pressed]` rule, so
+   pointing at the selected half turned it amber on amber — the label vanished
+   entirely, and only under the pointer, which is why no static screenshot
+   showed it. */
+.term .view-switch button[aria-pressed="true"],
+.term .view-switch button[aria-pressed="true"]:hover:not(:disabled) {
+  color: var(--color-on-primary);
+  background: var(--color-accent);
+}
+
+.view-switch button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ===== The laid-out response ============================================= */
+
+/* For prose the panel's monospace gets in the way, so the reader view moves
+   to the body face. Code and table cells stay mono, which is where it earns
+   its place. The change of face also makes it obvious which of the two views
+   you are in without looking at the switch. */
+.md {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  word-break: normal;
+
+  /* Undoes the `overflow-wrap: anywhere` inherited from `.term-out`. That
+     setting is right for the JSON view, where a single unbroken string can be
+     longer than the panel, and wrong here: it let table columns shrink below
+     their longest word, so on a phone a title came out split mid-word. Breaking at spaces instead gives each column a sensible minimum, the
+     table ends up wider than the screen, and it scrolls — which is what the
+     box below is for. */
+  overflow-wrap: normal;
+  white-space: normal;
+}
+
+.md > :first-child {
+  margin-top: 0;
+}
+
+.md > :last-child {
+  margin-bottom: 0;
+}
+
+.md p,
+.md ul,
+.md ol,
+.md pre {
+  margin: 0 0 0.75rem;
+}
+
+.md h3,
+.md h4,
+.md h5,
+.md h6 {
+  margin: 1rem 0 0.4rem;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-heading);
+}
+
+.md ul,
+.md ol {
+  padding-inline-start: 1.2rem;
+}
+
+.md code {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--color-text-heading);
+}
+
+.md pre {
+  padding: 0.6rem 0.75rem;
+  overflow-x: auto;
+  background: var(--color-surface-3, var(--color-surface-2));
+  border: 1px solid var(--color-hair);
+  border-radius: var(--radius-sm);
+}
+
+.md pre code {
+  white-space: pre;
+}
+
+.md a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* The results table is wider than a phone and cannot shrink without ceasing
+   to be a table, so it scrolls inside its own box rather than stretching the
+   whole panel. */
+.md-table-scroll {
+  margin: 0 0 0.75rem;
+  overflow-x: auto;
+}
+
+.md table {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  border-collapse: collapse;
+}
+
+.md th,
+.md td {
+  padding: 0.35rem 0.6rem;
+  vertical-align: top;
+  text-align: start;
+  border: 1px solid var(--color-hair);
+}
+
+.md th {
+  color: var(--color-text-heading);
+  white-space: nowrap;
+  background: var(--color-surface-2);
 }

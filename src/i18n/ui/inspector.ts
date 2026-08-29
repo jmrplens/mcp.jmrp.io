@@ -131,6 +131,17 @@ export const inspector = {
       copyFailed: "The browser refused to write to the clipboard.",
       cancel: "Cancel",
       cancelled: "Cancelled by you.",
+      // `{s}` is the whole seconds left. Both say what to do next rather
+      // than only what went wrong, and neither blames the reader: hitting
+      // this is what anyone does when a call looks stuck.
+      tooFast: "Slow down — one call every half second. Try again in {s}s.",
+      cooling:
+        "Paused for {s}s: too many calls in a row. Nothing was sent, and the servers are fine — this brake lives in your browser.",
+      viewLabel: "Response view",
+      viewFormatted: "Reader",
+      viewRaw: "JSON",
+      viewFormattedHint: "The response text, laid out.",
+      viewRawHint: "The exact JSON-RPC body, as it arrived.",
       timedOut: "No answer in 90 s — the inspector dropped the request.",
       responseLabel: "MCP response",
       statusIdle: "Nothing sent yet.",
@@ -228,6 +239,22 @@ export const inspector = {
       copyFailed: "El navegador no ha dejado escribir en el portapapeles.",
       cancel: "Cancelar",
       cancelled: "Cancelada por ti.",
+      /** See `en.tooFast`. */
+      tooFast:
+        "Más despacio — una llamada cada medio segundo. Reintenta en {s} s.",
+      /** See `en.cooling`. */
+      cooling:
+        "En pausa {s} s: demasiadas llamadas seguidas. No se ha enviado nada y los servidores están bien — este freno vive en tu navegador.",
+      /** See `en.viewLabel`. */
+      viewLabel: "Vista de la respuesta",
+      /** See `en.viewFormatted`. */
+      viewFormatted: "Lectura",
+      /** See `en.viewRaw`. */
+      viewRaw: "JSON",
+      /** See `en.viewFormattedHint`. */
+      viewFormattedHint: "El texto de la respuesta, maquetado.",
+      /** See `en.viewRawHint`. */
+      viewRawHint: "El cuerpo JSON-RPC exacto, tal y como llegó.",
       timedOut:
         "Sin respuesta en 90 s — el inspector ha abandonado la petición.",
       responseLabel: "Respuesta MCP",
