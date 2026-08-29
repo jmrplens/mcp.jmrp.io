@@ -43,7 +43,13 @@ ignoreRegExpList:
   - /sha384-[A-Za-z0-9+/=]+/g
   - /sha512-[A-Za-z0-9+/=]+/g
 
-# Files and directories to skip entirely
+# Files and directories to skip entirely.
+#
+# `pnpm spell` runs with `--dot --gitignore`, so everything git ignores is
+# already out and dotfiles are already in. Both matter: without `--dot`,
+# `.github/workflows/*.yml` and `src/pages/.well-known/security.txt.ts` were
+# never checked at all, and the last one PUBLISHES its body. The entries below
+# still stand on their own, for a run that does not pass those flags.
 ignorePaths:
   - node_modules
   - dist

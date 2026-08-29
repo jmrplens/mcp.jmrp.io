@@ -5,8 +5,8 @@ on:
     branches: [main]
   pull_request:
 
-# Un push que cancela su propia ejecución anterior: en un repo de dos páginas
-# no tiene sentido pagar dos runs por el mismo branch.
+# A push cancels its own previous run: in a repo of a few pages there is no
+# point paying for two runs on the same branch.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -20,8 +20,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          # Sonar necesita el historial completo para atribuir la deuda a su
-          # commit; con el clon superficial lo achaca todo al último.
+          # Sonar needs the full history to attribute debt to its own commit;
+          # with a shallow clone it blames everything on the last one.
           fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
@@ -58,19 +58,19 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck --minimumFailingSeverity warning
 
-      # Antes del build: si el snapshot de la identidad está obsoleto, el build
-      # lo usaría en silencio ante cualquier fallo de red y publicaría datos
-      # viejos. Aquí se ve.
-      - name: Identidad al día
+      # Before the build: if the identity snapshot is stale, the build would
+      # silently use it on any network failure and publish old data. Here it is
+      # visible.
+      - name: Identity up to date
         run: pnpm identity:check
 
       - name: Build
         run: pnpm build
 
-      - name: Tests unitarios
+      - name: Unit tests
         run: pnpm test:unit
 
-      - name: Validar HTML
+      - name: Validate HTML
         run: npx html-validate dist
 
       # The last gate `pnpm verify` had that CI did not. The action runs lychee
@@ -90,18 +90,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Los e2e llaman a los endpoints REALES en producción. En CI no se
-      # ejecutan los que dependen de la red: un fallo del runner o un mirror
-      # caído pondría el CI en rojo sin que nada de este repo esté mal.
-      - name: Tests e2e
+      # The e2e suite calls the REAL endpoints in production. In CI the ones
+      # that depend on the network are not run: a runner failure or a mirror
+      # being down would turn CI red with nothing in this repo being wrong.
+      - name: E2E tests
         run: pnpm exec playwright install --with-deps chromium && pnpm test:e2e --workers=1
         env:
           E2E_NO_NETWORK: "1"
 
   sonar:
     runs-on: ubuntu-latest
-    # Sin el secreto (por ejemplo en un fork) el análisis se salta en vez de
-    # dejar el CI en rojo por algo que el autor del PR no puede arreglar.
+    # Without the secret (in a fork, for instance) the analysis is skipped
+    # rather than leaving CI red over something the PR's author cannot fix.
     if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
     steps:
       - uses: actions/checkout@v5

@@ -1581,3 +1581,10 @@ djvu
 Noto
 Rasterizes
 rasterizes
+latexmk
+lycheecache
+lycheeverse
+nanobanana
+qodo
+refspec
+synctex
