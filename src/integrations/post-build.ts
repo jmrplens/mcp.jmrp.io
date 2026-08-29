@@ -1,27 +1,28 @@
 /**
  * Post-Build Integration (mcp.jmrp.io)
  *
- * Copia recortada de la integración homónima de jmrp.io. Corre en
- * `astro:build:done` y solo TRANSFORMA el contenido de `dist/`: extracción de
- * data URIs del CSS, pase de HTML (SRI, nonces, estilos inline a clases),
- * generación de los artefactos de cabeceras para nginx y compresión de assets.
+ * A trimmed copy of jmrp.io's integration of the same name. It runs on
+ * `astro:build:done` and only TRANSFORMS `dist/`'s contents: extracting data
+ * URIs out of the CSS, the HTML pass (SRI, nonces, inline styles to classes),
+ * generating the header artifacts for nginx, and compressing assets.
  *
- * Dos invariantes de este sitio, ambas verificadas en
+ * Two invariants of this site, both verified in
  * `tests/unit/postbuild-artifacts.test.mjs`:
  *
- * 1. Los `.conf` generados llevan sufijo `_mcp`. jmrp.io despliega sus propios
- *    snippets al mismo `/etc/nginx/snippets/`; un nombre repetido deja al otro
- *    sitio con la CSP equivocada.
- * 2. El HTML NO se precomprime. El nonce lo inyecta nginx con `sub_filter`,
- *    que no puede reescribir un fichero ya comprimido (ver `compression.ts`).
+ * 1. The generated `.conf` files carry an `_mcp` suffix. jmrp.io deploys its
+ *    own snippets to the same `/etc/nginx/snippets/`; a repeated name leaves
+ *    the other site with the wrong CSP.
+ * 2. The HTML is NOT pre-compressed. nginx injects the nonce with
+ *    `sub_filter`, which cannot rewrite an already-compressed file (see
+ *    `compression.ts`).
  *
- * El PUBLICADO (copiar los `.conf` a nginx, `nginx -t`, reload, purga de CDN)
- * no vive aquí: es `scripts/deploy-live-mcp.mjs`, que se ejecuta a mano.
+ * PUBLISHING (copying the `.conf` files to nginx, `nginx -t`, reload, CDN
+ * purge) does not live here: it is `scripts/deploy-live-mcp.mjs`, run by hand.
  *
- * Respecto al original de jmrp.io se han quitado `optimizeImages` (el módulo
- * `images.ts` no se copia: este sitio no sirve imágenes propias) y el arreglo
- * de permisos con `sudo` (era para el layout blue/green de jmrp.io; aquí nginx
- * sirve `dist/` en su sitio y el despliegue es un script aparte).
+ * Compared with jmrp.io's original, `optimizeImages` was dropped (the
+ * `images.ts` module is not copied: this site serves no images of its own) and
+ * so was the `sudo` permissions fix (that was for jmrp.io's blue/green layout;
+ * here nginx serves `dist/` in place and deployment is a separate script).
  */
 
 import path from "node:path";
@@ -37,9 +38,9 @@ import type { CspData } from "./post-build/types.js";
 import { timed } from "./timing.js";
 
 /**
- * Crea la integración `mcp-post-build`.
+ * Creates the `mcp-post-build` integration.
  *
- * @returns {AstroIntegration} La integración configurada.
+ * @returns {AstroIntegration} The configured integration.
  */
 export default function postBuildIntegration(): AstroIntegration {
   return {
@@ -59,8 +60,8 @@ export default function postBuildIntegration(): AstroIntegration {
             extractCssDataUris(distDir, logger),
           );
 
-          // Los artefactos de CSP se generan siempre, se desplieguen o no:
-          // así los tests pueden comprobarlos sin tocar nginx.
+          // The CSP artifacts are always generated, deployed or not: that is
+          // what lets the tests check them without touching nginx.
           const enableCsp = true;
 
           await timed("processHtmlFiles", logger, () =>

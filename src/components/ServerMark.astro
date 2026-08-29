@@ -1,28 +1,28 @@
 ---
 /**
- * El logo que cada servidor declara en su tarjeta, legible en los dos temas.
+ * The logo each server declares on its card, legible in both themes.
  *
- * El problema que resuelve: esos SVG están dibujados con `currentColor`, y
- * dentro de un `<img>` eso no hereda nada — la imagen es un documento
- * aislado, así que `currentColor` cae a su valor por defecto, NEGRO. En tema
- * oscuro el logo quedaba invisible sobre el fondo, tanto en el submenú de
- * servidores como en el `<h1>` de cada ficha.
+ * The problem it solves: those SVGs are drawn with `currentColor`, and inside
+ * an `<img>` that inherits nothing — the image is an isolated document, so
+ * `currentColor` falls back to its default, BLACK. In dark mode the logo was
+ * invisible against the background, both in the servers submenu and in each
+ * card's `<h1>`.
  *
- * La solución es invertirlo cuando el tema es oscuro. Es correcto justamente
- * porque son monocromos por construcción: invertir negro da blanco y no hay
- * ningún otro color al que estropear.
+ * The fix is to invert it when the theme is dark. It is correct precisely
+ * because they are monochrome by construction: inverting black gives white and
+ * there is no other colour to ruin.
  *
- * DESCARTADO, y merece quedar escrito: usarlo como `mask-image` con el color
- * de la página, que es lo que hace UnoCSS con sus iconos. No sobrevive al
- * post-build — el extractor de data-URIs reescribe la ruta AÑADIENDO comillas,
- * que dentro del atributo acaban escapadas como `\22` y quedan literalmente
- * dentro de la URL: 404 silencioso y elemento enmascarado a nada. Se ve como
- * "el icono desapareció", sin un solo error en consola.
+ * REJECTED, and worth writing down: using it as a `mask-image` with the page's
+ * colour, which is what UnoCSS does with its icons. It does not survive the
+ * post-build — the data-URI extractor rewrites the path ADDING quotes, which
+ * inside the attribute end up escaped as `\22` and sit literally inside the
+ * URL: a silent 404 and an element masked to nothing. It looks like "the icon
+ * disappeared", without a single console error.
  */
 interface Props {
-  /** `src` del icono, tal cual viene de la tarjeta. */
+  /** The icon's `src`, exactly as it comes from the card. */
   src: string;
-  /** Clase extra de quien lo usa, para el tamaño. */
+  /** An extra class from the caller, for sizing. */
   class?: string;
 }
 const { src, class: extra } = Astro.props;
@@ -44,10 +44,10 @@ const { src, class: extra } = Astro.props;
     width: 1em;
     height: 1em;
 
-    /* Por defecto el sitio es oscuro, así que por defecto se invierte. Las dos
-       reglas de abajo lo deshacen en claro, siguiendo el mismo patrón que
-       `tokens.css`: la media query para el tema del sistema y el atributo para
-       la elección explícita. */
+    /* The site is dark by default, so it inverts by default. The two rules
+       below undo that in light mode, following the same pattern as
+       `tokens.css`: the media query for the OS theme and the attribute for an
+       explicit choice. */
     filter: invert(1);
   }
 

@@ -41,18 +41,18 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
   <h1 class="hero-title">{t.title}</h1>
   <p class="lede">{t.lede}</p>
   {
-    /* La definición de MCP con la marca: el único bloque autocontenido para
-      quien no sabe qué es esto, y el ancla de entidad que los titulares
-      genéricos no dan. Ver `whatIsMcp` en ui.ts.
+    /* The MCP definition with the brand in it: the only self-contained block
+      for someone who does not know what this is, and the entity anchor that
+      generic headlines do not provide. See `whatIsMcp` in ui.ts.
 
-      La cita va DENTRO de este mismo párrafo, no en un bloque aparte: la
-      afirmación («un estándar abierto») y su fuente tienen que viajar en el
-      mismo trozo extraíble, o un recuperador se lleva la definición sin el
-      respaldo. Sin `rel="nofollow"` a propósito — es la única cita externa
-      del sitio que no es del propio autor, y marcarla como no confiable
-      contradiría el motivo por el que está aquí; el resto de enlaces
-      salientes de esta página tampoco lleva `rel`. Ver `specLink` en
-      ui.ts para por qué el href es el `/specification` SIN fechar. */
+      The citation goes INSIDE this same paragraph, not in a block of its own:
+      the claim ("an open standard") and its source have to travel in the same
+      extractable chunk, or a retriever walks off with the definition and none
+      of the backing. No `rel="nofollow"`, on purpose — it is the site's only
+      external citation not written by the author himself, and marking it
+      untrusted would contradict the reason it is here; none of this page's
+      other outbound links carries a `rel` either. See `specLink` in ui.ts for
+      why the href is the UNDATED `/specification`. */
   }
   <p class="what-is">
     {t.whatIsMcp}{" "}
@@ -88,9 +88,10 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
 
 <section aria-labelledby="servers-h">
   {
-    /* h2 y no p: eran rótulos decorativos y la página colgaba 734 palabras de
-      dos únicos H2 (los nombres de las fichas). Como h2 dan outline real sin
-      cambiar el aspecto — .eyebrow ya fija tamaño, peso y márgenes. */
+    /* h2 and not p: they were decorative labels and the page hung 734 words
+      off just two H2s (the cards' names). As h2 they give a real outline
+      without changing the look — .eyebrow already sets size, weight and
+      margins. */
   }
   <h2
     class="eyebrow"
@@ -138,9 +139,9 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
     padding-block: clamp(3rem, 9vw, 5.5rem) 3rem;
   }
 
-  /* Píldora de estado con punto, igual que la de jmrp.io. Aquí dice algo
-     verificable —cuántos servidores hay y qué transporte hablan— en vez de
-     ser un adorno.
+  /* A status pill with a dot, like jmrp.io's. Here it says something
+     verifiable — how many servers there are and which transport they speak —
+     instead of being an ornament.
      Measured against jmrp.io's `.hero__status` (HomePage.astro there): 13px
      (`--text-xs`, not a bare 0.75rem/12px — that size sits between two
      tokens and matches neither) and `--color-text` (full strength), not the

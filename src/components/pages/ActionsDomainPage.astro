@@ -74,10 +74,10 @@ function domainHref(target: string): string {
   <h1 class="domain-title"><code>{domain}</code></h1>
   <p class="domain-intro">{sp.domainPageIntro}</p>
   {
-    /* Datos y LEYENDA a la vez: el punto de cada cifra es el mismo que llevan
-      las tarjetas de abajo — en móvil los chips con texto no cabían y partían
-      línea, así que cada acción lleva solo su punto y la palabra vive aquí
-      (y en sr-only dentro de cada tarjeta: el color nunca es la única señal). */
+    /* Data and LEGEND at once: each figure's dot is the same one the cards
+      below carry — on mobile the chips with text did not fit and broke onto
+      another line, so each action carries only its dot and the word lives here
+      (and in sr-only inside each card: colour is never the only signal). */
   }
   <p class="domain-facts">
     <span class="fact"
@@ -231,9 +231,9 @@ function domainHref(target: string): string {
     font-size: var(--text-sm);
   }
 
-  /* Cada dato es su propio inline-flex con hueco: sin esto el punto de la
-     leyenda quedaba pegado al número ("●24") — el espacio en blanco del
-     markup no sobrevive al minificador. */
+  /* Each datum is its own inline-flex with a gap: without this the legend's
+     dot ended up glued to the number ("●24") — the markup's whitespace does
+     not survive the minifier. */
   .fact {
     display: inline-flex;
     gap: 0.4rem;
