@@ -68,7 +68,7 @@ const PAGES = [
 ];
 
 for (const { path, lang, canonical } of PAGES) {
-  test(`${path} carga con título, canónica y clúster hreflang propios`, async ({
+  test(`${path} loads with its own title, canonical and hreflang cluster`, async ({
     page,
   }) => {
     const response = await page.goto(path);
@@ -77,11 +77,11 @@ for (const { path, lang, canonical } of PAGES) {
     await expect(page.locator("html")).toHaveAttribute("lang", lang);
 
     const title = await page.title();
-    expect(title, `${path}: sin título`).not.toBe("");
+    expect(title, `${path}: no title`).not.toBe("");
 
     await expect(
       page.locator(`link[rel="canonical"][href="${canonical}"]`),
-      `${path}: canonical ausente o apuntando a otra URL`,
+      `${path}: canonical missing or pointing at another URL`,
     ).toHaveCount(1);
 
     // Self-reference plus both languages plus x-default: the same
@@ -100,26 +100,26 @@ for (const { path, lang, canonical } of PAGES) {
     // `byLang.size === 3` and pass the size check below without this.
     expect(
       hreflangs,
-      `${path}: sobran o faltan anotaciones hreflang`,
+      `${path}: too many or too few hreflang annotations`,
     ).toHaveLength(3);
     const byLang = new Map(hreflangs);
-    expect(byLang.size, `${path}: hay hreflangs duplicados`).toBe(3);
+    expect(byLang.size, `${path}: there are duplicate hreflangs`).toBe(3);
 
     // x-default points at the default language's URL, same as `en` here.
     const basePath = enPathOf(lang, path);
     const enUrl = `${ORIGIN}${basePath}`;
     const esUrl = `${ORIGIN}/es${basePath}`;
 
-    expect(byLang.get(lang), `${path}: no se autorreferencia`).toBe(canonical);
-    expect(byLang.get("en"), `${path}: hreflang en incorrecto`).toBe(enUrl);
-    expect(byLang.get("es"), `${path}: hreflang es incorrecto`).toBe(esUrl);
-    expect(byLang.get("x-default"), `${path}: x-default incorrecto`).toBe(
-      enUrl,
+    expect(byLang.get(lang), `${path}: it does not self-reference`).toBe(
+      canonical,
     );
+    expect(byLang.get("en"), `${path}: wrong hreflang en`).toBe(enUrl);
+    expect(byLang.get("es"), `${path}: wrong hreflang es`).toBe(esUrl);
+    expect(byLang.get("x-default"), `${path}: wrong x-default`).toBe(enUrl);
   });
 }
 
-test("las catorce páginas responden y llevan título propio", async ({
+test("all fourteen pages respond and carry a title of their own", async ({
   page,
 }) => {
   const paths = [
@@ -143,10 +143,10 @@ test("las catorce páginas responden y llevan título propio", async ({
     const response = await page.goto(path);
     expect(response?.status(), path).toBe(200);
     const title = await page.title();
-    expect(title, `${path} sin título`).not.toBe("");
+    expect(title, `${path} has no title`).not.toBe("");
     titles.add(title);
   }
-  // Catorce títulos distintos: dos páginas con el mismo <title> compiten
-  // entre sí.
+  // Fourteen distinct titles: two pages sharing a <title> compete with each
+  // other.
   expect(titles.size).toBe(14);
 });
