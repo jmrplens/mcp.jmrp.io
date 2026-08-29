@@ -1,13 +1,13 @@
 /**
- * El grafo JSON-LD tiene que llegar al HTML desplegado.
+ * The JSON-LD graph has to reach the deployed HTML.
  *
- * Estos tests miran `dist/`, no el código fuente, porque entre el frontmatter
- * de `Base.astro` y el fichero que sirve nginx hay dos pasos que pueden
- * comerse el bloque sin que nadie se entere: el bundling de Astro (si algún
- * día se pierde el `is:inline`, el script sale del HTML y acaba en un módulo
- * JS) y el minificador del post-build (`minifyJS: true`, que NO debe tocar un
- * bloque de datos `ld+json`). Un JSON-LD que no está, o que ha dejado de
- * parsear, es invisible: no rompe nada en pantalla y nadie lo ve fallar.
+ * These tests look at `dist/` and not at the source, because between
+ * `Base.astro`'s frontmatter and the file nginx serves there are two steps that
+ * can eat the block with nobody noticing: Astro's bundling (if the `is:inline`
+ * is ever lost, the script leaves the HTML and ends up in a JS module) and the
+ * post-build's minifier (`minifyJS: true`, which must NOT touch an `ld+json`
+ * data block). A JSON-LD that is absent, or that has stopped parsing, is
+ * invisible: it breaks nothing on screen and nobody sees it fail.
  */
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -30,11 +30,12 @@ import {
 // a missing file instead of reporting an actual graph problem.
 const cardServers = servers.filter((server) => serverCards[server.id]);
 
-// `dist` es un SYMLINK al color activo del blue/green, así que apunta a lo
-// PUBLICADO, no a lo recién construido. `DIST_DIR` permite validar un build
-// que aún no se ha desplegado (p. ej. `pnpm build:only && DIST_DIR=builds/green
-// pnpm test:unit`), que es justo lo que hace falta para no publicar algo sin
-// haberlo probado. Sin la variable, se comporta como siempre.
+// `dist` is a SYMLINK to the active blue/green colour, so it points at what is
+// PUBLISHED, not at what was just built. `DIST_DIR` makes it possible to
+// validate a build that has not been deployed yet (e.g. `pnpm build:only &&
+// DIST_DIR=builds/green pnpm test:unit`), which is exactly what is needed to
+// avoid publishing something untested. Without the variable it behaves as it
+// always did.
 const DIST = new URL(
   `../../${process.env.DIST_DIR ?? "dist"}/`,
   import.meta.url,
@@ -77,7 +78,7 @@ function htmlPages() {
     // everything derives from `lang`, so the 404 redefined
     // `https://mcp.jmrp.io/#webpage` with `name: "Page not found"`, exactly
     // the entity split the rest of the code avoids. Pinned by
-    // `el 404 no declara identidad`.
+    // `the 404 declares no identity`.
     .filter((f) => f.endsWith(".html") && f !== "404.html")
     // Same reasoning as the 404, one step further: a page marked `noindex`
     // emits no graph either. The OAuth callback is the case — it is a popup
@@ -97,11 +98,11 @@ function htmlPages() {
           fs.readFileSync(new URL(f, DIST), "utf8"),
         ),
     );
-  assert.ok(pages.length > 1, "el sitio tiene al menos la raíz y /es/");
+  assert.ok(pages.length > 1, "the site has at least the root and /es/");
   return pages;
 }
 
-/** Contenido crudo de los bloques `application/ld+json` de una página. */
+/** The raw content of a page's `application/ld+json` blocks. */
 function jsonLdBlocks(page) {
   const html = fs.readFileSync(new URL(page, DIST), "utf8");
   return [
@@ -111,42 +112,42 @@ function jsonLdBlocks(page) {
   ].map((m) => m[1]);
 }
 
-/** Grafo ya parseado de una página, con mensaje útil si el JSON está roto. */
+/** A page's already-parsed graph, with a useful message when the JSON is broken. */
 function graphOf(page) {
   const blocks = jsonLdBlocks(page);
   assert.equal(
     blocks.length,
     1,
-    `${page}: se espera exactamente un bloque application/ld+json, hay ${blocks.length}`,
+    `${page}: exactly one application/ld+json block is expected, there are ${blocks.length}`,
   );
   let parsed;
   try {
     parsed = JSON.parse(blocks[0]);
   } catch (error) {
-    assert.fail(`${page}: el JSON-LD no es JSON válido — ${error.message}`);
+    assert.fail(`${page}: the JSON-LD is not valid JSON — ${error.message}`);
   }
   assert.equal(
     parsed["@context"],
     "https://schema.org",
-    `${page}: sin @context`,
+    `${page}: no @context`,
   );
-  assert.ok(Array.isArray(parsed["@graph"]), `${page}: @graph no es una lista`);
+  assert.ok(Array.isArray(parsed["@graph"]), `${page}: @graph is not a list`);
   return parsed["@graph"];
 }
 
-/** `n["@type"]` normalizado a array, para comparar sin importar si es un tipo o varios. */
+/** `n["@type"]` normalized to an array, so one type and several compare alike. */
 function typesOf(node) {
   return [node["@type"]].flat();
 }
 
-test("TODAS las páginas llevan un bloque JSON-LD que parsea", () => {
+test("EVERY page carries a JSON-LD block that parses", () => {
   for (const page of htmlPages()) {
     const graph = graphOf(page);
-    assert.ok(graph.length > 0, `${page}: el @graph está vacío`);
+    assert.ok(graph.length > 0, `${page}: the @graph is empty`);
   }
 });
 
-test("el WebAPI y su SoftwareSourceCode viven SOLO en la ficha de su servidor (en + es)", () => {
+test("the WebAPI and its SoftwareSourceCode live ONLY on their server's page (en + es)", () => {
   // The whole point of this rewrite: before it, both nodes were redefined in
   // full on the home page AND on `/servers/`, and absent from the one page
   // that should carry them — the server's own detail page. Now exactly two
@@ -179,17 +180,17 @@ test("el WebAPI y su SoftwareSourceCode viven SOLO en la ficha de su servidor (e
     assert.deepEqual(
       apiPages.sort(byName),
       expected,
-      `${apiId}: debería declararse solo en su ficha (en+es), se declaró en ${JSON.stringify(apiPages)}`,
+      `${apiId}: should be declared only on its own page (en+es), it was declared on ${JSON.stringify(apiPages)}`,
     );
     assert.deepEqual(
       sourcePages.sort(byName),
       expected,
-      `${sourceId}: debería declararse solo en su ficha (en+es), se declaró en ${JSON.stringify(sourcePages)}`,
+      `${sourceId}: should be declared only on its own page (en+es), it was declared on ${JSON.stringify(sourcePages)}`,
     );
   }
 });
 
-test("el WebAPI de un servidor declara los MISMOS datos en sus dos idiomas", () => {
+test("a server's WebAPI declares the SAME data in both its languages", () => {
   // The node's `@id` does not carry a language segment (it hangs off the
   // endpoint URL, which is the same for both `/servers/<id>/` and
   // `/es/servers/<id>/`), so the two pages describing it must agree on every
@@ -205,12 +206,12 @@ test("el WebAPI de un servidor declara los MISMOS datos en sus dos idiomas", () 
     assert.deepEqual(
       enApi,
       esApi,
-      `${apiIdOf(server)}: los datos deberían ser idénticos entre /servers/${server.id}/ y /es/servers/${server.id}/`,
+      `${apiIdOf(server)}: the data should be identical between /servers/${server.id}/ and /es/servers/${server.id}/`,
     );
   }
 });
 
-test("cada endpoint se une con el repositorio que lo produce, dentro de la ficha de su propio servidor", () => {
+test("every endpoint is joined to the repository that produces it, inside its own server's page", () => {
   // The code node ties an endpoint to the repository that produces it — the
   // evidence behind "can I trust this?". Its @id is #source-code, NEVER
   // #software: that IRI is defined by jmrp.io/projects with different data,
@@ -226,61 +227,61 @@ test("cada endpoint se une con el repositorio que lo produce, dentro de la ficha
       assert.equal(
         sources.length,
         1,
-        `${page}: la ficha debería traer su propio SoftwareSourceCode`,
+        `${page}: the page should carry its own SoftwareSourceCode`,
       );
       assert.equal(
         apis.length,
         1,
-        `${page}: la ficha debería traer su propio WebAPI`,
+        `${page}: the page should carry its own WebAPI`,
       );
     } else {
       assert.equal(
         sources.length,
         0,
-        `${page}: no debería redefinir ningún SoftwareSourceCode — solo la ficha del servidor lo hace`,
+        `${page}: it should redefine no SoftwareSourceCode — only the server's own page does`,
       );
       assert.equal(
         apis.length,
         0,
-        `${page}: no debería redefinir ningún WebAPI — solo la ficha del servidor lo hace`,
+        `${page}: it should redefine no WebAPI — only the server's own page does`,
       );
     }
 
     for (const source of sources) {
       assert.ok(
         String(source["@id"]).endsWith("#source-code"),
-        `${page}: ${source["@id"]} pisa el @id canónico de jmrp.io/projects`,
+        `${page}: ${source["@id"]} overwrites jmrp.io/projects' canonical @id`,
       );
-      // targetProduct es un array: el endpoint LOCAL (debe resolver dentro de
-      // esta misma página, porque WebAPI y SoftwareSourceCode viven juntos en
-      // la ficha) y el #software canónico de jmrp.io (referencia externa, que
-      // es exactamente como debe funcionar linked data — apuntar sin
-      // redefinir).
+      // targetProduct is an array: the LOCAL endpoint (which must resolve
+      // within this same page, because WebAPI and SoftwareSourceCode live
+      // together on the detail page) and jmrp.io's canonical #software (an
+      // external reference, which is exactly how linked data is supposed to
+      // work — point at it without redefining it).
       const raw = source.targetProduct ?? [];
       const targets = Array.isArray(raw) ? raw : [raw];
       assert.ok(
         targets.some((t) => ids.has(t["@id"])),
-        `${page}: ${source["@id"]} no apunta a ningún endpoint de esta página`,
+        `${page}: ${source["@id"]} points at no endpoint on this page`,
       );
     }
-    // Y la vuelta: desde el endpoint se llega al código sin inversa de
-    // targetProduct, vía isBasedOn.
+    // And the way back: from the endpoint the code is reachable without an
+    // inverse of targetProduct, via isBasedOn.
     for (const api of apis) {
       assert.ok(
         ids.has(api.isBasedOn?.["@id"]),
-        `${page}: ${api["@id"]} no enlaza su código fuente (isBasedOn)`,
+        `${page}: ${api["@id"]} does not link its source code (isBasedOn)`,
       );
       assert.ok(
         Array.isArray(api.featureList) && api.featureList.length > 0,
-        `${page}: ${api["@id"]} sin featureList — un agente no sabe qué hace`,
+        `${page}: ${api["@id"]} has no featureList — an agent cannot tell what it does`,
       );
     }
   }
 });
 
-test("el grafo declara el sitio y la página en cada URL, con un WebAPI SOLO en la ficha de su servidor", () => {
-  // `servers.json` sale de la MISMA fuente (`src/data/servers.ts`), así que
-  // añadir un MCP y olvidarse de darle ficha deja este test en rojo.
+test("the graph declares the site and the page at every URL, with a WebAPI ONLY on its server's page", () => {
+  // `servers.json` comes from the SAME source (`src/data/servers.ts`), so
+  // adding an MCP and forgetting to give it a page leaves this test red.
   const index = JSON.parse(
     fs.readFileSync(new URL("servers.json", DIST), "utf8"),
   );
@@ -289,37 +290,45 @@ test("el grafo declara el sitio y la página en cada URL, con un WebAPI SOLO en 
 
   for (const page of htmlPages()) {
     const graph = graphOf(page);
-    // `@type` puede ser un array: los nodos de endpoint son a la vez `WebAPI`
-    // y `SoftwareApplication`, para heredar de CreativeWork propiedades como
-    // `license` o `dateModified` que `WebAPI` no admite.
+    // `@type` can be an array: the endpoint nodes are both `WebAPI` and
+    // `SoftwareApplication`, so they inherit CreativeWork properties such as
+    // `license` or `dateModified` that `WebAPI` does not allow.
     const byType = (type) => graph.filter((n) => typesOf(n).includes(type));
 
-    assert.equal(byType("WebSite").length, 1, `${page}: falta el nodo WebSite`);
-    assert.equal(byType("WebPage").length, 1, `${page}: falta el nodo WebPage`);
+    assert.equal(
+      byType("WebSite").length,
+      1,
+      `${page}: the WebSite node is missing`,
+    );
+    assert.equal(
+      byType("WebPage").length,
+      1,
+      `${page}: the WebPage node is missing`,
+    );
 
     const apis = byType("WebAPI");
     if (SERVER_DETAIL_PAGE.test(page)) {
       assert.equal(
         apis.length,
         1,
-        `${page}: la ficha debería declarar exactamente un WebAPI`,
+        `${page}: the page should declare exactly one WebAPI`,
       );
       assert.ok(
         endpoints.includes(apis[0].url),
-        `${page}: el WebAPI (${apis[0].url}) no coincide con ningún endpoint de servers.json`,
+        `${page}: the WebAPI (${apis[0].url}) matches no endpoint in servers.json`,
       );
     } else {
       assert.equal(
         apis.length,
         0,
-        `${page}: no debería declarar ningún WebAPI completo — solo referenciarlo por @id`,
+        `${page}: it should declare no complete WebAPI — only reference it by @id`,
       );
     }
     for (const api of apis) {
       assert.equal(
         api["@id"],
         `${api.url}#api`,
-        `${page}: @id del WebAPI derivado del endpoint`,
+        `${page}: the WebAPI's @id derived from the endpoint`,
       );
       assert.ok(
         api.documentation,
@@ -329,23 +338,27 @@ test("el grafo declara el sitio y la página en cada URL, con un WebAPI SOLO en 
   }
 });
 
-test("el nodo #person es el canónico de jmrp.io y no trae su @context", () => {
+test("the #person node is jmrp.io's canonical one and carries no @context of its own", () => {
   for (const page of htmlPages()) {
     const graph = graphOf(page);
     const person = graph.find((n) => n["@id"] === PERSON_ID);
-    assert.ok(person, `${page}: falta el nodo #person`);
-    assert.equal(person["@type"], "Person", `${page}: #person con otro @type`);
-    assert.ok(person.name, `${page}: #person sin nombre`);
+    assert.ok(person, `${page}: the #person node is missing`);
+    assert.equal(
+      person["@type"],
+      "Person",
+      `${page}: #person with a different @type`,
+    );
+    assert.ok(person.name, `${page}: #person with no name`);
     for (const node of graph) {
       assert.ok(
         !("@context" in node),
-        `${page}: un nodo del @graph trae su propio @context`,
+        `${page}: a node in the @graph carries its own @context`,
       );
     }
   }
 });
 
-test("los nodos propios enlazan a la persona por @id, sin redeclararla, y toda referencia resuelve en el sitio", () => {
+test("the site's own nodes link to the person by @id without redeclaring them, and every reference resolves within the site", () => {
   // Global id set: every @id declared by ANY page's graph. A reference is
   // valid linked data as soon as it resolves HERE, even when the node that
   // defines it lives on a DIFFERENT page than the one making the reference —
@@ -372,26 +385,26 @@ test("los nodos propios enlazan a la persona por @id, sin redeclararla, y toda r
 
     for (const node of own) {
       for (const refId of collectRefs(node)) {
-        // Un ancla de vocabulario EXTERNO no es un nodo de este sitio y no
-        // puede estar declarado aquí: enlazar la entidad por su IRI es
-        // justamente lo correcto en datos enlazados —redeclarar en local lo
-        // que Wikidata ya define es el error opuesto, el mismo que este
-        // fichero persigue con #person—. La regla de arriba nació cuando
-        // TODA referencia era interna (#person, #software, workTranslation);
-        // el `about` de los WebAPI trajo la primera que no lo es.
+        // An EXTERNAL vocabulary anchor is not a node of this site and cannot
+        // be declared here: linking the entity by its IRI is precisely what is
+        // right in linked data — redeclaring locally what Wikidata already
+        // defines is the opposite mistake, the same one this file chases with
+        // #person. The rule above was born when EVERY reference was internal
+        // (#person, #software, workTranslation); the WebAPIs' `about` brought
+        // the first one that is not.
         //
-        // El filtro es un IRI de concepto de Wikidata y no «cualquier URL
-        // absoluta» a propósito: con la regla laxa, un @id interno mal
-        // escrito (`…/gitlab#ap`) también sería «externo» y pasaría de largo,
-        // que es el huérfano que este test existe para cazar. De regalo, deja
-        // fijado el esquema: `https://www.wikidata.org/entity/Q…` NO casa
-        // aquí y falla como huérfano, que es exactamente lo que hay que
-        // notar el día que `eslint --fix` vuelva a partir la entidad en dos.
+        // The filter is a Wikidata concept IRI and not "any absolute URL" on
+        // purpose: under the loose rule, a mistyped internal @id
+        // (`…/gitlab#ap`) would also count as "external" and slip past, and
+        // that orphan is exactly what this test exists to catch. As a bonus it
+        // pins the scheme down: `https://www.wikidata.org/entity/Q…` does NOT
+        // match here and fails as an orphan, which is exactly what has to be
+        // noticed the day `eslint --fix` splits the entity in two again.
         if (isExternalEntity(refId)) continue;
 
         assert.ok(
           globalIds.has(refId),
-          `${page}: ${node["@id"]} referencia ${refId}, que no existe en ningún grafo del sitio`,
+          `${page}: ${node["@id"]} references ${refId}, which exists in no graph of the site`,
         );
       }
     }
@@ -401,40 +414,41 @@ test("los nodos propios enlazan a la persona por @id, sin redeclararla, y toda r
     const apis = own.filter((n) => typesOf(n).includes("WebAPI"));
     for (const api of apis) {
       assert.equal(api.provider["@id"], PERSON_ID);
-      // Redeclarar los datos de la persona en cada nodo es justo lo que este
-      // diseño evita: el documento de identidad es la única fuente de verdad.
+      // Redeclaring the person's data in every node is exactly what this
+      // design avoids: the identity document is the single source of truth.
       assert.deepEqual(Object.keys(api.provider), ["@id"]);
     }
   }
 });
 
 /**
- * ¿Es `id` una entidad de un vocabulario externo, y no un nodo de este sitio?
+ * Is `id` an entity from an external vocabulary rather than a node of this
+ * site?
  *
- * Solo Wikidata, y solo con el esquema `http://`, que es el IRI de concepto
- * canónico que ya usan `knowsAbout` en jmrp.io y el `about` de cada WebAPI.
- * Ver el uso, más arriba, para por qué la lista es cerrada.
+ * Wikidata only, and only with the `http://` scheme, which is the canonical
+ * concept IRI already used by `knowsAbout` on jmrp.io and by every WebAPI's
+ * `about`. See the use above for why the list is closed.
  *
- * La coincidencia es EXACTA —anclada, y con el Q-id numérico completo— porque
- * este predicado no describe: DECIDE qué referencias se saltan sin validar.
- * Con un prefijo suelto, un `…/entity/Q133436854junk` seguía pareciendo
- * Wikidata, salía del bucle antes de la aserción y un JSON-LD roto pasaba el
- * test en silencio: un guardián que no guarda.
+ * The match is EXACT — anchored, and with the complete numeric Q-id — because
+ * this predicate does not describe: it DECIDES which references are skipped
+ * without being validated. With a loose prefix, a `…/entity/Q133436854junk`
+ * still looked like Wikidata, left the loop before the assertion, and a broken
+ * JSON-LD passed the test in silence: a guard that guards nothing.
  *
- * @param {string} id El `@id` referenciado.
- * @returns {boolean} `true` si vive fuera del grafo del sitio.
+ * @param {string} id The referenced `@id`.
+ * @returns {boolean} `true` when it lives outside the site's graph.
  */
 const isExternalEntity = (id) =>
-  // El `http://` es DELIBERADO, por el mismo motivo que en `src/lib/jsonld.ts`:
-  // es el IRI de CONCEPTO de Wikidata, que usa http:// por definición. Con
-  // https se compararía contra un recurso RDF distinto y el test dejaría de
-  // reconocer el ancla que el sitio emite. Como literal de regex no lo ven
-  // `sonarjs/no-clear-text-protocols` ni `unicorn/prefer-https`, así que aquí
-  // no hace falta el eslint-disable que sí lleva la versión en cadena — y
-  // ponerlo se reportaría como directiva sin usar.
+  // The `http://` is DELIBERATE, for the same reason as in
+  // `src/lib/jsonld.ts`: it is Wikidata's CONCEPT IRI, which uses http:// by
+  // definition. With https it would compare against a different RDF resource
+  // and the test would stop recognizing the anchor the site emits. As a regex
+  // literal neither `sonarjs/no-clear-text-protocols` nor `unicorn/prefer-https`
+  // sees it, so the eslint-disable the string version carries is not needed
+  // here — and adding it would be reported as an unused directive.
   /^http:\/\/www\.wikidata\.org\/entity\/Q\d+$/.test(id);
 
-/** Todos los `{"@id": …}` que cuelgan de un nodo, a cualquier profundidad. */
+/** Every `{"@id": …}` hanging off a node, at any depth. */
 function collectRefs(node) {
   const found = [];
   const walk = (value, isRoot) => {
@@ -455,7 +469,7 @@ function collectRefs(node) {
 /**
  * Deduces `{ lang, page, serverId }` from a dist HTML path, using
  * `PAGE_PATHS` as the source of truth — the same map `pageUrl()` uses to
- * build canonicals. A server ficha (`servers/<id>/index.html`) does not
+ * build canonicals. A server detail page (`servers/<id>/index.html`) does not
  * match any fixed `PAGE_PATHS` entry — `PAGE_PATHS.servers` is the INDEX's
  * own path — so it is detected separately and returns its `serverId`.
  *
@@ -470,8 +484,9 @@ function pageInfoFor(htmlPath) {
   if (serverMatch) {
     return { lang, page: "servers", serverId: serverMatch[1] };
   }
-  // Página de dominio de acciones: comparte page "servers" con la ficha pero
-  // NO su identidad — ni serverId (no re-emite el WebAPI) ni la URL fija.
+  // An action-domain page: it shares page "servers" with the detail page but
+  // NOT its identity — neither serverId (it does not re-emit the WebAPI) nor
+  // the fixed URL.
   const domainMatch = /^servers\/([^/]+)\/actions\/([^/]+)\/index\.html$/.exec(
     rest,
   );
@@ -486,18 +501,18 @@ function pageInfoFor(htmlPath) {
   const page = Object.entries(PAGE_PATHS).find(
     ([, segment]) => `${segment}index.html` === rest,
   )?.[0];
-  assert.ok(page, `${htmlPath}: no coincide con ningún PageId de PAGE_PATHS`);
+  assert.ok(page, `${htmlPath}: matches no PageId in PAGE_PATHS`);
   return { lang, page, serverId: undefined };
 }
 
-test("cada WebPage lleva SU url y SU @id, no los de la portada ni los del índice de servidores", () => {
-  // Este es el defecto concreto de la auditoría del 2026-08-22:
-  // buildSiteGraph() nunca recibía qué página se estaba pintando, así que
-  // toda página que no fuera la portada emitía `url` y `@id` de "/" (o
-  // "/es/") mientras su <head> ya publicaba la canónica correcta. El nombre
-  // salía bien porque venía de `title`; la URL no, porque salía de
-  // `pageUrl(lang)` a secas. Una ficha de servidor tiene el mismo riesgo
-  // frente al ÍNDICE `/servers/`, porque comparten `page: "servers"`.
+test("every WebPage carries ITS OWN url and @id, not the home page's nor the server index's", () => {
+  // This is the concrete defect from the 2026-08-22 audit: buildSiteGraph()
+  // was never told which page was being rendered, so every page that was not
+  // the home page emitted the `url` and `@id` of "/" (or "/es/") while its
+  // <head> already published the correct canonical. The name came out right
+  // because it came from `title`; the URL did not, because it came from a bare
+  // `pageUrl(lang)`. A server detail page runs the same risk against the
+  // `/servers/` INDEX, because they share `page: "servers"`.
   for (const htmlPage of htmlPages()) {
     const { lang, page, serverId, actionsDomain } = pageInfoFor(htmlPage);
     const graph = graphOf(htmlPage);
@@ -513,20 +528,20 @@ test("cada WebPage lleva SU url y SU @id, no los de la portada ni los del índic
     assert.equal(
       webpage.url,
       expectedUrl,
-      `${htmlPage}: WebPage.url debería ser ${expectedUrl}`,
+      `${htmlPage}: WebPage.url should be ${expectedUrl}`,
     );
     assert.equal(
       webpage["@id"],
       `${expectedUrl}#webpage`,
-      `${htmlPage}: WebPage.@id debería colgar de SU url, no de la de la portada ni la del índice`,
+      `${htmlPage}: WebPage.@id should hang off ITS OWN url, not the home page's nor the index's`,
     );
   }
 });
 
-test("el FAQPage cuelga SOLO de la portada", () => {
-  // Los avisos son de las fichas, y las fichas están en la portada. Un
-  // FAQPage en /policies/ o en una ficha de servidor describiría preguntas
-  // que esa página no contiene.
+test("the FAQPage hangs ONLY off the home page", () => {
+  // The notices belong to the cards, and the cards are on the home page. A
+  // FAQPage on /policies/ or on a server detail page would describe questions
+  // that page does not contain.
   const withFaq = [];
   for (const page of htmlPages()) {
     const graph = graphOf(page);
@@ -535,31 +550,34 @@ test("el FAQPage cuelga SOLO de la portada", () => {
   assert.deepEqual(
     withFaq.sort((a, b) => a.localeCompare(b)),
     ["es/index.html", "index.html"],
-    "el FAQPage tiene que estar en las dos portadas y en ninguna otra página",
+    "the FAQPage has to be on both home pages and on no other page",
   );
 });
 
-test("speakable cuelga SOLO del WebPage de la portada", () => {
-  // Mismo razonamiento que el FAQPage: los `id` de DOM que señala
-  // `speakable` los pone ServerCard, y ServerCard solo se pinta en la
-  // portada.
+test("speakable hangs ONLY off the home page's WebPage", () => {
+  // The same reasoning as the FAQPage: the DOM `id`s `speakable` points at are
+  // put there by ServerCard, and ServerCard is only rendered on the home
+  // page.
   for (const htmlPage of htmlPages()) {
     const { page } = pageInfoFor(htmlPage);
     const graph = graphOf(htmlPage);
     const webpage = graph.find((n) => n["@type"] === "WebPage");
     if (page === "home") {
-      assert.ok(webpage.speakable, `${htmlPage}: la portada sin speakable`);
+      assert.ok(
+        webpage.speakable,
+        `${htmlPage}: the home page has no speakable`,
+      );
     } else {
       assert.equal(
         webpage.speakable,
         undefined,
-        `${htmlPage}: speakable fuera de la portada`,
+        `${htmlPage}: speakable outside the home page`,
       );
     }
   }
 });
 
-test("cada página se empareja con su traducción, no con la portada", () => {
+test("every page pairs with its own translation, not with the home page", () => {
   const graph = graphOf("internals/index.html");
   const webpage = graph.find((n) => n["@type"] === "WebPage");
   assert.equal(
@@ -568,19 +586,19 @@ test("cada página se empareja con su traducción, no con la portada", () => {
   );
 });
 
-test("cada ficha de servidor se empareja con SU traducción, no con la del índice", () => {
+test("every server page pairs with ITS OWN translation, not with the index's", () => {
   for (const server of cardServers) {
     const graph = graphOf(`servers/${server.id}/index.html`);
     const webpage = graph.find((n) => n["@type"] === "WebPage");
     assert.equal(
       webpage.workTranslation["@id"],
       `https://mcp.jmrp.io/es/servers/${server.id}/#webpage`,
-      `servers/${server.id}/: debería emparejarse con su propia ficha en es/, no con /es/servers/`,
+      `servers/${server.id}/: should pair with its own page under es/, not with /es/servers/`,
     );
   }
 });
 
-test("el 404 no declara identidad ni pide indexación", () => {
+test("the 404 declares no identity and does not ask to be indexed", () => {
   const html = fs.readFileSync(new URL("404.html", DIST), "utf8");
 
   // No graph: emitting one would redefine the home page's @id under a
@@ -589,7 +607,7 @@ test("el 404 no declara identidad ni pide indexación", () => {
   assert.equal(
     html.includes("application/ld+json"),
     false,
-    "el 404 emite JSON-LD: estaría redefiniendo la identidad de la portada",
+    "the 404 emits JSON-LD: it would be redefining the home page's identity",
   );
 
   // No canonical: it pointed at `/`, i.e. it declared itself to BE the home
@@ -597,19 +615,19 @@ test("el 404 no declara identidad ni pide indexación", () => {
   assert.equal(
     /<link[^>]+rel="canonical"/.test(html),
     false,
-    "el 404 declara canonical, y el suyo apuntaba a la portada",
+    "the 404 declares a canonical, and its own pointed at the home page",
   );
 
   // No hreflang and no Open Graph for the same reason: `og:url` is the
   // canonical, so a shared 404 link previewed as the home page.
-  assert.equal(/hreflang=/.test(html), false, "el 404 emite hreflang");
-  assert.equal(/property="og:url"/.test(html), false, "el 404 emite og:url");
+  assert.equal(/hreflang=/.test(html), false, "the 404 emits hreflang");
+  assert.equal(/property="og:url"/.test(html), false, "the 404 emits og:url");
 
   // And it must not ask to be indexed. The 404 status already prevents it,
   // but saying `index, follow` in an error body contradicts itself.
   assert.match(
     html,
     /<meta[^>]+content="noindex, follow"[^>]*>/,
-    "el 404 no pide noindex",
+    "the 404 does not ask for noindex",
   );
 });
