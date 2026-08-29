@@ -1,12 +1,12 @@
 /* =============================================================================
-   utilities.css — jmrp.io · utilidades y patrones reutilizables
-   Clases transversales usadas en ≥2 sitios. Todo sale de tokens.css.
-   Requiere tokens.css (y normalmente base.css) cargados antes.
+   utilities.css — jmrp.io · reusable utilities and patterns
+   Cross-cutting classes used in ≥2 places. Everything comes from tokens.css.
+   Requires tokens.css (and usually base.css) to be loaded first.
 ============================================================================= */
 
 /* ===== Layout =============================================================== */
 .container {
-  min-width: 0; /* evita que un hijo flex se expanda de más */
+  min-width: 0; /* stops a flex child from growing past its share */
   max-width: var(--max-width-container);
   padding: 0 var(--space-md);
   margin: 0 auto;
@@ -37,7 +37,7 @@
   color: var(--color-text-heading);
 }
 
-/* Utilidades de color de estado (solo variables) */
+/* State colour utilities (variables only) */
 .color-success {
   color: var(--color-status-online);
 }
@@ -54,8 +54,8 @@
   color: var(--color-status-info);
 }
 
-/* ===== Superficie / tarjeta ================================================
-   Patrón base de tarjeta con borde de pelo. Añade padding/gap donde se use. */
+/* ===== Surface / card ======================================================
+   The base card pattern with a hairline border. Add padding/gap where used. */
 .surface {
   background: var(--color-bg-secondary);
   border: var(--border-1);
@@ -70,8 +70,8 @@
   box-shadow: var(--sh-card);
 }
 
-/* ===== Kicker de sección — etiqueta mono "// sección" ======================
-   La "// " es la pista NO cromática; el color es el ámbar de acento. */
+/* ===== Section kicker — a mono "// section" label ==========================
+   The "// " is the NON-chromatic cue; the colour is the accent amber. */
 .section-title {
   padding: 0;
   margin-bottom: var(--space-lg);
@@ -93,7 +93,7 @@
   border: 0;
 }
 
-/* ===== Título de página ==================================================== */
+/* ===== Page title ========================================================== */
 .page-title {
   padding-bottom: var(--space-md);
   margin-top: var(--space-lg);
@@ -104,7 +104,7 @@
   border-bottom: var(--border-2);
 }
 
-/* ===== Botones ============================================================= */
+/* ===== Buttons ============================================================= */
 .btn {
   display: inline-flex;
   gap: var(--space-sm);
@@ -190,7 +190,7 @@
 }
 
 /* ===== Chip / pill / badge =================================================
-   Cápsula genérica. Variantes cambian solo color/borde/relleno. */
+   A generic capsule. Variants change only colour/border/fill. */
 .chip {
   display: inline-flex;
   gap: 0.5em;
@@ -202,7 +202,7 @@
   border-radius: var(--radius-pill);
 }
 
-/* Punto de estado dentro de un chip / fila */
+/* A status dot inside a chip or a row */
 .status-dot {
   width: 7px;
   height: 7px;
@@ -210,7 +210,7 @@
   border-radius: var(--radius-full);
 }
 
-/* ===== Pill "en directo" (datos en tiempo real) =========================== */
+/* ===== The "live" pill (real-time data) ==================================== */
 .realtime-pill {
   display: inline-flex;
   flex: none;
@@ -251,10 +251,10 @@
   }
 }
 
-/* ===== Rejilla técnica ambiental ===========================================
-   Retícula de líneas de pelo con máscara radial. Patrón de héroes.
-   Uso: <div class="lab-grid" aria-hidden="true"></div> dentro de un
-   contenedor position:relative; overflow:hidden. */
+/* ===== Ambient technical grid ==============================================
+   A hairline lattice with a radial mask. A hero pattern.
+   Use: <div class="lab-grid" aria-hidden="true"></div> inside a
+   position:relative; overflow:hidden container. */
 .lab-grid {
   position: absolute;
   inset: 0;
@@ -271,27 +271,29 @@
   );
 }
 
-/* Variante a página completa: capa ambiental tras TODO el contenido (patrón del
-   mockup, primer hijo del scroll). Se sitúa detrás gracias al stacking context
-   del body (isolation:isolate) para no tapar texto ni interceptar clics. */
+/* The full-page variant: an ambient layer behind ALL the content (the mockup's
+   pattern, first child of the scroll). It sits behind thanks to the body's
+   stacking context (isolation:isolate) so it covers no text and intercepts no
+   clicks. */
 .lab-grid--page {
   z-index: -1;
 }
 
-/* ===== Desplegables: el marcador compartido =================================
-   `.fold` de la ficha ya marcaba sus <details> como jmrp.io: chevron en ámbar
-   que gira al abrir y etiqueta que se ilumina al pasar por encima. Los otros
-   dos —los argumentos de cada tool y los fragmentos de configuración— nacieron
-   sin él y se quedaban en gris apagado con el triangulito nativo, que a simple
-   vista no se distingue de una etiqueta muerta: en móvil la página entera
-   parecía texto plano sin nada accionable.
+/* ===== Disclosures: the shared marker =======================================
+   The card's `.fold` already marked its <details> the way jmrp.io does: an
+   amber chevron that turns on open, and a label that lights up on hover. The
+   other two — each tool's arguments and the configuration snippets — were born
+   without it and sat in dull grey with the native triangle, which at a glance
+   is indistinguishable from a dead label: on mobile the whole page looked like
+   flat text with nothing actionable in it.
 
-   Vive aquí y no en el \3c style> de cada componente precisamente por eso: la
-   duplicación fue lo que dejó que dos de los tres se quedaran atrás. Un
-   componente que quiera este aspecto añade `disclosure` a su <details>.
+   It lives here and not in each component's \3c style> block for exactly that
+   reason: duplication is what let two of the three fall behind. A component
+   that wants this look adds `disclosure` to its <details>.
 
-   El marcador es `::before` propio y no el nativo: el nativo no se puede
-   colorear, y quitándole `list-style` desaparece en algunos navegadores. */
+   The marker is our own `::before` and not the native one: the native one
+   cannot be coloured, and removing its `list-style` makes it disappear in some
+   browsers. */
 .disclosure > summary {
   display: flex;
   gap: 0.5rem;
@@ -329,15 +331,15 @@
   }
 }
 
-/* ===== Filas de enlaces con icono ===========================================
-   El patrón de jmrp.io/projects: cada enlace de una fila lleva su icono
-   delante, en ámbar y con la etiqueta en negrita. Sin él, "Repository
-   Documentation" se lee como una sola frase gris y ninguno de los dos parece
-   un enlace — que es lo que pasaba aquí.
+/* ===== Link rows with an icon ===============================================
+   jmrp.io/projects' pattern: every link in a row carries its icon in front, in
+   amber and with the label in bold. Without it, "Repository Documentation"
+   reads as one grey sentence and neither half looks like a link — which is
+   what was happening here.
 
-   El icono se alinea con `em` y no con px para que siga al tamaño de letra
-   del sitio donde se use: la ficha de la portada y la página del servidor
-   usan cuerpos distintos. */
+   The icon is aligned with `em` and not px so it follows the font size of
+   wherever it is used: the home page's card and the server's page run at
+   different sizes. */
 .link-icon {
   display: inline-block;
   flex-shrink: 0;

@@ -1,25 +1,26 @@
 /**
  * `/robots.txt`.
  *
- * Sigue el patrón del de jmrp.io (mismo `Content-Signal`, mismo listado
- * explícito de bots, misma línea `Sitemap:`) porque los dos dominios son del
- * mismo autor: si declararan políticas distintas, un crawler que resuelva la
- * marca por un lado y por el otro recibiría dos respuestas contradictorias.
+ * It follows jmrp.io's pattern (the same `Content-Signal`, the same explicit
+ * bot listing, the same `Sitemap:` line) because both domains belong to the
+ * same author: were they to declare different policies, a crawler resolving
+ * the brand through one and then the other would get two contradictory
+ * answers.
  *
- * Lo que NO se copia de allí son las rutas: aquel sitio tiene blog, feeds y
- * herramientas; aquí solo hay dos páginas, `/servers.json`, los `llms.txt` y
- * las tarjetas sociales. Nada de eso es privado y se quiere indexado entero,
- * así que no hay ni un `Disallow`.
+ * What is NOT copied from there are the paths: that site has a blog, feeds and
+ * tools; here there are only a handful of pages, `/servers.json`, the
+ * `llms.txt` files and the social cards. None of it is private and all of it
+ * is meant to be indexed, so there is not a single `Disallow`.
  *
- * `/libgen` y `/gitlab` NO se listan: son endpoints JSON-RPC que solo contestan
- * a POST, no hay nada que rastrear en ellos y mencionarlos solo invitaría a
- * crawlers a probarlos.
+ * `/libgen` and `/gitlab` are NOT listed: they are JSON-RPC endpoints that
+ * only answer POST, there is nothing to crawl on them, and mentioning them
+ * would only invite crawlers to try.
  */
 import type { APIRoute } from "astro";
 
 import { SITE_ORIGIN } from "../lib/seo";
 
-/** Buscadores clásicos, listados aunque el bloque `*` ya los cubra. */
+/** Classic search engines, listed even though the `*` block already covers them. */
 const SEARCH_BOTS = [
   "Googlebot",
   "Bingbot",
@@ -30,12 +31,12 @@ const SEARCH_BOTS = [
 ];
 
 /**
- * Crawlers de IA con permiso explícito.
+ * AI crawlers with explicit permission.
  *
- * Anthropic reparte el rastreo por propósito —ClaudeBot (entrenamiento),
- * Claude-User (una petición disparada por la pregunta de alguien) y
- * Claude-SearchBot (indexado)—, así que se nombran los tres: si algún día se
- * endurece el bloque comodín, la política de cada uno sigue siendo explícita.
+ * Anthropic splits crawling by purpose — ClaudeBot (training), Claude-User (a
+ * request triggered by somebody's question) and Claude-SearchBot (indexing) —
+ * so all three are named: should the wildcard block ever be tightened, each
+ * one's policy stays explicit.
  */
 const AI_BOTS = [
   "GPTBot",
@@ -64,20 +65,20 @@ const AI_BOTS = [
   "Timpibot",
 ];
 
-/** La señal, repetida en cada grupo — ver el comentario de `BODY`. */
+/** The signal, repeated in every group — see `BODY`'s comment. */
 const CONTENT_SIGNAL = "Content-Signal: search=yes, ai-input=yes, ai-train=yes";
 
 /**
- * Bloque `User-agent` + `Content-Signal` + `Allow: /` para cada agente.
+ * A `User-agent` + `Content-Signal` + `Allow: /` block for each agent.
  *
- * La señal se repite en todos los grupos a propósito: por RFC 9309 un rastreador
- * obedece UN solo grupo, el más específico que le corresponde, e ignora el resto
- * incluido `*`. Declarada solo en el comodín, los ~30 agentes con grupo propio
- * —justo sus destinatarios— nunca la veían (auditoría GEO de jmrp.io
- * 2026-08-22, M6).
+ * The signal is repeated in every group on purpose: per RFC 9309 a crawler
+ * obeys ONE group only, the most specific one matching it, and ignores the
+ * rest including `*`. Declared only in the wildcard, the ~30 agents with a
+ * group of their own — precisely its audience — never saw it (jmrp.io's GEO
+ * audit, 2026-08-22, M6).
  *
- * @param agents Nombres de los agentes tal cual los envían.
- * @returns Los bloques separados por una línea en blanco.
+ * @param agents The agents' names exactly as they send them.
+ * @returns The blocks, separated by a blank line.
  */
 function allowAll(agents: string[]): string {
   return agents
@@ -86,34 +87,34 @@ function allowAll(agents: string[]): string {
 }
 
 const BODY = `User-agent: *
-# Content Signals (https://contentsignals.org/) — intención explícita: este
-# sitio quiere ser indexado por buscadores, usado como entrada de IA (RAG) y
-# usado para entrenamiento. Son las TRES únicas claves que define la
-# especificación; cualquier otra se ignora, así que no añadas ninguna más.
+# Content Signals (https://contentsignals.org/) — stated intent: this site
+# wants to be indexed by search engines, used as AI input (RAG) and used for
+# training. Those are the ONLY THREE keys the specification defines; anything
+# else is ignored, so do not add any more.
 Content-Signal: search=yes, ai-input=yes, ai-train=yes
 Allow: /
 
-# --- Buscadores (allow explícito, por claridad) ---
+# --- Search engines (explicit allow, for clarity) ---
 
 ${allowAll(SEARCH_BOTS)}
 
-# --- Bots de IA / LLM (permitidos para indexado y entrenamiento) ---
+# --- AI / LLM bots (allowed for indexing and training) ---
 
 ${allowAll(AI_BOTS)}
 
-# --- Descubrimiento ---
+# --- Discovery ---
 
 Sitemap: ${SITE_ORIGIN}/sitemap-index.xml
 
-# Contexto para LLM (estándar llmstxt.org)
-# ${SITE_ORIGIN}/llms.txt        — índice
-# ${SITE_ORIGIN}/llms-full.txt   — cabeceras, métodos y ejemplos de los dos MCP
+# LLM context (the llmstxt.org standard)
+# ${SITE_ORIGIN}/llms.txt        — index
+# ${SITE_ORIGIN}/llms-full.txt   — headers, methods and examples for both MCPs
 #
-# Índice para máquinas (endpoints en JSON)
+# Machine-readable index (endpoints as JSON)
 # ${SITE_ORIGIN}/servers.json
 `;
 
-/** Sirve el fichero como texto plano UTF-8: cualquier otro tipo lo ignoran. */
+/** Serves the file as plain UTF-8 text: any other type gets ignored. */
 export const GET: APIRoute = () =>
   new Response(BODY, {
     headers: { "content-type": "text/plain; charset=utf-8" },
