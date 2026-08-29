@@ -39,15 +39,29 @@ const serverPageHref = new URL(serverPageUrl(lang, server.id)).pathname;
 const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
 ---
 
-{/* El `id` es el ÚNICO destino enlazable por servidor que tiene el sitio: sin
+{
+  /* El `id` es el ÚNICO destino enlazable por servidor que tiene el sitio: sin
     él no se puede apuntar a «el MCP de gitlab» desde fuera, y el `#gitlab` que
     la gente escribiría a mano no llevaba a ninguna parte. Sale de
     `server.id`, el mismo identificador estable que usan `/servers.json` y el
-    inspector. */}
-<article class="card" id={server.id}>
+    inspector. */
+}
+<article
+  class="card"
+  id={server.id}
+>
   <header class="card-head">
     <h3>
-      {serverIcon && <img src={serverIcon.src} alt="" aria-hidden="true" class="card-icon" />}
+      {
+        serverIcon && (
+          <img
+            src={serverIcon.src}
+            alt=""
+            aria-hidden="true"
+            class="card-icon"
+          />
+        )
+      }
       {server.name}
     </h3>
     <span class={needsAuth ? "badge badge-auth" : "badge"}>
@@ -57,20 +71,23 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
 
   <p class="card-desc">{server.description[lang]}</p>
 
-  {/* The `{" "}` here and in the two blocks below are separators for
+  {
+    /* The `{" "}` here and in the two blocks below are separators for
       EXTRACTORS, not decoration. Without them `textContent` — what readability
       and RAG pipelines read — ran words together:
       "POSThttps://mcp.jmrp.io/libgen", "searchget_detailsreaddownload",
       "RepositoryDocumentation". An assistant quoting the tool list emitted a
       garbage token.
       They are invisible: all three containers are flex, and per the flexbox
-      spec an anonymous item containing only white space is not rendered. */}
+      spec an anonymous item containing only white space is not rendered. */
+  }
   <p class="endpoint">
     <span class="verb">POST</span>{" "}
     <code>{server.endpoint}</code>
   </p>
 
-  {/* Live status, injected at the ORIGIN by /etc/nginx/lua/mcp_ssr_status.lua:
+  {
+    /* Live status, injected at the ORIGIN by /etc/nginx/lua/mcp_ssr_status.lua:
       nginx swaps this token for the running version and how many of the three
       instances answered, polled from their /health and cached 5 minutes.
 
@@ -80,9 +97,16 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
 
       If the token reaches a browser unsubstituted, nginx is not applying the
       filter — in local `astro preview` that is expected, since the Lua hooks
-      only exist in the production vhost. */}
-  <p class="live-status" data-ssr={`mcp-${server.id}`}>
-    <span class="live-dot" aria-hidden="true"></span>
+      only exist in the production vhost. */
+  }
+  <p
+    class="live-status"
+    data-ssr={`mcp-${server.id}`}
+  >
+    <span
+      class="live-dot"
+      aria-hidden="true"
+    ></span>
     {server.id === "libgen" ? "MCPSSR_LIBGEN_STATUS" : "MCPSSR_GITLAB_STATUS"}
   </p>
 
@@ -120,18 +144,22 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
         <a href={serverPageHref}>{t.viewServerCard}</a>{" "}
         <span class="server-card-counts">
           ({card.tools.length} {t.toolsHead}
-          {card.prompts.length > 0 && `, ${card.prompts.length} ${t.promptsHead}`})
+          {card.prompts.length > 0 &&
+            `, ${card.prompts.length} ${t.promptsHead}`}
+          )
         </span>
       </p>
     )
   }
 
-  {/* La configuración por cliente VIVÍA AQUÍ, plegada. Se mudó a la página del
+  {
+    /* La configuración por cliente VIVÍA AQUÍ, plegada. Se mudó a la página del
       servidor (`ServerPage.astro`, sección «Conectar») cuando pasó a tener dos
       caminos —OAuth y token— y triplicó de tamaño: metida en una tarjeta de la
       portada, escondía tras un clic justo lo más largo de la página, y con un
       tercer MCP a la vista la portada dejaba de escalar. La tarjeta ya lleva un
-      botón a la ficha, que es donde se contesta entera esa pregunta. */}
+      botón a la ficha, que es donde se contesta entera esa pregunta. */
+  }
 
   {
     /* El aviso de seguridad llega ABIERTO: es donde el visitante decide si
@@ -164,7 +192,10 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
         <summary>
           <h4 class="fold-label">{notice.title[lang]}</h4>
         </summary>
-        <Notice notice={notice} lang={lang} />
+        <Notice
+          notice={notice}
+          lang={lang}
+        />
         {
           /* Only gitlab's security notice qualifies: it is the one that
              raises the token question, and `/internals/#affinity-h` is
@@ -183,11 +214,17 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
 
   <p class="links">
     <a href={server.repo}>
-      <span class="link-icon i-simple-icons:github" aria-hidden="true" />
+      <span
+        class="link-icon i-simple-icons:github"
+        aria-hidden="true"
+      ></span>
       {t.repository}
     </a>{" "}
     <a href={server.docsSite ?? server.docs}>
-      <span class="link-icon i-mdi:book-open-variant" aria-hidden="true" />
+      <span
+        class="link-icon i-mdi:book-open-variant"
+        aria-hidden="true"
+      ></span>
       {t.documentation}
     </a>
   </p>
@@ -199,9 +236,9 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
     flex-direction: column;
     gap: 0.9rem;
     padding: 1.5rem;
+    background: var(--color-bg-secondary);
     border: 1px solid var(--color-border);
     border-radius: 10px;
-    background: var(--color-bg-secondary);
   }
 
   .card-head {
@@ -224,13 +261,13 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
      hierarchy. */
   h3 {
     display: flex;
-    align-items: center;
     gap: 0.5rem;
+    align-items: center;
     margin: 0;
-    color: var(--color-text-heading);
     font-family: var(--font-display);
     font-size: var(--text-xl);
     font-weight: var(--fw-medium);
+    color: var(--color-text-heading);
     letter-spacing: -0.01em;
   }
 
@@ -241,9 +278,9 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
      (black) regardless of theme. Dark is this site's default, so the
      override lives on the light case, not the dark one. */
   .card-icon {
+    flex: none;
     width: 1em;
     height: 1em;
-    flex: none;
     filter: invert(1);
   }
 
@@ -261,17 +298,17 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
      a pedir credenciales. Por eso va arriba y no enterrado en el cuerpo. */
   .badge {
     padding: 0.2rem 0.55rem;
-    border: 1px solid var(--color-hair);
-    border-radius: 999px;
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: 0.7rem;
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-hair);
+    border-radius: 999px;
   }
 
   .badge-auth {
-    border-color: var(--accent-line);
-    background: var(--accent-dim);
     color: var(--color-accent);
+    background: var(--accent-dim);
+    border-color: var(--accent-line);
   }
 
   .card-desc {
@@ -292,12 +329,12 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
      servidores: enseñar la URL sin el verbo invita a probarla en el navegador. */
   .verb {
     padding: 0.15rem 0.4rem;
-    border-radius: 4px;
-    background: var(--color-bg-subtle);
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: 0.7rem;
     font-weight: 600;
+    color: var(--color-text-muted);
+    background: var(--color-bg-subtle);
+    border-radius: 4px;
   }
 
   .live-status {
@@ -305,22 +342,22 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
     gap: 0.45rem;
     align-items: center;
     margin: -0.35rem 0 0;
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: 0.75rem;
+    color: var(--color-text-muted);
   }
 
   .live-dot {
     width: 0.4rem;
     height: 0.4rem;
-    border-radius: 50%;
     background: var(--color-success);
+    border-radius: 50%;
   }
 
   .fold-intro {
     margin: 0 0 0.6rem;
-    color: var(--color-text-muted);
     font-size: 0.85rem;
+    color: var(--color-text-muted);
     text-wrap: pretty;
   }
 
@@ -334,9 +371,9 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
     align-items: center;
     padding-top: 0.9rem;
     margin: 0;
-    border-top: 1px solid var(--color-hair);
     font-family: var(--font-mono);
     font-size: 0.8125rem;
+    border-top: 1px solid var(--color-hair);
   }
 
   /* Filled, not a link. This card is dense — endpoint, chips, counts, headers,
@@ -349,8 +386,8 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
     gap: 0.4rem;
     align-items: center;
     padding: 0.45rem 0.9rem;
-    color: var(--color-on-primary);
     font-weight: var(--fw-semibold);
+    color: var(--color-on-primary);
     text-decoration: none;
     background: var(--color-primary);
     border-radius: var(--radius-md);
@@ -370,8 +407,8 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
   /* The arrow belongs to the button and says "this goes somewhere", so it is
      decorative: a screen reader already has the label. */
   .server-card-link a::after {
-    content: "→";
     font-weight: var(--fw-normal);
+    content: "→";
   }
 
   .server-card-counts {
@@ -379,9 +416,9 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
   }
 
   .endpoint code {
-    color: var(--color-text-heading);
     font-family: var(--font-mono);
     font-size: 0.875rem;
+    color: var(--color-text-heading);
     overflow-wrap: anywhere;
   }
 
@@ -389,16 +426,16 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
     display: grid;
     grid-template-columns: auto 1fr;
     gap: 0.35rem 0.85rem;
-    margin: 0;
     padding-top: 0.9rem;
-    border-top: 1px solid var(--color-hair);
+    margin: 0;
     font-size: 0.85rem;
+    border-top: 1px solid var(--color-hair);
   }
 
   dt {
-    color: var(--color-text-heading);
     font-family: var(--font-mono);
     font-size: 0.8rem;
+    color: var(--color-text-heading);
   }
 
   dt.optional {
@@ -432,9 +469,10 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
     flex-wrap: wrap;
     gap: 0.5rem;
     align-items: baseline;
-    cursor: pointer;
+
     /* Área táctil: sin esto el resumen se queda en ~19 px de alto. */
     padding-block: 0.35rem;
+    cursor: pointer;
     list-style: none;
   }
 
@@ -445,10 +483,10 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
   /* Triángulo propio: el nativo no se puede colorear y desaparece en algunos
      navegadores al quitar list-style. */
   .fold summary::before {
-    content: "›";
     display: inline-block;
-    color: var(--color-accent);
     font-family: var(--font-mono);
+    color: var(--color-accent);
+    content: "›";
     transition: transform 0.15s ease;
   }
 
@@ -480,15 +518,16 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
     flex: 1 1 0;
     min-width: 0;
     margin: 0;
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
+
     /* Was 0.7rem, which left the question smaller than the answer under it —
        the heading of a passage cannot be the quietest thing in it. Matched to
        the notice body it opens (--text-md), not one step below. */
     font-size: var(--text-md);
     font-weight: 500;
-    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
     text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -506,9 +545,9 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
   }
 
   .fold dt code {
-    color: var(--color-accent);
     font-family: var(--font-mono);
     font-size: 0.8rem;
+    color: var(--color-accent);
   }
 
   /* Trailing link inside the security notice, pointing at `/internals/`. */
@@ -531,13 +570,14 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
   .links {
     display: flex;
     gap: 1.25rem;
+    padding-top: 0.9rem;
+
     /* margin-top:auto pega los enlaces al fondo: las tarjetas de la rejilla
        tienen la misma altura y sin esto la más corta dejaba un hueco muerto. */
     margin: auto 0 0;
-    padding-top: 0.9rem;
-    border-top: 1px solid var(--color-hair);
     font-family: var(--font-mono);
     font-size: 0.8125rem;
+    border-top: 1px solid var(--color-hair);
   }
 
   .links a {

@@ -41,6 +41,14 @@ export type McpInstance = { egressCountry: "ES" | "GB" };
 export const topology: Record<"libgen" | "gitlab", McpInstance[]> = {
   // Verified against the live upstream 2026-08-22: 3 instances, egress split
   // cross-wise between the two servers.
-  libgen: [{ egressCountry: "ES" }, { egressCountry: "ES" }, { egressCountry: "GB" }],
-  gitlab: [{ egressCountry: "GB" }, { egressCountry: "GB" }, { egressCountry: "ES" }],
+  libgen: [
+    { egressCountry: "ES" },
+    { egressCountry: "ES" },
+    { egressCountry: "GB" },
+  ],
+  gitlab: [
+    { egressCountry: "GB" },
+    { egressCountry: "GB" },
+    { egressCountry: "ES" },
+  ],
 };

@@ -18,7 +18,8 @@ export const inspector = {
      * silently dropping one of the two under the plain spread in `ui.ts` —
      * which is exactly what `i18n-modules.test.mjs` exists to catch.
      */
-    inspectorMetaTitle: "Inspector — try the MCP servers in your browser · jmrp.io",
+    inspectorMetaTitle:
+      "Inspector — try the MCP servers in your browser · jmrp.io",
     /** The page's `<h1>`. Prefixed for the same reason as the keys above. */
     inspectorTitle: "Inspector",
     inspectorEyebrow: "Inspector",
@@ -26,10 +27,10 @@ export const inspector = {
       "Query the servers straight from your browser. Pick one, call a method and read the raw JSON-RPC response.",
     /** Link from `/inspector/` back to the home page. */
     /**
-      * The notice it points at lives on the home page's server cards, not
-      * here, so this has to be a link: saying "above" was leftover from when
-      * the inspector shared a page with the cards.
-      */
+     * The notice it points at lives on the home page's server cards, not
+     * here, so this has to be a link: saying "above" was leftover from when
+     * the inspector shared a page with the cards.
+     */
     noticePointer:
       "Before pasting a credential, read the notice on that server's card: it says exactly where the value goes and what the browser itself prevents.",
     noticePointerLink: "Read the gitlab notice",
@@ -48,8 +49,7 @@ export const inspector = {
      */
     noscript: {
       title: "No JavaScript? Call a server directly",
-      lead:
-        "The inspector above needs JavaScript to talk to the servers. Without it, the same conversation fits in one command: this asks libgen — the server that requires no headers — for its catalogue of tools.",
+      lead: "The inspector above needs JavaScript to talk to the servers. Without it, the same conversation fits in one command: this asks libgen — the server that requires no headers — for its catalogue of tools.",
       requestLabel: "Request",
       response:
         "The server answers with a JSON-RPC result whose tools array holds every tool it exposes, each with its name, its description and the JSON Schema of the arguments it accepts.",
@@ -61,8 +61,7 @@ export const inspector = {
        * has no such section. If libgen ever publishes them, this sentence
        * grows back.
        */
-      more:
-        "The same tools and prompts are written out in prose, no request needed, on",
+      more: "The same tools and prompts are written out in prose, no request needed, on",
       moreLink: "the libgen server page",
     },
     insp: {
@@ -95,7 +94,8 @@ export const inspector = {
       runTool: "Run tool",
       getPrompt: "Render prompt",
       readResource: "Read resource",
-      emptyTools: "No tools loaded yet. Load them to see what this server can do.",
+      emptyTools:
+        "No tools loaded yet. Load them to see what this server can do.",
       emptyPrompts: "No prompts loaded yet.",
       emptyResources: "No resources loaded yet.",
       noneHere: "This server declares none.",
@@ -110,7 +110,8 @@ export const inspector = {
       tool: "Tool",
       args: "Arguments (JSON)",
       chooseTool: "— pick a tool —",
-      toolListHint: "Run tools/list and the server's catalogue fills this list.",
+      toolListHint:
+        "Run tools/list and the server's catalogue fills this list.",
       schemaTitle: "Arguments this tool accepts",
       schemaEmpty: "This tool declares no arguments.",
       /**
@@ -130,6 +131,17 @@ export const inspector = {
       copyFailed: "The browser refused to write to the clipboard.",
       cancel: "Cancel",
       cancelled: "Cancelled by you.",
+      // `{s}` is the whole seconds left. Both say what to do next rather
+      // than only what went wrong, and neither blames the reader: hitting
+      // this is what anyone does when a call looks stuck.
+      tooFast: "Slow down — one call every half second. Try again in {s}s.",
+      cooling:
+        "Paused for {s}s: too many calls in a row. Nothing was sent, and the servers are fine — this brake lives in your browser.",
+      viewLabel: "Response view",
+      viewFormatted: "Reader",
+      viewRaw: "JSON",
+      viewFormattedHint: "The response text, laid out.",
+      viewRawHint: "The exact JSON-RPC body, as it arrived.",
       timedOut: "No answer in 90 s — the inspector dropped the request.",
       responseLabel: "MCP response",
       statusIdle: "Nothing sent yet.",
@@ -145,7 +157,8 @@ export const inspector = {
   },
   es: {
     /** See `en.inspectorMetaTitle`: document `<title>`, not the H1. */
-    inspectorMetaTitle: "Inspector — prueba los servidores MCP en tu navegador · jmrp.io",
+    inspectorMetaTitle:
+      "Inspector — prueba los servidores MCP en tu navegador · jmrp.io",
     /** The page's `<h1>`. Prefixed for the same reason as the keys above. */
     inspectorTitle: "Inspector",
     inspectorEyebrow: "Inspector",
@@ -158,14 +171,12 @@ export const inspector = {
     /** Ver `en.noscript`: el bloque que lee quien no ejecuta JavaScript. */
     noscript: {
       title: "¿Sin JavaScript? Llama al servidor directamente",
-      lead:
-        "El inspector de arriba necesita JavaScript para hablar con los servidores. Sin él, la misma conversación cabe en un solo comando: este le pide a libgen —el servidor que no exige cabeceras— su catálogo de tools.",
+      lead: "El inspector de arriba necesita JavaScript para hablar con los servidores. Sin él, la misma conversación cabe en un solo comando: este le pide a libgen —el servidor que no exige cabeceras— su catálogo de tools.",
       requestLabel: "Petición",
       response:
         "El servidor responde con un resultado JSON-RPC cuyo array tools contiene todas las tools que expone, cada una con su nombre, su descripción y el JSON Schema de los argumentos que acepta.",
       /** Ver `en.noscript.more`: sin `resources`, que libgen no publica. */
-      more:
-        "Esas mismas tools y prompts están escritas en prosa, sin necesidad de lanzar ninguna petición, en",
+      more: "Esas mismas tools y prompts están escritas en prosa, sin necesidad de lanzar ninguna petición, en",
       moreLink: "la página del servidor libgen",
     },
     /** Ver `en.insp`: los identificadores del protocolo se quedan en inglés. */
@@ -194,7 +205,8 @@ export const inspector = {
       runTool: "Ejecutar tool",
       getPrompt: "Renderizar prompt",
       readResource: "Leer resource",
-      emptyTools: "Aún no has cargado las tools. Cárgalas para ver qué sabe hacer este servidor.",
+      emptyTools:
+        "Aún no has cargado las tools. Cárgalas para ver qué sabe hacer este servidor.",
       emptyPrompts: "Aún no has cargado los prompts.",
       emptyResources: "Aún no has cargado los resources.",
       noneHere: "Este servidor no declara ninguno.",
@@ -209,7 +221,8 @@ export const inspector = {
       tool: "Tool",
       args: "Argumentos (JSON)",
       chooseTool: "— elige una tool —",
-      toolListHint: "Lanza tools/list y el catálogo del servidor llena esta lista.",
+      toolListHint:
+        "Lanza tools/list y el catálogo del servidor llena esta lista.",
       schemaTitle: "Argumentos que acepta esta tool",
       schemaEmpty: "Esta tool no declara argumentos.",
       /** Ver `en.groupAnyOf`. */
@@ -226,7 +239,24 @@ export const inspector = {
       copyFailed: "El navegador no ha dejado escribir en el portapapeles.",
       cancel: "Cancelar",
       cancelled: "Cancelada por ti.",
-      timedOut: "Sin respuesta en 90 s — el inspector ha abandonado la petición.",
+      /** See `en.tooFast`. */
+      tooFast:
+        "Más despacio — una llamada cada medio segundo. Reintenta en {s} s.",
+      /** See `en.cooling`. */
+      cooling:
+        "En pausa {s} s: demasiadas llamadas seguidas. No se ha enviado nada y los servidores están bien — este freno vive en tu navegador.",
+      /** See `en.viewLabel`. */
+      viewLabel: "Vista de la respuesta",
+      /** See `en.viewFormatted`. */
+      viewFormatted: "Lectura",
+      /** See `en.viewRaw`. */
+      viewRaw: "JSON",
+      /** See `en.viewFormattedHint`. */
+      viewFormattedHint: "El texto de la respuesta, maquetado.",
+      /** See `en.viewRawHint`. */
+      viewRawHint: "El cuerpo JSON-RPC exacto, tal y como llegó.",
+      timedOut:
+        "Sin respuesta en 90 s — el inspector ha abandonado la petición.",
       responseLabel: "Respuesta MCP",
       statusIdle: "Todavía no se ha enviado nada.",
       running: "en curso",

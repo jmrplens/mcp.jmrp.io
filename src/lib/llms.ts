@@ -34,7 +34,14 @@ import {
   cursorJson,
   vscodeJson,
 } from "../lib/client-config";
-import { DEFAULT_LANG, LANGS, pageUrl, serverPageUrl, SITE_NAME, SITE_ORIGIN } from "../lib/seo";
+import {
+  DEFAULT_LANG,
+  LANGS,
+  pageUrl,
+  serverPageUrl,
+  SITE_NAME,
+  SITE_ORIGIN,
+} from "../lib/seo";
 
 /** Nombre humano de cada idioma, para los enlaces del índice. */
 const LANG_NAMES: Record<string, string> = { en: "English", es: "Spanish" };
@@ -70,7 +77,11 @@ function pageEntries(
   lang: Lang,
 ): { url: string; title: string; description: string }[] {
   const fixed = [
-    { url: pageUrl(lang, "home"), title: ui[lang].title, description: ui[lang].subtitle },
+    {
+      url: pageUrl(lang, "home"),
+      title: ui[lang].title,
+      description: ui[lang].subtitle,
+    },
     {
       url: pageUrl(lang, "inspector"),
       title: ui[lang].inspectorTitle,

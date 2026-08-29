@@ -9,7 +9,10 @@ test("un nombre de tool/prompt ya id-safe pasa a minúsculas sin más cambios", 
 });
 
 test("una uri de resource pierde el esquema y las barras, sin guiones sueltos", () => {
-  assert.equal(anchorSlug("gitlab://guides/code-review"), "gitlab-guides-code-review");
+  assert.equal(
+    anchorSlug("gitlab://guides/code-review"),
+    "gitlab-guides-code-review",
+  );
 });
 
 test("una uri template con llaves de parámetro queda legible", () => {

@@ -34,7 +34,9 @@ if (process.argv.includes("--check")) {
   try {
     committed = readFileSync(TARGET, "utf8");
   } catch {
-    console.error("✗ Falta identity/person.snapshot.json — créalo con: pnpm run identity:sync");
+    console.error(
+      "✗ Falta identity/person.snapshot.json — créalo con: pnpm run identity:sync",
+    );
     process.exit(1);
   }
   if (committed !== latest) {

@@ -286,7 +286,7 @@
    vista no se distingue de una etiqueta muerta: en móvil la página entera
    parecía texto plano sin nada accionable.
 
-   Vive aquí y no en el <style> de cada componente precisamente por eso: la
+   Vive aquí y no en el \3c style> de cada componente precisamente por eso: la
    duplicación fue lo que dejó que dos de los tres se quedaran atrás. Un
    componente que quiera este aspecto añade `disclosure` a su <details>.
 
@@ -306,11 +306,11 @@
 }
 
 .disclosure > summary::before {
-  content: "›";
   display: inline-block;
   flex-shrink: 0;
-  color: var(--color-accent);
   font-family: var(--font-mono);
+  color: var(--color-accent);
+  content: "›";
   transition: transform 0.15s ease;
 }
 

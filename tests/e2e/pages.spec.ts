@@ -45,13 +45,21 @@ const PAGES = [
   // have to be THEIR OWN URL, not the index's — see
   // `canonicalOverride`/`alternatesOverride` on Base.astro and
   // `serverPageUrl`/`serverPageAlternates` in lib/seo.ts.
-  { path: "/servers/libgen/", lang: "en", canonical: `${ORIGIN}/servers/libgen/` },
+  {
+    path: "/servers/libgen/",
+    lang: "en",
+    canonical: `${ORIGIN}/servers/libgen/`,
+  },
   {
     path: "/es/servers/libgen/",
     lang: "es",
     canonical: `${ORIGIN}/es/servers/libgen/`,
   },
-  { path: "/servers/gitlab/", lang: "en", canonical: `${ORIGIN}/servers/gitlab/` },
+  {
+    path: "/servers/gitlab/",
+    lang: "en",
+    canonical: `${ORIGIN}/servers/gitlab/`,
+  },
   {
     path: "/es/servers/gitlab/",
     lang: "es",
@@ -82,12 +90,10 @@ for (const { path, lang, canonical } of PAGES) {
     const hreflangs = await page
       .locator('link[rel="alternate"][hreflang]')
       .evaluateAll((links) =>
-        links.map(
-          (l): [string | null, string | null] => [
-            l.getAttribute("hreflang"),
-            l.getAttribute("href"),
-          ],
-        ),
+        links.map((l): [string | null, string | null] => [
+          l.getAttribute("hreflang"),
+          l.getAttribute("href"),
+        ]),
       );
     // Length FIRST: `new Map(hreflangs)` silently overwrites duplicate
     // language entries, so four links (two of them `en`) would still leave
@@ -113,7 +119,9 @@ for (const { path, lang, canonical } of PAGES) {
   });
 }
 
-test("las catorce páginas responden y llevan título propio", async ({ page }) => {
+test("las catorce páginas responden y llevan título propio", async ({
+  page,
+}) => {
   const paths = [
     "/",
     "/es/",

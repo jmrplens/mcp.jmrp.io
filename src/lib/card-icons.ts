@@ -59,7 +59,9 @@ export function isSafeIconSrc(src: string): boolean {
  * @param icons The card's `icons` array for a server/tool/prompt, if it has one.
  * @returns The icon to render, or `undefined` if there is none, or none is safe.
  */
-export function safeIcon<T extends IconLike>(icons: T[] | undefined): T | undefined {
+export function safeIcon<T extends IconLike>(
+  icons: T[] | undefined,
+): T | undefined {
   const safe = icons?.filter((icon) => isSafeIconSrc(icon.src));
   return safe?.find((icon) => icon.mimeType === "image/svg+xml") ?? safe?.[0];
 }

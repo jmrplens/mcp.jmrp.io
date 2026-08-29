@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { promptSchema, promptsFrom, resourcesFrom } from "../../src/lib/mcp-catalog.ts";
+import {
+  promptSchema,
+  promptsFrom,
+  resourcesFrom,
+} from "../../src/lib/mcp-catalog.ts";
 import { formFields, valuesToArgs } from "../../src/lib/tool-schema.ts";
 
 /**
@@ -96,10 +100,7 @@ test("prompts/list se normaliza con sus argumentos", () => {
       prompts: [
         {
           name: "acquire_book",
-          arguments: [
-            { name: "title", required: true },
-            { name: "author" },
-          ],
+          arguments: [{ name: "title", required: true }, { name: "author" }],
         },
       ],
     },
@@ -124,7 +125,11 @@ test("resources/list se normaliza", () => {
   const res = resourcesFrom({
     result: {
       resources: [
-        { uri: "gitlab://groups", name: "groups", mimeType: "application/json" },
+        {
+          uri: "gitlab://groups",
+          name: "groups",
+          mimeType: "application/json",
+        },
       ],
     },
   });
@@ -141,7 +146,9 @@ test("un catálogo vacío o mal formado no revienta", () => {
 test("un tipo union con null se lee como el tipo real", () => {
   const [field] = formFields({
     type: "object",
-    properties: { topics: { type: ["null", "array"], items: { type: "string" } } },
+    properties: {
+      topics: { type: ["null", "array"], items: { type: "string" } },
+    },
   });
   assert.equal(field.type, "string[]", 'pintaba "nullarray"');
   assert.equal(field.control, "list");

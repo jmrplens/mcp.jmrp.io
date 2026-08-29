@@ -35,7 +35,10 @@ interface Props {
 const { overviewLabel, families, ariaLabel } = Astro.props;
 ---
 
-<nav class="toc-nav" aria-label={ariaLabel}>
+<nav
+  class="toc-nav"
+  aria-label={ariaLabel}
+>
   <ul class="toc-list">
     <li><a href="#top">{overviewLabel}</a></li>
     {
@@ -58,17 +61,17 @@ const { overviewLabel, families, ariaLabel } = Astro.props;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    margin: 0;
     padding: 0;
+    margin: 0;
     list-style: none;
   }
 
   .toc-list a {
     display: block;
     padding: 0.4rem 0.65rem;
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: var(--text-sm);
+    color: var(--color-text-muted);
     text-decoration: none;
     border-radius: var(--radius-sm);
     transition:
@@ -88,7 +91,7 @@ const { overviewLabel, families, ariaLabel } = Astro.props;
   }
 
   .toc-count {
-    color: var(--color-text-faint-alt);
     font-size: var(--text-xs);
+    color: var(--color-text-faint-alt);
   }
 </style>

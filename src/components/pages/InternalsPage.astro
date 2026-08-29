@@ -39,7 +39,7 @@
  * UPDATE 2026-08-23, after the author's live review of the first cut: the
  * strip itself now carries ONE highlight indicator (`.mcp-box-fill` /
  * `.mcp-box-border`, see the "Traveling highlight box" section of the
- * <style> block) that glides continuously along it, dwelling at whichever
+ * `style` block) that glides continuously along it, dwelling at whichever
  * stage the current bubble narrates and travelling to the next with an
  * accelerate/cruise/decelerate profile. It stays on screen for the whole
  * pass and only leaves at the wrap: at the end of stage 6 it fades out in
@@ -62,7 +62,7 @@
  *
  * UPDATE 2026-08-23 (destination hop): the strip always had six stages
  * (client → Cloudflare → nginx → nodes → egress → destination — see "The
- * strip" section of the <style> block), but only the first five had a
+ * strip" section of the `style` block), but only the first five had a
  * bubble/timeline step/box dwell, so the traveling box jumped straight from
  * "egress" back to "client" and the caption never mentioned that egress
  * hands off to an actual destination. The author: "añade punto 6 que es la
@@ -198,7 +198,7 @@ const affinityTokens: SnippetToken[] = [
 // HTML. None of it ships to the browser: the diagram that reaches the client
 // is a static strip (plain HTML/CSS, no SVG) plus six annotation bubbles and
 // one traveling highlight indicator, all cycled by CSS animations alone (see
-// the <style> block). This is what "no JavaScript on this page" (Restriction)
+// the `style` block). This is what "no JavaScript on this page" (Restriction)
 // means in practice — the computation happens, just not where a crawler or
 // an assistant would have to run it.
 
@@ -244,7 +244,7 @@ const nodeY = (i: number): number =>
 // The exits, in first-seen order, and which one each node uses. Two today
 // (two countries), and the code never assumes that number.
 const egressKeys = [...new Set(nodes.map((n) => n.egressCountry))];
-// KEEP-IN-SYNC con `.egress-stack` y `.stage-icon--egress` del <style>: las
+// KEEP-IN-SYNC con `.egress-stack` y `.stage-icon--egress` del `style`: las
 // salidas se colocan con flexbox, así que este número no es libre — es el
 // diámetro del círculo más el hueco de la pila (22px + 8px). Si se separan,
 // los círculos del HTML dejan de caer sobre los extremos que dibuja el SVG.
@@ -305,20 +305,26 @@ const wires = {
   // never makes: that the two exits share a destination. They do not — each
   // request goes wherever its caller pointed it, so the destination is a
   // region, not a host, and every exit enters it on its own line.
-  tls_out: egressKeys.map((_, i) => wire(COL_X[4], egressY(i), COL_X[5], egressY(i))),
+  tls_out: egressKeys.map((_, i) =>
+    wire(COL_X[4], egressY(i), COL_X[5], egressY(i)),
+  ),
 };
 
 /** Every wire, in one list: the flow dots ride the same paths as the colours. */
-const allWires = [...wires.tls_in, ...wires.local, ...wires.ssh, ...wires.tls_out];
+const allWires = [
+  ...wires.tls_in,
+  ...wires.local,
+  ...wires.ssh,
+  ...wires.tls_out,
+];
 
 // The node the reduced-motion frozen frame rings as "the chosen one" (see
-// the `prefers-reduced-motion` rules in the <style> block). ILLUSTRATIVE,
+// the `prefers-reduced-motion` rules in the `style` block). ILLUSTRATIVE,
 // not the real affinity outcome for any actual client — computing that
 // needs `$mcp_affinity_salt`, the secret this page never has (see
 // `affinityTokens` above). Any index works; the point the ring makes is
 // "always this same one", not "specifically this one".
 const MATCHED_NODE_INDEX = 0;
-
 ---
 
 <p class="back-link">
@@ -330,34 +336,47 @@ const MATCHED_NODE_INDEX = 0;
 <p class="internals-intro">{t.lede}</p>
 
 <section aria-labelledby="path-h">
-  <h2 class="eyebrow" id="path-h">{t.pathEyebrow}</h2>
+  <h2
+    class="eyebrow"
+    id="path-h"
+  >
+    {t.pathEyebrow}
+  </h2>
   {t.pathBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
 
-  {/* Request-path figure: a strip of six fixed stages (the "aria-hidden"
+  {
+    /* Request-path figure: a strip of six fixed stages (the "aria-hidden"
       icons are pure decoration, the stage names and node numbers/countries
       are real HTML, not SVG text) plus a single highlight indicator that
       glides between all six stages the bubbles narrate, and six
       annotation bubbles that cycle one at a time via CSS animation alone.
       The bubble area's height is reserved by `.mcp-bubbles`'s fixed
-      `height` (see the <style> block) — that is what keeps the page from
+      `height` (see the `style` block) — that is what keeps the page from
       jumping as they cycle. `MATCHED_NODE_INDEX` only matters for the
       reduced-motion frozen frame, defined entirely inside that media query
-      below. */}
+      below. */
+  }
   <figure class="mcp-flow-figure">
     <div class="mcp-scale">
-    <div class="mcp-strip">
-      {/* Traveling highlight box — see the <style> block's "Traveling
+      <div class="mcp-strip">
+        {
+          /* Traveling highlight box — see the `style` block's "Traveling
           highlight box" section. Two elements sharing one animation: the
           fill goes FIRST in the DOM (paints behind the stages below, via
           `isolation: isolate` on `.mcp-strip` plus its own negative
           `z-index`) and the border goes LAST (paints above everything, via
           a positive `z-index`) — that split is what keeps the highlight's
           background from ever covering a stage's icon or label text. Both
-          `aria-hidden`: purely decorative, like every icon on this strip. */}
-      <span class="mcp-box-fill" aria-hidden="true"></span>
+          `aria-hidden`: purely decorative, like every icon on this strip. */
+        }
+        <span
+          class="mcp-box-fill"
+          aria-hidden="true"
+        ></span>
 
-      {/* The connectors, painted BEHIND every stage (see `.mcp-wires` in the
-          <style> block) so the opaque icons read as beads on the wires. One
+        {
+          /* The connectors, painted BEHIND every stage (see `.mcp-wires` in the
+          `style` block) so the opaque icons read as beads on the wires. One
           path per hop, coloured by transport — the flat line this replaced
           could only ever draw a pipeline, and what happens here is a fork:
           nginx picks ONE node, that node leaves through ONE exit. Decorative
@@ -366,130 +385,264 @@ const MATCHED_NODE_INDEX = 0;
 
           `preserveAspectRatio="none"` lets x stretch with the grid while y
           stays in px, and `vector-effect="non-scaling-stroke"` keeps that
-          stretch from thickening the strokes. */}
-      <svg
-        class="mcp-wires"
-        viewBox={`0 0 100 ${TRACK_H}`}
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        {wires.tls_in.map((d) => <path class="wire wire--tls" d={d} vector-effect="non-scaling-stroke" />)}
-        {wires.local.map((d) => <path class="wire wire--local" d={d} vector-effect="non-scaling-stroke" />)}
-        {wires.ssh.map((d) => <path class="wire wire--ssh" d={d} vector-effect="non-scaling-stroke" />)}
-        {wires.tls_out.map((d) => <path class="wire wire--tls" d={d} vector-effect="non-scaling-stroke" />)}
-        {/* Flow dots: the same paths again, dotted and marching, so the figure
-            is visibly alive the moment it appears instead of waiting for the
-            highlight box's first move. Painted over the colours, in the accent
-            so they read against green, grey and blue alike. */}
-        {allWires.map((d) => <path class="flow" d={d} vector-effect="non-scaling-stroke" />)}
-      </svg>
-
-
-      <div class="stage stage--client">
-        <span class="stage-icon stage-icon--client" aria-hidden="true">
-          <span></span><span></span><span></span>
-        </span>
-        <span class="stage-label">{t.diagramStageClient}</span>
-      </div>
-
-      <div class="stage stage--cloudflare">
-        <span class="stage-icon stage-icon--cloudflare" aria-hidden="true">
-          <span class="i-simple-icons:cloudflare"></span>
-        </span>
-        <span class="stage-label">Cloudflare</span>
-      </div>
-
-      <div class="stage stage--nginx">
-        <span class="stage-icon stage-icon--nginx" aria-hidden="true"></span>
-        <span class="stage-label">nginx</span>
-      </div>
-
-      <div class="stage stage--nodes">
-        <div class="node-cluster">
+          stretch from thickening the strokes. */
+        }
+        <svg
+          class="mcp-wires"
+          viewBox={`0 0 100 ${TRACK_H}`}
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
           {
-            nodes.map((_, i) => (
-              <span class={`node-badge${i === MATCHED_NODE_INDEX ? " node-badge--matched" : ""}`}>
-                <span class="node-badge-num">{i + 1}</span>
-              </span>
+            wires.tls_in.map((d) => (
+              <path
+                class="wire wire--tls"
+                d={d}
+                vector-effect="non-scaling-stroke"
+              />
             ))
           }
-        </div>
-        <span class="stage-label">{t.diagramStageNodes}</span>
-      </div>
+          {
+            wires.local.map((d) => (
+              <path
+                class="wire wire--local"
+                d={d}
+                vector-effect="non-scaling-stroke"
+              />
+            ))
+          }
+          {
+            wires.ssh.map((d) => (
+              <path
+                class="wire wire--ssh"
+                d={d}
+                vector-effect="non-scaling-stroke"
+              />
+            ))
+          }
+          {
+            wires.tls_out.map((d) => (
+              <path
+                class="wire wire--tls"
+                d={d}
+                vector-effect="non-scaling-stroke"
+              />
+            ))
+          }
+          {
+            /* Flow dots: the same paths again, dotted and marching, so the figure
+            is visibly alive the moment it appears instead of waiting for the
+            highlight box's first move. Painted over the colours, in the accent
+            so they read against green, grey and blue alike. */
+          }
+          {
+            allWires.map((d) => (
+              <path
+                class="flow"
+                d={d}
+                vector-effect="non-scaling-stroke"
+              />
+            ))
+          }
+        </svg>
 
-      <div class="stage stage--egress">
-        <div class="egress-zone">
-          <div class="egress-stack">
+        <div class="stage stage--client">
+          <span
+            class="stage-icon stage-icon--client"
+            aria-hidden="true"
+          >
+            <span></span><span></span><span></span>
+          </span>
+          <span class="stage-label">{t.diagramStageClient}</span>
+        </div>
+
+        <div class="stage stage--cloudflare">
+          <span
+            class="stage-icon stage-icon--cloudflare"
+            aria-hidden="true"
+          >
+            <span class="i-simple-icons:cloudflare"></span>
+          </span>
+          <span class="stage-label">Cloudflare</span>
+        </div>
+
+        <div class="stage stage--nginx">
+          <span
+            class="stage-icon stage-icon--nginx"
+            aria-hidden="true"
+          ></span>
+          <span class="stage-label">nginx</span>
+        </div>
+
+        <div class="stage stage--nodes">
+          <div class="node-cluster">
             {
-              egressKeys.map((code) => (
-                <span class="stage-icon stage-icon--egress">{code}</span>
+              nodes.map((_, i) => (
+                <span
+                  class={`node-badge${i === MATCHED_NODE_INDEX ? " node-badge--matched" : ""}`}
+                >
+                  <span class="node-badge-num">{i + 1}</span>
+                </span>
               ))
             }
           </div>
+          <span class="stage-label">{t.diagramStageNodes}</span>
         </div>
-        <span class="stage-label">{t.diagramStageEgress}</span>
-      </div>
 
-      <div class="stage stage--destination">
-        <span class="stage-icon stage-icon--zone" aria-hidden="true"></span>
-        <span class="stage-label">{t.diagramStageDestination}</span>
-      </div>
+        <div class="stage stage--egress">
+          <div class="egress-zone">
+            <div class="egress-stack">
+              {
+                egressKeys.map((code) => (
+                  <span class="stage-icon stage-icon--egress">{code}</span>
+                ))
+              }
+            </div>
+          </div>
+          <span class="stage-label">{t.diagramStageEgress}</span>
+        </div>
 
-      {/* nginx y las instancias corren en UNA máquina, y esa máquina está en
+        <div class="stage stage--destination">
+          <span
+            class="stage-icon stage-icon--zone"
+            aria-hidden="true"
+          ></span>
+          <span class="stage-label">{t.diagramStageDestination}</span>
+        </div>
+
+        {
+          /* nginx y las instancias corren en UNA máquina, y esa máquina está en
           España: el recuadro lo dice en vez de dejarlo implícito. El código de
           país es texto real, no decoración — responde a «dónde se procesa de
-          verdad mi petición», que es distinto de por dónde sale después. */}
-      <div class="mcp-region"><span class="mcp-region-tag">ES</span></div>
+          verdad mi petición», que es distinto de por dónde sale después. */
+        }
+        <div class="mcp-region"><span class="mcp-region-tag">ES</span></div>
 
-      <span class="mcp-box-border" aria-hidden="true"></span>
-    </div>
+        <span
+          class="mcp-box-border"
+          aria-hidden="true"
+        ></span>
+      </div>
     </div>
 
-    {/* Transport legend. The connector line under the strip is painted in
-        one colour per transport (see "Connector line" in the <style>
+    {
+      /* Transport legend. The connector line under the strip is painted in
+        one colour per transport (see "Connector line" in the `style`
         block); this is what those colours say, in real text — colour alone
         never carries the meaning. It sits between the strip and the bubbles
         because that is where the author asked for it, and because a reader
         meets the coloured line first and the question ("what do the colours
-        mean?") immediately after. */}
+        mean?") immediately after. */
+    }
     <ul class="mcp-legend">
-      <li><span class="mcp-legend-swatch mcp-legend-swatch--tls" aria-hidden="true"></span>{t.diagramLegendTls}</li>
-      <li><span class="mcp-legend-swatch mcp-legend-swatch--local" aria-hidden="true"></span>{t.diagramLegendLocal}</li>
-      <li><span class="mcp-legend-swatch mcp-legend-swatch--ssh" aria-hidden="true"></span>{t.diagramLegendSsh}</li>
+      <li>
+        <span
+          class="mcp-legend-swatch mcp-legend-swatch--tls"
+          aria-hidden="true"
+        ></span>{t.diagramLegendTls}
+      </li>
+      <li>
+        <span
+          class="mcp-legend-swatch mcp-legend-swatch--local"
+          aria-hidden="true"
+        ></span>{t.diagramLegendLocal}
+      </li>
+      <li>
+        <span
+          class="mcp-legend-swatch mcp-legend-swatch--ssh"
+          aria-hidden="true"
+        ></span>{t.diagramLegendSsh}
+      </li>
     </ul>
 
-    {/* Fixed-height annotation zone: exactly one bubble opaque at a time,
+    {
+      /* Fixed-height annotation zone: exactly one bubble opaque at a time,
         via the `phase-N` keyframes shared with the highlight box's
-        `box-travel` animation above (see the <style> block's "Bubble
+        `box-travel` animation above (see the `style` block's "Bubble
         cycle" section for the timing table both share). `bubble-leader`'s
         `left` and the highlight box's travel target both key off the same
         six column positions, defined once as `--pos` per `.bubble--N` and
-        reused by its leader/tail — see the <style> block's "Shared column
-        positions" comment for why. */}
+        reused by its leader/tail — see the `style` block's "Shared column
+        positions" comment for why. */
+    }
     <div class="mcp-bubbles">
       <div class="bubble bubble--1">
-        <span class="bubble-leader" aria-hidden="true"></span>
-        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">1</span><span class="bubble-text">{t.diagramBubble1}</span></p>
+        <span
+          class="bubble-leader"
+          aria-hidden="true"
+        ></span>
+        <p class="bubble-box">
+          <span
+            class="bubble-num"
+            aria-hidden="true"
+            >1</span
+          ><span class="bubble-text">{t.diagramBubble1}</span>
+        </p>
       </div>
       <div class="bubble bubble--2">
-        <span class="bubble-leader" aria-hidden="true"></span>
-        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">2</span><span class="bubble-text">{t.diagramBubble2}</span></p>
+        <span
+          class="bubble-leader"
+          aria-hidden="true"
+        ></span>
+        <p class="bubble-box">
+          <span
+            class="bubble-num"
+            aria-hidden="true"
+            >2</span
+          ><span class="bubble-text">{t.diagramBubble2}</span>
+        </p>
       </div>
       <div class="bubble bubble--3">
-        <span class="bubble-leader" aria-hidden="true"></span>
-        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">3</span><span class="bubble-text">{t.diagramBubble3}</span></p>
+        <span
+          class="bubble-leader"
+          aria-hidden="true"
+        ></span>
+        <p class="bubble-box">
+          <span
+            class="bubble-num"
+            aria-hidden="true"
+            >3</span
+          ><span class="bubble-text">{t.diagramBubble3}</span>
+        </p>
       </div>
       <div class="bubble bubble--4">
-        <span class="bubble-leader" aria-hidden="true"></span>
-        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">4</span><span class="bubble-text">{t.diagramBubble4}</span></p>
+        <span
+          class="bubble-leader"
+          aria-hidden="true"
+        ></span>
+        <p class="bubble-box">
+          <span
+            class="bubble-num"
+            aria-hidden="true"
+            >4</span
+          ><span class="bubble-text">{t.diagramBubble4}</span>
+        </p>
       </div>
       <div class="bubble bubble--5">
-        <span class="bubble-leader" aria-hidden="true"></span>
-        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">5</span><span class="bubble-text">{t.diagramBubble5}</span></p>
+        <span
+          class="bubble-leader"
+          aria-hidden="true"
+        ></span>
+        <p class="bubble-box">
+          <span
+            class="bubble-num"
+            aria-hidden="true"
+            >5</span
+          ><span class="bubble-text">{t.diagramBubble5}</span>
+        </p>
       </div>
       <div class="bubble bubble--6">
-        <span class="bubble-leader" aria-hidden="true"></span>
-        <p class="bubble-box"><span class="bubble-num" aria-hidden="true">6</span><span class="bubble-text">{t.diagramBubble6}</span></p>
+        <span
+          class="bubble-leader"
+          aria-hidden="true"
+        ></span>
+        <p class="bubble-box">
+          <span
+            class="bubble-num"
+            aria-hidden="true"
+            >6</span
+          ><span class="bubble-text">{t.diagramBubble6}</span>
+        </p>
       </div>
     </div>
 
@@ -499,93 +652,161 @@ const MATCHED_NODE_INDEX = 0;
     </figcaption>
   </figure>
 
-  {/* Prose timeline: same six numbers as the bubbles above, full detail,
+  {
+    /* Prose timeline: same six numbers as the bubbles above, full detail,
       real HTML — this, not the figure, is what a crawler, an assistant or a
       `prefers-reduced-motion` visitor actually reads. See this file's
-      header comment for why the detail lives here and not in the figure. */}
+      header comment for why the detail lives here and not in the figure. */
+  }
   <p class="prose-text">{t.diagramTimelineIntro}</p>
   <ol class="mcp-timeline">
     <li>
-      <span class="mcp-timeline-num" aria-hidden="true">1</span>
+      <span
+        class="mcp-timeline-num"
+        aria-hidden="true"
+        >1</span
+      >
       <p>{t.diagramTimelineStep1}</p>
     </li>
     <li>
-      <span class="mcp-timeline-num" aria-hidden="true">2</span>
+      <span
+        class="mcp-timeline-num"
+        aria-hidden="true"
+        >2</span
+      >
       <p>{t.diagramTimelineStep2}</p>
     </li>
     <li>
-      <span class="mcp-timeline-num" aria-hidden="true">3</span>
+      <span
+        class="mcp-timeline-num"
+        aria-hidden="true"
+        >3</span
+      >
       <p>{t.diagramTimelineStep3}</p>
     </li>
     <li>
-      <span class="mcp-timeline-num" aria-hidden="true">4</span>
+      <span
+        class="mcp-timeline-num"
+        aria-hidden="true"
+        >4</span
+      >
       <p>{t.diagramTimelineStep4}</p>
     </li>
     <li>
-      <span class="mcp-timeline-num" aria-hidden="true">5</span>
+      <span
+        class="mcp-timeline-num"
+        aria-hidden="true"
+        >5</span
+      >
       <p>{t.diagramTimelineStep5}</p>
     </li>
     <li>
-      <span class="mcp-timeline-num" aria-hidden="true">6</span>
+      <span
+        class="mcp-timeline-num"
+        aria-hidden="true"
+        >6</span
+      >
       <p>{t.diagramTimelineStep6}</p>
     </li>
   </ol>
 </section>
 
-{/* The inspector's storage sits right before the wire section: both are
+{
+  /* The inspector's storage sits right before the wire section: both are
     about what happens to a credential, and this one answers the question the
     inspector's own privacy note raises — "how would I know?". The anchor id is
-    linked from that note, so it is part of the contract. */}
+    linked from that note, so it is part of the contract. */
+}
 <section aria-labelledby="inspector-storage-h">
-  <h2 class="eyebrow" id="inspector-storage-h">{t.storageEyebrow}</h2>
-  {t.storageBody.map((paragraph: string) => <p class="prose-text">{paragraph}</p>)}
+  <h2
+    class="eyebrow"
+    id="inspector-storage-h"
+  >
+    {t.storageEyebrow}
+  </h2>
+  {
+    t.storageBody.map((paragraph: string) => (
+      <p class="prose-text">{paragraph}</p>
+    ))
+  }
 </section>
 
 <section aria-labelledby="wire-h">
-  <h2 class="eyebrow" id="wire-h">{t.wireEyebrow}</h2>
+  <h2
+    class="eyebrow"
+    id="wire-h"
+  >
+    {t.wireEyebrow}
+  </h2>
   {t.wireBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
 </section>
 
 <section aria-labelledby="instances-h">
-  <h2 class="eyebrow" id="instances-h">{t.instancesEyebrow}</h2>
+  <h2
+    class="eyebrow"
+    id="instances-h"
+  >
+    {t.instancesEyebrow}
+  </h2>
   {t.instancesBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
 </section>
 
 <section aria-labelledby="affinity-h">
-  <h2 class="eyebrow" id="affinity-h">{t.affinityEyebrow}</h2>
+  <h2
+    class="eyebrow"
+    id="affinity-h"
+  >
+    {t.affinityEyebrow}
+  </h2>
   <p class="prose-text">{t.affinityIntro}</p>
   <p class="prose-text">{t.affinityLibgen}</p>
   <p class="prose-text">{t.affinityGitlab}</p>
-  {t.affinityCodeIntro.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+  {
+    t.affinityCodeIntro.map((paragraph) => (
+      <p class="prose-text">{paragraph}</p>
+    ))
+  }
   <pre><code>{affinityTokens.map((tok) =>
     tok.cls ? <span class={`snippet-${tok.cls}`}>{tok.text}</span> : tok.text,
   )}</code></pre>
   <p class="prose-text">{t.affinityConsequence}</p>
-
 </section>
 
 <section aria-labelledby="egress-h">
-  <h2 class="eyebrow" id="egress-h">{t.egressEyebrow}</h2>
+  <h2
+    class="eyebrow"
+    id="egress-h"
+  >
+    {t.egressEyebrow}
+  </h2>
   {t.egressBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
 </section>
 
 <section aria-labelledby="personal-h">
-  <h2 class="eyebrow" id="personal-h">{t.personalEyebrow}</h2>
+  <h2
+    class="eyebrow"
+    id="personal-h"
+  >
+    {t.personalEyebrow}
+  </h2>
   {t.personalBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
-  {/* Points at the full statements (no-SLA, legal position) instead of
+  {
+    /* Points at the full statements (no-SLA, legal position) instead of
       repeating them: this page's job is the mechanism, policies' job is the
-      commitment — or lack of one. */}
+      commitment — or lack of one. */
+  }
   <p class="prose-text">
     <a href={policiesHref}>{t.policiesLink}</a>
   </p>
 </section>
 
-{/* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
-    cannot just live in the footer. */}
+{
+  /* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
+    cannot just live in the footer. */
+}
 <UpdatedLine lang={lang} />
 
 <style>
-
   /* Heading size lives in base.css's `.subpage-title` now — Inspector and
      Policies already used it; this page had its own hand-copied clamp
      (2.25rem→3.25rem, not 2.125rem→3.25rem) left over from before this page
@@ -593,13 +814,13 @@ const MATCHED_NODE_INDEX = 0;
      subpages share one rule, per base.css's `.subpage-title` comment. */
 
   /* Copied from PoliciesPage.astro / InspectorPage.astro's shared rules:
-     Astro scopes <style> per component, so a class used on more than one
+     Astro scopes `style` per component, so a class used on more than one
      page needs its own copy here. */
   .back-link {
     margin: 0 0 1.5rem;
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: 0.8125rem;
+    color: var(--color-text-muted);
   }
 
   .back-link a {
@@ -615,8 +836,8 @@ const MATCHED_NODE_INDEX = 0;
   .internals-intro {
     max-width: 62ch;
     margin: 0 0 2.5rem;
-    color: var(--color-text);
     font-size: 1.0625rem;
+    color: var(--color-text);
     text-wrap: pretty;
   }
 
@@ -638,19 +859,18 @@ const MATCHED_NODE_INDEX = 0;
     gap: 0.6rem;
     align-items: center;
     margin: 0 0 1.25rem;
-    color: var(--color-accent);
     font-family: var(--font-mono);
     font-size: var(--text-label);
     font-weight: var(--fw-medium);
-    letter-spacing: 0.16em;
+    color: var(--color-accent);
     text-transform: uppercase;
+    letter-spacing: 0.16em;
   }
 
   .eyebrow::before {
     color: var(--color-accent);
     content: "//";
   }
-
 
   .prose-text a {
     color: var(--color-accent);
@@ -667,21 +887,22 @@ const MATCHED_NODE_INDEX = 0;
      long nginx line would otherwise widen it on mobile. */
   pre {
     max-width: 62ch;
-    margin: 0 0 1.25rem;
     padding: 0.9rem 1rem;
+    margin: 0 0 1.25rem;
     overflow-x: auto;
-    border: 1px solid var(--color-hair);
-    border-radius: 6px;
+
     /* Opaco, no `--color-bg-subtle`: ese token es un 5% translúcido, así que
        la rejilla del fondo cruzaba la caja y en claro dejaba de leerse como
        una superficie. Mismo criterio que las tarjetas de jmrp.io. */
     background: var(--color-bg);
+    border: 1px solid var(--color-hair);
+    border-radius: 6px;
   }
 
   pre code {
-    color: var(--color-text);
     font-family: var(--font-mono);
     font-size: 0.8125rem;
+    color: var(--color-text);
     white-space: pre;
   }
 
@@ -733,6 +954,7 @@ const MATCHED_NODE_INDEX = 0;
      "UPDATE 2026-08-23" and "UPDATE 2026-08-23 (destination hop)", for why
      this changed from the original highlight-only version and for why it
      now reaches a sixth stage. */
+
   /* `--wire-*`: the three transport colours, defined once for the connector
      line and its legend. Site tokens, not new hex — `success` for a hop
      encrypted with TLS, `info` for the SSH tunnel, and the muted text colour
@@ -748,14 +970,15 @@ const MATCHED_NODE_INDEX = 0;
     --wire-local: var(--color-text-muted);
 
     max-width: 62ch;
-    margin: 1.75rem 0;
     padding: 1rem;
-    border: 1px solid var(--color-hair);
-    border-radius: var(--radius-md);
+    margin: 1.75rem 0;
+
     /* Opaco, no `--color-bg-subtle`: ese token es un 5% translúcido, así que
        la rejilla del fondo cruzaba la caja y en claro dejaba de leerse como
        una superficie. Mismo criterio que las tarjetas de jmrp.io. */
-background: var(--color-bg-secondary);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-hair);
+    border-radius: var(--radius-md);
   }
 
   /* ===== The strip =============================================================
@@ -770,6 +993,7 @@ background: var(--color-bg-secondary);
      keeps the strip horizontal with zero horizontal scroll at 360px, the
      hard requirement that sank neither, but almost sank, both earlier
      attempts. */
+
   /* ===== Escala proporcional ====================================================
      La figura se DISEÑA a un ancho de 380.44px (la franja a un viewport de
      440px, medido en el navegador) y desde ahí escala como un bloque: `--u`
@@ -790,26 +1014,30 @@ background: var(--color-bg-secondary);
      El tope de `.mcp-scale` existe porque sin él la figura crecería con la
      columna de texto: a 1280px sería casi el triple que en el diseño. */
   .mcp-scale {
-    container-type: inline-size;
     max-width: 46rem;
+    container-type: inline-size;
   }
 
   .mcp-strip {
     --u: calc(100cqw / 380.44);
     --track-h: calc(74 * var(--u));
+
     position: relative;
     display: grid;
+
     /* Cloudflare/destination get a bit more than client/nginx/egress: they
        are the longest words on the strip ("Cloudflare", "destination") and
        would otherwise wrap ugly mid-word even with `overflow-wrap: anywhere`
        below. Nodes still gets by far the most room — see this block's
        header comment. */
+
     /* The nodes column no longer holds a row of badges (they stack now), so
        it needs no more room than any other; the width goes instead to the two
        longest words, which used to break mid-word at 390px. */
     grid-template-columns: 0.65fr 1.5fr 0.9fr 1.225fr 1.225fr 1.5fr;
-    align-items: start;
     column-gap: calc(2 * var(--u));
+    align-items: start;
+
     /* Gives `.mcp-box-fill`'s negative `z-index` (below) somewhere to land:
        without this, a negative `z-index` on a descendant escapes past
        `.mcp-strip` itself and paints behind `.mcp-flow-figure`'s own
@@ -822,6 +1050,7 @@ background: var(--color-bg-secondary);
      element is always painted before its element's real children, so the
      opaque icon/badge circles sitting on top of it read as beads on a wire
      with no z-index bookkeeping needed. */
+
   /* The connectors. Absolutely positioned over the icon track — NOT over the
      whole strip — so the SVG's y axis and the track's px height are the same
      number, which is what lets the frontmatter place a curve's endpoint on a
@@ -832,7 +1061,10 @@ background: var(--color-bg-secondary);
      stages read as beads threaded on the lines. */
   .mcp-wires {
     position: absolute;
-    top: calc(3.2 * var(--u)); /* the stage's own padding: aligns the track with the icons */
+    top: calc(
+      3.2 * var(--u)
+    ); /* the stage's own padding: aligns the track with the icons */
+
     left: 0;
     z-index: -1;
     width: 100%;
@@ -897,9 +1129,9 @@ background: var(--color-bg-secondary);
     justify-content: center;
     padding: 0;
     margin: 0.9rem 0 0;
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: 0.65rem;
+    color: var(--color-text-muted);
     list-style: none;
   }
 
@@ -992,16 +1224,18 @@ background: var(--color-bg-secondary);
   .mcp-box-border {
     position: absolute;
     top: calc(-4 * var(--u));
+
     /* The shared track plus the label under it, plus 4px of air each side —
        every column is the same height now, so one value fits all six. */
     height: calc(var(--track-h) + calc(30 * var(--u)));
+    pointer-events: none;
     border-radius: var(--radius-md);
+
     /* `linear` here is a harmless default: every dwell segment below holds
        its value constant (no interpolation needed) and every travel segment
        sets its OWN `animation-timing-function` per keyframe — see
        `box-travel`'s header comment. */
     animation: box-travel 30s linear infinite;
-    pointer-events: none;
   }
 
   .mcp-box-fill {
@@ -1018,14 +1252,15 @@ background: var(--color-bg-secondary);
     box-sizing: border-box;
     width: calc(18 * var(--u));
     height: calc(18 * var(--u));
+    background: var(--color-bg-secondary);
     border: calc(1.5 * var(--u)) solid var(--color-border);
     border-radius: 50%;
-    background: var(--color-bg-secondary);
   }
 
   /* nginx: where the decision happens, drawn "in focus" even at rest — a
      thicker accent ring and a tinted fill, not just a highlight during its
      own bubble's window. */
+
   /* The destination is not a host: it is whatever each caller pointed its
      client at, which is why the two exits enter it on separate straight lines
      instead of meeting at a bead. A tall block reads as a region the way a
@@ -1038,12 +1273,12 @@ background: var(--color-bg-secondary);
   }
 
   .stage-icon--nginx {
-    border-width: calc(2.5 * var(--u));
-    border-color: var(--color-accent);
     /* Relleno macizo, no el tinte de antes: es la única pieza del dibujo que
        DECIDE algo, y a 18px un aro con relleno translúcido se lee igual que
        cualquier otra cuenta del hilo. */
     background: var(--color-accent);
+    border-color: var(--color-accent);
+    border-width: calc(2.5 * var(--u));
   }
 
   /* Cloudflare: el único salto que no es de este operador, en su naranja de
@@ -1056,9 +1291,9 @@ background: var(--color-bg-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
-    border-color: #f6821f;
-    background: #f6821f;
     color: #fff;
+    background: #f6821f;
+    border-color: #f6821f;
   }
 
   .stage-icon--cloudflare > span {
@@ -1070,15 +1305,15 @@ background: var(--color-bg-secondary);
      el marco, y solo las dos líneas que SALEN son por país. Opaco a propósito,
      como el resto de iconos: tapa los extremos de los hilos que mueren detrás. */
   .egress-zone {
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-sizing: border-box;
     height: calc(var(--track-h) - calc(4 * var(--u)));
     padding: 0 calc(6 * var(--u));
+    background: var(--color-bg-secondary);
     border: calc(1.5 * var(--u)) solid var(--color-border);
     border-radius: var(--radius-md);
-    background: var(--color-bg-secondary);
   }
 
   /* Más grandes que el resto de cuentas porque llevan dentro el código ISO del
@@ -1089,10 +1324,10 @@ background: var(--color-bg-secondary);
     justify-content: center;
     width: calc(22 * var(--u));
     height: calc(22 * var(--u));
-    color: var(--color-text);
     font-family: var(--font-mono);
     font-size: calc(8 * var(--u));
     font-weight: var(--fw-semibold);
+    color: var(--color-text);
   }
 
   /* La zona española: nginx y las instancias, o sea las columnas 3 y 4 de
@@ -1114,26 +1349,28 @@ background: var(--color-bg-secondary);
     box-sizing: border-box;
     width: 30.357%;
     height: var(--track-h);
+
     /* Discontinuo y SIN relleno, a diferencia del marco de egress, que sí es
        una caja opaca: los dos son rectángulos y dicen cosas distintas — este
        marca DÓNDE está lo de dentro, aquel agrupa dos salidas. Con relleno
        ambos se leían igual, y además ensuciaba el paso de la caja de resalte. */
     border: calc(1 * var(--u)) dashed var(--color-text-muted);
     border-radius: var(--radius-md);
-    opacity: 0.55;
+    opacity: 55%;
   }
 
   .mcp-region-tag {
     position: absolute;
     top: calc(2 * var(--u));
     left: calc(5 * var(--u));
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: calc(8 * var(--u));
     line-height: 1;
+    color: var(--color-text-muted);
   }
 
   /* Client: three small dots instead of a ring — "you", not a server. */
+
   /* The client keeps its three-dot glyph but wears the same bead as every
      other stage: since the connectors became 2px coloured wires drawn behind
      the strip, a borderless icon let the wire run BETWEEN the dots, which
@@ -1141,31 +1378,31 @@ background: var(--color-bg-secondary);
      circle's own background masks the wire, exactly as it does for the rest. */
   .stage-icon--client {
     display: flex;
+    gap: calc(2 * var(--u));
     align-items: center;
     justify-content: center;
-    gap: calc(2 * var(--u));
   }
 
   .stage-icon--client span {
     width: calc(3 * var(--u));
     height: calc(3 * var(--u));
-    border-radius: 50%;
     background: var(--color-text-muted);
+    border-radius: 50%;
   }
 
   .stage-label {
-    overflow-wrap: anywhere; /* see this block's header comment */
-    hyphens: auto; /* "destination" breaks as "desti-nation", not "destinatio-n", if it still has to wrap at all */
-    color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: calc(9.92 * var(--u));
     line-height: 1.15;
+    color: var(--color-text-muted);
     text-align: center;
+    hyphens: auto; /* "destination" breaks as "desti-nation", not "destinatio-n", if it still has to wrap at all */
+    overflow-wrap: anywhere; /* see this block's header comment */
   }
 
   .stage--nginx .stage-label {
-    color: var(--color-text);
     font-weight: var(--fw-semibold);
+    color: var(--color-text);
   }
 
   /* ===== Node cluster ==========================================================
@@ -1175,6 +1412,7 @@ background: var(--color-bg-secondary);
      `box-travel` above), never a single badge. Numbers/countries are real
      HTML text, not SVG: this is real data from `topology.ts`, not
      decoration. */
+
   /* Nodes stack: one circle per instance, spread over the shared track so each
      one lines up with the curve that reaches it. `justify-content: space-*` is
      deliberately NOT used — the frontmatter computes the same even spread for
@@ -1193,8 +1431,8 @@ background: var(--color-bg-secondary);
   .egress-stack {
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: calc(8 * var(--u));
+    align-items: center;
   }
 
   .node-badge {
@@ -1209,16 +1447,14 @@ background: var(--color-bg-secondary);
     justify-content: center;
     width: calc(18 * var(--u));
     height: calc(18 * var(--u));
-    border: calc(1.5 * var(--u)) solid var(--color-border);
-    border-radius: 50%;
-    background: var(--color-bg-secondary);
-    color: var(--color-text);
     font-family: var(--font-mono);
     font-size: calc(8.8 * var(--u));
     font-weight: var(--fw-semibold);
+    color: var(--color-text);
+    background: var(--color-bg-secondary);
+    border: calc(1.5 * var(--u)) solid var(--color-border);
+    border-radius: 50%;
   }
-
-
 
   /* ===== Shared column positions ===============================================
      The six bubble targets, as center-of-column percentages of the strip's
@@ -1273,6 +1509,11 @@ background: var(--color-bg-secondary);
     opacity: 0%;
   }
 
+  /* stylelint-disable no-duplicate-selectors -- These six selectors appear
+     twice on purpose, and merging them is the worse read: the block above
+     carries `--pos`, the column geometry, under the comment that derives it
+     from the grid; this one carries only the phase each bubble animates on.
+     One concern per block, each next to the note that explains it. */
   .bubble--1 {
     animation: phase-1 30s var(--ease-in-out) infinite;
   }
@@ -1296,6 +1537,7 @@ background: var(--color-bg-secondary);
   .bubble--6 {
     animation: phase-6 30s var(--ease-in-out) infinite;
   }
+  /* stylelint-enable no-duplicate-selectors */
 
   /* The thin line that "points at the piece it describes" — from the top of
      this fixed zone (where the strip ends) down to the bubble's tail. */
@@ -1321,17 +1563,17 @@ background: var(--color-bg-secondary);
   .bubble-box {
     position: relative;
     display: flex;
-    align-items: center;
     gap: 0.4rem;
-    margin: 0.9rem 0 0;
+    align-items: center;
     padding: 0.5rem 0.75rem;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-bg-secondary);
-    color: var(--color-text);
+    margin: 0.9rem 0 0;
     font-size: 0.8125rem;
     line-height: 1.35;
+    color: var(--color-text);
     text-wrap: pretty;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
   }
 
   /* Speech-bubble tail: two stacked triangles (border color, then background
@@ -1366,12 +1608,12 @@ background: var(--color-bg-secondary);
     justify-content: center;
     width: 1.1rem;
     height: 1.1rem;
-    border-radius: 50%;
-    background: var(--color-accent);
-    color: var(--color-bg);
     font-family: var(--font-mono);
     font-size: 0.7rem;
     font-weight: var(--fw-semibold);
+    color: var(--color-bg);
+    background: var(--color-accent);
+    border-radius: 50%;
   }
 
   /* The text half of the same flex row — `min-width: 0` is the standard
@@ -1551,121 +1793,146 @@ background: var(--color-bg-secondary);
       width: 8.357%;
       opacity: 100%;
     }
+
     11% {
       left: 0.464%;
       width: 8.357%;
       animation-timing-function: ease-in;
     }
+
     12% {
       left: 3.762%;
       width: 12%;
       animation-timing-function: linear;
     }
+
     13% {
       left: 7.06%;
       width: 15.643%;
       animation-timing-function: ease-out;
     }
+
     14% {
       left: 10.357%;
       width: 19.286%;
     }
+
     25% {
       left: 10.357%;
       width: 19.286%;
       animation-timing-function: ease-in;
     }
+
     26% {
       left: 17.357%;
       width: 16.714%;
       animation-timing-function: linear;
     }
+
     27% {
       left: 24.357%;
       width: 14.143%;
       animation-timing-function: ease-out;
     }
+
     28% {
       left: 31.357%;
       width: 11.571%;
     }
+
     39% {
       left: 31.357%;
       width: 11.571%;
       animation-timing-function: ease-in;
     }
+
     40% {
       left: 35.72%;
       width: 12.964%;
       animation-timing-function: linear;
     }
+
     41% {
       left: 40.083%;
       width: 14.357%;
       animation-timing-function: ease-out;
     }
+
     42% {
       left: 44.446%;
       width: 15.75%;
     }
+
     53% {
       left: 44.446%;
       width: 15.75%;
       animation-timing-function: ease-in;
     }
+
     54% {
       left: 50.28%;
       width: 15.75%;
       animation-timing-function: linear;
     }
+
     55% {
       left: 56.113%;
       width: 15.75%;
       animation-timing-function: ease-out;
     }
+
     56% {
       left: 61.946%;
       width: 15.75%;
     }
+
     67% {
       left: 61.946%;
       width: 15.75%;
       animation-timing-function: ease-in;
     }
+
     68% {
       left: 67.731%;
       width: 17.158%;
       animation-timing-function: linear;
     }
+
     69% {
       left: 73.515%;
       width: 18.566%;
       animation-timing-function: ease-out;
     }
+
     70% {
       left: 79.299%;
       width: 19.973%;
     }
+
     81% {
       left: 79.299%;
       width: 19.973%;
       opacity: 100%;
     }
+
     84% {
       left: 79.299%;
       width: 19.973%;
       opacity: 0%;
     }
+
     84.01% {
       left: 0.464%;
       width: 8.357%;
       opacity: 0%;
     }
+
     87% {
       left: 0.464%;
       width: 8.357%;
       opacity: 100%;
     }
+
     100% {
       left: 0.464%;
       width: 8.357%;
@@ -1702,9 +1969,9 @@ background: var(--color-bg-secondary);
     }
 
     .node-badge--matched .node-badge-num {
-      border-width: 2.5px;
-      border-color: var(--color-accent);
       background: var(--accent-dim);
+      border-color: var(--color-accent);
+      border-width: 2.5px;
       box-shadow: 0 0 0 2px var(--accent-dim);
     }
   }
@@ -1717,7 +1984,6 @@ background: var(--color-bg-secondary);
      wrap short labels ("Cloudflare", "destination") onto more lines than at
      rest — verified rendered at 360px, see the SDD report. */
   @media (width <= 480px) {
-
     /* Aquí vivían un `.stage-label` más pequeño y un `.node-badge-num`
        encogido a mano para que las etiquetas largas cupieran por debajo de
        480px. Con la figura escalando en bloque no hacen falta: encogerlos
@@ -1730,7 +1996,6 @@ background: var(--color-bg-secondary);
     .bubble-box {
       font-size: 0.78rem;
     }
-
   }
 
   /* ===== Caption ================================================================
@@ -1748,8 +2013,8 @@ background: var(--color-bg-secondary);
   .mcp-flow-caption {
     max-width: 62ch;
     margin: 0.4rem 0 0;
-    color: var(--color-text-muted);
     font-size: 0.8125rem;
+    color: var(--color-text-muted);
     text-wrap: pretty;
   }
 
@@ -1763,16 +2028,16 @@ background: var(--color-bg-secondary);
      suppressed instead of layering a redundant visible one on top of it. */
   .mcp-timeline {
     max-width: 62ch;
-    margin: 0 0 1rem;
     padding: 0;
+    margin: 0 0 1rem;
     list-style: none;
   }
 
   .mcp-timeline li {
     position: relative;
     display: flex;
-    margin: 0 0 0.85rem;
     gap: 0.7rem;
+    margin: 0 0 0.85rem;
   }
 
   .mcp-timeline-num {
@@ -1782,19 +2047,19 @@ background: var(--color-bg-secondary);
     justify-content: center;
     width: 1.5rem;
     height: 1.5rem;
-    border-radius: 50%;
-    background: var(--accent-dim);
-    color: var(--color-accent);
     font-family: var(--font-mono);
     font-size: 0.8125rem;
     font-weight: var(--fw-semibold);
+    color: var(--color-accent);
+    background: var(--accent-dim);
+    border-radius: 50%;
   }
 
   .mcp-timeline li p {
-    margin: 0;
     padding-top: 0.15rem;
-    color: var(--color-text);
+    margin: 0;
     font-size: 0.875rem;
+    color: var(--color-text);
     text-wrap: pretty;
   }
 </style>

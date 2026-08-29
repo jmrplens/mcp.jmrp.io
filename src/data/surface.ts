@@ -225,13 +225,17 @@ function validateDiscover(parsed: unknown): string | undefined {
 /** One `{name, type}` pair; `type` tolerated as absent (mixed-type params). */
 function isValidParam(x: unknown): boolean {
   return (
-    isRecord(x) && isString(x.name) && (x.type === undefined || isString(x.type))
+    isRecord(x) &&
+    isString(x.name) &&
+    (x.type === undefined || isString(x.type))
   );
 }
 
 /** `required_params`, when present: an array of valid params. */
 function isValidParams(value: unknown): boolean {
-  return value === undefined || (Array.isArray(value) && value.every(isValidParam));
+  return (
+    value === undefined || (Array.isArray(value) && value.every(isValidParam))
+  );
 }
 
 /** `required_params_any_of`, when present: groups of valid params. */
@@ -267,11 +271,13 @@ function validateActions(parsed: unknown): string | undefined {
     !Array.isArray(meta.visibleTools) ||
     meta.visibleTools.some(
       (t: unknown) =>
-        !(isRecord(t) &&
-        isString(t.name) &&
-        isString(t.title) &&
-        isBoolean(t.destructive) &&
-        isBoolean(t.read_only)),
+        !(
+          isRecord(t) &&
+          isString(t.name) &&
+          isString(t.title) &&
+          isBoolean(t.destructive) &&
+          isBoolean(t.read_only)
+        ),
     )
   ) {
     return "meta.visibleTools is missing or badly typed";
@@ -280,11 +286,13 @@ function validateActions(parsed: unknown): string | undefined {
     !Array.isArray(domains) ||
     domains.some(
       (d: unknown) =>
-        !(isRecord(d) &&
-        isString(d.domain) &&
-        isNumber(d.count) &&
-        isNumber(d.destructiveCount) &&
-        isNumber(d.readOnlyCount)),
+        !(
+          isRecord(d) &&
+          isString(d.domain) &&
+          isNumber(d.count) &&
+          isNumber(d.destructiveCount) &&
+          isNumber(d.readOnlyCount)
+        ),
     )
   ) {
     return "domains is missing or badly typed";
@@ -293,16 +301,18 @@ function validateActions(parsed: unknown): string | undefined {
     !Array.isArray(entries) ||
     entries.some(
       (e: unknown) =>
-        !(isRecord(e) &&
-        isString(e.id) &&
-        isString(e.title) &&
-        isString(e.domain) &&
-        isBoolean(e.destructive) &&
-        isBoolean(e.read_only) &&
-        isString(e.description) &&
-        isValidParams(e.required_params) &&
-        isValidAnyOf(e.required_params_any_of) &&
-        (e.alias_of === undefined || isString(e.alias_of))),
+        !(
+          isRecord(e) &&
+          isString(e.id) &&
+          isString(e.title) &&
+          isString(e.domain) &&
+          isBoolean(e.destructive) &&
+          isBoolean(e.read_only) &&
+          isString(e.description) &&
+          isValidParams(e.required_params) &&
+          isValidAnyOf(e.required_params_any_of) &&
+          (e.alias_of === undefined || isString(e.alias_of))
+        ),
     )
   ) {
     return "entries is missing or badly typed";
@@ -408,7 +418,10 @@ export function gitlabActionDetailUri(
  * @returns Mapa id → snapshot; la clave existe aunque el loader devuelva
  *   undefined (checkout sin snapshot), y cada consumidor filtra.
  */
-export function actionCatalogs(): Record<string, GitlabActionsSnapshot | undefined> {
+export function actionCatalogs(): Record<
+  string,
+  GitlabActionsSnapshot | undefined
+> {
   return { gitlab: getGitlabActions() };
 }
 
@@ -446,7 +459,10 @@ export function actionsDomainPaths(): ActionsDomainPath[] {
         const aliasDomains = Object.fromEntries(
           actions
             .filter((e) => e.alias_of !== undefined)
-            .map((e) => [e.alias_of as string, domainOf.get(e.alias_of as string)])
+            .map((e) => [
+              e.alias_of as string,
+              domainOf.get(e.alias_of as string),
+            ])
             .filter((pair): pair is [string, string] => pair[1] !== undefined),
         );
         return {

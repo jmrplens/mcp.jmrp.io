@@ -1,6 +1,15 @@
 import { expect, test } from "@playwright/test";
 
-import { inspector, loadButton, pickTool, runButton, serverSelect, stubMcp, TOOLS_LIST, toolSelect } from "./helpers";
+import {
+  inspector,
+  loadButton,
+  pickTool,
+  runButton,
+  serverSelect,
+  stubMcp,
+  TOOLS_LIST,
+  toolSelect,
+} from "./helpers";
 
 /**
  * Lo que convierte el volcado de JSON en un inspector usable: elegir la tool de
@@ -17,7 +26,10 @@ import { inspector, loadButton, pickTool, runButton, serverSelect, stubMcp, TOOL
 const TOOL_ERROR = {
   jsonrpc: "2.0",
   id: 1,
-  result: { content: [{ type: "text", text: "query is required" }], isError: true },
+  result: {
+    content: [{ type: "text", text: "query is required" }],
+    isError: true,
+  },
 };
 
 const TOOL_OK = {
@@ -154,7 +166,9 @@ test("un error JSON-RPC lleva su código, no el HTTP", async ({ page }) => {
   await expect(status(page)).toContainText("unexpected additional properties");
 });
 
-test("la línea de estado da método, código, tiempo y tamaño", async ({ page }) => {
+test("la línea de estado da método, código, tiempo y tamaño", async ({
+  page,
+}) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
   await page.goto("/inspector/");
   await loadButton(page).click();
@@ -263,9 +277,72 @@ test("Enter en el formulario lanza la llamada", async ({ page }) => {
   // ya relleno es fricción gratuita.
   await page.locator(".arg input, .arg textarea").first().press("Enter");
 
-  await expect.poll(() => sent.filter((r) => r.body.method === "tools/call").length).toBe(1);
+  await expect
+    .poll(() => sent.filter((r) => r.body.method === "tools/call").length)
+    .toBe(1);
   expect(sent.at(-1)?.body).toMatchObject({
     method: "tools/call",
     params: { name: "search" },
   });
+});
+
+test("el freno corta una ráfaga: quince clics no son quince peticiones", async ({
+  page,
+}) => {
+  // The point of the brake is not that it refuses — it is that the requests
+  // never leave. Counting what the stub received is the only assertion that
+  // actually proves that; a message on screen would prove nothing.
+  const sent = await stubMcp(page, () => ({ json: TOOLS_LIST }));
+  await page.goto("/inspector/");
+
+  for (let i = 0; i < 15; i++) {
+    // Both of these are the test, not sloppiness: `force` because a click
+    // may land while the button is briefly disabled mid-flight, and the fixed
+    // wait because the interval between clicks IS the thing under test — the
+    // brake is defined in milliseconds, so nothing else can stand in for it.
+    // eslint-disable-next-line playwright/no-force-option
+    await loadButton(page).click({ force: true });
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(120);
+  }
+  await expect(status(page)).toContainText("Slow down");
+  expect(sent.length).toBeLessThan(15);
+});
+
+test("la respuesta se lee maquetada, y el JSON sigue a un clic", async ({
+  page,
+}) => {
+  await stubMcp(page, (method) => ({
+    json: method === "tools/call" ? TOOL_OK : TOOLS_LIST,
+  }));
+  await page.goto("/inspector/");
+  await loadButton(page).click();
+  await toolSelect(page).selectOption("search");
+  await runButton(page).click();
+
+  const out = page.getByTestId("inspector-output");
+  // Reader first: the text of the answer, without the JSON scaffolding.
+  await expect(out).toContainText("1 result");
+  await expect(out.locator("pre")).toHaveCount(0);
+
+  // Scoped to the switch: the arguments form has its own JSON button, and
+  // the two mean different things — one picks how you WRITE the call, this
+  // one picks how you READ the answer.
+  await page
+    .locator(".view-switch")
+    .getByRole("button", { name: "JSON" })
+    .click();
+  // And the exact body is still one click away, which is the whole deal.
+  await expect(out.locator("pre")).toHaveCount(1);
+  await expect(out).toContainText("jsonrpc");
+});
+
+test("sin nada que maquetar el selector no aparece: el JSON ES la respuesta", async ({
+  page,
+}) => {
+  await stubMcp(page, () => ({ json: TOOLS_LIST }));
+  await page.goto("/inspector/");
+  await loadButton(page).click();
+  await expect(status(page)).toContainText("2 tools");
+  await expect(page.locator(".view-switch")).toHaveCount(0);
 });

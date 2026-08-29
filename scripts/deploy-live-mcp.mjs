@@ -88,7 +88,9 @@ function warnUnservedFiles() {
   // `location = /x` (exacta) y `location ^~ /x` o `location /x` (prefijo).
   const exact = new Set();
   const prefixes = [];
-  for (const m of vhost.matchAll(/^[ \t]*location[ \t]+(?:(=|\^~)[ \t]*)?(\S+)[ \t]*\{/gm)) {
+  for (const m of vhost.matchAll(
+    /^[ \t]*location[ \t]+(?:(=|\^~)[ \t]*)?(\S+)[ \t]*\{/gm,
+  )) {
     const [, modifier, uri] = m;
     if (!uri.startsWith("/")) continue; // regex (~) y nombradas (@): no aplican
     if (modifier?.startsWith("=")) exact.add(uri);
@@ -129,7 +131,8 @@ function warnUnservedFiles() {
     }))
     .filter(
       ({ url }) =>
-        !exact.has(url) && prefixes.every((p) => p === "/" || !url.startsWith(p)),
+        !exact.has(url) &&
+        prefixes.every((p) => p === "/" || !url.startsWith(p)),
     );
 
   if (missing.length === 0) return;
@@ -171,7 +174,9 @@ if (SNIPPETS) {
       const dst = path.join(SNIPPETS, f);
       if (!backups.has(dst)) fs.rmSync(dst, { force: true });
     }
-    console.error("✗ 'nginx -t' falló; snippets restaurados, nginx NO recargado");
+    console.error(
+      "✗ 'nginx -t' falló; snippets restaurados, nginx NO recargado",
+    );
     console.error(String(error.stderr ?? error));
     process.exit(1);
   }
@@ -191,8 +196,9 @@ if (SNIPPETS) {
  * @returns El mismo texto en una línea y acotado.
  */
 function oneLine(value) {
-   
-  return String(value ?? "").replaceAll(/[\u{0}-\u{1F}\u{7F}]+/gu, " ").slice(0, 300);
+  return String(value ?? "")
+    .replaceAll(/[\u{0}-\u{1F}\u{7F}]+/gu, " ")
+    .slice(0, 300);
 }
 
 /**
@@ -220,14 +226,23 @@ function describeErrors(errors) {
 // Credenciales por entorno, como en jmrp.io (PRIVATE_CF_*, definidas en
 // /root/.bashrc). Si faltan, se avisa y NO se falla: el despliegue del origen
 // ya ha ido bien y bloquearlo por la CDN sería peor.
-const { PRIVATE_CF_API_TOKEN: cfToken, PRIVATE_CF_EMAIL: cfEmail } = process.env;
-const cfZone = process.env.PRIVATE_CF_ZONE_ID ?? "44d43a33307a232a60a5af4fc1504613";
+const { PRIVATE_CF_API_TOKEN: cfToken, PRIVATE_CF_EMAIL: cfEmail } =
+  process.env;
+const cfZone =
+  process.env.PRIVATE_CF_ZONE_ID ?? "44d43a33307a232a60a5af4fc1504613";
 
 if (cfToken) {
   // Con email = Global API Key (cabeceras legacy); sin él = API Token.
   const headers = cfEmail
-    ? { "X-Auth-Email": cfEmail, "X-Auth-Key": cfToken, "Content-Type": "application/json" }
-    : { Authorization: `Bearer ${cfToken}`, "Content-Type": "application/json" };
+    ? {
+        "X-Auth-Email": cfEmail,
+        "X-Auth-Key": cfToken,
+        "Content-Type": "application/json",
+      }
+    : {
+        Authorization: `Bearer ${cfToken}`,
+        "Content-Type": "application/json",
+      };
 
   try {
     const response = await fetch(

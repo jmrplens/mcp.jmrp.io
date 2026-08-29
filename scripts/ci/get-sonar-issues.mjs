@@ -1,0 +1,244 @@
+import fs from "node:fs";
+import path from "node:path";
+
+/**
+ * Fetch SonarCloud Issues
+ *
+ * Queries the SonarCloud API for open issues and security hotspots
+ * and prints them to the terminal for developer action.
+ */
+
+/**
+ * Resolve the SonarCloud project key: env var first, then the public
+ * `sonar.projectKey` from sonar-project.properties (single source of truth) so
+ * local runs work without exporting SONAR_PROJECT_KEY.
+ */
+function resolveProjectKey() {
+  if (process.env.SONAR_PROJECT_KEY) return process.env.SONAR_PROJECT_KEY;
+  try {
+    const props = fs.readFileSync(
+      path.join(process.cwd(), "sonar-project.properties"),
+      "utf8",
+    );
+    for (const line of props.split("\n")) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("sonar.projectKey")) {
+        const eq = trimmed.indexOf("=");
+        if (eq !== -1) return trimmed.slice(eq + 1).trim();
+      }
+    }
+  } catch {
+    // Properties file missing/unreadable — fall back to the empty-key guard.
+  }
+  return "";
+}
+
+const PROJECT_KEY = resolveProjectKey();
+const SONAR_TOKEN = process.env.SONAR_TOKEN;
+
+const logger = {
+  info: (msg) => console.log(msg),
+  warn: (msg) => console.warn(msg),
+  error: (msg) => console.error(msg),
+};
+
+if (!SONAR_TOKEN) {
+  logger.info("⏭ Skipping SonarCloud analysis (SONAR_TOKEN not set)");
+  process.exit(0);
+}
+
+if (!PROJECT_KEY) {
+  logger.error("❌ SONAR_PROJECT_KEY is not set.");
+  process.exit(1);
+}
+
+/**
+ * Fetches data from SonarCloud API with pagination support.
+ */
+async function fetchWithPagination(baseUrl, dataKey) {
+  const allItems = [];
+  let page = 1;
+  let hasMore = true;
+
+  while (hasMore) {
+    const separator = baseUrl.includes("?") ? "&" : "?";
+    const url = `${baseUrl}${separator}ps=100&p=${page}`;
+
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${SONAR_TOKEN}` },
+      signal: AbortSignal.timeout(30_000),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Sonar API failed: ${res.status} ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    const items = data[dataKey] || [];
+    allItems.push(...items);
+
+    hasMore = items.length === 100;
+    page++;
+  }
+
+  return allItems;
+}
+
+/**
+ * Checks if a file has a NOSONAR comment at a specific line.
+ */
+async function checkNoSonar(component, line) {
+  if (!line) return false;
+
+  const repoRoot = process.cwd();
+
+  try {
+    // Sonar component keys can be tricky. Format: "project_key:relative/path"
+    // Extract path after the colon
+    const parts = component.split(":");
+    let filePath = parts.length > 1 ? parts.slice(1).join(":") : component;
+
+    // Remove any leading project key prefix if it leaked into the path
+    if (filePath.startsWith(PROJECT_KEY + ":")) {
+      filePath = filePath.replace(PROJECT_KEY + ":", "");
+    }
+
+    const possiblePaths = [
+      path.resolve(repoRoot, filePath),
+      path.resolve(repoRoot, filePath.replace(/^src\//, "")),
+      path.resolve(repoRoot, filePath.replace(/^scripts\//, "")),
+    ];
+
+    let fullPath = null;
+    for (const p of possiblePaths) {
+      if (!(fs.existsSync(p) && fs.statSync(p).isFile())) {
+        continue;
+      }
+
+      fullPath = p;
+      break;
+    }
+
+    if (!fullPath) {
+      return false;
+    }
+
+    const content = fs.readFileSync(fullPath, "utf-8");
+    const lines = content.split("\n");
+
+    // Expand window to +/- 2 lines to be more resilient to line number shifts
+    const start = Math.max(0, line - 3);
+    const end = Math.min(lines.length, line + 2);
+    const windowLines = lines.slice(start, end);
+
+    return windowLines.some((l) => (l || "").toUpperCase().includes("NOSONAR"));
+  } catch (error) {
+    logger.warn(
+      `Failed to check NOSONAR for ${component}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+    return false;
+  }
+}
+
+/**
+ * Prints open issues found in SonarCloud.
+ */
+function reportIssues(issues) {
+  if (issues.length === 0) {
+    logger.info("\n✅ No open issues found.");
+    return;
+  }
+  logger.info(`\n❌ Found ${issues.length} open issues:`);
+  for (const issue of issues) {
+    logger.info(`  - [${issue.severity}] ${issue.message}`);
+    logger.info(`    📍 ${issue.component} (Line ${issue.line || "N/A"})`);
+  }
+}
+
+/**
+ * Prints security hotspots found in SonarCloud.
+ */
+async function reportHotspots(hotspots) {
+  if (hotspots.length === 0) {
+    logger.info("\n✅ No security hotspots to review.");
+    return 0;
+  }
+
+  logger.info(`\n🚨 Found ${hotspots.length} security hotspots:`);
+  let unsuppressedCount = 0;
+
+  const suppressionResults = await Promise.all(
+    hotspots.map((h) => checkNoSonar(h.component, h.line)),
+  );
+
+  for (const [i, h] of hotspots.entries()) {
+    if (suppressionResults[i]) {
+      logger.info(
+        `  - [SUPPRESSED] ${h.message} (Rule: ${h.ruleKey}) (📍 ${h.component}:${h.line || "N/A"})`,
+      );
+    } else {
+      logger.info(`  - ${h.message} (Rule: ${h.ruleKey})`);
+      logger.info(`    📍 ${h.component} (Line ${h.line || "N/A"})`);
+      unsuppressedCount++;
+    }
+  }
+
+  if (unsuppressedCount > 0) {
+    logger.info(
+      `\n❌ Static analysis failed: ${unsuppressedCount} unsuppressed hotspots detected.`,
+    );
+  } else {
+    logger.info(
+      "\n✅ All identified hotspots are suppressed with NOSONAR comments.",
+    );
+  }
+  return unsuppressedCount;
+}
+
+/**
+ * Main execution
+ */
+async function main() {
+  try {
+    // Give SonarCloud a few seconds to process the new analysis
+    logger.info("⏳ Waiting for SonarCloud to process analysis...");
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    logger.info(
+      `\n🔍 Fetching open issues from SonarCloud for [${PROJECT_KEY}]...\n`,
+    );
+
+    const encodedProjectKey = encodeURIComponent(PROJECT_KEY);
+
+    const [issues, hotspots] = await Promise.all([
+      fetchWithPagination(
+        `https://sonarcloud.io/api/issues/search?componentKeys=${encodedProjectKey}&resolved=false`,
+        "issues",
+      ),
+      fetchWithPagination(
+        `https://sonarcloud.io/api/hotspots/search?projectKey=${encodedProjectKey}&status=TO_REVIEW`,
+        "hotspots",
+      ),
+    ]);
+
+    logger.info("".padEnd(80, "="));
+    logger.info(`📊 SONARCLOUD REPORT for ${PROJECT_KEY}`);
+    logger.info("".padEnd(80, "="));
+
+    reportIssues(issues);
+    const unsuppressedHotspots = await reportHotspots(hotspots);
+
+    if (unsuppressedHotspots > 0 || issues.length > 0) {
+      logger.info("\n❌ Static analysis failed.");
+      process.exit(1);
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`❌ Failed to fetch SonarCloud reports: ${message}`);
+    process.exit(1);
+  } finally {
+    logger.info("\n" + "".padEnd(80, "=") + "\n");
+  }
+}
+
+await main();

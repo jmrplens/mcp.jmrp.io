@@ -35,7 +35,9 @@ const sp = serversPage[lang];
 
 const serverMeta = servers.find((s) => s.id === server);
 if (!serverMeta) {
-  throw new Error(`[actions] "${server}" has a catalog but no entry in servers.ts`);
+  throw new Error(
+    `[actions] "${server}" has a catalog but no entry in servers.ts`,
+  );
 }
 
 const title = `${domain} — ${serverMeta.name} ${sp.domainPageTitleSuffix}`;

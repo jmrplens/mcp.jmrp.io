@@ -67,7 +67,9 @@ function grid(): string {
     );
   }
   for (let y = 0; y <= OG_IMAGE_SIZE.height; y += 60) {
-    lines.push(`<line x1="0" y1="${y}" x2="${OG_IMAGE_SIZE.width}" y2="${y}" />`);
+    lines.push(
+      `<line x1="0" y1="${y}" x2="${OG_IMAGE_SIZE.width}" y2="${y}" />`,
+    );
   }
   return `<g stroke="${COLOR.grid}" stroke-width="1">${lines.join("")}</g>`;
 }

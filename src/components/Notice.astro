@@ -26,7 +26,11 @@ interface Props {
 const { notice, lang, id } = Astro.props;
 ---
 
-<div class="notice" id={id} data-testid={`notice-${notice.kind}`}>
+<div
+  class="notice"
+  id={id}
+  data-testid={`notice-${notice.kind}`}
+>
   {notice.body.map((p) => <p>{p[lang]}</p>)}
   {
     notice.bullets && notice.bullets.length > 0 && (
@@ -51,8 +55,8 @@ const { notice, lang, id } = Astro.props;
      had before. */
   p {
     margin: 0 0 0.6rem;
-    color: var(--color-text);
     font-size: var(--text-md);
+    color: var(--color-text);
     text-wrap: pretty;
   }
 
@@ -61,10 +65,10 @@ const { notice, lang, id } = Astro.props;
   }
 
   ul {
-    margin: 0.6rem 0 0;
     padding-inline-start: 1.1rem;
-    color: var(--color-text);
+    margin: 0.6rem 0 0;
     font-size: var(--text-md);
+    color: var(--color-text);
   }
 
   li {

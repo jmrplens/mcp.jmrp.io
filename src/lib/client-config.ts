@@ -56,7 +56,10 @@ function headerValue(header: McpHeader, value: string): string {
  */
 export function claudeCodeCommand(server: McpServer): string {
   const headers = required(server)
-    .map((header) => ` --header "${header.name}: ${headerValue(header, "<your token>")}"`)
+    .map(
+      (header) =>
+        ` --header "${header.name}: ${headerValue(header, "<your token>")}"`,
+    )
     .join("");
   return `claude mcp add --transport http ${server.id} ${server.endpoint}${headers}`;
 }
@@ -128,7 +131,10 @@ export function vscodeJson(server: McpServer, lang: Lang): string {
           url: server.endpoint,
           ...(headers.length > 0 && {
             headers: Object.fromEntries(
-              headers.map((h) => [h.name, headerValue(h, `\${input:${inputId()}}`)]),
+              headers.map((h) => [
+                h.name,
+                headerValue(h, `\${input:${inputId()}}`),
+              ]),
             ),
           }),
         },

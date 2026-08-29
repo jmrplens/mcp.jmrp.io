@@ -16,7 +16,9 @@ export function getStaticPaths() {
 }
 
 /**
+ * Serves the key as plain text, which is the entire file.
  *
+ * @returns The response carrying the key.
  */
 export const GET: APIRoute = () =>
   new Response(INDEXNOW_KEY, {

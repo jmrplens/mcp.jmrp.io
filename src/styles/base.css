@@ -204,8 +204,8 @@ h4 {
 .section-intro {
   max-width: 62ch;
   margin: 0 0 1.5rem;
-  color: var(--color-text);
   font-size: var(--text-md);
+  color: var(--color-text);
   text-wrap: pretty;
 }
 
@@ -220,9 +220,9 @@ h4 {
 .prose-text {
   max-width: var(--max-width-prose);
   margin: 0 0 var(--space-md);
-  color: var(--color-text);
   font-size: var(--text-base);
   line-height: 1.7;
+  color: var(--color-text);
   text-wrap: pretty;
 }
 
@@ -259,9 +259,9 @@ h4 {
 .subpage-intro {
   max-width: var(--max-width-prose);
   margin: 0;
-  color: var(--color-text);
   font-size: var(--text-md);
   line-height: 1.6;
+  color: var(--color-text);
   text-wrap: pretty;
 }
 

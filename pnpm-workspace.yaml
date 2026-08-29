@@ -6,3 +6,6 @@
 # puede quedar sin instalar.
 allowBuilds:
   esbuild: true
+  # sonar-scanner downloads its own JRE + scanner binary on install; without
+  # this it is skipped and `pnpm exec sonar-scanner` fails at run time.
+  sonar-scanner: true

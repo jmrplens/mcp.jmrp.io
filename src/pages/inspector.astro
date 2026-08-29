@@ -11,6 +11,10 @@ import Base from "../layouts/Base.astro";
 const t = ui[getLangFromUrl(Astro.url)];
 ---
 
-<Base title={t.inspectorMetaTitle} description={t.inspectorIntro} page="inspector">
+<Base
+  title={t.inspectorMetaTitle}
+  description={t.inspectorIntro}
+  page="inspector"
+>
   <InspectorPage />
 </Base>

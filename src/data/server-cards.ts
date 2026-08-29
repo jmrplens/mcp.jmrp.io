@@ -119,7 +119,10 @@ export type CardServerInfo = {
 export type CardAuthentication = { required: boolean; schemes: string[] };
 
 /** One capability family's flags, as `capabilities.<family>` declares them. */
-export type CardCapabilityFlags = { listChanged?: boolean; subscribe?: boolean };
+export type CardCapabilityFlags = {
+  listChanged?: boolean;
+  subscribe?: boolean;
+};
 
 /**
  * Top-level `capabilities`: family → flags. `completions` arrives as `{}` —
@@ -149,7 +152,10 @@ export type CardSubscriptions = {
 };
 
 /** Hints a resource or resource template annotates itself with. */
-export type CardResourceAnnotations = { audience?: string[]; priority?: number };
+export type CardResourceAnnotations = {
+  audience?: string[];
+  priority?: number;
+};
 
 /** Behavioural hints a tool annotates itself with (all optional per SEP-1649). */
 export type CardToolAnnotations = {
@@ -323,7 +329,9 @@ export type ServerCardSummary = {
  * @returns The safe icons, or `undefined` when there were none to begin with
  *   or none passed the check.
  */
-export function filterIcons(icons: CardIcon[] | undefined): CardIcon[] | undefined {
+export function filterIcons(
+  icons: CardIcon[] | undefined,
+): CardIcon[] | undefined {
   if (!icons) return undefined;
   const safe = icons.filter((icon) => icon.src.startsWith("data:image/"));
   return safe.length > 0 ? safe : undefined;
@@ -349,7 +357,9 @@ export function filterIcons(icons: CardIcon[] | undefined): CardIcon[] | undefin
  * @param websiteUrl `serverInfo.websiteUrl` as the card declares it, if any.
  * @returns The URL when it is `https:`, `undefined` otherwise.
  */
-export function filterWebsiteUrl(websiteUrl: string | undefined): string | undefined {
+export function filterWebsiteUrl(
+  websiteUrl: string | undefined,
+): string | undefined {
   if (!websiteUrl) return undefined;
   // Parsed rather than prefix-matched the way `filterIcons` matches
   // `data:image/`: a URL scheme is case-insensitive, so a `startsWith` check
@@ -374,15 +384,21 @@ function summarizeAnnotations(
   annotations: CardToolAnnotations | undefined,
 ): ToolAnnotationsSummary | undefined {
   if (!annotations) return undefined;
-  const { readOnlyHint, destructiveHint, idempotentHint, openWorldHint } = annotations;
+  const { readOnlyHint, destructiveHint, idempotentHint, openWorldHint } =
+    annotations;
   return { readOnlyHint, destructiveHint, idempotentHint, openWorldHint };
 }
 
 /** `serverInfo` with a non-empty `name` and `version`, or throws. */
-function validateServerInfoBlock(id: string, doc: Record<string, unknown>): void {
+function validateServerInfoBlock(
+  id: string,
+  doc: Record<string, unknown>,
+): void {
   const serverInfo = doc.serverInfo;
   if (typeof serverInfo !== "object" || serverInfo === null) {
-    throw new Error(`Server Card "${id}" is invalid: serverInfo is missing or not an object`);
+    throw new Error(
+      `Server Card "${id}" is invalid: serverInfo is missing or not an object`,
+    );
   }
   const info = serverInfo as Record<string, unknown>;
   if (typeof info.name !== "string" || info.name.length === 0) {
@@ -406,7 +422,10 @@ function validateServerInfoBlock(id: string, doc: Record<string, unknown>): void
  * its own external input). The message keeps the shape of its neighbours',
  * which is all a build failure ever shows.
  */
-function validateAuthenticationBlock(id: string, doc: Record<string, unknown>): void {
+function validateAuthenticationBlock(
+  id: string,
+  doc: Record<string, unknown>,
+): void {
   const authentication = doc.authentication;
   if (typeof authentication !== "object" || authentication === null) {
     throw new TypeError(
@@ -432,7 +451,10 @@ function validateAuthenticationBlock(id: string, doc: Record<string, unknown>): 
  * `requires`/`since_protocol` are NOT validated: a page only paints them
  * when present — an absent optional is not a failure.
  */
-function validateSubscriptionsBlock(id: string, doc: Record<string, unknown>): void {
+function validateSubscriptionsBlock(
+  id: string,
+  doc: Record<string, unknown>,
+): void {
   const subscriptions = doc.subscriptions;
   if (subscriptions === undefined) return;
   if (
@@ -445,12 +467,18 @@ function validateSubscriptionsBlock(id: string, doc: Record<string, unknown>): v
     );
   }
   const subs = subscriptions as Record<string, unknown>;
-  if (typeof subs.methods !== "object" || subs.methods === null || Array.isArray(subs.methods)) {
+  if (
+    typeof subs.methods !== "object" ||
+    subs.methods === null ||
+    Array.isArray(subs.methods)
+  ) {
     throw new TypeError(
       `Server Card "${id}" is invalid: subscriptions.methods is missing or not an object`,
     );
   }
-  for (const [methodName, method] of Object.entries(subs.methods as Record<string, unknown>)) {
+  for (const [methodName, method] of Object.entries(
+    subs.methods as Record<string, unknown>,
+  )) {
     const available =
       typeof method === "object" && method !== null
         ? (method as Record<string, unknown>).available
@@ -494,20 +522,32 @@ function validateSubscriptionsBlock(id: string, doc: Record<string, unknown>): v
  *   defaults to `[]`: an MCP server that implements none of a given kind is
  *   entitled to omit the key rather than send an empty array.
  */
-export function validateServerCardDocument(id: string, raw: unknown): ServerCardDocument {
+export function validateServerCardDocument(
+  id: string,
+  raw: unknown,
+): ServerCardDocument {
   if (typeof raw !== "object" || raw === null) {
-    throw new Error(`Server Card "${id}" is invalid: top-level value is not an object`);
+    throw new Error(
+      `Server Card "${id}" is invalid: top-level value is not an object`,
+    );
   }
   const doc = raw as Record<string, unknown>;
 
   validateServerInfoBlock(id, doc);
   validateAuthenticationBlock(id, doc);
 
-  const families = ["tools", "prompts", "resources", "resourceTemplates"] as const;
+  const families = [
+    "tools",
+    "prompts",
+    "resources",
+    "resourceTemplates",
+  ] as const;
   for (const family of families) {
     const value = doc[family];
     if (value !== undefined && !Array.isArray(value)) {
-      throw new Error(`Server Card "${id}" is invalid: ${family} is present but not an array`);
+      throw new Error(
+        `Server Card "${id}" is invalid: ${family} is present but not an array`,
+      );
     }
   }
 
@@ -519,9 +559,13 @@ export function validateServerCardDocument(id: string, raw: unknown): ServerCard
   const capabilities = doc.capabilities;
   if (
     capabilities !== undefined &&
-    (typeof capabilities !== "object" || capabilities === null || Array.isArray(capabilities))
+    (typeof capabilities !== "object" ||
+      capabilities === null ||
+      Array.isArray(capabilities))
   ) {
-    throw new TypeError(`Server Card "${id}" is invalid: capabilities is present but not an object`);
+    throw new TypeError(
+      `Server Card "${id}" is invalid: capabilities is present but not an object`,
+    );
   }
 
   validateSubscriptionsBlock(id, doc);
@@ -531,7 +575,8 @@ export function validateServerCardDocument(id: string, raw: unknown): ServerCard
     tools: (doc.tools as CardTool[] | undefined) ?? [],
     prompts: (doc.prompts as CardPrompt[] | undefined) ?? [],
     resources: (doc.resources as CardResource[] | undefined) ?? [],
-    resourceTemplates: (doc.resourceTemplates as CardResourceTemplate[] | undefined) ?? [],
+    resourceTemplates:
+      (doc.resourceTemplates as CardResourceTemplate[] | undefined) ?? [],
   } as ServerCardDocument;
 }
 
@@ -577,7 +622,15 @@ export function summarizeServerCardDocument(
     capabilities: doc.capabilities,
     subscriptions: doc.subscriptions,
     tools: doc.tools.map(
-      ({ name, title, description, icons, annotations, inputSchema, outputSchema }) => ({
+      ({
+        name,
+        title,
+        description,
+        icons,
+        annotations,
+        inputSchema,
+        outputSchema,
+      }) => ({
         name,
         title,
         description,
@@ -591,16 +644,18 @@ export function summarizeServerCardDocument(
         outputSchema,
       }),
     ),
-    prompts: doc.prompts.map(({ name, title, description, arguments: args, icons }) => ({
-      name,
-      title,
-      description,
-      // Defensive, not evidence-based: every prompt in both cards has at
-      // least one argument today, but nothing guarantees a future prompt
-      // keeps it that way, and `[]` is the honest reading of "none declared".
-      arguments: args ?? [],
-      icons: filterIcons(icons),
-    })),
+    prompts: doc.prompts.map(
+      ({ name, title, description, arguments: args, icons }) => ({
+        name,
+        title,
+        description,
+        // Defensive, not evidence-based: every prompt in both cards has at
+        // least one argument today, but nothing guarantees a future prompt
+        // keeps it that way, and `[]` is the honest reading of "none declared".
+        arguments: args ?? [],
+        icons: filterIcons(icons),
+      }),
+    ),
     resources: doc.resources.map(
       ({ uri, name, title, description, mimeType, icons }) => ({
         uri,
@@ -633,16 +688,24 @@ export function summarizeServerCardDocument(
 // right here, not as an `undefined` on a published page. See the module doc
 // for how to add a third one.
 const documents: Record<string, ServerCardDocument> = Object.fromEntries(
-  Object.entries(rawDocuments).map(([id, raw]) => [id, validateServerCardDocument(id, raw)]),
+  Object.entries(rawDocuments).map(([id, raw]) => [
+    id,
+    validateServerCardDocument(id, raw),
+  ]),
 );
 
 /** Curated summary for every server with a committed card, keyed by id. */
-export const serverCards: Record<string, ServerCardSummary> = Object.fromEntries(
-  Object.entries(documents).map(([id, doc]) => [id, summarizeServerCardDocument(id, doc)]),
-);
+export const serverCards: Record<string, ServerCardSummary> =
+  Object.fromEntries(
+    Object.entries(documents).map(([id, doc]) => [
+      id,
+      summarizeServerCardDocument(id, doc),
+    ]),
+  );
 
 /** Full parsed documents, keyed by id — schemas and `resourceTemplates` included. */
-export const serverCardDocuments: Record<string, ServerCardDocument> = documents;
+export const serverCardDocuments: Record<string, ServerCardDocument> =
+  documents;
 
 /**
  * The curated summary for one server.
@@ -660,6 +723,8 @@ export function getServerCard(id: string): ServerCardSummary | undefined {
  * @param id Server id, matching `McpServer.id` in `src/data/servers.ts`.
  * @returns The document, or `undefined` if that server has no committed card.
  */
-export function getServerCardDocument(id: string): ServerCardDocument | undefined {
+export function getServerCardDocument(
+  id: string,
+): ServerCardDocument | undefined {
   return serverCardDocuments[id];
 }

@@ -59,7 +59,8 @@ export const OG_IMAGE_SIZE = { width: 1200, height: 630 } as const;
 export const SITE_NAME = "mcp.jmrp.io";
 
 /** Every page of the site. The key is what routes and the graph refer to. */
-export type PageId = "home" | "inspector" | "internals" | "policies" | "servers";
+export type PageId =
+  "home" | "inspector" | "internals" | "policies" | "servers";
 
 /**
  * Path of each page, relative to its language root.
@@ -245,6 +246,9 @@ export function actionsDomainPageAlternates(
       hreflang: lang,
       href: actionsDomainPageUrl(lang, id, domain),
     })),
-    { hreflang: "x-default", href: actionsDomainPageUrl(DEFAULT_LANG, id, domain) },
+    {
+      hreflang: "x-default",
+      href: actionsDomainPageUrl(DEFAULT_LANG, id, domain),
+    },
   ];
 }

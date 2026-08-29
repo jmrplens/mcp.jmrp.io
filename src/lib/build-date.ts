@@ -22,7 +22,9 @@ import { execFileSync } from "node:child_process";
 const GIT = "/usr/bin/git";
 
 /**
+ * Resolves that date, applying the clean/dirty rule described above.
  *
+ * @returns An ISO date string, or undefined when git is unavailable.
  */
 export function contentDate(): string | undefined {
   const opts = {

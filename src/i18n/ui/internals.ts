@@ -68,7 +68,8 @@ export const internals = {
      * this diagram drew one and got rejected. One client, one nginx, one
      * pool of nodes: libgen and gitlab differ only in which key nginx
      * computes, never in the shape of the pipeline. */
-    diagramCaption: "The same six steps every request crosses, and why the same client always lands on the same node.",
+    diagramCaption:
+      "The same six steps every request crosses, and why the same client always lands on the same node.",
     /** Stage labels along the strip. `Cloudflare`/`nginx` are proper
      * nouns/product names, identical in both languages — see how the rest
      * of this file already treats them (e.g. `affinityIntro`). */
@@ -84,7 +85,8 @@ export const internals = {
      * highlight box has somewhere to go after "egress" instead of jumping
      * straight back to "you" — see `InternalsPage.astro`'s header comment,
      * "UPDATE 2026-08-23 (destination hop)". */
-    diagramBubble1: "Your client opens the request, with a Bearer token or without one",
+    diagramBubble1:
+      "Your client opens the request, with a Bearer token or without one",
     diagramBubble2: "Cloudflare passes it through to the origin",
     diagramBubble3: "Here the key gets computed: your IP, or the token's hash",
     diagramBubble4: "The same key always picks the same node",
@@ -190,7 +192,8 @@ export const internals = {
       "Cada instancia tiene su propia caché, así que un acierto en una no lo es en las otras: el reparto entre tres es el precio de poder repartir carga entre ellas.",
     ],
 
-    affinityEyebrow: "Afinidad: por qué la segunda petición cae en el mismo nodo",
+    affinityEyebrow:
+      "Afinidad: por qué la segunda petición cae en el mismo nodo",
     affinityIntro:
       "Desde el 2026-08-22 nginx ya no rota en round-robin entre esas tres instancias: elige una por hash consistente, así que el mismo cliente sigue cayendo en el mismo nodo en vez de en uno distinto cada vez.",
     affinityLibgen:

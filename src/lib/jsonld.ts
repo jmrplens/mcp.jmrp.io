@@ -445,7 +445,9 @@ function resolveTargetServer(
   if (!serverId) return undefined;
   const server = servers.find((candidate) => candidate.id === serverId);
   if (!server) {
-    throw new Error(`[jsonld] serverId "${serverId}" has no entry in servers.ts`);
+    throw new Error(
+      `[jsonld] serverId "${serverId}" has no entry in servers.ts`,
+    );
   }
   return server;
 }
@@ -473,7 +475,11 @@ function resolvePageUrls(
   const otherLang: Lang = lang === "en" ? "es" : "en";
   if (actionsDomain) {
     return {
-      url: actionsDomainPageUrl(lang, actionsDomain.serverId, actionsDomain.domain),
+      url: actionsDomainPageUrl(
+        lang,
+        actionsDomain.serverId,
+        actionsDomain.domain,
+      ),
       otherUrl: actionsDomainPageUrl(
         otherLang,
         actionsDomain.serverId,
@@ -611,7 +617,11 @@ function breadcrumbSteps(
       },
       {
         name: actionsDomain.domain,
-        url: actionsDomainPageUrl(lang, actionsDomain.serverId, actionsDomain.domain),
+        url: actionsDomainPageUrl(
+          lang,
+          actionsDomain.serverId,
+          actionsDomain.domain,
+        ),
       },
     ];
   }
@@ -638,10 +648,22 @@ function breadcrumbSteps(
 export async function buildSiteGraph(
   meta: PageMeta,
 ): Promise<Record<string, unknown>> {
-  const { lang, title, description, page = "home", serverId, actionsDomain } = meta;
+  const {
+    lang,
+    title,
+    description,
+    page = "home",
+    serverId,
+    actionsDomain,
+  } = meta;
 
   const targetServer = resolveTargetServer(serverId);
-  const { url, otherUrl } = resolvePageUrls(lang, page, targetServer, actionsDomain);
+  const { url, otherUrl } = resolvePageUrls(
+    lang,
+    page,
+    targetServer,
+    actionsDomain,
+  );
 
   // The FAQ (and its speakable pointer) describes the notice cards, and those
   // only render on the home page — see HomePage.astro / ServerCard. Emitting

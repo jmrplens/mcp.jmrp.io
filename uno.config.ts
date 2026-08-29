@@ -12,7 +12,7 @@
  *   obligaría a instalar los `@iconify-json/*` correspondientes para nada.
  *
  * Cuando se use el primer icono, instalar su colección:
- *   pnpm add -D @iconify-json/<coleccion>
+ *   pnpm add -D @iconify-json/<collection>
  */
 import { defineConfig, presetIcons, presetWind4 } from "unocss";
 

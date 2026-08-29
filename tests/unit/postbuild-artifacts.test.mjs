@@ -28,19 +28,33 @@ test("NO genera los nombres de jmrp.io", () => {
 test("el HTML no se precomprime", () => {
   const found = fs
     .readdirSync(DIST, { recursive: true })
-    .filter((f) => String(f).endsWith(".html.br") || String(f).endsWith(".html.gz"));
-  assert.equal(found.length, 0, "sub_filter no puede reescribir HTML comprimido");
+    .filter(
+      (f) => String(f).endsWith(".html.br") || String(f).endsWith(".html.gz"),
+    );
+  assert.equal(
+    found.length,
+    0,
+    "sub_filter no puede reescribir HTML comprimido",
+  );
 });
 
 test("los assets sí se precomprimen", () => {
   const found = fs
     .readdirSync(DIST, { recursive: true })
-    .filter((f) => String(f).endsWith(".js.br") || String(f).endsWith(".css.br"));
-  assert.ok(found.length > 0, "los assets estáticos deben llevar .br junto al original");
+    .filter(
+      (f) => String(f).endsWith(".js.br") || String(f).endsWith(".css.br"),
+    );
+  assert.ok(
+    found.length > 0,
+    "los assets estáticos deben llevar .br junto al original",
+  );
 });
 
 test("la CSP lleva la variable de nginx, no el literal del HTML", () => {
-  const conf = fs.readFileSync(new URL("security_headers_mcp.conf", DIST), "utf8");
+  const conf = fs.readFileSync(
+    new URL("security_headers_mcp.conf", DIST),
+    "utf8",
+  );
   assert.match(
     conf,
     /'nonce-\$cspNonce'/,
@@ -58,7 +72,10 @@ test("TODAS las páginas llevan el placeholder que sub_filter sustituye", () => 
     .readdirSync(DIST, { recursive: true })
     .map(String)
     .filter((f) => f.endsWith(".html"));
-  assert.ok(pages.length > 1, "el sitio tiene al menos la página raíz y la de /es/");
+  assert.ok(
+    pages.length > 1,
+    "el sitio tiene al menos la página raíz y la de /es/",
+  );
   for (const page of pages) {
     const html = fs.readFileSync(new URL(page, DIST), "utf8");
     assert.match(

@@ -29,7 +29,10 @@ import { liveVersion } from "../../lib/live-version";
  * @returns The static paths, with the server passed through as a prop.
  */
 export const getStaticPaths: GetStaticPaths = () =>
-  servers.map((server) => ({ params: { server: server.id }, props: { server } }));
+  servers.map((server) => ({
+    params: { server: server.id },
+    props: { server },
+  }));
 
 /**
  * Builds the Server Card for one server.

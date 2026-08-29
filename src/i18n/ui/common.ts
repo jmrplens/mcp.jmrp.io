@@ -102,8 +102,7 @@ export const common = {
   es: {
     title: "Servidores MCP",
     /** Ver `en.metaTitle`: título del documento, no el H1. */
-    metaTitle:
-      "Servidores MCP — Model Context Protocol de uso libre · jmrp.io",
+    metaTitle: "Servidores MCP — Model Context Protocol de uso libre · jmrp.io",
     subtitle: "Servidores Model Context Protocol self-hosted, de uso libre.",
     lede: "Dos servidores Model Context Protocol, self-hosted y de uso libre. Apunta tu cliente MCP a un endpoint, o pruébalos en el navegador.",
     /** Ver `en.updatedIn`: lo lee el componente compartido de la fecha. */

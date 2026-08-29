@@ -14,6 +14,10 @@ import Base from "../../layouts/Base.astro";
 const t = internals[getLangFromUrl(Astro.url)];
 ---
 
-<Base title={t.metaTitle} description={t.lede} page="internals">
+<Base
+  title={t.metaTitle}
+  description={t.lede}
+  page="internals"
+>
   <InternalsPage />
 </Base>

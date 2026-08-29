@@ -16,7 +16,11 @@ import { test } from "node:test";
 import { serverCards } from "../../src/data/server-cards.ts";
 import { servers } from "../../src/data/servers.ts";
 import {
-  actionsDomainPageUrl, PAGE_PATHS, pageUrl, serverPageUrl } from "../../src/lib/seo.ts";
+  actionsDomainPageUrl,
+  PAGE_PATHS,
+  pageUrl,
+  serverPageUrl,
+} from "../../src/lib/seo.ts";
 
 // The build only creates a detail page for a server with a committed card
 // (`servers.filter((server) => serverCards[server.id])` in `src/lib/llms.ts`
@@ -121,7 +125,11 @@ function graphOf(page) {
   } catch (error) {
     assert.fail(`${page}: el JSON-LD no es JSON válido — ${error.message}`);
   }
-  assert.equal(parsed["@context"], "https://schema.org", `${page}: sin @context`);
+  assert.equal(
+    parsed["@context"],
+    "https://schema.org",
+    `${page}: sin @context`,
+  );
   assert.ok(Array.isArray(parsed["@graph"]), `${page}: @graph no es una lista`);
   return parsed["@graph"];
 }
@@ -150,10 +158,16 @@ test("el WebAPI y su SoftwareSourceCode viven SOLO en la ficha de su servidor (e
     const sourcePages = [];
     for (const page of htmlPages()) {
       const graph = graphOf(page);
-      if (graph.some((n) => n["@id"] === apiId && typesOf(n).includes("WebAPI"))) {
+      if (
+        graph.some((n) => n["@id"] === apiId && typesOf(n).includes("WebAPI"))
+      ) {
         apiPages.push(page);
       }
-      if (graph.some((n) => n["@id"] === sourceId && n["@type"] === "SoftwareSourceCode")) {
+      if (
+        graph.some(
+          (n) => n["@id"] === sourceId && n["@type"] === "SoftwareSourceCode",
+        )
+      ) {
         sourcePages.push(page);
       }
     }
@@ -209,11 +223,27 @@ test("cada endpoint se une con el repositorio que lo produce, dentro de la ficha
     const ids = new Set(graph.map((n) => n["@id"]));
 
     if (SERVER_DETAIL_PAGE.test(page)) {
-      assert.equal(sources.length, 1, `${page}: la ficha debería traer su propio SoftwareSourceCode`);
-      assert.equal(apis.length, 1, `${page}: la ficha debería traer su propio WebAPI`);
+      assert.equal(
+        sources.length,
+        1,
+        `${page}: la ficha debería traer su propio SoftwareSourceCode`,
+      );
+      assert.equal(
+        apis.length,
+        1,
+        `${page}: la ficha debería traer su propio WebAPI`,
+      );
     } else {
-      assert.equal(sources.length, 0, `${page}: no debería redefinir ningún SoftwareSourceCode — solo la ficha del servidor lo hace`);
-      assert.equal(apis.length, 0, `${page}: no debería redefinir ningún WebAPI — solo la ficha del servidor lo hace`);
+      assert.equal(
+        sources.length,
+        0,
+        `${page}: no debería redefinir ningún SoftwareSourceCode — solo la ficha del servidor lo hace`,
+      );
+      assert.equal(
+        apis.length,
+        0,
+        `${page}: no debería redefinir ningún WebAPI — solo la ficha del servidor lo hace`,
+      );
     }
 
     for (const source of sources) {
@@ -262,15 +292,18 @@ test("el grafo declara el sitio y la página en cada URL, con un WebAPI SOLO en 
     // `@type` puede ser un array: los nodos de endpoint son a la vez `WebAPI`
     // y `SoftwareApplication`, para heredar de CreativeWork propiedades como
     // `license` o `dateModified` que `WebAPI` no admite.
-    const byType = (type) =>
-      graph.filter((n) => typesOf(n).includes(type));
+    const byType = (type) => graph.filter((n) => typesOf(n).includes(type));
 
     assert.equal(byType("WebSite").length, 1, `${page}: falta el nodo WebSite`);
     assert.equal(byType("WebPage").length, 1, `${page}: falta el nodo WebPage`);
 
     const apis = byType("WebAPI");
     if (SERVER_DETAIL_PAGE.test(page)) {
-      assert.equal(apis.length, 1, `${page}: la ficha debería declarar exactamente un WebAPI`);
+      assert.equal(
+        apis.length,
+        1,
+        `${page}: la ficha debería declarar exactamente un WebAPI`,
+      );
       assert.ok(
         endpoints.includes(apis[0].url),
         `${page}: el WebAPI (${apis[0].url}) no coincide con ningún endpoint de servers.json`,
@@ -288,7 +321,10 @@ test("el grafo declara el sitio y la página en cada URL, con un WebAPI SOLO en 
         `${api.url}#api`,
         `${page}: @id del WebAPI derivado del endpoint`,
       );
-      assert.ok(api.documentation, `${page}: WebAPI ${api.url} sin documentation`);
+      assert.ok(
+        api.documentation,
+        `${page}: WebAPI ${api.url} sin documentation`,
+      );
     }
   }
 });
@@ -329,7 +365,9 @@ test("los nodos propios enlazan a la persona por @id, sin redeclararla, y toda r
     // `["WebAPI", "SoftwareApplication"]` — so comparing it as a string
     // silently matched nothing and left the WebAPI nodes untested.
     const own = graph.filter((n) =>
-      typesOf(n).some((t) => ["WebSite", "WebPage", "WebAPI", "FAQPage"].includes(t)),
+      typesOf(n).some((t) =>
+        ["WebSite", "WebPage", "WebAPI", "FAQPage"].includes(t),
+      ),
     );
 
     for (const node of own) {
@@ -434,7 +472,9 @@ function pageInfoFor(htmlPath) {
   }
   // Página de dominio de acciones: comparte page "servers" con la ficha pero
   // NO su identidad — ni serverId (no re-emite el WebAPI) ni la URL fija.
-  const domainMatch = /^servers\/([^/]+)\/actions\/([^/]+)\/index\.html$/.exec(rest);
+  const domainMatch = /^servers\/([^/]+)\/actions\/([^/]+)\/index\.html$/.exec(
+    rest,
+  );
   if (domainMatch) {
     return {
       lang,

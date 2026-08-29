@@ -1,6 +1,12 @@
 import { expect, test } from "@playwright/test";
 
-import { inspector, loadButton, serverSelect, stubMcp, TOOLS_LIST } from "./helpers";
+import {
+  inspector,
+  loadButton,
+  serverSelect,
+  stubMcp,
+  TOOLS_LIST,
+} from "./helpers";
 
 /**
  * The inspector's deep link: `?server=&tab=&name=`, read once on entry so a
@@ -17,7 +23,11 @@ const PROMPTS_LIST = {
   id: 1,
   result: {
     prompts: [
-      { name: "review_mr", description: "Review a merge request", arguments: [] },
+      {
+        name: "review_mr",
+        description: "Review a merge request",
+        arguments: [],
+      },
       { name: "triage_issue", description: "Triage an issue", arguments: [] },
     ],
   },
@@ -61,7 +71,9 @@ test("server+tab+name válidos: la pestaña y el servidor ya están puestos al e
   // Antes de cargar el catálogo no hay nada que seleccionar: el `name` de la
   // URL no puede aplicarse hasta que `prompts/list` conteste. Esto es lo que
   // prueba que el enganche está en el sitio correcto y no antes de tiempo.
-  await expect(page.getByTestId("catalog-prompts").locator("select")).toHaveCount(0);
+  await expect(
+    page.getByTestId("catalog-prompts").locator("select"),
+  ).toHaveCount(0);
 
   await unblockGitlab(page);
   await loadButton(page, "prompts").click();
@@ -83,13 +95,14 @@ test("un name que es la uri de un resource se selecciona por su uri, no por su n
 }) => {
   await stubMcp(page, () => ({ json: RESOURCES_LIST }));
   const uri = "gitlab://guides/code-review";
-  await page.goto(`/inspector/?server=gitlab&tab=resources&name=${encodeURIComponent(uri)}`);
+  await page.goto(
+    `/inspector/?server=gitlab&tab=resources&name=${encodeURIComponent(uri)}`,
+  );
 
   await expect(serverSelect(page)).toHaveValue("gitlab");
-  await expect(inspector(page).getByRole("tab", { name: "Resources" })).toHaveAttribute(
-    "aria-selected",
-    "true",
-  );
+  await expect(
+    inspector(page).getByRole("tab", { name: "Resources" }),
+  ).toHaveAttribute("aria-selected", "true");
 
   await unblockGitlab(page);
   await loadButton(page, "resources").click();
@@ -99,14 +112,18 @@ test("un name que es la uri de un resource se selecciona por su uri, no por su n
   await expect(picker).toHaveValue(uri);
   // El botón de leer solo aparece con un recurso elegido: prueba indirecta de
   // que la selección se aplicó de verdad y no solo el `<select>` por dentro.
-  await expect(page.getByRole("button", { name: /Read resource/i })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /Read resource/i }),
+  ).toBeVisible();
 });
 
 test("server, tab y name inválidos caen a los valores por defecto sin romper la isla", async ({
   page,
 }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
-  await page.goto("/inspector/?server=not-a-real-server&tab=not-a-real-tab&name=not-a-real-tool");
+  await page.goto(
+    "/inspector/?server=not-a-real-server&tab=not-a-real-tab&name=not-a-real-tool",
+  );
   const mcp = inspector(page);
 
   // Servidor: el primero de la lista, como una entrada a /inspector/ sin nada.
@@ -128,14 +145,20 @@ test("un name que no existe en el catálogo real no selecciona nada, pero el cat
   page,
 }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
-  await page.goto("/inspector/?server=libgen&tab=tools&name=this_tool_does_not_exist");
+  await page.goto(
+    "/inspector/?server=libgen&tab=tools&name=this_tool_does_not_exist",
+  );
 
   await loadButton(page, "tools").click();
   const picker = page.getByTestId("catalog-tools").locator("select");
   await expect(picker).toBeVisible();
   await expect(picker).toHaveValue("");
   // El catálogo en sí no se ve afectado: las dos tools reales siguen ahí.
-  await expect(picker.locator("option")).toHaveText([/pick a tool/, "search", "download"]);
+  await expect(picker.locator("option")).toHaveText([
+    /pick a tool/,
+    "search",
+    "download",
+  ]);
 });
 
 test("un parámetro ajeno como Authorization en la URL no rellena el campo del token", async ({
@@ -144,6 +167,8 @@ test("un parámetro ajeno como Authorization en la URL no rellena el campo del t
   // Este es el caso que la regla "nunca un parámetro de credencial" existe
   // para evitar: alguien pega un enlace con un token de mentira (o de
   // verdad) esperando que "ya venga puesto", y el inspector NO debe leerlo.
-  await page.goto("/inspector/?server=gitlab&Authorization=glpat-deberia-ignorarse");
+  await page.goto(
+    "/inspector/?server=gitlab&Authorization=glpat-should-be-ignored",
+  );
   await expect(inspector(page).getByLabel("Authorization")).toHaveValue("");
 });

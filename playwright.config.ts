@@ -28,8 +28,14 @@ export default defineConfig({
     // So we build into the INACTIVE colour and serve that same directory: the
     // e2e tests see the fresh build and `dist` — what Nginx serves — is left
     // untouched.
-    command:
-      'DIST_DIR=$(node scripts/deploy-swap.mjs prepare) && astro build --outDir "$DIST_DIR" && astro preview --outDir "$DIST_DIR" --port 4321',
+    //
+    // When DIST_DIR is already set — `pnpm verify` exports the directory it
+    // just built into — the build is skipped and that output is served
+    // straight away. Nothing else sets it, so a bare `pnpm test:e2e` and CI
+    // both keep building their own.
+    command: process.env.DIST_DIR
+      ? `astro preview --outDir "${process.env.DIST_DIR}" --port 4321`
+      : 'DIST_DIR=$(node scripts/deploy-swap.mjs prepare) && astro build --outDir "$DIST_DIR" && astro preview --outDir "$DIST_DIR" --port 4321',
     url: "http://localhost:4321",
     reuseExistingServer: false,
     // Playwright's default is 60s and this command BUILDS before it serves:
