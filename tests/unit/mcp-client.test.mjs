@@ -35,7 +35,7 @@ test("usa el último data: cuando hay varios eventos", () => {
 test("lanza un error legible si no hay JSON", () => {
   assert.throws(
     () => parseSseJsonRpc("JSON RPC not handled"),
-    /respuesta no JSON/i,
+    /non-JSON body/i,
   );
 });
 

@@ -45,12 +45,12 @@
  * pass and only leaves at the wrap: at the end of stage 6 it fades out in
  * place, jumps back to stage 1 while invisible, and fades in there — which
  * is what the author asked for after watching it crawl backwards across the
- * whole diagram to restart ("debería hacer fade-out al final y en cuanto no
- * se ve debe estar al inicio haciendo fade-in"). That return crawl was the
+ * whole diagram to restart: fade out at the end, and be back at the start,
+ * still invisible, before fading in. That return crawl was the
  * one movement in the loop that narrated nothing: no bubble accompanies it,
  * and a request never travels from its destination back to the client.
  * The first cut instead highlighted each stage with its own opacity-only
- * `::after` overlay, which the author read as "tosco" (choppy): the
+ * `::after` overlay, which the author read as choppy: the
  * highlight popped in at one stage and popped out at the next instead of
  * being seen to move. This is NOT a reversion to the "dots travelling"
  * design rejected in Attempt 2 above — there is still exactly one
@@ -65,9 +65,9 @@
  * strip" section of the `style` block), but only the first five had a
  * bubble/timeline step/box dwell, so the traveling box jumped straight from
  * "egress" back to "client" and the caption never mentioned that egress
- * hands off to an actual destination. The author: "añade punto 6 que es la
- * salida, indicando que la petición sale hacia el objetivo que se le ha
- * indicado al mcp... así la caja pasa por el último punto." Bubble 6 /
+ * hands off to an actual destination. The author asked for a sixth point —
+ * the exit — saying the request leaves towards the destination the MCP was
+ * pointed at, so the box passes through the last stage too. Bubble 6 /
  * `diagramTimelineStep6` narrate that hand-off (a Library Genesis mirror
  * for libgen, or the GitLab instance the client pointed gitlab at — the
  * same wording `pathBody` already used), `box-travel` gained a sixth dwell
@@ -226,9 +226,9 @@ const nodes: McpInstance[] = topology.libgen.slice(0, MAX_DRAWN_NODES);
 // number of nodes sets the fan's spread, and the number of DISTINCT egress
 // countries sets how many exits there are and which node joins which. Change
 // the topology and the picture changes with it — a hand-drawn fan would keep
-// claiming the old split. The countries themselves are NOT painted (the
-// author: "no hace falta indicar país en la animación, solo son dos
-// egress"); they only decide which node shares an exit with which.
+// claiming the old split. The countries themselves are NOT painted — the
+// author asked for them to stay out, since there are only two exits; they
+// only decide which node shares an exit with which.
 //
 // Coordinates live in the SVG's own space: x as 0–100 across the strip (so it
 // stretches with the grid), y in the px of a track every column shares.
@@ -244,10 +244,10 @@ const nodeY = (i: number): number =>
 // The exits, in first-seen order, and which one each node uses. Two today
 // (two countries), and the code never assumes that number.
 const egressKeys = [...new Set(nodes.map((n) => n.egressCountry))];
-// KEEP-IN-SYNC con `.egress-stack` y `.stage-icon--egress` del `style`: las
-// salidas se colocan con flexbox, así que este número no es libre — es el
-// diámetro del círculo más el hueco de la pila (22px + 8px). Si se separan,
-// los círculos del HTML dejan de caer sobre los extremos que dibuja el SVG.
+// KEEP-IN-SYNC with `.egress-stack` and `.stage-icon--egress` in the `style`
+// block: the exits are laid out with flexbox, so this number is not free — it
+// is the circle's diameter plus the stack's gap (22px + 8px). If the two drift,
+// the HTML's circles stop landing on the endpoints the SVG draws.
 const EGRESS_GAP = 30;
 /** Vertical center of exit `i`, centred as a group on the same track. */
 const egressY = (i: number): number =>
@@ -511,10 +511,11 @@ const MATCHED_NODE_INDEX = 0;
         </div>
 
         {
-          /* nginx y las instancias corren en UNA máquina, y esa máquina está en
-          España: el recuadro lo dice en vez de dejarlo implícito. El código de
-          país es texto real, no decoración — responde a «dónde se procesa de
-          verdad mi petición», que es distinto de por dónde sale después. */
+          /* nginx and the instances run on ONE machine, and that machine is in
+          Spain: the box says so rather than leaving it implied. The country
+          code is real text, not decoration — it answers "where is my request
+          actually processed", which is a different question from where it
+          leaves through afterwards. */
         }
         <div class="mcp-region"><span class="mcp-region-tag">ES</span></div>
 
@@ -891,9 +892,9 @@ const MATCHED_NODE_INDEX = 0;
     margin: 0 0 1.25rem;
     overflow-x: auto;
 
-    /* Opaco, no `--color-bg-subtle`: ese token es un 5% translúcido, así que
-       la rejilla del fondo cruzaba la caja y en claro dejaba de leerse como
-       una superficie. Mismo criterio que las tarjetas de jmrp.io. */
+    /* Opaque, not `--color-bg-subtle`: that token is 5% translucent, so the
+       background grid showed through the box and in light mode it stopped
+       reading as a surface. Same call as jmrp.io's cards. */
     background: var(--color-bg);
     border: 1px solid var(--color-hair);
     border-radius: 6px;
@@ -973,9 +974,9 @@ const MATCHED_NODE_INDEX = 0;
     padding: 1rem;
     margin: 1.75rem 0;
 
-    /* Opaco, no `--color-bg-subtle`: ese token es un 5% translúcido, así que
-       la rejilla del fondo cruzaba la caja y en claro dejaba de leerse como
-       una superficie. Mismo criterio que las tarjetas de jmrp.io. */
+    /* Opaque, not `--color-bg-subtle`: that token is 5% translucent, so the
+       background grid showed through the box and in light mode it stopped
+       reading as a surface. Same call as jmrp.io's cards. */
     background: var(--color-bg-secondary);
     border: 1px solid var(--color-hair);
     border-radius: var(--radius-md);
@@ -994,25 +995,25 @@ const MATCHED_NODE_INDEX = 0;
      hard requirement that sank neither, but almost sank, both earlier
      attempts. */
 
-  /* ===== Escala proporcional ====================================================
-     La figura se DISEÑA a un ancho de 380.44px (la franja a un viewport de
-     440px, medido en el navegador) y desde ahí escala como un bloque: `--u`
-     vale 1 px de diseño, y toda la geometría de aquí abajo es un múltiplo suyo.
+  /* ===== Proportional scale ===================================================
+     The figure is DESIGNED at 380.44px wide (the strip at a 440px viewport,
+     measured in the browser) and scales from there as one block: `--u` is one
+     design pixel, and every piece of geometry below is a multiple of it.
 
-     El motivo no es estético. Con tamaños en px fijos, las columnas se estrechan
-     al bajar de ancho pero las etiquetas no, así que "Cloudflare" y
-     "destination" —las dos palabras largas— acaban partiéndose, y cada reparto
-     de columnas hay que volver a comprobarlo a 360, 390 y 440. Escalando, las
-     proporciones son las mismas a cualquier ancho y NADA puede partirse: la
-     figura solo se hace más pequeña o más grande.
+     The reason is not aesthetic. With fixed px sizes the columns narrow as the
+     width drops but the labels do not, so "Cloudflare" and "destination" — the
+     two long words — end up breaking, and every column split has to be checked
+     again at 360, 390 and 440. Scaling keeps the proportions identical at any
+     width and NOTHING can break: the figure only gets smaller or larger.
 
-     `container-type: inline-size` va en el envoltorio y no aquí porque las
-     unidades `cq*` se resuelven contra un contenedor ANTECESOR: un elemento no
-     es contenedor de sí mismo, y definirlas aquí las resolvería contra el
+     `container-type: inline-size` goes on the wrapper and not here because
+     `cq*` units resolve against an ANCESTOR container: an element is not its
+     own container, and declaring it here would resolve them against the
      viewport.
 
-     El tope de `.mcp-scale` existe porque sin él la figura crecería con la
-     columna de texto: a 1280px sería casi el triple que en el diseño. */
+     `.mcp-scale`'s cap exists because without it the figure would grow with
+     the text column: at 1280px it would be nearly three times its design
+     size. */
   .mcp-scale {
     max-width: 46rem;
     container-type: inline-size;
@@ -1188,7 +1189,7 @@ const MATCHED_NODE_INDEX = 0;
      the bubbles' timeline — see "Bubble cycle" further down). This replaced
      an earlier version that highlighted each stage with its own opacity-only
      `::after`, popping in at one stage and out at the next — the author read
-     that as "tosco" (choppy) and asked for an indicator that is SEEN TO
+     that as choppy and asked for an indicator that is SEEN TO
      MOVE. That is still the rule between stages: it never pops from one to
      the next.
 
@@ -1273,20 +1274,19 @@ const MATCHED_NODE_INDEX = 0;
   }
 
   .stage-icon--nginx {
-    /* Relleno macizo, no el tinte de antes: es la única pieza del dibujo que
-       DECIDE algo, y a 18px un aro con relleno translúcido se lee igual que
-       cualquier otra cuenta del hilo. */
+    /* A solid fill, not the tint it used to have: this is the one piece of the
+       drawing that DECIDES anything, and at 18px a ring with a translucent
+       fill reads like any other bead on the wire. */
     background: var(--color-accent);
     border-color: var(--color-accent);
     border-width: calc(2.5 * var(--u));
   }
 
-  /* Cloudflare: el único salto que no es de este operador, en su naranja de
-     marca para que se vea de un vistazo dónde acaba el control propio. Disco
-     macizo con la marca calada en blanco, y no un glifo naranja sobre el fondo
-     de la página: a 18px un logo monocromo fino se queda por debajo del 3:1 de
-     contraste para gráficos en tema claro, mientras que el disco pasa holgado
-     en los dos temas. */
+  /* Cloudflare: the one hop this operator does not run, in its brand orange so
+     it is obvious at a glance where our own control ends. A solid disc with the
+     mark knocked out in white, rather than an orange glyph over the page
+     background: at 18px a thin monochrome logo falls below the 3:1 graphics
+     contrast in light mode, while the disc clears it comfortably in both. */
   .stage-icon--cloudflare {
     display: flex;
     align-items: center;
@@ -1301,9 +1301,9 @@ const MATCHED_NODE_INDEX = 0;
     height: calc(11 * var(--u));
   }
 
-  /* Las salidas, dentro de un solo marco: las curvas de los nodos aterrizan en
-     el marco, y solo las dos líneas que SALEN son por país. Opaco a propósito,
-     como el resto de iconos: tapa los extremos de los hilos que mueren detrás. */
+  /* The exits, inside a single frame: the nodes' curves land on the frame, and
+     only the two lines LEAVING it are per country. Opaque on purpose, like the
+     other icons: it covers the ends of the wires that die behind it. */
   .egress-zone {
     box-sizing: border-box;
     display: flex;
@@ -1316,8 +1316,8 @@ const MATCHED_NODE_INDEX = 0;
     border-radius: var(--radius-md);
   }
 
-  /* Más grandes que el resto de cuentas porque llevan dentro el código ISO del
-     país de salida — dato real de `topology.ts`, no adorno. */
+  /* Larger than the other beads because they carry the exit country's ISO code
+     inside — real data from `topology.ts`, not decoration. */
   .stage-icon--egress {
     display: flex;
     align-items: center;
@@ -1330,17 +1330,17 @@ const MATCHED_NODE_INDEX = 0;
     color: var(--color-text);
   }
 
-  /* La zona española: nginx y las instancias, o sea las columnas 3 y 4 de
+  /* The Spanish zone: nginx and the instances, that is columns 3 and 4 of
      `grid-template-columns`.
 
-     GENERADO junto a `COL_X`, los `--pos` de los globos y las paradas de
-     box-travel: `left` es el borde izquierdo de la columna 3 y `width` la suma
-     de las dos, ambos en % del total de `fr`. Se quedó fuera del generador en
-     el primer reparto y acabó cinco puntos a la derecha de lo que encierra
-     —desplazado, no roto, que es justo el fallo que nadie ve en una revisión
-     de código—; por eso ahora sale de la misma fuente que el resto.
+     GENERATED alongside `COL_X`, the bubbles' `--pos` and box-travel's stops:
+     `left` is column 3's left edge and `width` the sum of the two, both as a
+     percentage of the total `fr`. It was left out of the generator in the first
+     split and ended up five points to the right of what it encloses — shifted,
+     not broken, which is exactly the kind of defect nobody catches in a code
+     review; hence it now comes from the same source as everything else.
 
-     Va por DETRÁS de los hilos (`z-index: -2`) para no cortar ninguna línea. */
+     It sits BEHIND the wires (`z-index: -2`) so it cuts no line. */
   .mcp-region {
     position: absolute;
     top: calc(3.2 * var(--u));
@@ -1350,10 +1350,10 @@ const MATCHED_NODE_INDEX = 0;
     width: 30.357%;
     height: var(--track-h);
 
-    /* Discontinuo y SIN relleno, a diferencia del marco de egress, que sí es
-       una caja opaca: los dos son rectángulos y dicen cosas distintas — este
-       marca DÓNDE está lo de dentro, aquel agrupa dos salidas. Con relleno
-       ambos se leían igual, y además ensuciaba el paso de la caja de resalte. */
+    /* Dashed and with NO fill, unlike the egress frame, which is an opaque box:
+       both are rectangles and they say different things — this one marks WHERE
+       its contents are, that one groups two exits. With a fill the two read the
+       same, and it also muddied the highlight box passing over. */
     border: calc(1 * var(--u)) dashed var(--color-text-muted);
     border-radius: var(--radius-md);
     opacity: 55%;
@@ -1762,31 +1762,32 @@ const MATCHED_NODE_INDEX = 0;
 
   /* ===== Traveling highlight box: the `box-travel` animation ===================
 
-     GENERADO, no escrito a mano. Los números salen de `grid-template-columns`
-     de `.mcp-strip` — hoy `0.65fr 1.5fr 0.9fr 1.225fr 1.225fr 1.5fr`, 7fr en total — de esta
-     forma, y cualquier cambio de columnas obliga a rehacerlos los tres a la vez
-     (estas paradas, `COL_X` en el frontmatter y los `--pos` de los globos):
+     GENERATED, not hand-written. The numbers come from `.mcp-strip`'s
+     `grid-template-columns` — today `0.65fr 1.5fr 0.9fr 1.225fr 1.225fr 1.5fr`,
+     7fr in total — this way, and any change to the columns forces all three to
+     be redone together (these stops, `COL_X` in the frontmatter, and the
+     bubbles' `--pos`):
 
-       borde_i  = (suma de anchos anteriores) / total
-       centro_i = borde_i + ancho_i / 2
-       caja_i   = max(ancho_i × 0.90, etiqueta_i + 4px), tope el ancho de columna
+       edge_i   = (sum of the preceding widths) / total
+       centre_i = edge_i + width_i / 2
+       box_i    = max(width_i × 0.90, label_i + 4px), capped at the column width
 
-     Esa última línea es el motivo de que las cajas NO midan lo mismo que su
-     columna. Se estrechan un 10% para que el resalte abrace a la etapa en vez
-     de a su columna — salvo en Cloudflare y destination, donde el suelo gana:
-     a 360px sus etiquetas (50px y 55px, medidas en el navegador, no estimadas)
-     ya llenan la columna, y encogerlas les cortaría el texto.
+     That last line is why the boxes do NOT match their column's width. They
+     narrow by 10% so the highlight hugs the stage rather than its column —
+     except at Cloudflare and destination, where the floor wins: at 360px their
+     labels (50px and 55px, measured in the browser, not estimated) already fill
+     the column, and shrinking them would clip the text.
 
-     El reparto de columnas tampoco es libre: el hueco entre dos etapas es la
-     semisuma de sus anchos, así que separar nodos de egress obliga a quitarlo
-     de otro sitio. Se quitó de los dos primeros tramos (usuario→Cloudflare y
-     Cloudflare→nginx), que no dicen nada que necesite espacio, y nodos→egress
-     pasó de 14.286% a 17.5% de la franja.
+     The column split is not free either: the gap between two stages is the mean
+     of their widths, so pulling nodes away from egress means taking it from
+     somewhere else. It was taken from the first two runs (user→Cloudflare and
+     Cloudflare→nginx), which say nothing that needs the room, and nodes→egress
+     went from 14.286% to 17.5% of the strip.
 
-     Las paradas duran 14% del ciclo cada una (11% quieta, 3% de viaje en tres
-     sub-tramos ease-in / linear / ease-out), y el retorno largo del final
-     (81–100%) se hace con opacidad en vez de con un viaje de vuelta: cruzar
-     la figura entera hacia atrás leía como un séptimo paso que no existe. */
+     Each stop lasts 14% of the cycle (11% still, 3% travelling across three
+     sub-runs: ease-in / linear / ease-out), and the long return at the end
+     (81–100%) is done with opacity instead of a journey back: crossing the
+     whole figure backwards read as a seventh step that does not exist. */
   @keyframes box-travel {
     0% {
       left: 0.464%;
@@ -1984,10 +1985,10 @@ const MATCHED_NODE_INDEX = 0;
      wrap short labels ("Cloudflare", "destination") onto more lines than at
      rest — verified rendered at 360px, see the SDD report. */
   @media (width <= 480px) {
-    /* Aquí vivían un `.stage-label` más pequeño y un `.node-badge-num`
-       encogido a mano para que las etiquetas largas cupieran por debajo de
-       480px. Con la figura escalando en bloque no hacen falta: encogerlos
-       otra vez rompería la proporción justo donde se acaba de arreglar. */
+    /* A smaller `.stage-label` and a hand-shrunk `.node-badge-num` used to live
+       here so the long labels would fit below 480px. With the figure scaling as
+       one block they are unnecessary: shrinking them again would break the
+       proportion exactly where it has just been fixed. */
 
     .mcp-bubbles {
       height: 5.75rem;
@@ -2001,9 +2002,9 @@ const MATCHED_NODE_INDEX = 0;
   /* ===== Caption ================================================================
      `margin-top` only, not `.mcp-bubbles`'s own reserved height (see "The
      fixed-height bubble zone" comment above — that height stays fixed on
-     purpose, it is what keeps the page from jumping). The author: "no sé
-     si en escritorio hay demasiado espacio vacío entre el globo de
-     información y el 'footer' de la caja de animación" — measured before
+     purpose, it is what keeps the page from jumping). The author wondered
+     whether, on desktop, there was too much empty space between the
+     information bubble and the animation box's footer — measured before
      this change, the gap between `.mcp-bubbles`'s bottom edge and this
      caption's top edge was exactly this margin (0.85rem = 13.6px at
      1280px, 12.24px at 360px, since nothing else sits between them).

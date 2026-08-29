@@ -1,26 +1,27 @@
 /**
- * Cliente MCP mínimo para el inspector.
+ * A minimal MCP client for the inspector.
  *
- * Los servidores sirven streamable HTTP y responden `text/event-stream`
- * (`event: message\ndata: {...}`), así que `res.json()` falla: hay que
- * quedarse con la última línea `data:`. Se acepta también JSON plano por si
- * algún servidor se arranca con --json-response.
+ * The servers speak streamable HTTP and answer `text/event-stream`
+ * (`event: message\ndata: {...}`), so `res.json()` fails: the last `data:`
+ * line is what has to be kept. Plain JSON is accepted too, in case a server
+ * is started with --json-response.
  *
- * GET devuelve 405 en modo stateless: aquí siempre se usa POST.
+ * A GET is rejected in stateless mode: POST is always used here.
  *
- * `callMcp` NO lanza cuando el servidor contesta mal. Devuelve siempre un
- * `McpResponse` con el código, el tiempo y el tamaño, y es `classifyMcp` quien
- * decide de qué clase es el fallo. La razón es que hay TRES clases de fallo y
- * dos de ellas llegan como HTTP 200: un `error` JSON-RPC, y —la peor— un
- * `result` con `isError: true`, que sin mirarlo por dentro es indistinguible
- * de un acierto. Lanzando un string se perdía esa distinción y el inspector
- * pintaba los tres casos, y el éxito, exactamente igual.
+ * `callMcp` does NOT throw when the server answers badly. It always returns an
+ * `McpResponse` with the code, the timing and the size, and `classifyMcp` is
+ * what decides which kind of failure it was. The reason is that there are
+ * THREE kinds of failure and two of them arrive as HTTP 200: a JSON-RPC
+ * `error`, and — the worst — a `result` with `isError: true`, which without
+ * looking inside is indistinguishable from a success. Throwing a string lost
+ * that distinction and the inspector painted all three cases, and success,
+ * exactly the same.
  *
- * Sin dependencias del DOM a propósito: se testea con `node --test` y se
- * le puede inyectar `fetchImpl` para no tocar la red.
+ * No DOM dependencies, on purpose: it is tested with `node --test` and
+ * `fetchImpl` can be injected to keep the network out of it.
  */
 
-/** Cuerpo JSON-RPC 2.0, en la parte que le importa al inspector. */
+/** A JSON-RPC 2.0 body, in the part the inspector cares about. */
 export type JsonRpcBody = {
   jsonrpc?: string;
   id?: unknown;
@@ -33,51 +34,53 @@ export type CallMcpOptions = {
   method: string;
   params?: unknown;
   /**
-   * Cabeceras extra (p. ej. `Authorization: Bearer …`). Nunca se registran ni
-   * se guardan. El esquema lo compone quien llama: aquí llega ya el valor
-   * completo de la cabecera, no la credencial suelta.
+   * Extra headers (for instance `Authorization: Bearer …`). Never logged and
+   * never stored. The caller composes the scheme: what arrives here is the
+   * complete header value, not the bare credential.
    */
   headers?: Record<string, string>;
   fetchImpl?: typeof fetch;
-  /** Para cancelar desde la interfaz y para el timeout de cliente. */
+  /** For cancelling from the interface and for the client-side timeout. */
   signal?: AbortSignal;
 };
 
-/** Cuanto se sabe de una respuesta, incluido lo que no es su cuerpo. */
+/** Everything known about a response, including what is not its body. */
 export type McpResponse = {
   ok: boolean;
   status: number;
-  /** Cuerpo JSON-RPC parseado. `undefined` si el cuerpo no era JSON. */
+  /** The parsed JSON-RPC body. `undefined` when the body was not JSON. */
   body?: JsonRpcBody;
-  /** El cuerpo tal cual llegó, para poder enseñar un error de transporte. */
+  /** The body exactly as it arrived, so a transport error can be shown. */
   text: string;
-  /** Tamaño del cuerpo en bytes (UTF-8), no en caracteres. */
+  /** The body's size in bytes (UTF-8), not in characters. */
   bytes: number;
   durationMs: number;
-  /** Por qué no se pudo parsear el cuerpo, si es que no se pudo. */
+  /** Why the body could not be parsed, when it could not. */
   parseError?: string;
 };
 
 /**
- * De qué clase es el resultado.
+ * What kind of result this is.
  *
- * - `ok`: el servidor hizo lo que se le pidió.
- * - `transport`: no hubo respuesta JSON-RPC (HTTP != 2xx, o cuerpo ilegible).
- * - `rpc`: hubo respuesta y trae `error` (método desconocido, params inválidos…).
- * - `tool`: la tool se ejecutó y falló (`result.isError`). Llega como HTTP 200.
+ * - `ok`: the server did what it was asked.
+ * - `transport`: there was no JSON-RPC response (HTTP != 2xx, or an unreadable
+ *   body).
+ * - `rpc`: there was a response and it carries `error` (unknown method,
+ *   invalid params…).
+ * - `tool`: the tool ran and failed (`result.isError`). Arrives as HTTP 200.
  */
 export type McpOutcome = "ok" | "transport" | "rpc" | "tool";
 
-/** Veredicto sobre una respuesta, con el dato del protocolo que lo justifica. */
+/** The verdict on a response, with the protocol datum that justifies it. */
 export type McpVerdict = {
   outcome: McpOutcome;
-  /** Código: HTTP si es de transporte, JSON-RPC (-32602…) si es `rpc`. */
+  /** The code: HTTP when it is transport, JSON-RPC (-32602…) when it is `rpc`. */
   code?: number;
-  /** Mensaje del servidor, ya recortado. Vacío si no dio ninguno. */
+  /** The server's message, already trimmed. Empty when it gave none. */
   message: string;
 };
 
-/** Extrae el objeto JSON-RPC de una respuesta SSE (o de JSON plano). */
+/** Pulls the JSON-RPC object out of an SSE response (or out of plain JSON). */
 export function parseSseJsonRpc(text: string): unknown {
   const trimmed = text.trim();
   if (trimmed.startsWith("{")) return JSON.parse(trimmed);
@@ -88,34 +91,34 @@ export function parseSseJsonRpc(text: string): unknown {
     .map((l) => l.slice(5).trim())
     .filter(Boolean);
 
-  // Se comprueba `last` en vez de `dataLines.length`: son equivalentes en
-  // runtime, pero `.at(-1)` devuelve `string | undefined` y solo esta forma
-  // estrecha el tipo. Con la comprobación por longitud, TypeScript seguía
-  // viendo un posible `undefined` en JSON.parse.
+  // `last` is checked rather than `dataLines.length`: they are equivalent at
+  // runtime, but `.at(-1)` returns `string | undefined` and only this form
+  // narrows the type. With the length check, TypeScript still saw a possible
+  // `undefined` at JSON.parse.
   const last = dataLines.at(-1);
   if (last === undefined) {
     throw new Error(
-      `respuesta no JSON del servidor MCP: ${trimmed.slice(0, 200)}`,
+      `non-JSON body from the MCP server: ${trimmed.slice(0, 200)}`,
     );
   }
   return JSON.parse(last);
 }
 
-/** Bytes UTF-8 de un texto: lo que de verdad viajó, no cuántos caracteres son. */
+/** A text's UTF-8 bytes: what actually traveled, not how many characters. */
 function byteLength(text: string): number {
   return new TextEncoder().encode(text).length;
 }
 
 /**
- * Envía un método JSON-RPC al endpoint MCP.
+ * Sends a JSON-RPC method to the MCP endpoint.
  *
- * Solo rechaza si la petición no llega a completarse: fallo de red, o
- * cancelación (`AbortError`). Un servidor que contesta 400, o 200 con un
- * error dentro, devuelve un `McpResponse` normal — mirarlo es trabajo de
- * `classifyMcp`.
+ * It only rejects when the request never completes: a network failure, or a
+ * cancellation (`AbortError`). A server that answers 400, or 200 with an error
+ * inside, returns an ordinary `McpResponse` — looking at it is `classifyMcp`'s
+ * job.
  *
- * @param opts Endpoint, método, parámetros y cabeceras de la llamada.
- * @returns La respuesta con código, cuerpo, tamaño y duración.
+ * @param opts The call's endpoint, method, parameters and headers.
+ * @returns The response with its code, body, size and duration.
  */
 export async function callMcp(opts: CallMcpOptions): Promise<McpResponse> {
   const doFetch = opts.fetchImpl ?? fetch;
@@ -148,13 +151,13 @@ export async function callMcp(opts: CallMcpOptions): Promise<McpResponse> {
   try {
     return { ...base, body: parseSseJsonRpc(text) as JsonRpcBody };
   } catch (error) {
-    // Un cuerpo ilegible no es una excepción del inspector: es un dato sobre
-    // el servidor, y hay que poder enseñarlo junto al código y al tiempo.
+    // An unreadable body is not an exception for the inspector: it is a fact
+    // about the server, and it has to be shown next to the code and timing.
     return { ...base, parseError: String(error) };
   }
 }
 
-/** Primer texto del `content` de un resultado de tool, si lo hay. */
+/** The first text in a tool result's `content`, when there is one. */
 function firstContentText(result: Record<string, unknown> | undefined): string {
   const content = result?.content;
   if (!Array.isArray(content)) return "";
@@ -168,14 +171,14 @@ function firstContentText(result: Record<string, unknown> | undefined): string {
 }
 
 /**
- * Decide de qué clase es una respuesta.
+ * Decides what kind a response is.
  *
- * El orden importa: primero el transporte (si no hay JSON-RPC no hay nada más
- * que mirar), luego el `error` del sobre, y solo al final el `isError` de la
- * tool, que es el que se colaba como éxito.
+ * The order matters: transport first (with no JSON-RPC there is nothing else to
+ * look at), then the envelope's `error`, and only last the tool's `isError`,
+ * which is the one that used to slip through as a success.
  *
- * @param res La respuesta devuelta por `callMcp`.
- * @returns Clase del resultado, con código y mensaje del servidor.
+ * @param res The response `callMcp` returned.
+ * @returns The result's kind, with the server's code and message.
  */
 export function classifyMcp(res: McpResponse): McpVerdict {
   if (!res.ok) {
@@ -208,17 +211,18 @@ export function classifyMcp(res: McpResponse): McpVerdict {
   return { outcome: "ok", code: res.status, message: "" };
 }
 
-/** Lo que se ha listado y cuántos, para el resumen de una línea. */
+/** What was listed and how many, for the one-line summary. */
 export type ListedItems = { kind: string; count: number };
 
 /**
- * Cuenta lo que trae un método de listado.
+ * Counts what a listing method returned.
  *
- * Sirve para poder decir «0 resources» en vez de dejar un `[]` en pantalla que
- * el visitante no sabe si es correcto o es que algo está roto.
+ * It is what makes it possible to say "0 resources" instead of leaving a `[]`
+ * on screen that the visitor cannot tell is correct or broken.
  *
- * @param body Cuerpo JSON-RPC ya parseado.
- * @returns Qué se listó y cuántos elementos, o `undefined` si no era un listado.
+ * @param body The parsed JSON-RPC body.
+ * @returns What was listed and how many items, or `undefined` when it was not
+ *   a listing.
  */
 export function listedItems(
   body: JsonRpcBody | undefined,
@@ -233,21 +237,21 @@ export function listedItems(
 }
 
 /**
- * Saca el texto legible de una respuesta, si lo trae.
+ * Pulls the readable text out of a response, when it carries any.
  *
- * Una llamada a `tools/call` contesta `result.content[]`, y en la práctica lo
- * que va dentro es Markdown: `search` de libgen devuelve una tabla con enlaces
- * de descarga. Eso, serializado como JSON, llega con los saltos escapados y en
- * una sola línea — legible para una máquina y para nadie más. Esta función es
- * lo que permite al inspector ofrecer la respuesta maquetada y dejar el JSON
- * como la otra vista, en vez de como la única.
+ * A `tools/call` answers `result.content[]`, and in practice what sits inside
+ * is Markdown: libgen's `search` returns a table of download links. Serialized
+ * as JSON that arrives with its newlines escaped and on a single line —
+ * readable to a machine and to nobody else. This function is what lets the
+ * inspector offer the response laid out and keep the JSON as the other view,
+ * rather than as the only one.
  *
- * Devuelve `undefined` cuando no hay nada que maquetar (un `tools/list`, un
- * error JSON-RPC): ahí el JSON ES la respuesta, y fingir lo contrario sería
- * esconderla.
+ * Returns `undefined` when there is nothing to lay out (a `tools/list`, a
+ * JSON-RPC error): there, the JSON IS the answer, and pretending otherwise
+ * would hide it.
  *
- * @param body El cuerpo devuelto por `callMcp`.
- * @returns El texto concatenado de los bloques, o `undefined`.
+ * @param body The body `callMcp` returned.
+ * @returns The blocks' concatenated text, or `undefined`.
  */
 export function readableText(
   body: JsonRpcBody | undefined,
