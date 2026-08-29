@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { ui } from "../../src/i18n/ui";
 import { serverCard } from "./helpers";
 
-test("lista los dos servidores MCP con su endpoint", async ({ page }) => {
+test("it lists both MCP servers with their endpoint", async ({ page }) => {
   await page.goto("/");
   const libgen = serverCard(page, "libgen");
   const gitlab = serverCard(page, "gitlab");
@@ -12,20 +12,20 @@ test("lista los dos servidores MCP con su endpoint", async ({ page }) => {
   await expect(libgen).toContainText("https://mcp.jmrp.io/libgen");
   await expect(gitlab).toContainText("https://mcp.jmrp.io/gitlab");
 
-  // Ocultar que gitlab exige Authorization es un defecto de contenido. Da igual
-  // con qué markup se cuente —antes una línea de texto, ahora una insignia más
-  // una <dl>—: la ficha de gitlab tiene que decir que hay cabecera obligatoria
-  // y cuál es.
+  // Hiding that gitlab requires Authorization is a content defect. It does not
+  // matter which markup tells it — it used to be a line of text, now it is a
+  // badge plus a <dl>: gitlab's card has to say there is a mandatory header and
+  // which one it is.
   await expect(gitlab).toContainText(ui.en.credentialsRequired);
   await expect(gitlab).toContainText("Authorization");
 
-  // Y la contraria: callar que libgen no pide nada deja al visitante buscando
-  // unas credenciales que no existen.
+  // And the opposite: staying quiet about libgen asking for nothing leaves the
+  // visitor hunting for credentials that do not exist.
   await expect(libgen).toContainText("No credentials required");
   await expect(libgen).not.toContainText("Authorization");
 });
 
-test("el enlace de vuelta a jmrp.io es absoluto", async ({ page }) => {
+test("the link back to jmrp.io is absolute", async ({ page }) => {
   await page.goto("/");
   const href = await page
     .getByRole("link", { name: /jmrp\.io/ })

@@ -3,25 +3,25 @@ import { test } from "node:test";
 
 import { anchorSlug } from "../../src/lib/slug.ts";
 
-test("un nombre de tool/prompt ya id-safe pasa a minúsculas sin más cambios", () => {
+test("a tool/prompt name that is already id-safe is lowercased and nothing else", () => {
   assert.equal(anchorSlug("gitlab_execute_action"), "gitlab-execute-action");
   assert.equal(anchorSlug("search"), "search");
 });
 
-test("una uri de resource pierde el esquema y las barras, sin guiones sueltos", () => {
+test("a resource uri loses the scheme and the slashes, with no stray dashes", () => {
   assert.equal(
     anchorSlug("gitlab://guides/code-review"),
     "gitlab-guides-code-review",
   );
 });
 
-test("una uri template con llaves de parámetro queda legible", () => {
+test("a uri template with parameter braces stays readable", () => {
   assert.equal(
     anchorSlug("gitlab://group/{group_id}/members"),
     "gitlab-group-group-id-members",
   );
 });
 
-test("no deja guion colgando ni al principio ni al final", () => {
-  assert.equal(anchorSlug("://raro/"), "raro");
+test("it leaves no dangling dash at either end", () => {
+  assert.equal(anchorSlug("://odd/"), "odd");
 });

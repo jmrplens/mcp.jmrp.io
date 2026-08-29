@@ -15,13 +15,13 @@ import {
 
 const CFG = DEFAULT_LIMITS;
 
-test("la primera llamada sale", () => {
+test("the first call goes through", () => {
   const d = attempt(initialLimiterState, 1000, "m", CFG);
   assert.equal(d.allowed, true);
   assert.deepEqual(d.state.recent, [1000]);
 });
 
-test("dos llamadas pegadas: la segunda se frena por el hueco mínimo", () => {
+test("two calls back to back: the second is braked by the minimum gap", () => {
   const first = attempt(initialLimiterState, 1000, "m", CFG);
   const second = attempt(first.state, 1000 + CFG.minGapMs - 1, "m", CFG);
   assert.equal(second.allowed, false);
@@ -29,13 +29,13 @@ test("dos llamadas pegadas: la segunda se frena por el hueco mínimo", () => {
   assert.equal(second.retryAfterMs, 1);
 });
 
-test("pasado el hueco mínimo vuelve a salir", () => {
+test("past the minimum gap it goes through again", () => {
   const first = attempt(initialLimiterState, 1000, "m", CFG);
   const second = attempt(first.state, 1000 + CFG.minGapMs, "m", CFG);
   assert.equal(second.allowed, true);
 });
 
-test("un frenazo por hueco NO consume cupo de la ventana", () => {
+test("a gap brake does NOT spend window quota", () => {
   // This matters: if a double-click spent quota, the brake itself would push
   // people towards the block instead of away from it.
   const first = attempt(initialLimiterState, 1000, "m", CFG);
@@ -44,13 +44,13 @@ test("un frenazo por hueco NO consume cupo de la ventana", () => {
   assert.deepEqual(denied.state.recent, [1000]);
 });
 
-test("pasarse del cupo de la ventana abre el bloqueo", () => {
+test("going over the window quota opens the cooldown", () => {
   let state = initialLimiterState;
   let now = 0;
   for (let i = 0; i < CFG.maxInWindow; i++) {
     now += CFG.minGapMs;
     const d = attempt(state, now, "m", CFG);
-    assert.equal(d.allowed, true, `la llamada ${i + 1} debería salir`);
+    assert.equal(d.allowed, true, `call ${i + 1} should go through`);
     state = d.state;
   }
 
@@ -62,7 +62,7 @@ test("pasarse del cupo de la ventana abre el bloqueo", () => {
   assert.equal(over.state.cooldownUntil, now + CFG.cooldownMs);
 });
 
-test("durante el bloqueo se deniega todo, y el motivo lo dice", () => {
+test("everything is denied during the cooldown, and the reason says so", () => {
   const blocked = { recent: [], cooldownUntil: 5000 };
   const d = attempt(blocked, 4000, "m", CFG);
   assert.equal(d.allowed, false);
@@ -70,7 +70,7 @@ test("durante el bloqueo se deniega todo, y el motivo lo dice", () => {
   assert.equal(d.retryAfterMs, 1000);
 });
 
-test("al expirar el bloqueo se empieza de cero, no a un clic de recaer", () => {
+test("when the cooldown expires it starts from zero, not one click from relapsing", () => {
   const blocked = { recent: [], cooldownUntil: 5000 };
   const d = attempt(blocked, 5000, "m", CFG);
   assert.equal(d.allowed, true);
@@ -78,7 +78,7 @@ test("al expirar el bloqueo se empieza de cero, no a un clic de recaer", () => {
   assert.equal(d.state.cooldownUntil, 0);
 });
 
-test("la ventana desliza: llamadas viejas dejan de contar", () => {
+test("the window slides: old calls stop counting", () => {
   const old = Array.from({ length: CFG.maxInWindow }, (_, i) => i * 10);
   const state = { recent: old, cooldownUntil: 0 };
   // Well past the window: none of the earlier ones count any more.
@@ -87,28 +87,28 @@ test("la ventana desliza: llamadas viejas dejan de contar", () => {
   assert.deepEqual(d.state.recent, [CFG.windowMs + 1000]);
 });
 
-test("un uso humano normal no se frena nunca", () => {
+test("ordinary human use is never braked", () => {
   // One call every three seconds for two minutes: read, change an argument,
   // try again. If this got braked, the brake would be wrong.
   let state = initialLimiterState;
   for (let now = 0; now < 120_000; now += 3000) {
     const d = attempt(state, now, "m", CFG);
-    assert.equal(d.allowed, true, `frenada a los ${now}ms`);
+    assert.equal(d.allowed, true, `braked at ${now}ms`);
     state = d.state;
   }
 });
 
-test("encadenar métodos distintos NO se frena: es el flujo normal", () => {
+test("chaining different methods is NOT braked: that is the normal flow", () => {
   // Load the tool list, pick one, run it. Those land within milliseconds of
   // each other and are all legitimate — braking them was the first version's
   // bug, and the e2e suite is what caught it.
   const first = attempt(initialLimiterState, 1000, "tools/list", CFG);
   assert.equal(first.allowed, true);
   const second = attempt(first.state, 1050, "tools/call", CFG);
-  assert.equal(second.allowed, true, "un método distinto no debe frenarse");
+  assert.equal(second.allowed, true, "a different method must not be braked");
 });
 
-test("repetir el MISMO método sí se frena: eso es el doble clic", () => {
+test("repeating the SAME method is braked: that is the double click", () => {
   const first = attempt(initialLimiterState, 1000, "tools/list", CFG);
   const second = attempt(first.state, 1050, "tools/list", CFG);
   assert.equal(second.allowed, false);

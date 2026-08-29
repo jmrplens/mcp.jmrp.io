@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { getLangFromUrl } from "../../src/i18n/utils.ts";
 
-test("getLangFromUrl saca el idioma del primer segmento", () => {
+test("getLangFromUrl takes the language from the first segment", () => {
   const cases = [
     ["https://mcp.jmrp.io/", "en"],
     ["https://mcp.jmrp.io/inspector/", "en"],

@@ -13,7 +13,7 @@ import { test } from "node:test";
 import { servers } from "../../src/data/servers.ts";
 import { parseDeepLink } from "../../src/lib/inspector-deeplink.ts";
 
-test("los tres parámetros válidos se leen tal cual", () => {
+test("the three valid parameters are read as they are", () => {
   const link = parseDeepLink(
     "?server=gitlab&tab=prompts&name=acquire_book",
     servers,
@@ -25,7 +25,7 @@ test("los tres parámetros válidos se leen tal cual", () => {
   });
 });
 
-test("sin query string, los tres caen a undefined", () => {
+test("with no query string, all three fall to undefined", () => {
   const link = parseDeepLink("", servers);
   assert.deepEqual(link, {
     serverId: undefined,
@@ -34,34 +34,34 @@ test("sin query string, los tres caen a undefined", () => {
   });
 });
 
-test("un server que no existe en la lista cae a undefined", () => {
+test("a server that is not in the list falls to undefined", () => {
   const link = parseDeepLink("?server=not-a-real-server", servers);
   assert.equal(link.serverId, undefined);
 });
 
-test("un server vacío cae a undefined, no a cadena vacía", () => {
+test("an empty server falls to undefined, not to an empty string", () => {
   const link = parseDeepLink("?server=", servers);
   assert.equal(link.serverId, undefined);
 });
 
-test("una tab que no es tools/prompts/resources cae a undefined", () => {
+test("a tab that is not tools/prompts/resources falls to undefined", () => {
   const link = parseDeepLink("?tab=nope", servers);
   assert.equal(link.tab, undefined);
 });
 
-test("las tres tabs válidas se aceptan", () => {
+test("the three valid tabs are accepted", () => {
   for (const tab of ["tools", "prompts", "resources"]) {
     assert.equal(parseDeepLink(`?tab=${tab}`, servers).tab, tab);
   }
 });
 
-test("name se recorta de espacios y una cadena vacía cae a undefined", () => {
+test("name is trimmed of spaces and an empty string falls to undefined", () => {
   assert.equal(parseDeepLink("?name=%20search%20", servers).name, "search");
   assert.equal(parseDeepLink("?name=", servers).name, undefined);
   assert.equal(parseDeepLink("?name=%20%20", servers).name, undefined);
 });
 
-test("un parámetro inválido no tumba a los otros dos, que sí lo son", () => {
+test("one invalid parameter does not take down the other two, which are valid", () => {
   const link = parseDeepLink(
     "?server=not-a-real-server&tab=prompts&name=acquire_book",
     servers,
@@ -73,12 +73,12 @@ test("un parámetro inválido no tumba a los otros dos, que sí lo son", () => {
   });
 });
 
-test("un parámetro ajeno (p. ej. un token) no aparece en el resultado", () => {
-  // No existe ningún parámetro de credencial que este parser acepte: la URL
-  // nunca lleva el token del visitante. Esto lo comprueba desde la forma del
-  // objeto devuelto, que solo puede tener estas tres claves.
+test("an unrelated parameter (a token, say) does not appear in the result", () => {
+  // There is no credential parameter this parser accepts: the URL never
+  // carries the visitor's token. This checks it from the shape of the returned
+  // object, which can only have these three keys.
   const link = parseDeepLink(
-    "?server=gitlab&token=glpat-secreto&Authorization=glpat-secreto",
+    "?server=gitlab&token=glpat-secret&Authorization=glpat-secret",
     servers,
   );
   assert.deepEqual(
@@ -88,7 +88,7 @@ test("un parámetro ajeno (p. ej. un token) no aparece en el resultado", () => {
   assert.equal(JSON.stringify(link).includes("glpat"), false);
 });
 
-test("funciona igual con o sin el `?` inicial", () => {
+test("it works the same with or without the leading `?`", () => {
   const withMark = parseDeepLink("?server=libgen", servers);
   const withoutMark = parseDeepLink("server=libgen", servers);
   assert.deepEqual(withMark, withoutMark);

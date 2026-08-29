@@ -2,30 +2,31 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { test } from "node:test";
 
-// `dist` es un SYMLINK al color activo del blue/green, así que apunta a lo
-// PUBLICADO, no a lo recién construido. `DIST_DIR` permite validar un build
-// que aún no se ha desplegado (p. ej. `pnpm build:only && DIST_DIR=builds/green
-// pnpm test:unit`), que es justo lo que hace falta para no publicar algo sin
-// haberlo probado. Sin la variable, se comporta como siempre.
+// `dist` is a SYMLINK to the active blue/green colour, so it points at what is
+// PUBLISHED, not at what was just built. `DIST_DIR` makes it possible to
+// validate a build that has not been deployed yet (e.g. `pnpm build:only &&
+// DIST_DIR=builds/green pnpm test:unit`), which is exactly what is needed to
+// avoid publishing something untested. Without the variable it behaves as it
+// always did.
 const DIST = new URL(
   `../../${process.env.DIST_DIR ?? "dist"}/`,
   import.meta.url,
 );
 
-test("genera los artefactos con sufijo _mcp", () => {
+test("it generates the artifacts with the _mcp suffix", () => {
   assert.ok(fs.existsSync(new URL("security_headers_mcp.conf", DIST)));
   assert.ok(fs.existsSync(new URL("security_headers_assets_mcp.conf", DIST)));
 });
 
-test("NO genera los nombres de jmrp.io", () => {
+test("it does NOT generate jmrp.io's names", () => {
   assert.ok(
     !fs.existsSync(new URL("security_headers.conf", DIST)),
-    "colisionaría con el snippet de jmrp.io",
+    "it would collide with jmrp.io's snippet",
   );
   assert.ok(!fs.existsSync(new URL("security_headers_assets.conf", DIST)));
 });
 
-test("el HTML no se precomprime", () => {
+test("HTML is not pre-compressed", () => {
   const found = fs
     .readdirSync(DIST, { recursive: true })
     .filter(
@@ -34,11 +35,11 @@ test("el HTML no se precomprime", () => {
   assert.equal(
     found.length,
     0,
-    "sub_filter no puede reescribir HTML comprimido",
+    "sub_filter cannot rewrite compressed HTML",
   );
 });
 
-test("los assets sí se precomprimen", () => {
+test("assets are pre-compressed", () => {
   const found = fs
     .readdirSync(DIST, { recursive: true })
     .filter(
@@ -46,11 +47,11 @@ test("los assets sí se precomprimen", () => {
     );
   assert.ok(
     found.length > 0,
-    "los assets estáticos deben llevar .br junto al original",
+    "static assets must carry a .br next to the original",
   );
 });
 
-test("la CSP lleva la variable de nginx, no el literal del HTML", () => {
+test("the CSP carries nginx's variable, not the HTML's literal", () => {
   const conf = fs.readFileSync(
     new URL("security_headers_mcp.conf", DIST),
     "utf8",
@@ -58,30 +59,30 @@ test("la CSP lleva la variable de nginx, no el literal del HTML", () => {
   assert.match(
     conf,
     /'nonce-\$cspNonce'/,
-    "el add_header necesita la variable que nginx resuelve en cada petición",
+    "add_header needs the variable nginx resolves on every request",
   );
   assert.doesNotMatch(
     conf,
     /NGINX_CSP_NONCE/,
-    "el literal del HTML en la cabecera dejaría el nonce fijo: la CSP no protegería nada",
+    "the HTML literal in the header would leave the nonce fixed: the CSP would protect nothing",
   );
 });
 
-test("TODAS las páginas llevan el placeholder que sub_filter sustituye", () => {
+test("EVERY page carries the placeholder sub_filter replaces", () => {
   const pages = fs
     .readdirSync(DIST, { recursive: true })
     .map(String)
     .filter((f) => f.endsWith(".html"));
   assert.ok(
     pages.length > 1,
-    "el sitio tiene al menos la página raíz y la de /es/",
+    "the site has at least the root page and the /es/ one",
   );
   for (const page of pages) {
     const html = fs.readFileSync(new URL(page, DIST), "utf8");
     assert.match(
       html,
       /nonce="NGINX_CSP_NONCE"/,
-      `${page} sin placeholder: la CSP con nonce le bloquearía scripts y estilos`,
+      `${page} has no placeholder: the nonce CSP would block its scripts and styles`,
     );
   }
 });

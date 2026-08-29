@@ -8,7 +8,7 @@ import {
   serverPageUrl,
 } from "../../src/lib/seo.ts";
 
-test("pageUrl compone la URL de cada página e idioma", () => {
+test("pageUrl composes the URL of every page and language", () => {
   assert.equal(pageUrl("en"), "https://mcp.jmrp.io/");
   assert.equal(pageUrl("es"), "https://mcp.jmrp.io/es/");
   assert.equal(pageUrl("en", "inspector"), "https://mcp.jmrp.io/inspector/");
@@ -19,7 +19,7 @@ test("pageUrl compone la URL de cada página e idioma", () => {
   assert.equal(pageUrl("es", "policies"), "https://mcp.jmrp.io/es/policies/");
 });
 
-test("alternates emite el clúster de SU página, no el de la portada", () => {
+test("alternates emits ITS OWN page's cluster, not the home page's", () => {
   const alts = alternates("internals");
   assert.deepEqual(alts, [
     { hreflang: "en", href: "https://mcp.jmrp.io/internals/" },
@@ -28,16 +28,16 @@ test("alternates emite el clúster de SU página, no el de la portada", () => {
   ]);
 });
 
-test("alternates sin argumento sigue siendo el de la portada", () => {
+test("alternates with no argument is still the home page's", () => {
   assert.equal(alternates()[0].href, "https://mcp.jmrp.io/");
 });
 
-test("pageUrl('servers') es SOLO el índice, no la ficha de un servidor", () => {
+test("pageUrl('servers') is ONLY the index, not a server's page", () => {
   assert.equal(pageUrl("en", "servers"), "https://mcp.jmrp.io/servers/");
   assert.equal(pageUrl("es", "servers"), "https://mcp.jmrp.io/es/servers/");
 });
 
-test("serverPageUrl compone la ficha de un servidor bajo /servers/<id>/", () => {
+test("serverPageUrl composes a server's page under /servers/<id>/", () => {
   assert.equal(
     serverPageUrl("en", "gitlab"),
     "https://mcp.jmrp.io/servers/gitlab/",
@@ -52,7 +52,7 @@ test("serverPageUrl compone la ficha de un servidor bajo /servers/<id>/", () => 
   );
 });
 
-test("serverPageAlternates emite el clúster de ESA ficha, con autorreferencia", () => {
+test("serverPageAlternates emits THAT page's cluster, self-reference included", () => {
   assert.deepEqual(serverPageAlternates("gitlab"), [
     { hreflang: "en", href: "https://mcp.jmrp.io/servers/gitlab/" },
     { hreflang: "es", href: "https://mcp.jmrp.io/es/servers/gitlab/" },
