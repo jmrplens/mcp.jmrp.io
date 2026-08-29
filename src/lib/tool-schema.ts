@@ -258,8 +258,6 @@ export type FormField = SchemaField & {
   options: string[];
   /** The initial value, already as text. Comes from the schema's `default`. */
   initial: string;
-  /** For `list` and `json`: what is expected, in one line. */
-  hint: string;
 };
 
 /**
@@ -307,12 +305,6 @@ function controlFor(schema: JsonSchema): FieldControl {
   }
 }
 
-/** What is expected in the controls whose format is not self-evident. */
-const HINTS: Partial<Record<FieldControl, string>> = {
-  list: "un valor por línea",
-  json: "JSON",
-};
-
 /**
  * A field's initial value, as text.
  *
@@ -342,7 +334,6 @@ export function formFields(schema: JsonSchema | undefined): FormField[] {
       control,
       options: Array.isArray(prop.enum) ? prop.enum.map(String) : [],
       initial,
-      hint: HINTS[control] ?? "",
     };
   });
 }

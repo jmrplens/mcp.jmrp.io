@@ -125,6 +125,10 @@ overrides:
   # binaries' own vocabulary, not prose this repo writes.
   - filename: "src/data/cards/*.json"
     enabled: false
+  # Downloaded from jmrp.io at build time (see src/lib/identity.ts). It is that
+  # site's identity document, in its own words and its own language.
+  - filename: "identity/person.snapshot.json"
+    enabled: false
   # Two specs whose assertions ARE the Spanish the site serves: the /es/ page's
   # link names and its server descriptions, and the inspector island's Spanish
   # label. Translating those would not translate a comment, it would assert

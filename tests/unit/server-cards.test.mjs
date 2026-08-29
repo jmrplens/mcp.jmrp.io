@@ -632,14 +632,14 @@ test("summarizeServerCardDocument: only _meta === true marks something subscriba
         uriTemplate: "x://b/{id}",
         name: "b",
         title: "B",
-        description: "con el flag como string",
+        description: "with the flag as a string",
         _meta: { [SUBSCRIBABLE_META_KEY]: "true" },
       },
       {
         uriTemplate: "x://c/{id}",
         name: "c",
         title: "C",
-        description: "sin _meta",
+        description: "with no _meta",
       },
     ],
   });

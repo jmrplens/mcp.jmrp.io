@@ -78,7 +78,7 @@ test("each control converts to its JSON type", () => {
       limit: { type: "integer" },
       exact: { type: "boolean" },
       topics: { type: "array", items: { type: "string" } },
-      filtro: { type: "object" },
+      filter: { type: "object" },
     },
   });
   const args = valuesToArgs(
@@ -87,7 +87,7 @@ test("each control converts to its JSON type", () => {
       limit: "3",
       exact: "true",
       topics: "fiction\n comics ",
-      filtro: '{"year":1996}',
+      filter: '{"year":1996}',
     },
     ERRORS,
   );
@@ -95,7 +95,7 @@ test("each control converts to its JSON type", () => {
     limit: 3,
     exact: true,
     topics: ["fiction", "comics"],
-    filtro: { year: 1996 },
+    filter: { year: 1996 },
   });
 });
 

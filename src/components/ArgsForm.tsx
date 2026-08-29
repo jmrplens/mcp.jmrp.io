@@ -172,6 +172,27 @@ function ArgControl({
  * @param props.onKey Enter submits, except in a textarea.
  * @returns The field's row.
  */
+/**
+ * What a control expects, in one line, under the field.
+ *
+ * It lives here and not on `FormField` because it is presentation, not schema:
+ * baking it into `formFields` meant one hardcoded string for every reader, and
+ * the string that got baked in was Spanish — so an English visitor read a
+ * Spanish sentence under every array field.
+ *
+ * @param control The control the property resolved to.
+ * @param t Inspector strings in the page's language.
+ * @returns The hint, or an empty string when the format is self-evident.
+ */
+function hintFor(
+  control: FormField["control"],
+  t: (typeof ui)[Lang]["insp"],
+): string {
+  if (control === "list") return t.hintList;
+  if (control === "json") return t.hintJson;
+  return "";
+}
+
 function ArgField({
   field,
   value,
@@ -188,7 +209,8 @@ function ArgField({
   onKey: (e: KeyboardEvent) => void;
 }>) {
   const id = `arg-${field.name}`;
-  const described = field.description || field.hint;
+  const hint = hintFor(field.control, t);
+  const described = field.description || hint;
   const describedBy = described ? `${id}-d` : undefined;
 
   return (
@@ -225,8 +247,8 @@ function ArgField({
           id={`${id}-d`}
         >
           {field.description}
-          {field.description && field.hint ? " · " : ""}
-          {field.hint}
+          {field.description && hint ? " · " : ""}
+          {hint}
         </p>
       ) : null}
     </div>

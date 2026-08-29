@@ -101,7 +101,7 @@ export default function ActionSearch({
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data: unknown = await response.json();
       const raw = (data as { entries?: unknown }).entries;
-      if (!Array.isArray(raw)) throw new Error("índice sin entries");
+      if (!Array.isArray(raw)) throw new Error("index with no entries");
       setEntries(raw.filter((item) => isIndexEntry(item)));
       setState("ready");
     } catch {

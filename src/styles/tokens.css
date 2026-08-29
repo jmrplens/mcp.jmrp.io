@@ -329,7 +329,7 @@
     --accent-dim: rgb(156 93 0 / 10%);
     --accent-line: rgb(156 93 0 / 28%);
     --teal: #1f7e6e;
-    --teal-text: #12695a; /* 6.3 sobre bg : AA texto */
+    --teal-text: #12695a; /* 6.3 against bg : AA as text */
     --violet: #6d45c4;
 
     /* Formal semantics (light) — the mockup's state palette, darkened to AA.

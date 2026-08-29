@@ -632,7 +632,7 @@ test("every page self-references in hreflang", () => {
     // instead of being grouped.
     assert.ok(
       byLang.has(lang),
-      `${name}: no se autorreferencia (hreflang="${lang}")`,
+      `${name}: it does not self-reference (hreflang="${lang}")`,
     );
     assert.equal(byLang.get("en"), enUrl, `${name}: hreflang en`);
     assert.equal(byLang.get("es"), esUrl, `${name}: hreflang es`);
