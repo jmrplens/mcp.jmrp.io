@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * Despliega a nginx los artefactos generados por el build.
+ * Deploys the artifacts the build generated to nginx.
  *
- * SUFIJO _mcp OBLIGATORIO: jmrp.io despliega sus propios snippets al mismo
- * directorio (/etc/nginx/snippets). Un nombre repetido deja al otro sitio con
- * la CSP equivocada, y el fallo es silencioso: nginx recarga tan contento.
+ * THE _mcp SUFFIX IS MANDATORY: jmrp.io deploys its own snippets into the same
+ * directory (/etc/nginx/snippets). A repeated name leaves the other site with
+ * the wrong CSP, and the failure is silent: nginx reloads perfectly happily.
  *
- * Si `nginx -t` falla tras copiar, se restaura el contenido anterior de cada
- * fichero y se sale con error SIN recargar: es preferible quedarse con la
- * configuración vieja que dejar nginx sin poder recargar.
+ * If `nginx -t` fails after copying, each file's previous content is restored
+ * and the script exits with an error WITHOUT reloading: keeping the old
+ * configuration beats leaving nginx unable to reload at all.
  */
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
@@ -44,11 +44,11 @@ const DIST = path.resolve("dist");
 const SNIPPETS = process.env.POSTBUILD_NGINX_SNIPPETS_PATH;
 
 /**
- * Binarios por ruta ABSOLUTA, no por PATH.
+ * Binaries by ABSOLUTE path, not through PATH.
  *
- * Este script escribe en /etc/nginx y recarga el servicio: si PATH incluyera
- * un directorio escribible por otro usuario, `execFileSync("nginx", …)`
- * ejecutaría lo que hubiera allí con esos privilegios.
+ * This script writes into /etc/nginx and reloads the service: if PATH included
+ * a directory writable by another user, `execFileSync("nginx", …)` would run
+ * whatever was there with those privileges.
  */
 const NGINX_BIN = "/usr/sbin/nginx";
 const SYSTEMCTL_BIN = "/usr/bin/systemctl";
@@ -58,52 +58,53 @@ const VHOST = "/etc/nginx/sites-enabled/mcp.jmrp.io.conf";
 for (const f of FILES) {
   if (fs.existsSync(path.join(DIST, f))) continue;
 
-  console.error(`✗ falta dist/${f} — ejecuta 'pnpm build' antes`);
+  console.error(`✗ dist/${f} is missing — run 'pnpm build' first`);
   process.exit(1);
 }
 
 /**
- * Avisa de los ficheros de dist/ que nginx no sirve.
+ * Warns about the files in dist/ that nginx does not serve.
  *
- * El vhost sirve por LISTA BLANCA y acaba en `location / { return 404; }`, así
- * que un fichero nuevo en la raíz del build (robots.txt, llms.txt, og-*.png…)
- * da 404 en producción hasta que alguien le añade su `location`. Ese desajuste
- * era mudo: el build pasaba, el despliegue pasaba y solo un `curl` a mano lo
- * descubría.
+ * The vhost serves by ALLOWLIST and ends in `location / { return 404; }`, so a
+ * new file at the build's root (robots.txt, llms.txt, og-*.png…) returns 404
+ * in production until someone adds its `location`. That mismatch was mute: the
+ * build passed, the deployment passed, and only a `curl` by hand found it.
  *
- * Es un AVISO y no un error a propósito. Este script no edita /etc/nginx —el
- * vhost se toca a mano, con revisión— así que fallar aquí dejaría el sitio sin
- * poder desplegarse por un fichero que quizá ni se quiere publicar. Lo que sí
- * hace falta es que nadie pueda decir que no lo sabía.
+ * It is a WARNING and not an error on purpose. This script does not edit
+ * /etc/nginx — the vhost is touched by hand, with review — so failing here
+ * would leave the site impossible to deploy over a file that may not even be
+ * meant to be published. What is needed is that nobody can say they did not
+ * know.
  */
 function warnUnservedFiles() {
   let vhost;
   try {
     vhost = fs.readFileSync(VHOST, "utf8");
   } catch {
-    console.warn(`⚠ no se pudo leer ${VHOST}: no se comprueban las rutas`);
+    console.warn(`⚠ could not read ${VHOST}: the routes are not checked`);
     return;
   }
 
-  // `location = /x` (exacta) y `location ^~ /x` o `location /x` (prefijo).
+  // `location = /x` (exact) and `location ^~ /x` or `location /x` (prefix).
   const exact = new Set();
   const prefixes = [];
   for (const m of vhost.matchAll(
     /^[ \t]*location[ \t]+(?:(=|\^~)[ \t]*)?(\S+)[ \t]*\{/gm,
   )) {
     const [, modifier, uri] = m;
-    if (!uri.startsWith("/")) continue; // regex (~) y nombradas (@): no aplican
+    if (!uri.startsWith("/")) continue; // regex (~) and named (@): they do not apply
     if (modifier?.startsWith("=")) exact.add(uri);
     else prefixes.push(uri);
   }
 
-  // Raíz Y subdirectorios. La versión anterior solo miraba la raíz
-  // (readdirSync sin recursión) y /servers/gitlab/actions.json — un JSON
-  // anidado cuya URL es exactamente su ruta — llegó a producción como 404
-  // sin que nadie avisara (2026-08-26). Los .html quedan fuera del barrido
-  // recursivo: sus URLs bonitas (/servers/gitlab/ → index.html) se declaran
-  // por directorio y mapearlas aquí duplicaría la lógica del vhost; los
-  // no-HTML no tienen ese indirection y se comprueban tal cual.
+  // The root AND subdirectories. The previous version only looked at the root
+  // (readdirSync with no recursion) and /servers/gitlab/actions.json — a
+  // nested JSON whose URL is exactly its path — reached production as a 404
+  // with nobody warning about it (2026-08-26). The .html files stay out of the
+  // recursive sweep: their pretty URLs (/servers/gitlab/ → index.html) are
+  // declared per directory and mapping them here would duplicate the vhost's
+  // logic; the non-HTML files have no such indirection and are checked as they
+  // are.
   const missing = fs
     .readdirSync(DIST, { withFileTypes: true, recursive: true })
     .filter((e) => e.isFile())
@@ -111,9 +112,9 @@ function warnUnservedFiles() {
       const rel = path.relative(DIST, path.join(e.parentPath, e.name));
       return rel.split(path.sep).join("/");
     })
-    // Los snippets se COPIAN a /etc/nginx, no se sirven; los .br/.gz los elige
-    // nginx solo junto al original; los index.html los sirven las locations
-    // exactas de su directorio.
+    // Snippets are COPIED to /etc/nginx, not served; the .br/.gz files nginx
+    // picks on its own next to the original; the index.html files are served by
+    // their directory's exact locations.
     .filter(
       (rel) =>
         !FILES.includes(rel) &&
@@ -121,10 +122,9 @@ function warnUnservedFiles() {
         !rel.endsWith(".gz") &&
         !rel.endsWith(".html"),
     )
-    // Astro no puede emitir carpetas con punto, así que el build escribe
-    // well-known/ y el vhost lo publica como /.well-known/ (ver su comentario
-    // "El fichero en disco es /well-known/…"). Para esos, la URL a comprobar
-    // lleva el punto.
+    // Astro cannot emit folders with a dot, so the build writes well-known/ and
+    // the vhost publishes it as /.well-known/ (see its comment "The file on
+    // disk is /well-known/…"). For those, the URL to check carries the dot.
     .map((rel) => ({
       rel,
       url: rel.startsWith("well-known/") ? `/.${rel}` : `/${rel}`,
@@ -138,7 +138,7 @@ function warnUnservedFiles() {
   if (missing.length === 0) return;
 
   console.warn(
-    `⚠ ${missing.length} fichero(s) del build sin 'location' en el vhost — darán 404:`,
+    `⚠ ${missing.length} build file(s) with no 'location' in the vhost — they will 404:`,
   );
   for (const { rel, url } of missing) {
     console.warn(`    location = ${url} { try_files /${rel} =404; }`);
@@ -149,14 +149,14 @@ warnUnservedFiles();
 
 if (!SNIPPETS) {
   console.warn(
-    "⚠ POSTBUILD_NGINX_SNIPPETS_PATH sin definir: NO se despliegan las\n" +
-      "  cabeceras de seguridad ni se recarga nginx. Es lo correcto fuera del\n" +
-      "  servidor (CI, clon nuevo); en producción significa que el .env no se\n" +
-      "  está leyendo, y las cabeceras servidas se quedarán congeladas.",
+    "⚠ POSTBUILD_NGINX_SNIPPETS_PATH is unset: the security headers are NOT\n" +
+      "  deployed and nginx is not reloaded. That is correct off the server\n" +
+      "  (CI, a fresh clone); in production it means the .env is not being\n" +
+      "  read, and the headers being served will stay frozen.",
   );
 }
 
-/** Contenido previo de cada destino, para poder revertir. */
+/** Each target's previous content, so it can be reverted. */
 const backups = new Map();
 
 if (SNIPPETS) {
@@ -174,26 +174,24 @@ if (SNIPPETS) {
       const dst = path.join(SNIPPETS, f);
       if (!backups.has(dst)) fs.rmSync(dst, { force: true });
     }
-    console.error(
-      "✗ 'nginx -t' falló; snippets restaurados, nginx NO recargado",
-    );
+    console.error("✗ 'nginx -t' failed; snippets restored, nginx NOT reloaded");
     console.error(String(error.stderr ?? error));
     process.exit(1);
   }
 
   execFileSync(SYSTEMCTL_BIN, ["reload", "nginx"]);
-  console.log(`✓ ${FILES.join(", ")} desplegados y nginx recargado`);
+  console.log(`✓ ${FILES.join(", ")} deployed and nginx reloaded`);
 }
 
 /**
- * Aplana un texto ajeno a una sola línea legible.
+ * Flattens foreign text into a single readable line.
  *
- * Lo que se registra aquí viene de una respuesta HTTP: un salto de línea en su
- * contenido inyectaría líneas falsas en el log, que es lo que se lee cuando un
- * despliegue sale mal.
+ * What is logged here comes from an HTTP response: a newline in its content
+ * would inject fake lines into the log, which is what gets read when a
+ * deployment goes wrong.
  *
- * @param value Texto de origen externo.
- * @returns El mismo texto en una línea y acotado.
+ * @param value Text from an external source.
+ * @returns The same text on one line and bounded.
  */
 function oneLine(value) {
   return String(value ?? "")
@@ -202,37 +200,38 @@ function oneLine(value) {
 }
 
 /**
- * Resume los errores que devuelve la API de Cloudflare.
+ * Summarizes the errors the Cloudflare API returns.
  *
- * @param errors Array `[{ code, message }]` de la respuesta.
- * @returns Una línea con el código y el mensaje de cada uno.
+ * @param errors The response's `[{ code, message }]` array.
+ * @returns One line with each one's code and message.
  */
 function describeErrors(errors) {
-  if (!Array.isArray(errors) || errors.length === 0) return "sin detalle";
+  if (!Array.isArray(errors) || errors.length === 0) return "no detail";
   return errors
     .map((e) => `${String(e?.code ?? "?")}: ${oneLine(e?.message)}`)
     .join(" · ");
 }
 
-// ── Purga de la caché de Cloudflare ────────────────────────────────────────
+// ── Purging the Cloudflare cache ───────────────────────────────────────────
 //
-// Sin esto, un fichero nuevo se queda inaccesible aunque el origen lo sirva:
-// Cloudflare cachea el 404 de antes de que existiera y lo sigue devolviendo.
-// Pasó con robots.txt, llms.txt y las dos tarjetas OG — el origen respondía
-// 200 y el dominio 404 con `age: 50`. Y el caso de las OG es el peor, porque
-// la página ya anunciaba og:image: un enlace compartido reservaba la tarjeta
-// y la dejaba en blanco.
+// Without this, a new file stays unreachable even though the origin serves it:
+// Cloudflare cached the 404 from before it existed and keeps returning it. It
+// happened with robots.txt, llms.txt and the two OG cards — the origin
+// answered 200 and the domain 404 with `age: 50`. And the OG case is the worst
+// of them, because the page was already announcing og:image: a shared link
+// reserved the card and left it blank.
 //
-// Credenciales por entorno, como en jmrp.io (PRIVATE_CF_*, definidas en
-// /root/.bashrc). Si faltan, se avisa y NO se falla: el despliegue del origen
-// ya ha ido bien y bloquearlo por la CDN sería peor.
+// Credentials from the environment, as in jmrp.io (PRIVATE_CF_*, defined in
+// /root/.bashrc). If they are missing it warns and does NOT fail: the origin's
+// deployment has already gone well and blocking it over the CDN would be
+// worse.
 const { PRIVATE_CF_API_TOKEN: cfToken, PRIVATE_CF_EMAIL: cfEmail } =
   process.env;
 const cfZone =
   process.env.PRIVATE_CF_ZONE_ID ?? "44d43a33307a232a60a5af4fc1504613";
 
 if (cfToken) {
-  // Con email = Global API Key (cabeceras legacy); sin él = API Token.
+  // With an email = Global API Key (legacy headers); without one = API Token.
   const headers = cfEmail
     ? {
         "X-Auth-Email": cfEmail,
@@ -257,30 +256,30 @@ if (cfToken) {
     const body = await response.json();
     console.log(
       body.success
-        ? "✓ caché de Cloudflare purgada"
-        : `⚠ la purga de Cloudflare falló: ${describeErrors(body.errors)}`,
+        ? "✓ Cloudflare cache purged"
+        : `⚠ the Cloudflare purge failed: ${describeErrors(body.errors)}`,
     );
   } catch (error) {
     console.warn(
-      `⚠ no se pudo purgar la caché de Cloudflare: ${oneLine(error.message)}`,
+      `⚠ could not purge the Cloudflare cache: ${oneLine(error.message)}`,
     );
   }
 } else {
   console.warn(
-    "⚠ sin PRIVATE_CF_API_TOKEN: no se purga la caché de Cloudflare.\n" +
-      "  Si has añadido ficheros nuevos, seguirán dando 404 en el dominio hasta que expire.",
+    "⚠ no PRIVATE_CF_API_TOKEN: the Cloudflare cache is not purged.\n" +
+      "  If you added new files, they will keep returning 404 on the domain until it expires.",
   );
 }
 
 // ── IndexNow ───────────────────────────────────────────────────────────────
 //
-// Avisa a Bing y Yandex de que el contenido ha cambiado. Para un sitio recién
-// publicado es la diferencia entre indexar en horas o en semanas — la
-// auditoría GEO lo señaló, y es de lo poco que un sitio de dos páginas puede
-// hacer para acelerar su descubrimiento.
+// Tells Bing and Yandex the content has changed. For a freshly published site
+// it is the difference between being indexed in hours and in weeks — the GEO
+// audit pointed it out, and it is one of the few things a two-page site can do
+// to speed up its discovery.
 //
-// No falla el despliegue si el ping falla: el origen ya está actualizado y la
-// indexación es un extra.
+// It does not fail the deployment when the ping fails: the origin is already
+// up to date and indexing is a bonus.
 const INDEXNOW_KEY = /INDEXNOW_KEY = "([a-f0-9]+)"/.exec(
   fs.readFileSync(path.join("src", "lib", "seo.ts"), "utf8"),
 )?.[1];
@@ -298,14 +297,14 @@ if (INDEXNOW_KEY) {
       }),
       signal: AbortSignal.timeout(15_000),
     });
-    // 200 y 202 son ambos aceptación; 422 suele ser la clave aún no visible.
+    // 200 and 202 are both acceptance; 422 usually means the key is not visible yet.
     console.log(
       response.ok
-        ? `✓ IndexNow avisado (HTTP ${response.status})`
-        : `⚠ IndexNow devolvió HTTP ${response.status}`,
+        ? `✓ IndexNow notified (HTTP ${response.status})`
+        : `⚠ IndexNow returned HTTP ${response.status}`,
     );
   } catch (error) {
-    console.warn(`⚠ no se pudo avisar a IndexNow: ${oneLine(error.message)}`);
+    console.warn(`⚠ could not notify IndexNow: ${oneLine(error.message)}`);
   }
 }
 
@@ -347,14 +346,14 @@ if (bingKey) {
     // the daily quota being spent, which is not a deployment failure.
     console.log(
       response.ok
-        ? `✓ Bing Webmaster avisado (HTTP ${response.status})`
-        : `⚠ Bing Webmaster devolvió HTTP ${response.status}`,
+        ? `✓ Bing Webmaster notified (HTTP ${response.status})`
+        : `⚠ Bing Webmaster returned HTTP ${response.status}`,
     );
   } catch (error) {
-    console.warn(`⚠ no se pudo avisar a Bing: ${oneLine(error.message)}`);
+    console.warn(`⚠ could not notify Bing: ${oneLine(error.message)}`);
   }
 } else {
   console.warn(
-    "⚠ sin BING_WEBMASTER_API_KEY: no se envían las URLs a Bing Webmaster.",
+    "⚠ no BING_WEBMASTER_API_KEY: the URLs are not sent to Bing Webmaster.",
   );
 }
