@@ -1,17 +1,17 @@
 /**
- * Los ficheros de SEO/GEO tienen que SALIR del build, y salir con contenido.
+ * The SEO/GEO files have to COME OUT of the build, and come out with content.
  *
- * Se miran sobre `dist/` y no sobre el código porque el fallo que importa no es
- * de sintaxis: es que un fichero deje de generarse. `robots.txt`, `llms.txt`,
- * las tarjetas sociales y el favicon no los ve nadie al abrir la página —no hay
- * pantalla que se ponga roja— así que su desaparición es invisible hasta que un
- * crawler deja de encontrarlos, y para entonces nadie relaciona una cosa con la
- * otra.
+ * They are checked against `dist/` and not against the code because the failure
+ * that matters is not a syntax one: it is a file that stops being generated.
+ * Nobody sees `robots.txt`, `llms.txt`, the social cards or the favicon when
+ * opening the page — no screen turns red — so their disappearance is invisible
+ * until a crawler stops finding them, and by then nobody connects one thing
+ * with the other.
  *
- * El vhost sirve por LISTA BLANCA: un fichero nuevo aquí necesita además su
- * `location`. Por eso {@link SERVED_AT_ROOT} es una lista escrita a mano y no
- * un `readdirSync`: cuando alguien añada uno, este test se pondrá rojo y le
- * obligará a acordarse de nginx.
+ * The vhost serves by ALLOWLIST: a new file here also needs its `location`.
+ * That is why {@link SERVED_AT_ROOT} is a hand-written list and not a
+ * `readdirSync`: when someone adds one, this test goes red and forces them to
+ * remember nginx.
  */
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -27,33 +27,35 @@ import {
   serverPageUrl,
 } from "../../src/lib/seo.ts";
 
-// `dist` es un SYMLINK al color activo del blue/green, así que apunta a lo
-// PUBLICADO, no a lo recién construido. `DIST_DIR` permite validar un build
-// que aún no se ha desplegado (p. ej. `pnpm build:only && DIST_DIR=builds/green
-// pnpm test:unit`), que es justo lo que hace falta para no publicar algo sin
-// haberlo probado. Sin la variable, se comporta como siempre.
+// `dist` is a SYMLINK to the active blue/green colour, so it points at what is
+// PUBLISHED, not at what was just built. `DIST_DIR` makes it possible to
+// validate a build that has not been deployed yet (e.g. `pnpm build:only &&
+// DIST_DIR=builds/green pnpm test:unit`), which is exactly what is needed to
+// avoid publishing something untested. Without the variable it behaves as it
+// always did.
 const DIST = new URL(
   `../../${process.env.DIST_DIR ?? "dist"}/`,
   import.meta.url,
 );
 const ORIGIN = "https://mcp.jmrp.io";
 
-/** El vhost real, fuera del repo. Puede no existir si el build corre en otra máquina. */
+/** The real vhost, outside the repo. It may not exist when the build runs on another machine. */
 const VHOST = "/etc/nginx/sites-available/mcp.jmrp.io.conf";
 
 /**
- * Ficheros de la raíz de `dist/` que nginx sirve, cada uno con su `location`
- * en /etc/nginx/sites-enabled/mcp.jmrp.io.conf. Los snippets
- * `security_headers*_mcp.conf` NO están: se copian a /etc/nginx, no se sirven.
+ * The files at the root of `dist/` that nginx serves, each with its `location`
+ * in /etc/nginx/sites-enabled/mcp.jmrp.io.conf. The `security_headers*_mcp.conf`
+ * snippets are NOT here: they are copied to /etc/nginx, not served.
  */
 const SERVED_AT_ROOT = [
-  // Página de error con marca. No se sirve por su URL sino vía
-  // `error_page 404 /404.html` en el vhost (con su `location = /404.html
-  // internal;`) — y las error_page propias van ANTES del include compartido,
-  // que trae las globales y en nginx gana la primera.
+  // A branded error page. It is not served by its URL but through
+  // `error_page 404 /404.html` in the vhost (with its `location = /404.html
+  // internal;`) — and the vhost's own error_page directives go BEFORE the
+  // shared include that carries the global ones, since in nginx the first
+  // one wins.
   "404.html",
-  // Clave de IndexNow. No es un secreto: el protocolo exige publicarla para
-  // demostrar control del dominio.
+  // The IndexNow key. It is not a secret: the protocol requires publishing it
+  // to prove control of the domain.
   "8b3b0f3c6a883bd7d274f2cf7645921a.txt",
   "apple-touch-icon.png",
   // The name iOS before 7 asks for BEFORE the one above. Same drawing: its
@@ -79,37 +81,37 @@ const SERVED_AT_ROOT = [
   "sitemap-index.xml",
 ];
 
-/** Snippets que el despliegue copia a /etc/nginx/snippets, no contenido web. */
+/** Snippets the deployment copies to /etc/nginx/snippets, not web content. */
 const NGINX_SNIPPETS = new Set([
   "security_headers_mcp.conf",
   "security_headers_assets_mcp.conf",
 ]);
 
-/** Orden estable para comparar listas de nombres de fichero. */
+/** A stable order for comparing lists of file names. */
 const byName = (a, b) => a.localeCompare(b);
 
 /**
- * Lee un fichero de `dist/`, fallando con un mensaje que diga qué falta.
+ * Reads a file from `dist/`, failing with a message that says what is missing.
  *
- * @param name Ruta relativa a `dist/`.
- * @param encoding Codificación; `null` para bytes crudos.
- * @returns El contenido del fichero.
+ * @param name The path relative to `dist/`.
+ * @param encoding The encoding; `null` for raw bytes.
+ * @returns The file's content.
  */
 function read(name, encoding = "utf8") {
   const url = new URL(name, DIST);
   assert.ok(
     fs.existsSync(url),
-    `falta dist/${name} — el build no lo ha emitido`,
+    `dist/${name} is missing — the build did not emit it`,
   );
   return fs.readFileSync(url, encoding);
 }
 
-test("la raíz de dist/ es exactamente la lista blanca del vhost", () => {
+test("the root of dist/ is exactly the vhost's allowlist", () => {
   const found = fs
     .readdirSync(DIST, { withFileTypes: true })
     .filter((entry) => entry.isFile())
     .map((entry) => entry.name)
-    // nginx elige los precomprimidos junto al original; no son rutas propias.
+    // nginx picks the pre-compressed files next to the original; they are not routes of their own.
     .filter((name) => !name.endsWith(".br") && !name.endsWith(".gz"))
     .filter((name) => !NGINX_SNIPPETS.has(name))
     .sort(byName);
@@ -117,15 +119,15 @@ test("la raíz de dist/ es exactamente la lista blanca del vhost", () => {
   assert.deepEqual(
     found,
     [...SERVED_AT_ROOT].sort(byName),
-    "un fichero de nivel raíz que sobra dará 404 hasta que se le añada su " +
-      "`location` al vhost; uno que falta ha dejado de generarse",
+    "a spare root-level file will 404 until its `location` is added to the " +
+      "vhost; a missing one has stopped being generated",
   );
 });
 
 /**
- * Directorios de página que el vhost tiene que servir, cada uno con su
- * `location`. Escrito a mano y no derivado de `dist/`, por el mismo motivo que
- * SERVED_AT_ROOT: que añadir una página obligue a acordarse de nginx.
+ * The page directories the vhost has to serve, each with its `location`.
+ * Hand-written and not derived from `dist/`, for the same reason as
+ * SERVED_AT_ROOT: so that adding a page forces you to remember nginx.
  */
 const SERVED_PAGES = [
   "index.html",
@@ -144,28 +146,28 @@ const SERVED_PAGES = [
   "es/servers/gitlab/index.html",
 ];
 
-test("cada página generada tiene su location en el vhost", (t) => {
-  // Hermano de SERVED_AT_ROOT: ese test solo mira la RAÍZ de dist/ (filtra por
-  // entry.isFile()), así que las páginas nuevas, que viven en subdirectorios
-  // (inspector/index.html), no las ve — una página sin `location` daría 404
-  // en producción sin que nada se pusiera rojo.
+test("every generated page has its location in the vhost", (t) => {
+  // Sibling of SERVED_AT_ROOT: that test only looks at the ROOT of dist/ (it
+  // filters on entry.isFile()), so it does not see new pages, which live in
+  // subdirectories (inspector/index.html) — a page with no `location` would
+  // 404 in production without anything going red.
   if (!fs.existsSync(VHOST)) {
-    t.skip("el vhost no es legible en esta máquina");
+    t.skip("the vhost is not readable on this machine");
     return;
   }
   const vhost = fs.readFileSync(VHOST, "utf8");
   for (const page of SERVED_PAGES) {
-    read(page); // falla con un mensaje útil si el build no la emitió
+    read(page); // fails with a useful message when the build did not emit it
     const url = "/" + page.replace(/index\.html$/, "");
     assert.ok(
       vhost.includes(`location = ${url} `) ||
         vhost.includes(`location = ${url}\n`),
-      `${url} no tiene 'location' en el vhost: dará 404 en producción`,
+      `${url} has no 'location' in the vhost: it will 404 in production`,
     );
   }
 });
 
-test("cada gemelo en markdown tiene su location y su canónico", (t) => {
+test("every markdown twin has its location and its canonical", (t) => {
   // Third sibling of the two guards above, and the one most needed: a twin
   // lives at `<page>/index.md`, so it is neither a root file (SERVED_AT_ROOT
   // cannot see it) nor an entry in SERVED_PAGES, which lists index.html.
@@ -176,7 +178,7 @@ test("cada gemelo en markdown tiene su location y su canónico", (t) => {
   // It walks what the build emitted rather than a hand-kept list: here a fixed
   // list would be the bug, because the build already knows which ones exist.
   if (!fs.existsSync(VHOST)) {
-    t.skip("el vhost no es legible en esta máquina");
+    t.skip("the vhost is not readable on this machine");
     return;
   }
   const vhost = fs.readFileSync(VHOST, "utf8");
@@ -193,7 +195,7 @@ test("cada gemelo en markdown tiene su location y su canónico", (t) => {
   };
   walk(root);
 
-  assert.ok(twins.length > 0, "el build no emitió ningún gemelo en markdown");
+  assert.ok(twins.length > 0, "the build emitted no markdown twin at all");
   // Two valid ways of being served, and the second is essential: the sixty
   // domain twins cannot each carry an exact `location`, so they fall into
   // their prefix's `^~` block, which nests a `location ~ \.md$`. That nested
@@ -214,11 +216,11 @@ test("cada gemelo en markdown tiene su location y su canónico", (t) => {
     const covered = prefixes.some((prefix) => twin.startsWith(prefix));
     assert.ok(
       exact || covered,
-      `${twin} no está servido: ni 'location = ${twin}' ni un prefijo '^~' que trate .md`,
+      `${twin} is not served: neither 'location = ${twin}' nor a '^~' prefix that handles .md`,
     );
   }
-  // Y que el map del canónico exista: sin él los gemelos se sirven huérfanos,
-  // sin decir de qué página son.
+  // And that the canonical's map exists: without it the twins are served
+  // orphaned, saying nothing about which page they belong to.
   // The variable is domain-prefixed on purpose: nginx maps are GLOBAL to the
   // http context, and an unprefixed `$md_link_header` here collided with the
   // identically named one in jmrp.io's vhost — every .md twin of that domain
@@ -232,7 +234,7 @@ test("cada gemelo en markdown tiene su location y su canónico", (t) => {
   );
 });
 
-test("cada fichero de .well-known tiene su location en el vhost", (t) => {
+test("every .well-known file has its location in the vhost", (t) => {
   // Fourth sibling of the guards above, and the one with the longest history
   // of biting silently: these files are dropped into `public/.well-known/` by
   // hand, so nobody adding one is thinking about nginx. `glama.json` sat there
@@ -243,7 +245,7 @@ test("cada fichero de .well-known tiene su location en el vhost", (t) => {
   // directory is copied verbatim from `public/`, so the build already knows
   // the full set and a fixed list here would only be a second thing to forget.
   if (!fs.existsSync(VHOST)) {
-    t.skip("el vhost no es legible en esta máquina");
+    t.skip("the vhost is not readable on this machine");
     return;
   }
   const vhost = fs.readFileSync(VHOST, "utf8");
@@ -256,42 +258,42 @@ test("cada fichero de .well-known tiene su location en el vhost", (t) => {
 
   assert.ok(
     files.length > 0,
-    "el build no emitió ningún fichero en .well-known",
+    "the build emitted no file in .well-known at all",
   );
   for (const name of files) {
     const url = `/.well-known/${name}`;
     assert.ok(
       vhost.includes(`location = ${url} `) ||
         vhost.includes(`location = ${url}\n`),
-      `${url} no tiene 'location' en el vhost: dará 404 en producción`,
+      `${url} has no 'location' in the vhost: it will 404 in production`,
     );
   }
 });
 
-test("robots.txt deja pasar a todo el mundo y anuncia el sitemap", () => {
+test("robots.txt lets everyone through and announces the sitemap", () => {
   const robots = read("robots.txt");
-  assert.match(robots, /^User-agent: \*$/m, "sin bloque comodín");
+  assert.match(robots, /^User-agent: \*$/m, "no wildcard block");
   assert.match(
     robots,
     new RegExp(String.raw`^Sitemap: ${ORIGIN}/sitemap-index\.xml$`, "m"),
-    "sin la línea Sitemap el sitemap solo se descubre a mano",
+    "without the Sitemap line the sitemap is only found by hand",
   );
   assert.match(
     robots,
     /^Content-Signal: search=yes, ai-input=yes, ai-train=yes$/m,
-    "la política de IA es explícita a propósito, igual que en jmrp.io",
+    "the AI policy is explicit on purpose, the same as on jmrp.io",
   );
   assert.doesNotMatch(
     robots,
     /^Disallow: \/\s*$/m,
-    "un `Disallow: /` aquí desindexaría el sitio entero",
+    "a `Disallow: /` here would take the entire site out of the index",
   );
   for (const bot of ["Googlebot", "GPTBot", "ClaudeBot", "PerplexityBot"]) {
-    assert.match(robots, new RegExp(`^User-agent: ${bot}$`, "m"), `sin ${bot}`);
+    assert.match(robots, new RegExp(`^User-agent: ${bot}$`, "m"), `no ${bot}`);
   }
 });
 
-test("llms.txt y llms-full.txt describen los servidores de verdad", () => {
+test("llms.txt and llms-full.txt describe the real servers", () => {
   const index = JSON.parse(read("servers.json"));
   const endpoints = Object.values(index.endpoints);
   assert.ok(endpoints.length > 0, "servers.json sin endpoints");
@@ -299,25 +301,35 @@ test("llms.txt y llms-full.txt describen los servidores de verdad", () => {
   const short = read("llms.txt");
   const full = read("llms-full.txt");
 
-  // Salen de `src/data/servers.ts`, igual que servers.json: dar de alta un MCP
-  // y olvidarse de estos ficheros deja el test en rojo.
+  // They come from `src/data/servers.ts`, the same as servers.json:
+  // registering an MCP and forgetting these files leaves the test red.
   for (const endpoint of endpoints) {
-    assert.ok(short.includes(endpoint), `llms.txt no menciona ${endpoint}`);
-    assert.ok(full.includes(endpoint), `llms-full.txt no menciona ${endpoint}`);
+    assert.ok(
+      short.includes(endpoint),
+      `llms.txt does not mention ${endpoint}`,
+    );
+    assert.ok(
+      full.includes(endpoint),
+      `llms-full.txt does not mention ${endpoint}`,
+    );
   }
-  assert.match(short, /^# mcp\.jmrp\.io$/m, "llms.txt sin el H1 del estándar");
+  assert.match(
+    short,
+    /^# mcp\.jmrp\.io$/m,
+    "llms.txt without the standard's H1",
+  );
   assert.ok(
     short.includes(`${ORIGIN}/llms-full.txt`),
-    "el índice tiene que enlazar el documento largo",
+    "the index has to link the long document",
   );
   assert.ok(
     full.includes("Authorization"),
-    "la ficha larga tiene que decir qué cabecera pide gitlab",
+    "the long entry has to say which header gitlab asks for",
   );
-  assert.ok(full.length > short.length, "el documento largo no es más largo");
+  assert.ok(full.length > short.length, "the long document is not longer");
 });
 
-test("llms.txt lista las catorce páginas en los dos idiomas", () => {
+test("llms.txt lists the fourteen pages in both languages", () => {
   const short = read("llms.txt");
   for (const path of [
     "/",
@@ -342,12 +354,12 @@ test("llms.txt lista las catorce páginas en los dos idiomas", () => {
     // `](url)` shape (`src/lib/llms.ts`).
     assert.ok(
       short.includes(`](https://mcp.jmrp.io${path})`),
-      `llms.txt no menciona ${path}`,
+      `llms.txt does not mention ${path}`,
     );
   }
 });
 
-test("las tarjetas sociales son PNG de 1200x630", () => {
+test("the social cards are 1200x630 PNGs", () => {
   for (const lang of ["en", "es"]) {
     const png = read(`og-${lang}.png`, null);
     assert.deepEqual(
@@ -355,34 +367,42 @@ test("las tarjetas sociales son PNG de 1200x630", () => {
       [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
       `og-${lang}.png no es un PNG`,
     );
-    // IHDR: ancho y alto son los dos enteros de 32 bits tras la cabecera.
-    assert.equal(png.readUInt32BE(16), 1200, `og-${lang}.png con otro ancho`);
-    assert.equal(png.readUInt32BE(20), 630, `og-${lang}.png con otro alto`);
-    // Una tarjeta de fondo liso pesa unos pocos KB: si el texto no se ha
-    // pintado, esto lo caza aunque falle la comprobación del generador.
-    assert.ok(png.length > 10_000, `og-${lang}.png sospechosamente vacía`);
+    // IHDR: width and height are the two 32-bit integers after the header.
+    assert.equal(
+      png.readUInt32BE(16),
+      1200,
+      `og-${lang}.png has a different width`,
+    );
+    assert.equal(
+      png.readUInt32BE(20),
+      630,
+      `og-${lang}.png has a different height`,
+    );
+    // A flat-background card weighs a few KB: if the text was not rendered,
+    // this catches it even when the generator's own check does not.
+    assert.ok(png.length > 10_000, `og-${lang}.png is suspiciously empty`);
   }
 });
 
-test("el favicon existe y es un SVG", () => {
+test("the favicon exists and is an SVG", () => {
   const svg = read("favicon.svg");
-  assert.match(svg, /<svg[\s>]/, "favicon.svg no contiene un <svg>");
+  assert.match(svg, /<svg[\s>]/, "favicon.svg does not contain an <svg>");
 });
 
-test("el sitemap lleva lastmod y las anotaciones hreflang", () => {
+test("the sitemap carries lastmod and the hreflang annotations", () => {
   const sitemap = read("sitemap-0.xml");
   for (const url of [`${ORIGIN}/`, `${ORIGIN}/es/`]) {
     assert.ok(
       sitemap.includes(`<loc>${url}</loc>`),
-      `el sitemap no lista ${url}`,
+      `the sitemap does not list ${url}`,
     );
     assert.ok(
       sitemap.includes(`hreflang="en" href="${ORIGIN}/"`),
-      "sin xhtml:link en, el clúster solo vive en el <head>",
+      "with no xhtml:link en, the cluster lives only in the <head>",
     );
     assert.ok(
       sitemap.includes(`hreflang="es" href="${ORIGIN}/es/"`),
-      "sin xhtml:link es, el clúster solo vive en el <head>",
+      "with no xhtml:link es, the cluster lives only in the <head>",
     );
   }
   // Not a fixed literal: the site now has more than the two home pages
@@ -391,13 +411,13 @@ test("el sitemap lleva lastmod y las anotaciones hreflang", () => {
   // matters is that NONE of them is missing a <lastmod>, not a specific count.
   const locs = [...sitemap.matchAll(/<loc>[^<]+<\/loc>/g)];
   const lastmods = [...sitemap.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)];
-  assert.equal(lastmods.length, locs.length, "cada URL necesita su lastmod");
+  assert.equal(lastmods.length, locs.length, "every URL needs its lastmod");
   for (const [, value] of lastmods) {
-    assert.ok(!Number.isNaN(Date.parse(value)), `lastmod ilegible: ${value}`);
+    assert.ok(!Number.isNaN(Date.parse(value)), `unreadable lastmod: ${value}`);
   }
 });
 
-test("cada entrada del sitemap declara SU x-default, no el de la portada", () => {
+test("every sitemap entry declares ITS OWN x-default, not the home page's", () => {
   const sitemap = read("sitemap-0.xml");
   // The serializer used to emit a hardcoded x-default pointing at the home
   // page for EVERY entry, contradicting the <head> each page emits. Nothing
@@ -417,7 +437,7 @@ test("cada entrada del sitemap declara SU x-default, no el de la portada", () =>
     const self = `${ORIGIN}/${path}`;
     assert.ok(
       sitemap.includes(`hreflang="x-default" href="${self}"`),
-      `el sitemap no declara x-default -> ${self}`,
+      `the sitemap does not declare x-default -> ${self}`,
     );
   }
 });
@@ -484,7 +504,7 @@ function pages() {
   return found;
 }
 
-/** Todos los atributos de una etiqueta, como objeto. */
+/** Every attribute of a tag, as an object. */
 function attributesOf(raw) {
   return Object.fromEntries(
     [...raw.matchAll(/([\w:-]+)="([^"]*)"/g)].map((a) => [a[1], a[2]]),
@@ -492,27 +512,27 @@ function attributesOf(raw) {
 }
 
 /**
- * Los `<link>` de una página, como mapas de atributos.
+ * A page's `<link>` tags, as attribute maps.
  *
- * Se leen atributo a atributo y no con un regex que fije su orden porque el
- * minificador del post-build los REORDENA (`rel="icon" href=…` sale como
- * `href=… rel="icon"`). Un test atado al orden se pondría rojo el día que
- * cambie la minificación, sin que nada haya dejado de funcionar.
+ * They are read attribute by attribute rather than with a regex that pins their
+ * order, because the post-build's minifier REORDERS them (`rel="icon" href=…`
+ * comes out as `href=… rel="icon"`). A test tied to the order would go red the
+ * day the minification changes, without anything having stopped working.
  *
- * @param html HTML ya minificado de una página de `dist/`.
- * @returns Un objeto por cada `<link>`, con sus atributos.
+ * @param html The already-minified HTML of a page in `dist/`.
+ * @returns One object per `<link>`, with its attributes.
  */
 function linkTags(html) {
   return [...html.matchAll(/<link\b([^>]*)>/g)].map((m) => attributesOf(m[1]));
 }
 
 /**
- * Valor del atributo `content` de una `<meta>`, buscada por `property`/`name`.
+ * The `content` attribute of a `<meta>`, looked up by `property`/`name`.
  *
- * @param html HTML ya minificado de una página de `dist/`.
- * @param attribute `property` para Open Graph, `name` para Twitter.
- * @param key Nombre de la etiqueta, p. ej. `og:image`.
- * @returns El `content`, o `undefined` si esa etiqueta no está.
+ * @param html The already-minified HTML of a page in `dist/`.
+ * @param attribute `property` for Open Graph, `name` for Twitter.
+ * @param key The tag's name, e.g. `og:image`.
+ * @returns The `content`, or `undefined` when that tag is absent.
  */
 function meta(html, attribute, key) {
   const tag = [...html.matchAll(/<meta\b([^>]*)>/g)]
@@ -522,16 +542,16 @@ function meta(html, attribute, key) {
 }
 
 /**
- * Decodifica las entidades de un valor de atributo.
+ * Decodes the entities in an attribute value.
  *
- * El valor sale del HTML ya escapado —el post-build reserializa con cheerio
- * después de minificar—, así que un `&` viaja como `&amp;` y contaría cinco
- * caracteres donde el buscador cuenta uno. Hoy ninguna description lleva
- * entidades; esto es lo que mantiene honesto el recuento el día que una las
- * lleve.
+ * The value comes out of the HTML already escaped — the post-build serializes
+ * it again with cheerio after minifying — so an `&` travels as `&amp;` and
+ * would count
+ * five characters where a search engine counts one. No description carries
+ * entities today; this is what keeps the count honest the day one does.
  *
- * @param value Valor crudo del atributo, tal cual está en `dist/`.
- * @returns El texto que de verdad lee un buscador.
+ * @param value The raw attribute value, exactly as it sits in `dist/`.
+ * @returns The text a search engine actually reads.
  */
 function decodeEntities(value) {
   return (
@@ -540,66 +560,66 @@ function decodeEntities(value) {
       .replaceAll("&gt;", ">")
       .replaceAll("&quot;", '"')
       .replaceAll("&#39;", "'")
-      // `&amp;` el ÚLTIMO: antes convertiría `&amp;lt;` en `<`.
+      // `&amp;` LAST: before the others it would turn `&amp;lt;` into `<`.
       .replaceAll("&amp;", "&")
   );
 }
 
 /**
- * La description que un buscador leería de una página ya construida.
+ * The description a search engine would read from an already-built page.
  *
- * Pasa por {@link meta} y no por un regex propio porque el minificador
- * ALFABETIZA los atributos (`sortAttributes` en
- * `src/integrations/post-build/html.ts`), así que en `dist/` sale
- * `<meta content="…" name="description">`. Un patrón que dé por hecho `name`
- * antes de `content` no encuentra NINGUNA de las catorce páginas, y medir lo
- * que no se ha encontrado sale verde sobre un sitio entero sin descriptions.
+ * It goes through {@link meta} rather than a regex of its own because the
+ * minifier ALPHABETIZES the attributes (`sortAttributes` in
+ * `src/integrations/post-build/html.ts`), so in `dist/` it comes out as
+ * `<meta content="…" name="description">`. A pattern that assumes `name` before
+ * `content` finds NONE of the fourteen pages, and measuring what was never
+ * found comes out green over an entire site with no descriptions.
  *
- * @param html HTML ya minificado de una página de `dist/`.
- * @returns El texto decodificado, o `undefined` si la etiqueta no está.
+ * @param html The already-minified HTML of a page in `dist/`.
+ * @returns The decoded text, or `undefined` when the tag is absent.
  */
 function descriptionOf(html) {
   const raw = meta(html, "name", "description");
   return raw === undefined ? undefined : decodeEntities(raw);
 }
 
-test("cada página emite Open Graph y Twitter Card completos", () => {
+test("every page emits complete Open Graph and Twitter Card tags", () => {
   for (const { name, html, lang, url } of pages()) {
     assert.equal(meta(html, "property", "og:type"), "website", name);
     assert.equal(meta(html, "property", "og:url"), url, `${name}: og:url`);
     assert.equal(
       meta(html, "property", "og:image"),
       `${ORIGIN}/og-${lang}.png`,
-      `${name}: og:image tiene que ser ABSOLUTA o los clientes no la resuelven`,
+      `${name}: og:image has to be ABSOLUTE or the clients will not resolve it`,
     );
     assert.equal(meta(html, "property", "og:image:width"), "1200", name);
     assert.equal(meta(html, "property", "og:image:height"), "630", name);
-    assert.ok(meta(html, "property", "og:image:alt"), `${name}: sin alt`);
+    assert.ok(meta(html, "property", "og:image:alt"), `${name}: no alt`);
     assert.equal(
       meta(html, "property", "og:locale"),
       lang === "en" ? "en_US" : "es_ES",
       `${name}: og:locale`,
     );
     for (const key of ["og:title", "og:description", "og:site_name"]) {
-      assert.ok(meta(html, "property", key), `${name}: sin ${key}`);
+      assert.ok(meta(html, "property", key), `${name}: no ${key}`);
     }
 
     assert.equal(
       meta(html, "name", "twitter:card"),
       "summary_large_image",
-      `${name}: sin summary_large_image la tarjeta sale en miniatura`,
+      `${name}: without summary_large_image the card comes out as a thumbnail`,
     );
     for (const key of [
       "twitter:title",
       "twitter:description",
       "twitter:image",
     ]) {
-      assert.ok(meta(html, "name", key), `${name}: sin ${key}`);
+      assert.ok(meta(html, "name", key), `${name}: no ${key}`);
     }
   }
 });
 
-test("cada página se autorreferencia en hreflang", () => {
+test("every page self-references in hreflang", () => {
   for (const { name, html, lang, enUrl, esUrl, xDefaultUrl } of pages()) {
     const byLang = new Map(
       linkTags(html)
@@ -607,8 +627,9 @@ test("cada página se autorreferencia en hreflang", () => {
         .map((link) => [link.hreflang, link.href]),
     );
 
-    // La autorreferencia es la que faltaba: sin ella Google descarta el clúster
-    // ENTERO y las dos versiones compiten entre sí en vez de agruparse.
+    // The self-reference is the one that was missing: without it Google
+    // discards the ENTIRE cluster and the two versions compete with each other
+    // instead of being grouped.
     assert.ok(
       byLang.has(lang),
       `${name}: no se autorreferencia (hreflang="${lang}")`,
@@ -617,37 +638,37 @@ test("cada página se autorreferencia en hreflang", () => {
     assert.equal(byLang.get("es"), esUrl, `${name}: hreflang es`);
     // x-default points at THIS page's English version, not the home page's
     // nor (for a server detail page) the `/servers/` index's — same rule
-    // the "cada entrada del sitemap declara SU x-default" test above checks
+    // the "every sitemap entry declares ITS OWN x-default" test above checks
     // for the sitemap's own hreflang annotations.
     assert.equal(byLang.get("x-default"), xDefaultUrl, `${name}: x-default`);
-    assert.equal(byLang.size, 3, `${name}: sobran o faltan anotaciones`);
+    assert.equal(byLang.size, 3, `${name}: too many or too few annotations`);
   }
 });
 
-test("cada página declara favicon, canonical y el índice JSON", () => {
+test("every page declares a favicon, a canonical and the JSON index", () => {
   for (const { name, html, url } of pages()) {
     const links = linkTags(html);
     const has = (predicate) => links.some((link) => predicate(link));
 
     assert.ok(
       has((l) => l.rel === "icon" && l.href === "/favicon.svg"),
-      `${name}: sin favicon declarado no sale icono en los resultados`,
+      `${name}: with no favicon declared no icon shows up in the results`,
     );
     assert.ok(
       has((l) => l.rel === "canonical" && l.href === url),
-      `${name}: canonical ausente o apuntando a otra URL`,
+      `${name}: canonical missing or pointing at another URL`,
     );
     assert.ok(
       has((l) => l.type === "application/json" && l.href === "/servers.json"),
-      `${name}: el índice para máquinas no se anuncia en el <head>`,
+      `${name}: the machine-readable index is not announced in the <head>`,
     );
   }
 });
 
-test("el <title> deja sitio a la expresión por la que se busca esto", () => {
+test("the <title> leaves room for the phrase this is searched by", () => {
   for (const { name, html, page, id } of pages()) {
     const title = /<title>([^<]*)<\/title>/.exec(html)?.[1];
-    assert.ok(title, `${name}: sin <title>`);
+    assert.ok(title, `${name}: no <title>`);
 
     // Only the home page is written to rank for the broad "Model Context
     // Protocol" query — it is the only entry point someone searching that
@@ -661,7 +682,7 @@ test("el <title> deja sitio a la expresión por la que se busca esto", () => {
     if (page === "home") {
       assert.ok(
         title.includes("Model Context Protocol"),
-        `${name}: el título no contiene la keyword — solo estaba en la description`,
+        `${name}: the title does not contain the keyword — it was only in the description`,
       );
     }
     // A server detail page's title is `<server id> <fixed suffix>` (e.g.
@@ -673,67 +694,67 @@ test("el <title> deja sitio a la expresión por la que se busca esto", () => {
     if (!id) {
       assert.ok(
         title.length >= 40,
-        `${name}: ${title.length} caracteres, se queda corto (mínimo 40)`,
+        `${name}: ${title.length} characters, too short (40 minimum)`,
       );
     }
     assert.ok(
       title.length <= 65,
-      `${name}: ${title.length} caracteres; Google recorta pasados ~60`,
+      `${name}: ${title.length} characters; Google trims past ~60`,
     );
   }
 });
 
 /**
- * Presupuesto de la meta description, en caracteres.
+ * The meta description's budget, in characters.
  *
- * 155 es lo que Google muestra antes de recortar con «…». Pasarse no rompe
- * nada visible —la página se sirve igual— así que solo se nota en el
- * resultado de búsqueda, con la frase cortada a media palabra. El sitio
- * hermano jmrp.io fija el mismo número (tests/content-integrity.spec.ts),
- * para que dominio y subdominio no apliquen dos criterios distintos.
+ * 155 is what Google shows before trimming with an ellipsis. Going over breaks
+ * nothing visible — the page is served the same — so it only shows up in the
+ * search result, with the sentence cut mid-word. The sibling site jmrp.io pins
+ * the same number (tests/content-integrity.spec.ts), so that domain and
+ * subdomain do not apply two different criteria.
  */
 const MAX_DESCRIPTION = 155;
 
-test("ninguna description pasa de lo que Google llega a enseñar", () => {
+test("no description goes past what Google will show", () => {
   for (const { name, html } of pages()) {
     const description = descriptionOf(html);
 
-    // La presencia se afirma primero: `undefined` tampoco es más largo que
-    // 155, así que sin esto una página que PIERDA la etiqueta pasaría.
-    assert.ok(description, `${name}: sin <meta name="description">`);
+    // Presence is asserted first: `undefined` is not longer than 155 either,
+    // so without this a page that LOSES the tag would pass.
+    assert.ok(description, `${name}: no <meta name="description">`);
 
     assert.ok(
       description.length <= MAX_DESCRIPTION,
-      `${name}: ${description.length} caracteres; Google recorta pasados ` +
-        // La description entera, a propósito: quien lea el fallo tiene que
-        // poder reescribirla sin abrir `dist/`.
+      `${name}: ${description.length} characters; Google trims past ` +
+        // The whole description, on purpose: whoever reads the failure has to
+        // be able to rewrite it without opening `dist/`.
         `${MAX_DESCRIPTION} — "${description}"`,
     );
   }
 });
 
-test("el medidor de descriptions ve la que se pasa de largo", () => {
-  // Recorrer solo páginas correctas no distingue «todas caben» de «no
-  // encuentro ninguna»: los dos casos salen en verde. Este caso fija lo que
-  // TIENE que salir largo, escrito como lo deja el minificador —`content`
-  // antes que `name`— y con una entidad por medio, para dejar probado que se
-  // mide el texto decodificado y no el escape.
-  const excess = `${"palabra ".repeat(20)}&amp; coletilla`;
+test("the description meter sees the one that runs long", () => {
+  // Walking only correct pages does not tell "they all fit" apart from "I find
+  // none": both cases come out green. This case pins down what HAS to come out
+  // long, written the way the minifier leaves it — `content` before `name` —
+  // and with an entity in the middle, to prove the decoded text is what gets
+  // measured and not the escape.
+  const excess = `${"word ".repeat(32)}&amp; tail`;
   const html = `<meta content="${excess}" name="description">`;
 
   const measured = descriptionOf(html);
-  assert.ok(measured?.endsWith("& coletilla"), "no decodifica la entidad");
+  assert.ok(measured?.endsWith("& tail"), "it does not decode the entity");
   assert.ok(
     measured.length > MAX_DESCRIPTION,
-    "el medidor no ve larga una description que se pasa del presupuesto",
+    "the meter does not see a description that goes over budget as long",
   );
 
-  // El otro falso verde: sin la etiqueta no hay longitud que medir, así que
-  // `undefined` no puede colarse como «cabe de sobra».
+  // The other false green: with no tag there is no length to measure, so
+  // `undefined` cannot slip through as "fits with room to spare".
   assert.equal(descriptionOf('<meta content="x" name="keywords">'), undefined);
 });
 
-test("el catálogo de descubrimiento y las server cards son coherentes", () => {
+test("the discovery catalog and the server cards agree", () => {
   // Discovery for a domain with SEVERAL MCP servers is two documents: the
   // catalog lists them and points at one card each, and every card describes
   // exactly one server. If they drift, a client following the catalog fetches
@@ -744,18 +765,18 @@ test("el catálogo de descubrimiento y las server cards son coherentes", () => {
   assert.equal(
     catalog.entries.length,
     index.servers.length,
-    "el catálogo no lista los mismos servidores que servers.json",
+    "the catalog does not list the same servers as servers.json",
   );
 
   for (const entry of catalog.entries) {
     assert.equal(
       entry.type,
       "application/mcp-server-card+json",
-      `${entry.identifier}: type incorrecto`,
+      `${entry.identifier}: wrong type`,
     );
 
-    // La URL de la card tiene que existir de verdad en el build. El vhost la
-    // sirve con un `location =`, que gana al `^~ /libgen` del proxy.
+    // The card's URL has to really exist in the build. The vhost serves it
+    // with a `location =`, which beats the proxy's `^~ /libgen`.
     const path = new URL(entry.url).pathname.replace(/^\//, "");
     const card = JSON.parse(read(path));
 
@@ -763,14 +784,14 @@ test("el catálogo de descubrimiento y las server cards son coherentes", () => {
     assert.ok(card.version, `${path}: sin version`);
     assert.ok(card.description, `${path}: sin description`);
 
-    // El endpoint de la card debe ser uno de los reales, no la URL de la card.
+    // The card's endpoint must be one of the real ones, not the card's own URL.
     const url = card.remotes?.[0]?.url;
     assert.ok(
       Object.values(index.endpoints).includes(url),
       `${path}: remotes[0].url (${url}) no es un endpoint de servers.json`,
     );
 
-    // Una credencial declarada sin `isSecret` es una invitación a registrarla.
+    // A credential declared without `isSecret` is an invitation to log it.
     for (const header of card.remotes[0].headers ?? []) {
       if (!header.isRequired) continue;
       const declared = index.servers.find((s) => s.endpoint === url);
@@ -783,20 +804,22 @@ test("el catálogo de descubrimiento y las server cards son coherentes", () => {
         declared.requiredHeaders.some(
           (h) => h === header.name || h.startsWith(`${header.name}:`),
         ),
-        `${path}: cabecera ${header.name} no declarada en servers.json`,
+        `${path}: header ${header.name} not declared in servers.json`,
       );
     }
   }
 });
 
-test("las páginas llevan los tokens que nginx sustituye por el estado en vivo", () => {
-  // El estado (versión y nodos vivos de cada MCP) lo inyecta
-  // /etc/nginx/lua/mcp_ssr_status.lua sustituyendo estos tokens al vuelo. Si
-  // desaparecen del build, la sustitución no falla: simplemente no ocurre, y
-  // la página sale sin estado sin que nada se ponga rojo. De ahí este test.
+test("the pages carry the tokens nginx replaces with the live status", () => {
+  // The status (each MCP's version and live nodes) is injected by
+  // /etc/nginx/lua/mcp_ssr_status.lua, which replaces these tokens on the fly.
+  // If they disappear from the build the substitution does not fail: it simply
+  // does not happen, and the page comes out with no status without anything
+  // going red. Hence this test.
   //
-  // En `astro preview` (los e2e) los tokens NO se sustituyen, porque los hooks
-  // lua solo existen en el vhost de producción. Eso es lo esperado.
+  // Under `astro preview` (the e2e suite) the tokens are NOT substituted,
+  // because the lua hooks only exist in the production vhost. That is
+  // expected.
   //
   // Scoped to the home pages ON PURPOSE: the live-status badge is rendered by
   // ServerCard.astro, which only the home page includes, and nginx itself
@@ -808,7 +831,7 @@ test("las páginas llevan los tokens que nginx sustituye por el estado en vivo",
     for (const token of ["MCPSSR_LIBGEN_STATUS", "MCPSSR_GITLAB_STATUS"]) {
       assert.ok(
         html.includes(token),
-        `${name}: falta el token ${token} — nginx no tendrá qué sustituir`,
+        `${name}: the ${token} token is missing — nginx will have nothing to replace`,
       );
     }
   }
