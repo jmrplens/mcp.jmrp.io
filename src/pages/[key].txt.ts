@@ -3,13 +3,13 @@ import type { APIRoute } from "astro";
 import { INDEXNOW_KEY } from "../lib/seo";
 
 /**
- * Fichero de verificación de IndexNow.
+ * The IndexNow verification file.
  *
- * El protocolo exige que `https://<host>/<clave>.txt` devuelva la clave en
- * texto plano: es lo que demuestra que quien hace el ping controla el dominio.
+ * The protocol requires `https://<host>/<key>.txt` to return the key as plain
+ * text: that is what proves whoever pings controls the domain.
  *
- * Se genera desde `seo.ts` para que la clave viva en un solo sitio — la misma
- * que usa el script de despliegue para avisar a Bing y Yandex.
+ * It is generated from `seo.ts` so the key lives in one place — the same one
+ * the deployment script uses to notify Bing and Yandex.
  */
 export function getStaticPaths() {
   return [{ params: { key: INDEXNOW_KEY } }];

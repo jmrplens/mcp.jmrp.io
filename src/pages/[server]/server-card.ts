@@ -66,17 +66,17 @@ export const GET: APIRoute = async ({ props }) => {
   ];
 
   const card = {
-    // Esta URL DEVUELVE 404 hoy (medido el 2026-08-28; el host raíz sí
-    // responde 200, así que no es el dominio, es que el esquema no está
-    // publicado). Se deja igualmente, y a propósito: en JSON Schema `$schema`
-    // es un IDENTIFICADOR, no una promesa de que se pueda descargar, y
-    // SEP-2127 sigue siendo borrador — ver la cabecera de este fichero. Lo que
-    // sería un error es inventarse otra URL que tampoco existe.
+    // This URL RETURNS 404 today (measured 2026-08-28; the root host does
+    // answer 200, so it is not the domain — the schema is simply not
+    // published). It stays anyway, on purpose: in JSON Schema `$schema` is an
+    // IDENTIFIER, not a promise that it can be downloaded, and SEP-2127 is
+    // still a draft — see this file's header. What would be a mistake is
+    // inventing another URL that does not exist either.
     //
-    // CUÁNDO REVISARLO: cuando SEP-2127 se apruebe. Si para entonces publican
-    // el esquema en otra ruta, esta línea es lo único que cambia; y si el
-    // borrador muere, lo correcto es quitar el campo, no dejarlo apuntando a
-    // una spec que no llegó.
+    // WHEN TO REVISIT: when SEP-2127 is approved. If they publish the schema
+    // at another path by then, this line is the only thing that changes; and
+    // if the draft dies, the right move is to drop the field, not leave it
+    // pointing at a spec that never landed.
     $schema:
       "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
     name: server.registryName,

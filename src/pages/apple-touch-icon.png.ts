@@ -5,30 +5,31 @@ import type { APIRoute } from "astro";
 import sharp from "sharp";
 
 /**
- * Icono para la pantalla de inicio de iOS, 180×180.
+ * The iOS home-screen icon, 180×180.
  *
- * Se rasteriza del MISMO `public/favicon.svg` que usa la pestaña, en vez de
- * dibujar una marca aparte: son el mismo sitio y deben verse igual. Si algún
- * día cambia el sigilo, cambian los dos a la vez.
+ * It is rasterized from the SAME `public/favicon.svg` the tab uses, rather
+ * than drawing a separate mark: they are the same site and must look alike. If
+ * the mark ever changes, both change at once.
  *
- * iOS NO respeta la transparencia —compone el icono sobre un fondo blanco—,
- * así que el SVG ya trae fondo opaco propio. Aquí se aplana igualmente sobre
- * el mismo color por si el SVG cambiara: un icono con esquinas blancas sobre
- * un fondo oscuro canta mucho.
+ * iOS does NOT honour transparency — it composites the icon over a white
+ * background — so the SVG already carries its own opaque background. It is
+ * flattened here over the same colour anyway in case the SVG changes: an icon
+ * with white corners on a dark background is very obvious.
  */
 
 const SIZE = 180;
-/** Mismo fondo que declara el SVG de la marca. */
+/** The same background the mark's SVG declares. */
 const BACKGROUND = "#0a0a0b";
 
 /**
- * Rasteriza la marca del sitio a 180×180 para iOS.
+ * Rasterizes the site's mark to 180×180 for iOS.
  *
- * @returns El PNG del icono.
+ * @returns The icon's PNG.
  */
 export const GET: APIRoute = async () => {
-  // process.cwd() y no import.meta.url: en el build este módulo se evalúa ya
-  // dentro de dist/, así que una ruta relativa apuntaría a dist/public/.
+  // process.cwd() and not import.meta.url: at build time this module is
+  // evaluated from inside dist/, so a relative path would point at
+  // dist/public/.
   const svg = readFileSync(path.join(process.cwd(), "public", "favicon.svg"));
 
   const png = await sharp(svg, { density: 384 })

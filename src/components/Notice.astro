@@ -1,17 +1,16 @@
 ---
 /**
- * El cuerpo de un aviso de servidor. Vive dentro de un `<details>` cuyo
- * `<summary>` lleva el título como `<h4>` (nivel bajado desde `<h3>` cuando
- * el nombre del servidor en ServerCard.astro pasó de `<h2>` a `<h3>`), así
- * que aquí solo van párrafos y viñetas.
+ * A server notice's body. It lives inside a `<details>` whose `<summary>`
+ * carries the title as an `<h4>` (dropped a level from `<h3>` when the server's
+ * name in ServerCard.astro went from `<h2>` to `<h3>`), so only paragraphs and
+ * bullets go here.
  *
- * Es un `<div>`, no un `<aside>`, y eso importa más de lo que parece: los
- * extractores tipo readability —el pipeline que alimenta RAG y agentes—
- * tratan `<aside>` como contenido complementario y lo PODAN. Con `<aside>`,
- * el 67% del texto de la página (límites, política del token, descargo
- * legal) desaparecía de la extracción; medido, no supuesto. Y semánticamente
- * también era incorrecto: estos avisos no son tangenciales, son el contenido
- * central de la ficha.
+ * It is a `<div>`, not an `<aside>`, and that matters more than it looks:
+ * readability-style extractors — the pipeline feeding RAG and agents — treat
+ * `<aside>` as complementary content and PRUNE it. With `<aside>`, 67% of the
+ * page's text (limits, token policy, legal disclaimer) disappeared from the
+ * extraction; measured, not assumed. And it was semantically wrong too: these
+ * notices are not tangential, they are the card's central content.
  */
 import type { McpNotice } from "../data/servers";
 import type { Lang } from "../i18n/ui";
@@ -19,7 +18,7 @@ import type { Lang } from "../i18n/ui";
 interface Props {
   notice: McpNotice;
   lang: Lang;
-  /** Id para poder referenciarlo desde el inspector. */
+  /** An id so the inspector can reference it. */
   id?: string;
 }
 

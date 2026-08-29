@@ -1,13 +1,13 @@
 ---
 /**
- * Página 404 con marca. nginx la sirve vía `error_page 404 /404.html` (el
- * vhost lo edita un humano, como toda la lista blanca); el código de estado
- * sigue siendo 404 — la página solo pone cuerpo al error.
+ * A branded 404 page. nginx serves it through `error_page 404 /404.html` (the
+ * vhost is edited by a human, like the whole allowlist); the status code is
+ * still 404 — the page only puts a body on the error.
  *
- * Es UNA página para los dos idiomas: nginx no sabe en qué idioma navegabas,
- * así que el texto va en inglés con su línea en español y enlaces a las dos
- * portadas. El `<p lang="es">` mantiene correcta la pronunciación de los
- * lectores de pantalla.
+ * It is ONE page for both languages: nginx does not know which language you
+ * were browsing in, so the text is English with a Spanish line beside it and
+ * links to both home pages. The `<p lang="es">` keeps screen-reader
+ * pronunciation correct.
  */
 import { ui } from "../i18n/ui";
 import Base from "../layouts/Base.astro";

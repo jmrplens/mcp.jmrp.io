@@ -3,5 +3,5 @@ import {
   markdownResponse,
 } from "../../../lib/page-markdown";
 
-/** `/es/internals/index` — the markdown twin of la página de funcionamiento interno. */
+/** `/es/internals/index` — the markdown twin of the internals page. */
 export const GET = () => markdownResponse(internalsMarkdown("es"));

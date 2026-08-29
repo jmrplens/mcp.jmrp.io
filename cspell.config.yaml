@@ -107,6 +107,10 @@ overrides:
   # Server descriptions and notices, also written in both languages.
   - filename: "src/data/servers.ts"
     language: en,es
+  # One page for both languages: nginx cannot know which one you were browsing,
+  # so the 404 carries an English body with a Spanish line beside it.
+  - filename: "src/pages/404.astro"
+    language: en,es
   # Generated from the live servers; the tool names and descriptions are the
   # binaries' own vocabulary, not prose this repo writes.
   - filename: "src/data/cards/*.json"

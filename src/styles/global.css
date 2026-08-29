@@ -1,14 +1,14 @@
 /* =============================================================================
-   global.css — mcp.jmrp.io · punto de entrada de estilos globales
-   Copia de jmrp.io: si los tokens cambian allí hay que resincronizar a mano.
-   Se importa UNA vez en el layout raíz:
+   global.css — mcp.jmrp.io · the global styles' entry point
+   A copy of jmrp.io's: if the tokens change there, resync by hand.
+   Imported ONCE in the root layout:
        import "../styles/global.css";
-   El orden importa: tokens (variables) → base (reset/elementos) → utilities.
-   Vite/Astro resuelve estos @import en build (postcss-import); no añaden
-   peticiones extra en producción.
+   The order matters: tokens (variables) → base (reset/elements) → utilities.
+   Vite/Astro resolves these @imports at build time (postcss-import); they add
+   no extra requests in production.
 
-   NO se importa code-terminal.css (ni blog.css / rss.css / components/): son
-   del sitio principal y no se copian a este repo.
+   code-terminal.css is NOT imported (nor blog.css / rss.css / components/):
+   they belong to the main site and are not copied into this repo.
 ============================================================================= */
 
 @import url("./tokens.css");

@@ -1,11 +1,10 @@
 /**
- * Estilos de la isla del filtro de las páginas de dominio.
+ * Styles for the domain pages' filter island.
  *
- * En un .css aparte por el mismo motivo que ActionSearch.css: el componente
- * es Preact y los \3c style> con ámbito de Astro no lo alcanzan. Los controles
- * calcan la forma de `.as-input` (mismo input, mismo focus ring) para que
- * el buscador de la ficha y el filtro del dominio se lean como la misma
- * familia de controles.
+ * In a separate .css for the same reason as ActionSearch.css: the component is
+ * Preact and Astro's scoped \3c style> blocks do not reach it. The controls
+ * trace `.as-input`'s shape (same input, same focus ring) so the card's search
+ * and the domain's filter read as the same family of controls.
  */
 
 .domain-filter {
@@ -68,9 +67,9 @@
   color: var(--color-text-muted);
 }
 
-/* Leyenda junto al contador: el mismo punto que llevan las tarjetas. Con
-   clase propia (df-dot) porque las .action-dot de la página tienen ámbito
-   de componente Astro y no alcanzan al DOM cliente de la isla. */
+/* The legend beside the counter: the same dot the cards carry. With a class
+   of its own (df-dot) because the page's .action-dot rules are Astro
+   component-scoped and do not reach the island's client-rendered DOM. */
 .domain-legend {
   display: inline-flex;
   gap: 0.35rem;
@@ -79,8 +78,8 @@
   font-size: var(--text-xs);
   color: var(--color-text-muted);
 
-  /* Cada pieza envuelve como unidad o no envuelve: sin esto, a 390px la
-     palabra se partía por dentro ("read-" / "only") antes que la fila. */
+  /* Each piece wraps as a unit or not at all: without this, at 390px the word
+     broke inside itself ("read-" / "only") before the row did. */
   white-space: nowrap;
 }
 

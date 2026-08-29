@@ -38,12 +38,12 @@
  *     The schemas used to stop here, on the argument that ~2.5 KB per tool
  *     of raw JSON was noise. It was the wrong cut: a tool page showed what a
  *     tool was FOR and never what to send it or what came back, while a
- *     prompt directly below listed every argument it takes. The author put
- *     it plainly — "las tools no muestran qué campos tienen ni qué
- *     devuelven". What the page renders is not the raw schema either way:
+ *     prompt directly below listed every argument it takes. The author put it
+ *     plainly: the tools show neither which fields they take nor what they
+ *     return. What the page renders is not the raw schema either way:
  *     `ServerPage.astro` runs both through `schemaFields`, the same reader
  *     the inspector uses on the live `tools/list`, and paints name, type,
- *     required and description — so a field reads identically on the ficha
+ *     required and description — so a field reads identically on the card
  *     and in the live catalog, and the weight is the part worth reading.
  *   - `serverCardDocuments` / `getServerCardDocument(id)` — the FULL parsed
  *     document, schemas and all, for the rare case something genuinely needs
@@ -638,7 +638,7 @@ export function summarizeServerCardDocument(
         annotations: summarizeAnnotations(annotations),
         // Passed through, not summarized: the page runs them through the same
         // `schemaFields` the inspector uses, so a field reads identically on
-        // the ficha and in the live catalog. See this module's header comment
+        // the card and in the live catalog. See this module's header comment
         // for why they used to stop here.
         inputSchema,
         outputSchema,
