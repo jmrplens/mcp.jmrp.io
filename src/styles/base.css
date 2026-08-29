@@ -1,7 +1,7 @@
 /* =============================================================================
-   base.css — jmrp.io · reset + estilos base de elementos
-   Consume exclusivamente los tokens de tokens.css. No hay valores mágicos:
-   cualquier color/tamaño sale de una variable. Requiere tokens.css cargado antes.
+   base.css — jmrp.io · reset + base element styles
+   Consumes tokens.css and nothing else. No magic values: every colour and
+   size comes from a variable. Requires tokens.css to be loaded first.
 ============================================================================= */
 
 /* ===== Reset ================================================================ */
@@ -11,45 +11,45 @@
   box-sizing: border-box;
 }
 
-/* El atributo hidden solo aplica display:none desde la hoja del NAVEGADOR
-   (origen UA), así que cualquier `display: flex/grid` de autor lo anula: los
-   filtros de tags/búsqueda del blog y el de publicaciones ponían
-   `el.hidden = true` sin efecto visual (.post-card es flex, .featured-post es
-   grid). Regla estándar de endurecimiento del reset; until-found se excluye
-   para no romper la búsqueda-en-página nativa si algún día se usa. */
+/* The hidden attribute only applies display:none from the BROWSER stylesheet
+   (UA origin), so any author `display: flex/grid` overrides it: the blog's tag
+   and search filters and the publications one were setting `el.hidden = true`
+   with no visual effect (.post-card is flex, .featured-post is grid). This is
+   the standard reset-hardening rule; until-found is excluded so it does not
+   break native find-in-page should that ever be used. */
 [hidden]:not([hidden="until-found"]) {
   display: none !important;
 }
 
 html {
-  /* Reserva el hueco de la barra de scroll en escritorio con barras
-     clásicas: al navegar entre una página corta (sin scroll) y una larga el
-     ancho útil no cambia, y las View Transitions no "saltan" lateralmente. */
+  /* Reserves the scrollbar's gutter on desktops with classic bars: moving
+     between a short page (no scroll) and a long one leaves the usable width
+     unchanged, so View Transitions do not "jump" sideways. */
   scrollbar-gutter: stable;
   font-family: var(--font-body);
-  font-size: 100%; /* 16px base — respeta el zoom del usuario */
+  font-size: 100%; /* 16px base — respects the reader's zoom */
   line-height: 1.6;
   color: var(--color-text);
   background-color: var(--color-bg);
 
-  /* Evita el "font boosting" de móvil sin bloquear el zoom accesible */
+  /* Stops mobile font boosting without blocking accessible zoom */
   /* stylelint-disable-next-line property-no-vendor-prefix */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
 
 body {
-  position: relative; /* contexto para la rejilla ambiental a página completa */
+  position: relative; /* context for the full-page ambient grid */
   display: flex;
   flex-direction: column;
   width: 100%;
   min-height: 100vh;
   padding: 0;
   margin: 0;
-  overflow-x: hidden; /* sin scroll horizontal global */
-  overflow-wrap: break-word; /* palabras largas no rompen el layout */
-  isolation: isolate; /* stacking context propio: la rejilla (z-index:-1) queda
-                         tras el contenido pero sobre el fondo del body */
+  overflow-x: hidden; /* no global horizontal scroll */
+  overflow-wrap: break-word; /* long words do not break the layout */
+  isolation: isolate; /* its own stacking context: the grid (z-index:-1) stays
+                         behind the content but above the body background */
 }
 
 img,
@@ -61,7 +61,7 @@ svg:not(.inline-icon) {
   height: auto;
 }
 
-/* Iconos SVG en texto/botones: mantienen el flujo inline */
+/* SVG icons in text/buttons: they stay in the inline flow */
 svg.inline-icon {
   display: inline-block;
   vertical-align: middle;
@@ -86,23 +86,23 @@ a:hover {
   text-decoration-thickness: 2px;
 }
 
-/* ===== Foco visible (no se quita el outline sin sustituto) ================
-   El outline se mantiene siempre (visible en Windows High Contrast, donde
-   box-shadow no se pinta); el ring (--focus-ring, token global promovido
-   desde Header.astro) añade el refuerzo visual en navegadores normales. */
+/* ===== Visible focus (the outline is never removed without a replacement) =
+   The outline is always kept (it is visible in Windows High Contrast, where
+   box-shadow is not painted); the ring (--focus-ring, a global token promoted
+   out of Header.astro) adds the visual reinforcement in ordinary browsers. */
 :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
   box-shadow: var(--focus-ring);
 }
 
-/* ===== Selección de texto ================================================== */
+/* ===== Text selection ====================================================== */
 ::selection {
   color: var(--color-on-primary);
   background: var(--color-primary);
 }
 
-/* ===== Encabezados ========================================================== */
+/* ===== Headings ============================================================ */
 h1,
 h2,
 h3,
@@ -115,9 +115,9 @@ h6 {
   color: var(--color-text-heading);
   letter-spacing: -0.02em;
 
-  /* Reparte las palabras entre líneas en títulos multilínea (evita una
-     última línea con una sola palabra). Mejora progresiva; los navegadores
-     sin soporte lo ignoran. */
+  /* Spreads the words across lines in multi-line titles (avoids a last line
+     holding a single word). Progressive enhancement; browsers without support
+     ignore it. */
   text-wrap: balance;
   scroll-margin-top: calc(var(--header-height) + 1rem);
 }
@@ -144,25 +144,24 @@ h4 {
   font-size: 1.1em;
 }
 
-/* ===== Títulos de página (variantes fluidas de h1) =========================
-   jmrp.io no fuerza una única talla de h1 en todo el sitio: cada tipo de
-   página hereda el `h1` de arriba (familia, peso, color, balance, ancla de
-   scroll) y solo redefine tamaño/medida/entrelínea vía una clase — el hero
-   de la portada (`.hero__title`) usa un clamp; los encabezados de sección
-   (`.page-header h1`, `.cat-title`, `.tools-title`…) usan otro, cada uno
-   ajustado a su página. Este sitio tenía el equivalente, pero mal resuelto:
-   HomePage, InspectorPage, PoliciesPage e InternalsPage definían un h1 a
-   mano CADA UNA, con InspectorPage/PoliciesPage/InternalsPage repitiendo la
-   MISMA regla letra por letra ("Astro escopa los estilos, así que hace
-   falta una copia" — no, un selector global como este ya alcanza a
-   cualquier h1 del documento independientemente del componente que lo
-   renderice; la copia nunca hizo falta).
-   Las dos variantes de abajo son esa unificación: `.hero-title` para el
-   titular grande de la portada, `.subpage-title` para el título compartido
-   de Inspector/Policies/Internals. (Se llama `.subpage-title`, no
-   `.page-title`, porque esa clase ya existe en utilities.css con otro
-   diseño —breadcrumb con borde inferior— y no está en uso; reutilizar el
-   nombre la habría pisado.) */
+/* ===== Page titles (fluid h1 variants) ====================================
+   jmrp.io does not force one h1 size across the whole site: each kind of page
+   inherits the `h1` above (family, weight, colour, balance, scroll anchor) and
+   only redefines size/measure/leading through a class — the home hero
+   (`.hero__title`) uses one clamp; the section headings (`.page-header h1`,
+   `.cat-title`, `.tools-title`…) use another, each tuned to its page. This
+   site had the equivalent, badly resolved: HomePage, InspectorPage,
+   PoliciesPage and InternalsPage each defined an h1 by hand, with
+   InspectorPage/PoliciesPage/InternalsPage repeating the SAME rule letter for
+   letter ("Astro scopes styles, so a copy is needed" — no, a global selector
+   like this one already reaches any h1 in the document whichever component
+   renders it; the copy was never needed).
+   The two variants below are that unification: `.hero-title` for the home
+   page's big headline, `.subpage-title` for the shared title of
+   Inspector/Policies/Internals. (It is called `.subpage-title`, not
+   `.page-title`, because that class already exists in utilities.css with a
+   different design — a breadcrumb with a bottom border — and is unused;
+   reusing the name would have clobbered it.) */
 .hero-title,
 .subpage-title {
   margin: 0 0 1.25rem;
@@ -195,11 +194,11 @@ h4 {
   letter-spacing: -0.02em;
 }
 
-/* ===== Párrafo introductorio compartido =====================================
-   Misma regla que HomePage.astro y InspectorPage.astro tenían cada una por
-   separado bajo el nombre `.section-intro` (la intro corta que sigue a un
-   h1/h2 de sección). `font-size` se deja explícito en vez de heredarlo de
-   `html` — mismo valor (16px), pero documentado, como hace `.subtitle` en
+/* ===== Shared intro paragraph ===============================================
+   The same rule HomePage.astro and InspectorPage.astro each carried
+   separately under the name `.section-intro` (the short intro that follows a
+   section h1/h2). `font-size` is stated explicitly rather than inherited from
+   `html` — the same value (16px), but documented, the way `.subtitle` does on
    jmrp.io (BlogIndex.astro). */
 .section-intro {
   max-width: 62ch;
@@ -209,14 +208,14 @@ h4 {
   text-wrap: pretty;
 }
 
-/* ===== Prosa de página de contenido ========================================
-   Medido contra jmrp.io: sus páginas de contenido (`/privacy/`, `/about/`,
-   `/homelab/`) sirven la prosa a `--text-base` con 1.7 de interlineado y la
-   dejan alcanzar los ~700px que da el contenedor. `/policies/` ya lo hacía
-   por su cuenta bajo el nombre `.policy-text`; `/internals/` iba a 0.875rem
-   con `max-width: 62ch` (14px sobre 496px) y la prosa del inspector no tenía
-   medida ninguna y llegaba a 1152px, que es ilegible. Una sola regla para las
-   tres, en vez de tres copias que ya habían divergido. */
+/* ===== Content-page prose ==================================================
+   Measured against jmrp.io: its content pages (`/privacy/`, `/about/`,
+   `/homelab/`) serve prose at `--text-base` with 1.7 leading and let it reach
+   the ~700px the container gives. `/policies/` already did this on its own
+   under the name `.policy-text`; `/internals/` ran at 0.875rem with
+   `max-width: 62ch` (14px over 496px) and the inspector's prose had no measure
+   at all and reached 1152px, which is unreadable. One rule for the three,
+   instead of three copies that had already drifted. */
 .prose-text {
   max-width: var(--max-width-prose);
   margin: 0 0 var(--space-md);
@@ -226,7 +225,7 @@ h4 {
   text-wrap: pretty;
 }
 
-/* ===== Cabecera de subpágina (kicker + h1 + intro + separador) =============
+/* ===== Subpage header (kicker + h1 + intro + rule) =========================
    jmrp.io never puts a bare h1 at the top of a content page: PrivacyPage.astro
    and AboutPage.astro there both wrap the title zone in a
    `<header class="X-header">` holding, in order, a `.section-title` kicker
@@ -265,7 +264,7 @@ h4 {
   text-wrap: pretty;
 }
 
-/* ===== Etiqueta de subsección, en voz baja ==================================
+/* ===== Subsection label, said quietly ======================================
    jmrp.io's PrivacyPage.astro uses TWO different heading treatments, not one:
    the loud accent `.section-title` kicker ("// PRIVACY") appears ONCE, above
    the page's h1, while every subsection heading INSIDE the body
@@ -287,27 +286,27 @@ h4 {
   letter-spacing: 0.15em;
 }
 
-/* ===== Contenido largo (.prose) ============================================
-   Escala tipográfica del contenido según el mockup ("Post completo"):
-   cuerpo 17px / interlineado 1.78 (IBM Plex Sans); h2 26px y h3 19px en
-   Space Grotesk con peso MEDIO (500), no negrita — los títulos de sección del
-   diseño son medium; sólo los títulos hero/post (h1) van en 700. */
+/* ===== Long-form content (.prose) ==========================================
+   The content's type scale, per the mockup ("Full post"): body 17px / 1.78
+   leading (IBM Plex Sans); h2 26px and h3 19px in Space Grotesk at MEDIUM
+   weight (500), not bold — the design's section titles are medium; only the
+   hero/post titles (h1) go to 700. */
 .prose {
   font-size: 1.0625rem; /* 17px */
   line-height: 1.78;
 }
 
-/* Optimización: saltar el layout del contenido fuera de pantalla.
-   Debe aplicarse a los HIJOS, no al contenedor: el artículo empieza dentro
-   del viewport, así que un `content-visibility: auto` en .prose entero
-   interseca siempre y no se salta nada (medido: 3,8 s de Style & Layout en
-   el post 003 con la regla en el contenedor). Por hijo, cada bloque bajo el
-   pliegue se salta individualmente. `contain-intrinsic-size: auto <est>`
-   deja que el navegador recuerde el tamaño real tras el primer render.
-   Nota: esto desactiva el colapso de márgenes entre hermanos del prose —
-   verificado que el delta de altura total del documento es insignificante. */
+/* Optimisation: skip layout for off-screen content.
+   It has to apply to the CHILDREN, not the container: the article starts
+   inside the viewport, so a `content-visibility: auto` on the whole .prose
+   always intersects and skips nothing (measured: 3.8 s of Style & Layout on
+   post 003 with the rule on the container). Per child, each block below the
+   fold is skipped individually. `contain-intrinsic-size: auto <est>` lets the
+   browser remember the real size after the first render.
+   Note: this disables margin collapsing between prose siblings — verified
+   that the delta in total document height is negligible. */
 .prose > * {
-  contain-intrinsic-size: auto 170px; /* ≈ altura media real de un hijo del prose (43.7k px / 256) — cuanto más fiel, menor error de scroll-a-ancla sobre contenido aún no renderizado */
+  contain-intrinsic-size: auto 170px; /* ≈ the real average height of a prose child (43.7k px / 256) — the closer it is, the smaller the scroll-to-anchor error over content not yet rendered */
   content-visibility: auto;
 }
 
@@ -346,14 +345,15 @@ h4 {
 .prose p {
   margin-bottom: 1.375rem; /* 22px */
 
-  /* Evita palabras huérfanas al final de los párrafos (mejora progresiva). */
+  /* Avoids orphan words at the end of paragraphs (progressive enhancement). */
   text-wrap: pretty;
 }
 
-/* Inline code (una sola comilla invertida) — chip mono neutro sobre surface2.
-   Texto en color-heading (sin tono) para que resalte por brillo/peso, no por
-   color: el ámbar queda reservado a enlaces y foco, evitando el ruido cromático.
-   Excluye el código dentro de <pre> (bloques Shiki), que tiene su propio estilo. */
+/* Inline code (a single backtick) — a neutral mono chip over surface2. Text in
+   color-heading (no hue) so it stands out by brightness and weight rather than
+   colour: amber is reserved for links and focus, which keeps the chromatic
+   noise down. Excludes code inside <pre> (Shiki blocks), which has its own
+   style. */
 .prose :not(pre) > code {
   padding: 1px 6px;
   font-family: var(--font-mono);
@@ -411,7 +411,7 @@ h4 {
   list-style-type: lower-alpha;
 }
 
-/* Enlaces en texto: subrayado obligatorio (indicador no cromático) */
+/* Links in text: underline required (a non-chromatic indicator) */
 .prose a {
   text-decoration: underline;
   text-decoration-thickness: 1px;
@@ -423,7 +423,7 @@ h4 {
   text-decoration-thickness: 2px;
 }
 
-/* Área táctil mínima para enlaces de contenido en móvil (≥24px) */
+/* Minimum touch target for content links on mobile (≥24px) */
 @media (width <= 900px) {
   .prose a {
     position: relative;
@@ -444,9 +444,9 @@ h4 {
   }
 }
 
-/* ===== Bloques de código Shiki (tema dual claro/oscuro) ====================
-   Shiki emite color: (claro) + --shiki-dark (oscuro). En oscuro sobreescribimos
-   con var(--shiki-dark); en claro dejamos que gane el color: de la clase. */
+/* ===== Shiki code blocks (dual light/dark theme) ==========================
+   Shiki emits color: (light) + --shiki-dark (dark). In dark we override with
+   var(--shiki-dark); in light we let the class's color: win. */
 .astro-code,
 .astro-code span {
   margin: 0 !important;
@@ -474,7 +474,7 @@ h4 {
   text-decoration: var(--shiki-dark-text-decoration) !important;
 }
 
-/* Estado por defecto (sin data-theme) = oscuro; el @media lo neutraliza en claro */
+/* Default state (no data-theme) = dark; the @media neutralises it in light */
 @media not (prefers-color-scheme: light) {
   :root:not([data-theme]) .astro-code span {
     font-style: var(--shiki-dark-font-style) !important;
@@ -484,7 +484,7 @@ h4 {
   }
 }
 
-/* ===== Movimiento reducido — respeto global de la preferencia ============= */
+/* ===== Reduced motion — respecting the preference globally =============== */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -496,7 +496,7 @@ h4 {
   }
 }
 
-/* ===== Ajustes móviles globales ============================================ */
+/* ===== Global mobile adjustments =========================================== */
 @media (width <= 900px) {
   :root {
     --space-md: 0.75rem !important;
