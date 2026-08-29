@@ -1,28 +1,28 @@
 /**
- * Índice compacto del catálogo de acciones dinámicas de un servidor, en
- * `/servers/<id>/actions.json` — la ruta que `/servers.json` y los
- * `llms*.txt` anuncian como `index`, y la que consume la isla del buscador.
+ * The compact index of a server's dynamic action catalog, at
+ * `/servers/<id>/actions.json` — the route `/servers.json` and the `llms*.txt`
+ * files announce as `index`, and the one the search island consumes.
  *
- * Existe porque el manifiesto real (`gitlab://tools`, ~516 KB) solo se puede
- * leer con token por JSON-RPC, y ningún rastreador va a hacer esa llamada:
- * este fichero es la vista estática y sin credenciales del mismo catálogo,
- * refrescada en cada build por `scripts/sync-server-surface.mjs` con
- * snapshot committeado de respaldo (`src/data/surface/`).
+ * It exists because the real manifest (`gitlab://tools`, ~516 KB) can only be
+ * read with a token over JSON-RPC, and no crawler is going to make that call:
+ * this file is the static, credential-free view of the same catalog, refreshed
+ * on every build by `scripts/sync-server-surface.mjs` with a committed
+ * snapshot as a fallback (`src/data/surface/`).
  *
- * Qué se emite y qué no: cada entrada lleva `id`, `domain`, `title`,
- * `destructive` y `read_only` — la proyección whitelisted que el extractor
- * materializa en el snapshot. `kind`, `tool`, `backing_tool`,
- * `backing_action` y `detail_uri` se descartan aguas arriba (`detail_uri`
- * es derivable: la plantilla `meta.uriTemplate` del snapshot con el `id` de
- * la entrada, hoy `gitlab://tools/{id}`). Sin pretty-print: con cientos de
- * entradas el tamaño importa, y el post-build ya genera los `.br`/`.gz`.
+ * What is emitted and what is not: each entry carries `id`, `domain`, `title`,
+ * `destructive` and `read_only` — the allowlisted projection the extractor
+ * materializes into the snapshot. `kind`, `tool`, `backing_tool`,
+ * `backing_action` and `detail_uri` are discarded upstream (`detail_uri` is
+ * derivable: the snapshot's `meta.uriTemplate` with the entry's `id`, today
+ * `gitlab://tools/{id}`). No pretty-printing: with hundreds of entries the
+ * size matters, and the post-build already generates the `.br`/`.gz`.
  *
- * `entry_count` es el número de entradas EMITIDAS (el `actionCount` del
- * snapshot; el `entryCount` upstream incluye además la entrada de
- * herramienta visible que la proyección excluye): el invariante comprobable
- * es `entries.length === entry_count`. La nota "Free-tier" va pegada al
- * recuento porque el manifiesto se lee con `cacheScope: "private"` — es la
- * superficie de ESE token, no la universal.
+ * `entry_count` is the number of entries EMITTED (the snapshot's
+ * `actionCount`; the upstream `entryCount` also includes the visible-tool
+ * entry the projection excludes): the checkable invariant is
+ * `entries.length === entry_count`. The "Free-tier" note is attached to the
+ * count because the manifest is read with `cacheScope: "private"` — it is
+ * THAT token's surface, not the universal one.
  */
 import type { APIRoute, GetStaticPaths } from "astro";
 
@@ -30,11 +30,11 @@ import type { GitlabActionsSnapshot } from "../../../data/surface";
 import { actionCatalogs } from "../../../data/surface";
 
 /**
- * Una ruta por servidor CON catálogo committeado (hoy: gitlab), pasando el
- * snapshot por props — el patrón de `src/pages/[server]/server-card.ts`,
- * filtrado a los servidores que tienen esta superficie.
+ * One route per server WITH a committed catalog (today: gitlab), passing the
+ * snapshot through props — the pattern of `src/pages/[server]/server-card.ts`,
+ * filtered to the servers that have this surface.
  *
- * @returns Las rutas estáticas, con el id y el snapshot como props.
+ * @returns The static routes, with the id and the snapshot as props.
  */
 export const getStaticPaths: GetStaticPaths = () => {
   return Object.entries(actionCatalogs())
@@ -46,11 +46,11 @@ export const getStaticPaths: GetStaticPaths = () => {
 };
 
 /**
- * Emite el índice compacto de un servidor.
+ * Emits a server's compact index.
  *
- * @param context Contexto de ruta de Astro; `props` es lo que pasó
- *   {@link getStaticPaths}.
- * @returns El índice como `application/json`.
+ * @param context Astro's route context; `props` is what {@link getStaticPaths}
+ *   passed.
+ * @returns The index as `application/json`.
  */
 export const GET: APIRoute = ({ props }) => {
   const { server, catalog } = props as {
@@ -60,20 +60,20 @@ export const GET: APIRoute = ({ props }) => {
 
   const payload = {
     server,
-    // La URI de `resources/read` que este índice refleja, leída del
-    // snapshot — nunca literal, para que un cambio aguas arriba fluya solo.
+    // The `resources/read` URI this index mirrors, read from the snapshot —
+    // never a literal, so an upstream change flows through on its own.
     source: catalog.meta.resourceUri,
     entry_count: catalog.meta.actionCount,
     note: "Counted with a Free-tier token; the catalog is scoped to the token that asks, so tier and token permissions both move the count.",
-    // Censo por dominio en el orden del snapshot (por bytes, estable entre
-    // builds): la serialización determinista es responsabilidad del extractor
-    // (`scripts/sync-server-surface.mjs`) y `src/data/surface.ts` valida la
-    // forma — reordenar aquí sería duplicar a su dueño.
+    // A per-domain census in the snapshot's order (by bytes, stable across
+    // builds): deterministic serialization is the extractor's responsibility
+    // (`scripts/sync-server-surface.mjs`) and `src/data/surface.ts` validates
+    // the shape — reordering here would duplicate its owner.
     domains: Object.fromEntries(
       catalog.domains.map((d) => [d.domain, d.count]),
     ),
-    // Proyección explícita campo a campo: si el snapshot ganara claves
-    // nuevas, este endpoint no las publicaría sin que alguien lo decida.
+    // An explicit field-by-field projection: if the snapshot gained new keys,
+    // this endpoint would not publish them without someone deciding to.
     entries: catalog.entries.map((e) => ({
       id: e.id,
       domain: e.domain,

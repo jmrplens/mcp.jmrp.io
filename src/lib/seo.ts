@@ -1,16 +1,17 @@
 /**
- * Fuente de verdad de las URL públicas del sitio.
+ * The source of truth for the site's public URLs.
  *
- * Quien necesite saber qué idiomas existen, en qué ruta vive cada uno o cómo se
- * llama su tarjeta social lo saca de aquí: el layout (canonical, hreflang, Open
- * Graph), el grafo JSON-LD, `robots.txt`, `llms.txt` y las imágenes OG.
+ * Whoever needs to know which languages exist, at which path each one lives or
+ * what its social card is called gets it from here: the layout (canonical,
+ * hreflang, Open Graph), the JSON-LD graph, `robots.txt`, `llms.txt` and the
+ * OG images.
  *
- * Centralizarlo NO es cosmético. Antes, el `<link rel="alternate">` se
- * construía con un ternario `lang === "en" ? "es" : "en"` dentro del layout, y
- * por eso ninguna de las dos páginas se autorreferenciaba en hreflang — Google
- * descarta el clúster entero cuando falta la autorreferencia, así que EN y ES
- * competían entre sí en vez de agruparse. Iterando un mapa, dar de alta un
- * idioma nuevo no puede volver a dejar el clúster cojo.
+ * Centralizing it is NOT cosmetic. The `<link rel="alternate">` used to be
+ * built with a `lang === "en" ? "es" : "en"` ternary inside the layout, which
+ * is why neither page self-referenced in hreflang — Google discards the whole
+ * cluster when the self-reference is missing, so EN and ES competed with each
+ * other instead of grouping. Iterating a map means adding a new language
+ * cannot leave the cluster short again.
  */
 
 import { DEFAULT_LANG, type Lang, LANGS } from "../i18n/config.ts";
@@ -22,40 +23,41 @@ import { ui } from "../i18n/ui.ts";
 // this file holding a second, driftable copy of the same values.
 export { DEFAULT_LANG, LANGS } from "../i18n/config.ts";
 
-/** Origen del sitio. Las URL absolutas se construyen a partir de él. */
+/** The site's origin. Absolute URLs are built from it. */
 export const SITE_ORIGIN = "https://mcp.jmrp.io";
 
 /**
- * Clave de IndexNow: no es un secreto.
+ * The IndexNow key: it is not a secret.
  *
- * El protocolo la publica en `https://mcp.jmrp.io/<clave>.txt`; su función no
- * es autenticar sino demostrar control del dominio, así que va en el repo a
- * propósito para que clave y fichero no puedan desincronizarse.
+ * The protocol publishes it at `https://mcp.jmrp.io/<key>.txt`; its job is not
+ * to authenticate but to prove control of the domain, so it lives in the repo
+ * on purpose, so the key and the file cannot drift apart.
  */
 export const INDEXNOW_KEY = "8b3b0f3c6a883bd7d274f2cf7645921a";
 
 /**
- * Ruta de cada idioma. El inglés vive en la raíz
+ * Each language's path. English lives at the root
  * (`i18n.routing.prefixDefaultLocale: false`).
  *
- * El tipo es `Record<Lang, …>` a propósito: `Lang` sale de `src/i18n/config.ts`,
- * así que añadir un idioma allí sin darle ruta aquí no compila.
+ * The type is `Record<Lang, …>` on purpose: `Lang` comes from
+ * `src/i18n/config.ts`, so adding a language there without giving it a path
+ * here does not compile.
  */
 export const LOCALE_PATHS: Record<Lang, string> = {
   en: "/",
   es: "/es/",
 };
 
-/** Los `og:locale` van en formato `idioma_TERRITORIO`, no en BCP-47. */
+/** `og:locale` values use `language_TERRITORY` format, not BCP-47. */
 export const OG_LOCALES: Record<Lang, string> = {
   en: "en_US",
   es: "es_ES",
 };
 
-/** Dimensiones de la tarjeta social. Van también en `og:image:width/height`. */
+/** The social card's dimensions. They also go in `og:image:width/height`. */
 export const OG_IMAGE_SIZE = { width: 1200, height: 630 } as const;
 
-/** Nombre del sitio en `og:site_name` y en el `WebSite` del grafo JSON-LD. */
+/** The site's name, in `og:site_name` and in the JSON-LD graph's `WebSite`. */
 export const SITE_NAME = "mcp.jmrp.io";
 
 /** Every page of the site. The key is what routes and the graph refer to. */
@@ -96,44 +98,44 @@ export function pageUrl(lang: Lang, page: PageId = "home"): string {
 }
 
 /**
- * Ruta de la tarjeta social de un idioma, relativa a la raíz.
+ * A language's social-card path, relative to the root.
  *
- * @param lang Idioma de la página.
- * @returns Ruta del PNG que genera `src/pages/og-[lang].png.ts`.
+ * @param lang The page's language.
+ * @returns The path of the PNG `src/pages/og-[lang].png.ts` generates.
  */
 export function ogImagePath(lang: Lang): string {
   return `/og-${lang}.png`;
 }
 
 /**
- * URL absoluta de la tarjeta social.
+ * The social card's absolute URL.
  *
- * `og:image` DEBE ser absoluta: Slack, WhatsApp y Bluesky no resuelven rutas
- * relativas y se quedan sin imagen.
+ * `og:image` MUST be absolute: Slack, WhatsApp and Bluesky do not resolve
+ * relative paths and end up with no image.
  *
- * @param lang Idioma de la página.
- * @returns URL completa del PNG.
+ * @param lang The page's language.
+ * @returns The PNG's full URL.
  */
 export function ogImageUrl(lang: Lang): string {
   return `${SITE_ORIGIN}${ogImagePath(lang)}`;
 }
 
 /**
- * Texto alternativo de la tarjeta social.
+ * The social card's alternative text.
  *
- * Describe LO QUE SE VE en el PNG —titular y lede, que es lo que dibuja
- * `og-[lang].png.ts`— y no repite el `<title>` del documento: el título ya
- * viaja en `og:title` justo al lado, y un alt que lo duplique no le dice nada
- * nuevo a quien no puede ver la imagen.
+ * It describes WHAT IS SEEN in the PNG — the headline and lede, which is what
+ * `og-[lang].png.ts` draws — and does not repeat the document's `<title>`: the
+ * title already travels in `og:title` right beside it, and an alt that
+ * duplicates it tells someone who cannot see the image nothing new.
  *
- * @param lang Idioma de la tarjeta.
- * @returns Texto para `og:image:alt` y `twitter:image:alt`.
+ * @param lang The card's language.
+ * @returns The text for `og:image:alt` and `twitter:image:alt`.
  */
 export function ogImageAlt(lang: Lang): string {
   return `${ui[lang].title} — ${ui[lang].subtitle}`;
 }
 
-/** Una anotación `<link rel="alternate">`. */
+/** One `<link rel="alternate">` annotation. */
 export interface Alternate {
   hreflang: string;
   href: string;
@@ -200,7 +202,7 @@ export function serverPageAlternates(id: string): Alternate[] {
 }
 
 /**
- * Path of one action-domain page under a server's ficha, e.g.
+ * Path of one action-domain page under a server's card, e.g.
  * `servers/gitlab/actions/project/`. Same rationale as {@link serverPagePath}:
  * built on `PAGE_PATHS.servers` so the two can never drift, and not a
  * `PageId` because the route is data-driven (one page per manifest domain).
