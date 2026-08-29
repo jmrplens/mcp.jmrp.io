@@ -32,11 +32,7 @@ test("HTML is not pre-compressed", () => {
     .filter(
       (f) => String(f).endsWith(".html.br") || String(f).endsWith(".html.gz"),
     );
-  assert.equal(
-    found.length,
-    0,
-    "sub_filter cannot rewrite compressed HTML",
-  );
+  assert.equal(found.length, 0, "sub_filter cannot rewrite compressed HTML");
 });
 
 test("assets are pre-compressed", () => {

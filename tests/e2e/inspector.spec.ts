@@ -37,9 +37,7 @@ test("initialize against libgen returns the protocol", async ({ page }) => {
 // and the <button> HTML, so checking they are visible would pass just as well
 // with the island never hydrated (no `client:load`). Clicking and waiting for the
 // response does verify that /es/ really mounts the inspector.
-test("the inspector works on the Spanish page too", async ({
-  page,
-}) => {
+test("the inspector works on the Spanish page too", async ({ page }) => {
   await page.goto("/es/inspector/");
   await loadButton(page).click();
   await expect(page.getByTestId("inspector-output")).toContainText("search", {

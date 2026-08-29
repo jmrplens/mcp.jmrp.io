@@ -9,7 +9,7 @@ import {
   readableText,
 } from "../../src/lib/mcp-client.ts";
 
-test("extrae el JSON-RPC de una respuesta SSE", () => {
+test("it extracts the JSON-RPC from an SSE response", () => {
   const sse =
     'event: message\ndata: {"jsonrpc":"2.0","id":1,"result":{"ok":true}}\n\n';
   assert.deepEqual(parseSseJsonRpc(sse), {
@@ -19,7 +19,7 @@ test("extrae el JSON-RPC de una respuesta SSE", () => {
   });
 });
 
-test("acepta JSON plano por si el servidor responde application/json", () => {
+test("it accepts plain JSON in case the server answers application/json", () => {
   assert.deepEqual(parseSseJsonRpc('{"jsonrpc":"2.0","id":1,"result":{}}'), {
     jsonrpc: "2.0",
     id: 1,
@@ -27,19 +27,19 @@ test("acepta JSON plano por si el servidor responde application/json", () => {
   });
 });
 
-test("usa el último data: cuando hay varios eventos", () => {
+test("it uses the last data: when there are several events", () => {
   const sse = 'data: {"id":1}\n\ndata: {"id":2}\n\n';
   assert.equal(parseSseJsonRpc(sse).id, 2);
 });
 
-test("lanza un error legible si no hay JSON", () => {
+test("it throws a readable error when there is no JSON", () => {
   assert.throws(
     () => parseSseJsonRpc("JSON RPC not handled"),
     /non-JSON body/i,
   );
 });
 
-test("callMcp hace POST con el sobre JSON-RPC y las cabeceras del transporte", async () => {
+test("callMcp POSTs the JSON-RPC envelope with the transport headers", async () => {
   let seen;
   const fetchImpl = async (url, init) => {
     seen = { url, init };
@@ -66,10 +66,7 @@ test("callMcp hace POST con el sobre JSON-RPC y las cabeceras del transporte", a
   });
   assert.equal(result.ok, true);
   assert.equal(result.status, 200);
-  assert.ok(
-    result.bytes > 0,
-    "el tamaño del cuerpo es un dato que la UI enseña",
-  );
+  assert.ok(result.bytes > 0, "the body's size is a datum the UI shows");
   assert.equal(typeof result.durationMs, "number");
   assert.equal(seen.url, "https://mcp.jmrp.io/gitlab");
   assert.equal(seen.init.method, "POST");
@@ -83,9 +80,10 @@ test("callMcp hace POST con el sobre JSON-RPC y las cabeceras del transporte", a
   });
 });
 
-test("callMcp devuelve el código y el cuerpo en vez de lanzar", async () => {
-  // Cuerpo REAL del 401 en modo OAuth, no una frase inventada: el servidor
-  // responde JSON-RPC con code -40100 aunque lo que falle sea la autenticación.
+test("callMcp returns the code and the body instead of throwing", async () => {
+  // The REAL body of the 401 in OAuth mode, not an invented sentence: the
+  // server answers JSON-RPC with code -40100 even though what failed is the
+  // authentication.
   const body = JSON.stringify({
     jsonrpc: "2.0",
     id: null,
@@ -105,15 +103,15 @@ test("callMcp devuelve el código y el cuerpo en vez de lanzar", async () => {
   assert.equal(res.ok, false);
   assert.equal(res.status, 401);
   assert.match(res.text, /Authorization: Bearer/);
-  // El 401 de OAuth SÍ trae JSON-RPC, y por eso esta aserción cambió de sentido:
-  // antes el cuerpo de un fallo de autenticación era texto suelto y `body`
-  // quedaba `undefined`. Ahora el servidor responde un error con código -40100,
-  // el cliente lo entrega parseado, y quien llama puede enseñar el mensaje real
-  // en vez de un "401" a secas.
+  // The OAuth 401 DOES carry JSON-RPC, which is why this assertion flipped:
+  // the body of an authentication failure used to be loose text and `body` was
+  // left `undefined`. Now the server answers an error with code -40100, the
+  // client hands it over parsed, and the caller can show the real message
+  // instead of a bare "401".
   assert.equal(res.body?.error?.code, -40_100);
 });
 
-test("callMcp pasa el signal al fetch, que es lo que permite cancelar", async () => {
+test("callMcp passes the signal to fetch, which is what allows cancelling", async () => {
   let seenSignal;
   const controller = new AbortController();
   const fetchImpl = async (_url, init) => {
@@ -133,10 +131,10 @@ test("callMcp pasa el signal al fetch, que es lo que permite cancelar", async ()
   assert.equal(seenSignal, controller.signal);
 });
 
-// Las TRES clases de fallo, más el acierto. La razón de que esto exista es que
-// dos de las tres llegan como HTTP 200 y, sin mirarlas por dentro, se pintaban
-// exactamente igual que una respuesta correcta.
-test("classifyMcp: un HTTP != 2xx es un fallo de transporte", () => {
+// The THREE kinds of failure, plus the success. The reason this exists is that
+// two of the three arrive as HTTP 200 and, without looking inside them, were
+// rendered exactly like a correct response.
+test("classifyMcp: an HTTP != 2xx is a transport failure", () => {
   const verdict = classifyMcp({
     ok: false,
     status: 400,
@@ -149,19 +147,19 @@ test("classifyMcp: un HTTP != 2xx es un fallo de transporte", () => {
   assert.match(verdict.message, /no server available/);
 });
 
-test("classifyMcp: un cuerpo ilegible también es fallo de transporte", () => {
+test("classifyMcp: an unreadable body is a transport failure too", () => {
   const verdict = classifyMcp({
     ok: true,
     status: 200,
     text: "JSON RPC not handled",
     bytes: 20,
     durationMs: 3,
-    parseError: "Error: respuesta no JSON del servidor MCP",
+    parseError: "Error: non-JSON body from the MCP server",
   });
   assert.equal(verdict.outcome, "transport");
 });
 
-test("classifyMcp: un error JSON-RPC lleva su código, no el HTTP", () => {
+test("classifyMcp: a JSON-RPC error carries its own code, not the HTTP one", () => {
   const verdict = classifyMcp({
     ok: true,
     status: 200,
@@ -179,7 +177,7 @@ test("classifyMcp: un error JSON-RPC lleva su código, no el HTTP", () => {
   assert.equal(verdict.message, "query is required");
 });
 
-test("classifyMcp: isError:true es un fallo aunque el HTTP sea 200", () => {
+test("classifyMcp: isError:true is a failure even when the HTTP is 200", () => {
   const verdict = classifyMcp({
     ok: true,
     status: 200,
@@ -199,7 +197,7 @@ test("classifyMcp: isError:true es un fallo aunque el HTTP sea 200", () => {
   assert.equal(verdict.message, "query is required");
 });
 
-test("classifyMcp: un resultado normal es un acierto", () => {
+test("classifyMcp: an ordinary result is a success", () => {
   const verdict = classifyMcp({
     ok: true,
     status: 200,
@@ -212,7 +210,7 @@ test("classifyMcp: un resultado normal es un acierto", () => {
   assert.equal(verdict.message, "");
 });
 
-test("listedItems distingue una lista vacía de que no haya lista", () => {
+test("listedItems tells an empty list apart from no list at all", () => {
   assert.deepEqual(
     listedItems({ result: { tools: [{ name: "a" }, { name: "b" }] } }),
     {
@@ -220,8 +218,9 @@ test("listedItems distingue una lista vacía de que no haya lista", () => {
       count: 2,
     },
   );
-  // Cero recursos es un dato correcto del servidor, no un fallo: la UI tiene
-  // que poder decir "0 resources" en vez de dejar un `[]` sin explicar.
+  // Zero resources is a correct datum from the server, not a failure: the UI
+  // has to be able to say "0 resources" instead of leaving an unexplained
+  // `[]`.
   assert.deepEqual(listedItems({ result: { resources: [] } }), {
     kind: "resources",
     count: 0,
@@ -233,14 +232,14 @@ test("listedItems distingue una lista vacía de que no haya lista", () => {
   assert.equal(listedItems(undefined), undefined);
 });
 
-test("readableText saca el texto de un tools/call", () => {
+test("readableText takes the text out of a tools/call", () => {
   const body = {
     result: { content: [{ type: "text", text: "| a | b |" }] },
   };
   assert.equal(readableText(body), "| a | b |");
 });
 
-test("readableText concatena varios bloques de texto", () => {
+test("readableText concatenates several text blocks", () => {
   const body = {
     result: {
       content: [
@@ -253,9 +252,9 @@ test("readableText concatena varios bloques de texto", () => {
   assert.equal(readableText(body), "uno\n\ndos");
 });
 
-test("readableText devuelve undefined cuando el JSON ES la respuesta", () => {
-  // Un tools/list o un error: aquí no hay nada que maquetar, y ofrecer una
-  // vista de lectura vacía escondería la única respuesta que hay.
+test("readableText returns undefined when the JSON IS the answer", () => {
+  // A tools/list or an error: there is nothing to lay out here, and offering
+  // an empty reader view would hide the only answer there is.
   assert.equal(readableText({ result: { tools: [] } }), undefined);
   assert.equal(readableText({ error: { code: -32_600 } }), undefined);
   assert.equal(readableText(undefined), undefined);
