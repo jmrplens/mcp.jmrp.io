@@ -6,33 +6,33 @@ import type { Lang } from "../i18n/ui";
 import { serversPage } from "../i18n/ui/servers-page";
 
 /**
- * Isla Preact del buscador sobre el catálogo de acciones de gitlab
+ * The Preact island for searching gitlab's action catalog
  * (`gitlab://tools`).
  *
- * Progresiva de verdad: el pase SSR emite `null`, así que en el HTML
- * estático no existe ningún control — sin JavaScript, la tabla de dominios
- * que la página pinta encima de esta isla ya es el contenido completo. Al
- * hidratar aparece el input, y el índice no se descarga al montar sino en el
- * PRIMER foco: quien no usa el buscador no paga la transferencia.
+ * Genuinely progressive: the SSR pass emits `null`, so no control exists in
+ * the static HTML at all — without JavaScript, the domain table the page
+ * renders above this island is already the complete content. On hydration the
+ * input appears, and the index is not downloaded on mount but on FIRST focus:
+ * whoever does not use the search pays no transfer.
  *
- * El índice llega por `fetch` same-origin de la URL que la página pasa por
- * prop (`indexUrl`: el endpoint estático `/servers/<id>/actions.json`, la
- * vista sin credenciales del manifiesto que emite
- * `src/pages/servers/[server]/actions.json.ts`). Aquí no se importa
- * `src/data/surface.ts` ni ningún módulo `node:`: ese loader lee del disco
- * y rompería el bundle de cliente a propósito — ver su cabecera.
+ * The index arrives through a same-origin `fetch` of the URL the page passes
+ * as a prop (`indexUrl`: the static endpoint `/servers/<id>/actions.json`, the
+ * credential-free view of the manifest `src/pages/servers/[server]/actions.json.ts`
+ * emits). Neither `src/data/surface.ts` nor any `node:` module is imported
+ * here: that loader reads from disk and would break the client bundle on
+ * purpose — see its header.
  *
- * Los identificadores del protocolo (id, dominio, nombres de tool) no se
- * traducen, como en el inspector; solo la interfaz alrededor
- * (`serversPage[lang]`) es bilingüe.
+ * The protocol's identifiers (id, domain, tool names) are not translated, as
+ * in the inspector; only the interface around them (`serversPage[lang]`) is
+ * bilingual.
  */
 
 /**
- * Una entrada del índice, con los cinco campos en lista blanca del snapshot
- * (`read_only` en snake_case: proyección literal del manifiesto, no
- * transformación). Duplicado consciente del tipo de `surface.ts`: ese módulo
- * no puede entrar en un bundle de cliente, y la guardia estructural de la
- * forma vive en el extractor y sus tests.
+ * One index entry, with the snapshot's five allowlisted fields (`read_only` in
+ * snake_case: a literal projection of the manifest, not a transformation). A
+ * deliberate duplicate of `surface.ts`'s type: that module cannot enter a
+ * client bundle, and the structural guard on the shape lives in the extractor
+ * and its tests.
  */
 interface ActionIndexEntry {
   id: string;
@@ -42,12 +42,12 @@ interface ActionIndexEntry {
   read_only: boolean;
 }
 
-/** Máximo de resultados pintados; el resto se resume en la línea de conteo. */
+/** The maximum results rendered; the rest is summarized in the count line. */
 const MAX_RESULTS = 50;
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 
-/** Guardia mínima sobre lo que devuelve el fetch antes de pintarlo. */
+/** A minimal guard on what the fetch returns, before rendering it. */
 function isIndexEntry(value: unknown): value is ActionIndexEntry {
   if (typeof value !== "object" || value === null) return false;
   const entry = value as Record<string, unknown>;
@@ -61,13 +61,13 @@ function isIndexEntry(value: unknown): value is ActionIndexEntry {
 }
 
 /**
- * Buscador progresivo del catálogo de acciones.
+ * The progressive search over the action catalog.
  *
- * @param props.lang Idioma de la página que monta la isla.
- * @param props.indexUrl URL same-origin del snapshot con las entradas.
- * @param props.domainPageBase Prefijo localizado de las páginas por dominio
- *   (`/servers/<id>/actions/`); el dominio del resultado se concatena tal cual.
- * @returns El buscador hidratado, o `null` en el pase SSR.
+ * @param props.lang The language of the page mounting the island.
+ * @param props.indexUrl The same-origin URL of the snapshot holding the entries.
+ * @param props.domainPageBase The localized prefix for the per-domain pages
+ *   (`/servers/<id>/actions/`); the result's domain is concatenated as-is.
+ * @returns The hydrated search, or `null` on the SSR pass.
  */
 export default function ActionSearch({
   lang,
@@ -76,8 +76,8 @@ export default function ActionSearch({
 }: Readonly<{ lang: Lang; indexUrl: string; domainPageBase: string }>) {
   const sp = serversPage[lang];
   /**
-   * `mounted` separa el pase SSR del render hidratado: el efecto solo corre
-   * en cliente, así que el HTML estático nunca contiene un input muerto.
+   * `mounted` separates the SSR pass from the hydrated render: the effect only
+   * runs on the client, so the static HTML never contains a dead input.
    */
   const [mounted, setMounted] = useState(false);
   const [state, setState] = useState<LoadState>("idle");
@@ -89,9 +89,9 @@ export default function ActionSearch({
   }, []);
 
   /**
-   * Descarga el índice al primer foco del input (una sola vez si va bien).
-   * Desde "error" se permite reintentar en el siguiente foco: un fallo
-   * transitorio de red no debe dejar el buscador muerto hasta recargar.
+   * Downloads the index on the input's first focus (once, when it succeeds).
+   * From "error" a retry is allowed on the next focus: a transient network
+   * failure must not leave the search dead until a reload.
    */
   async function load(): Promise<void> {
     if (state !== "idle" && state !== "error") return;
@@ -105,8 +105,8 @@ export default function ActionSearch({
       setEntries(raw.filter((item) => isIndexEntry(item)));
       setState("ready");
     } catch {
-      // La tabla SSR de arriba sigue contando cada dominio; aquí solo se
-      // avisa de que el buscador no está disponible.
+      // The SSR table above still counts every domain; this only says the
+      // search itself is unavailable.
       setState("error");
     }
   }
@@ -159,9 +159,9 @@ export default function ActionSearch({
                 key={entry.id}
                 className="as-item"
               >
-                {/* El id enlaza a su ficha de referencia: la página del
-                    dominio, con el ancla de la acción (la isla de allí lo
-                    abre; sin JS el navegador salta igual). */}
+                {/* The id links to its reference entry: the domain's page,
+                    with the action's anchor (the island there opens it;
+                    without JS the browser still jumps). */}
                 <a
                   className="as-id-link"
                   href={`${domainPageBase}${entry.domain}/#${entry.id}`}

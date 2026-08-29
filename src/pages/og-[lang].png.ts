@@ -1,23 +1,23 @@
 /**
- * Tarjeta social (Open Graph) de cada idioma: `/og-en.png` y `/og-es.png`.
+ * Each language's social (Open Graph) card: `/og-en.png` and `/og-es.png`.
  *
- * Se genera en tiempo de build a partir de un SVG que se rasteriza con sharp
- * (librsvg), sin cabecera ni navegador headless de por medio. El contenido sale
- * de las MISMAS fuentes que la página —`src/i18n/ui.ts` y `src/data/servers.ts`—
- * así que dar de alta un MCP nuevo lo mete también en la tarjeta.
+ * Generated at build time from an SVG rasterized with sharp (librsvg), with no
+ * headless browser or header in between. The content comes from the SAME
+ * sources as the page — `src/i18n/ui.ts` and `src/data/servers.ts` — so
+ * registering a new MCP puts it on the card too.
  *
- * TIPOGRAFÍA: librsvg resuelve las familias por fontconfig, o sea con las
- * fuentes instaladas en la máquina que compila. Las del sitio (Space Grotesk /
- * IBM Plex) llegan al navegador como `woff2` servidos por Astro, un formato que
- * fontconfig no consume, así que la tarjeta usa la primera familia disponible
- * de una lista con fallbacks. No es un descuido: es el precio de no arrastrar
- * satori + un `.ttf` embebido solo para dos imágenes estáticas.
+ * TYPOGRAPHY: librsvg resolves families through fontconfig, that is with the
+ * fonts installed on the machine doing the build. The site's own (Space
+ * Grotesk / IBM Plex) reach the browser as `woff2` served by Astro, a format
+ * fontconfig does not consume, so the card uses the first available family
+ * from a fallback list. This is not an oversight: it is the price of not
+ * dragging in satori plus an embedded `.ttf` for two static images.
  *
- * Si NINGUNA familia resuelve, librsvg no dibuja glifos y saldría una tarjeta
- * con el fondo y las líneas pero sin una palabra. Eso no se puede quedar
- * silencioso, así que {@link renderCard} compara el render con el de la misma
- * escena sin textos: si son idénticos, no se ha pintado ni una letra y el build
- * se para.
+ * If NO family resolves, librsvg draws no glyphs and the card would come out
+ * with its background and lines but not a single word. That cannot pass
+ * silently, so {@link renderCard} compares the render against the same scene
+ * with no text: if they are identical, not one letter was painted and the
+ * build stops.
  */
 import type { APIRoute, GetStaticPaths } from "astro";
 import sharp from "sharp";
@@ -27,12 +27,12 @@ import type { Lang } from "../i18n/ui";
 import { ui } from "../i18n/ui";
 import { LANGS, OG_IMAGE_SIZE, SITE_NAME } from "../lib/seo";
 
-/** Familias para titulares y cuerpo, en orden de preferencia. */
+/** Families for headlines and body text, in order of preference. */
 const FONT_SANS = "Inter, 'Noto Sans', 'DejaVu Sans', sans-serif";
-/** Familias para endpoints y etiquetas: el equivalente a --font-mono. */
+/** Families for endpoints and labels: the equivalent of --font-mono. */
 const FONT_MONO = "'IBM Plex Mono', 'DejaVu Sans Mono', monospace";
 
-/** Paleta, copiada del tema oscuro de `src/styles/tokens.css`. */
+/** The palette, copied from `src/styles/tokens.css`'s dark theme. */
 const COLOR = {
   bg: "#0a0a0b",
   grid: "#141418",
@@ -44,10 +44,10 @@ const COLOR = {
 } as const;
 
 /**
- * Escapa texto para incrustarlo en un nodo XML.
+ * Escapes text for embedding in an XML node.
  *
- * @param value Texto tal cual viene de `ui.ts` o de `servers.ts`.
- * @returns El mismo texto sin caracteres que puedan cerrar o abrir etiquetas.
+ * @param value The text exactly as it comes from `ui.ts` or `servers.ts`.
+ * @returns The same text without characters that could open or close tags.
  */
 function xml(value: string): string {
   return value
@@ -58,7 +58,7 @@ function xml(value: string): string {
     .replaceAll("'", "&apos;");
 }
 
-/** Rejilla de líneas de pelo, el mismo gesto que el fondo de jmrp.io. */
+/** A hairline grid, the same gesture as jmrp.io's background. */
 function grid(): string {
   const lines: string[] = [];
   for (let x = 0; x <= OG_IMAGE_SIZE.width; x += 60) {
@@ -75,10 +75,10 @@ function grid(): string {
 }
 
 /**
- * Construye el SVG de la tarjeta.
+ * Builds the card's SVG.
  *
- * @param lang Idioma de la tarjeta.
- * @returns Documento SVG completo, listo para rasterizar.
+ * @param lang The card's language.
+ * @returns A complete SVG document, ready to rasterize.
  */
 function cardSvg(lang: Lang): string {
   const t = ui[lang];
@@ -109,16 +109,17 @@ function cardSvg(lang: Lang): string {
 }
 
 /**
- * Rasteriza la tarjeta y comprueba que se han pintado glifos.
+ * Renders the card and checks that glyphs were painted.
  *
- * La comprobación no es paranoia gratuita: si fontconfig no resuelve ninguna
- * familia, librsvg dibuja el fondo y las líneas y omite los textos SIN error.
- * La tarjeta quedaría en producción vacía y nadie lo vería, porque una imagen
- * social no la mira ningún test de la página. Comparar con el render de la
- * misma escena sin nodos `<text>` convierte ese fallo en un build roto.
+ * The check is not idle paranoia: if fontconfig resolves no family, librsvg
+ * draws the background and the lines and omits the text WITHOUT an error. The
+ * card would sit empty in production and nobody would see it, because no test
+ * of the page ever looks at a social image. Comparing against the render of
+ * the same scene with no `<text>` nodes turns that failure into a broken
+ * build.
  *
- * @param lang Idioma de la tarjeta.
- * @returns Bytes del PNG.
+ * @param lang The card's language.
+ * @returns The PNG's bytes.
  */
 async function renderCard(lang: Lang): Promise<Buffer> {
   const svg = cardSvg(lang);
@@ -129,23 +130,23 @@ async function renderCard(lang: Lang): Promise<Buffer> {
   ]);
   if (png.equals(blank)) {
     throw new Error(
-      `[og] la tarjeta ${lang} ha salido sin texto: quitar los <text> no cambia ni un byte del PNG.\n` +
-        `Ninguna de las familias (${FONT_SANS} / ${FONT_MONO}) resuelve por fontconfig en esta máquina.\n` +
-        `Instala una fuente sans y una mono (p. ej. fonts-dejavu-core) y vuelve a construir.`,
+      `[og] the ${lang} card came out with no text: removing the <text> nodes does not change a single byte of the PNG.\n` +
+        `None of the families (${FONT_SANS} / ${FONT_MONO}) resolves through fontconfig on this machine.\n` +
+        `Install a sans and a mono font (for instance fonts-dejavu-core) and build again.`,
     );
   }
   return png;
 }
 
-/** Una ruta por idioma: `/og-en.png` y `/og-es.png`. */
+/** One route per language: `/og-en.png` and `/og-es.png`. */
 export const getStaticPaths = (() =>
   LANGS.map((lang) => ({ params: { lang } }))) satisfies GetStaticPaths;
 
 /**
- * Rasteriza y devuelve el PNG del idioma de la ruta.
+ * Renders and returns the PNG for the route's language.
  *
- * @param context Contexto de Astro; `params.lang` es el idioma de la tarjeta.
- * @returns Respuesta `image/png` con la tarjeta ya rasterizada.
+ * @param context Astro's context; `params.lang` is the card's language.
+ * @returns An `image/png` response carrying the rasterized card.
  */
 export const GET: APIRoute = async ({ params }) => {
   const lang = params.lang as Lang;

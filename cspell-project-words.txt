@@ -1578,3 +1578,4 @@ glama
 ionos
 datacenter
 djvu
+Noto
