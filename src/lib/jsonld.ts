@@ -1,39 +1,38 @@
 /**
- * Grafo JSON-LD del sitio.
+ * The site's JSON-LD graph.
  *
- * Emite un único `@graph` por página. Estos son sus nodos principales; el
- * resto (`FAQPage`, `SoftwareSourceCode`) se documenta en su constructor:
+ * One `@graph` per page. These are its main nodes; the rest (`FAQPage`,
+ * `SoftwareSourceCode`) are documented at their own builder:
  *
- *   - `WebSite`  — el sitio entero, una sola vez para las dos versiones.
- *   - `WebPage`  — la página concreta (un `@id` por idioma).
- *   - `WebAPI`   — el nodo de UN servidor, y SOLO en la página que lo
- *     describe: su propia ficha `/servers/<id>/` (en las dos versiones de
- *     idioma). Cualquier otra página que necesite mencionarlo —la portada,
- *     `/servers/`— no vuelve a declarar sus datos: lo REFERENCIA por `@id`
- *     (el `about` del FAQ) o lo identifica con una descripción PARCIAL de
- *     cuatro claves (`mainEntity`, ver `partialApi`). Esa descripción sigue
- *     sin ser una redefinición: sus cuatro claves salen de la MISMA entrada
- *     de `servers.ts` que las del nodo completo, así que no pueden
- *     contradecirlo, y cualquier hecho que decida algo —licencia,
- *     herramientas, acciones— se sigue afirmando en un solo sitio. Antes se
- *     redefinía entero en la portada Y en `/servers/`, y no existía en
- *     absoluto en la ficha que describe — la entidad partida en dos copias
- *     que podían desincronizarse, en la página equivocada. Ver `buildApiNode`
- *     más abajo y `servers-section-spec.md`, "Lo que arrastra".
- *   - `BreadcrumbList` — el camino desde la raíz hasta esta página, en todas
- *     menos en la portada. Ver `breadcrumbSteps`.
- *   - `Person`   — el nodo canónico de jmrp.io, empalmado tal cual.
+ *   - `WebSite`  — the whole site, once for both language versions.
+ *   - `WebPage`  — this particular page (one `@id` per language).
+ *   - `WebAPI`   — ONE server's node, and ONLY on the page that describes
+ *     it: its own card at `/servers/<id>/` (in both languages). Any other
+ *     page that needs to mention it — the home page, `/servers/` — does not
+ *     restate its data: it REFERENCES it by `@id` (the FAQ's `about`) or
+ *     identifies it with a PARTIAL four-key description (`mainEntity`, see
+ *     `partialApi`). That description is still not a redefinition: its four
+ *     keys come from the SAME `servers.ts` entry as the full node's, so they
+ *     cannot contradict it, and any fact that decides something — license,
+ *     tools, actions — is still asserted in exactly one place. It used to be
+ *     redefined in full on the home page AND on `/servers/`, and did not
+ *     exist at all on the card that describes it: the entity split into two
+ *     copies that could drift, on the wrong page. See `buildApiNode` below
+ *     and `servers-section-spec.md`, under what it drags along.
+ *   - `BreadcrumbList` — the path from the root down to this page, on every
+ *     page but the home one. See `breadcrumbSteps`.
+ *   - `Person`   — jmrp.io's canonical node, spliced in verbatim.
  *
- * Todos los nodos propios apuntan a la persona por `@id`
- * (`publisher`/`author`/`provider`), nunca redeclarando sus datos: el
- * documento de identidad es la única fuente de verdad de quién es el autor, y
- * duplicarlo aquí garantizaría que las dos copias se desincronizaran. El
- * mismo principio —referenciar sin redefinir— es el que ahora rige también el
- * nodo `WebAPI`.
+ * Every node of ours points at the person by `@id`
+ * (`publisher`/`author`/`provider`), never by restating their data: the
+ * identity document is the single source of truth for who the author is, and
+ * duplicating it here would guarantee the two copies drift apart. The same
+ * principle — reference without redefining — now governs the `WebAPI` node
+ * too.
  *
- * El documento `person.jsonld` NO se publica en este dominio: el vhost sirve
- * por lista blanca de `location =` y añadir una entrada exigiría editar
- * /etc/nginx a mano. Su URL dereferenciable sigue siendo la de jmrp.io.
+ * The `person.jsonld` document is NOT published on this domain: the vhost
+ * serves by a `location =` allowlist and adding an entry would mean editing
+ * /etc/nginx by hand. Its dereferenceable URL is still jmrp.io's.
  */
 import type { McpNotice, McpServer } from "../data/servers";
 import { servers } from "../data/servers";
@@ -53,28 +52,28 @@ import {
   SITE_ORIGIN,
 } from "./seo";
 
-// Ver build-date.ts: HEAD si el árbol está limpio, ahora si está sucio. El
-// fallback a la hora actual solo aplica sin git, y `buildDate()` lo cachea
-// para que este valor coincida con el del pie y el de `<UpdatedLine>`.
+// See build-date.ts: HEAD when the tree is clean, now when it is dirty. The
+// fallback to the current time only applies without git, and `buildDate()`
+// caches it so this value matches the footer's and `<UpdatedLine>`'s.
 const BUILD_DATE = buildDate();
 
-// Primer commit del repo. Sin git no hay fecha y el campo se omite: ver
-// build-date.ts.
+// The repository's first commit. Without git there is no date and the field
+// is omitted: see build-date.ts.
 const PUBLISHED_DATE = publishedDate();
 
-/** `@id` del nodo `WebSite`, al que cuelgan las páginas por `isPartOf`. */
+/** `@id` of the `WebSite` node the pages hang off through `isPartOf`. */
 const WEBSITE_ID = `${SITE_ORIGIN}/#website`;
 
-/** Un literal con `@language` por idioma, para nodos con un `@id` compartido. */
+/** One literal per language, for nodes that share an `@id`. */
 type LocalizedValue = { "@value": string; "@language": Lang };
 
 /**
- * Convierte un par EN/ES en literales etiquetados por idioma.
+ * Turns an EN/ES pair into language-tagged literals.
  *
- * Los nodos `WebSite` y `WebAPI` se emiten con el MISMO `@id` desde las dos
- * páginas; si su `description` fuera una cadena suelta, cada idioma afirmaría
- * un valor distinto para la misma propiedad del mismo nodo. Etiquetar el
- * idioma convierte esa colisión en lo que de verdad es: un texto bilingüe.
+ * The `WebSite` and `WebAPI` nodes are emitted with the SAME `@id` from both
+ * pages; if their `description` were a bare string, each language would
+ * assert a different value for the same property of the same node. Tagging
+ * the language turns that collision into what it actually is: bilingual text.
  */
 function localized(values: { en: string; es: string }): LocalizedValue[] {
   return [
@@ -83,69 +82,69 @@ function localized(values: { en: string; es: string }): LocalizedValue[] {
   ];
 }
 
-/** Referencia a un nodo ya declarado (aquí o en el documento de identidad). */
+/** A reference to a node declared elsewhere (here or in the identity doc). */
 function ref(id: string): { "@id": string } {
   return { "@id": id };
 }
 
-/** `@id` del nodo `WebAPI`/`SoftwareApplication` de un servidor. */
+/** `@id` of a server's `WebAPI`/`SoftwareApplication` node. */
 function apiId(server: McpServer): string {
   return `${server.endpoint}#api`;
 }
 
 /**
- * `@id` del nodo `SoftwareSourceCode` de un servidor.
+ * `@id` of a server's `SoftwareSourceCode` node.
  *
- * `#source-code`, NUNCA `#software`: ese IRI ya lo define jmrp.io/projects
- * como un `SoftwareApplication` con nombre y licencia distintos, y describir
- * el mismo `@id` con datos contradictorios desde dos páginas hace que la
- * entidad fusionada se contradiga a sí misma — la regresión que este fichero
- * ya sufrió y que `#source-code` existe para no repetir. Ver el comentario
- * largo en {@link buildSourceNode}.
+ * `#source-code`, NEVER `#software`: jmrp.io/projects already defines that
+ * IRI as a `SoftwareApplication` with a different name and license, and
+ * describing the same `@id` with contradictory data from two pages makes the
+ * merged entity contradict itself — the regression this file already suffered
+ * and that `#source-code` exists to avoid repeating. See the long comment in
+ * {@link buildSourceNode}.
  */
 function sourceId(server: McpServer): string {
   return `${server.repo}#source-code`;
 }
 
 /**
- * La IRI de licencia de los dos MCP, compartida por el nodo del endpoint y el
- * del código.
+ * The license IRI of both MCPs, shared by the endpoint node and the code one.
  *
- * La misma que usa jmrp.io/projects, no la de SPDX: en RDF son recursos
- * distintos, y las entidades de este dominio deben contar la misma historia
- * que las del canónico. Una constante y no dos literales porque los dos nodos
- * describen el mismo software: si divergieran, el grafo diría que el endpoint
- * y su código están bajo licencias distintas.
+ * The same one jmrp.io/projects uses, not SPDX's: in RDF they are different
+ * resources, and this domain's entities have to tell the same story as the
+ * canonical ones. One constant and not two literals because both nodes
+ * describe the same software: were they to diverge, the graph would say the
+ * endpoint and its code are under different licenses.
  *
- * Es un valor FIJO, no un dato del servidor. Un tercer MCP con otra licencia
- * lo convertiría en una mentira silenciosa, así que ese día el campo tiene que
- * bajar a `src/data/servers.ts` —donde ya viven `repo` y `docs`— en vez de
- * añadir aquí un segundo literal.
+ * It is a FIXED value, not server data. A third MCP under another license
+ * would turn it into a silent lie, so that day the field has to move down to
+ * `src/data/servers.ts` — where `repo` and `docs` already live — rather than
+ * a second literal being added here.
  */
 const MIT_LICENSE = "https://opensource.org/licenses/MIT";
 
-/** Hechos del repositorio que este dominio copia del emisor canónico. */
+/** Repository facts this domain copies from the canonical publisher. */
 interface SourceFacts {
   name: string;
   programmingLanguage: string;
 }
 
 /**
- * Copia VERBATIM de lo que el sitio de documentación de cada repo publica para
- * su `@id` `#source-code`. Ver {@link buildSourceNode} para por qué tienen que
- * coincidir letra a letra.
+ * A VERBATIM copy of what each repo's documentation site publishes for its
+ * `#source-code` `@id`. See {@link buildSourceNode} for why they have to match
+ * letter for letter.
  *
- * `name` NO es derivable: el canónico de gitlab dice "GitLab MCP Server source
- * code", y sacarlo del slug del repo daría "gitlab-mcp-server source code" —
- * un valor DISTINTO para el mismo `@id`, que es exactamente la escisión de
- * entidad que {@link sourceId} existe para no repetir.
+ * `name` is NOT derivable: gitlab's canonical says "GitLab MCP Server source
+ * code", and deriving it from the repo slug would give "gitlab-mcp-server
+ * source code" — a DIFFERENT value for the same `@id`, which is exactly the
+ * entity split {@link sourceId} exists to avoid repeating.
  *
- * Su sitio natural es `src/data/servers.ts`, junto a `repo`: son datos del
- * servidor, no del grafo. Están aquí porque llevarlos allí cambia la forma del
- * tipo público `McpServer`, que es una decisión aparte. Un servidor que no
- * figure en este mapa se queda sin estos dos hechos, y eso es lo correcto: los
- * valores del canónico se comprueban, no se adivinan, y afirmar un `name`
- * inventado parte la entidad en dos, que es peor que no afirmar ninguno.
+ * Their natural home is `src/data/servers.ts`, next to `repo`: they are
+ * server data, not graph data. They are here because moving them there
+ * changes the shape of the public `McpServer` type, which is a separate
+ * decision. A server absent from this map goes without these two facts, and
+ * that is correct: the canonical's values are checked, not guessed, and
+ * asserting an invented `name` splits the entity in two, which is worse than
+ * asserting none.
  */
 const SOURCE_FACTS: Record<string, SourceFacts | undefined> = {
   gitlab: {
@@ -156,35 +155,35 @@ const SOURCE_FACTS: Record<string, SourceFacts | undefined> = {
 };
 
 /**
- * Los dos tipos del nodo de un endpoint.
+ * The two types of an endpoint's node.
  *
- * Compartidos —y no repetidos— entre el nodo COMPLETO ({@link buildApiNode}) y
- * la descripción parcial ({@link partialApi}): un tipo añadido en uno solo
- * dejaría al otro describiendo la MISMA entidad con menos tipos, que es la
- * desincronización silenciosa contra la que está montado este fichero.
+ * Shared — not repeated — between the FULL node ({@link buildApiNode}) and the
+ * partial description ({@link partialApi}): a type added to only one would
+ * leave the other describing the SAME entity with fewer types, which is the
+ * silent drift this whole file is built against.
  */
 const API_TYPES = ["WebAPI", "SoftwareApplication"] as const;
 
 /**
- * Construye el nodo `WebAPI`/`SoftwareApplication` completo de UN servidor.
+ * Builds ONE server's full `WebAPI`/`SoftwareApplication` node.
  *
- * Solo se llama desde `buildSiteGraph` cuando la página que se está pintando
- * ES la ficha de ESE servidor (`meta.serverId` coincide) — la entidad vive
- * donde se la describe. Cualquier otra página que necesite mencionarlo usa
- * {@link partialApi} (o una referencia desnuda) en vez de volver a llamar a
- * esta función: eso es lo que mantiene un único sitio con los datos reales y
- * evita que dos páginas afirmen cosas distintas sobre el mismo `@id`.
+ * Only called from `buildSiteGraph` when the page being rendered IS that
+ * server's card (`meta.serverId` matches) — the entity lives where it is
+ * described. Any other page that needs to mention it uses {@link partialApi}
+ * (or a bare reference) instead of calling this again: that is what keeps a
+ * single place holding the real data and stops two pages asserting different
+ * things about the same `@id`.
  *
- * @param server Servidor de `src/data/servers.ts`.
- * @returns El nodo listo para el `@graph`.
+ * @param server A server from `src/data/servers.ts`.
+ * @returns The node, ready for the `@graph`.
  */
 function buildApiNode(server: McpServer): Record<string, unknown> {
   return {
-    // Multi-tipado a propósito: `WebAPI` cuelga de `Intangible`, así que por sí
-    // solo deja fuera `license`, `dateModified` e `isAccessibleForFree` — que
-    // son justo los hechos que deciden si un asistente recomienda un endpoint.
-    // Añadir `SoftwareApplication` (rama `CreativeWork`) los habilita sin
-    // renunciar a la semántica precisa de "esto es una API".
+    // Multi-typed on purpose: `WebAPI` hangs off `Intangible`, so on its own
+    // it rules out `license`, `dateModified` and `isAccessibleForFree` — which
+    // are precisely the facts that decide whether an assistant recommends an
+    // endpoint. Adding `SoftwareApplication` (the `CreativeWork` branch)
+    // enables them without giving up the precise "this is an API" semantics.
     "@type": API_TYPES,
     "@id": apiId(server),
     name: server.name,
@@ -192,17 +191,10 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
     description: localized(server.description),
     documentation: server.docsSite ?? server.docs,
     serviceType: "Model Context Protocol server",
-    // El mismo ancla de Wikidata que el `knowsAbout` del autor — y con el
-    // MISMO esquema `http://`, que es el URI de concepto canónico de Wikidata
-    // y el que ya usa jmrp.io. Con `https://` el grafo declaraba dos recursos
-    // distintos para el mismo concepto.
-    //
-    // `about` and not `additionalType`: schema.org defines the latter as "a
-    // relationship between something and a CLASS that the thing is in", for
-    // pulling more specific TYPES from external vocabularies. Q133436854 is
-    // the Model Context Protocol — a protocol concept, not a class this
-    // endpoint instantiates. The node is already multi-typed as WebAPI +
-    // SoftwareApplication, so `about` carries the same entity anchor with the
+    // The same Wikidata anchor as the author's `knowsAbout` — and with the
+    // SAME `http://` scheme, which is Wikidata's canonical concept URI and the
+    // one jmrp.io already uses. With `https://` the graph declared two
+    // different resources for the same concept.
     // semantics schema.org actually documents.
     //
     // A NODE and not a bare string: schema.org's JSON-LD context gives `about`
@@ -211,7 +203,7 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
     // endpoint is about a piece of text that happens to look like a URL. The
     // node form is the one the identity document already uses for this very
     // Q-id in `knowsAbout`.
-    // eslint-disable-next-line sonarjs/no-clear-text-protocols, unicorn/prefer-https -- No es un enlace: es el IRI de CONCEPTO canónico de Wikidata, que usa http:// por definición (la web sirve https, el identificador no cambia). Con https sería un recurso RDF distinto del que ya usan knowsAbout y jmrp.io — de hecho eslint --fix lo "corrigió" en silencio y partió la entidad en dos. Si Prettier llegara a partir esta línea, el disable DEBE bajar a la que lleve la cadena.
+    // eslint-disable-next-line sonarjs/no-clear-text-protocols, unicorn/prefer-https -- Not a link: it is Wikidata's canonical CONCEPT IRI, which uses http:// by definition (the site serves https, the identifier does not change). With https it would be a different RDF resource from the one knowsAbout and jmrp.io already use — and in fact eslint --fix silently "corrected" it once and split the entity in two. If Prettier ever breaks this line, the disable MUST move down to whichever line carries the string.
     about: { "@id": "http://www.wikidata.org/entity/Q133436854" },
     applicationCategory: "DeveloperApplication",
     operatingSystem: "Any (HTTP)",
@@ -219,27 +211,26 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
     isAccessibleForFree: true,
     dateModified: BUILD_DATE,
     ...(PUBLISHED_DATE && { datePublished: PUBLISHED_DATE }),
-    // Qué sabe hacer, sin ejecutar el endpoint: es la pregunta que un agente
-    // hace sobre un servidor MCP, y hasta ahora solo la respondía `tools/list`
-    // en vivo.
+    // What it can do, without running the endpoint: the question an agent asks
+    // about an MCP server, and until now only a live `tools/list` answered it.
     featureList: server.tools.map((tool) => tool.name),
     offers: {
       "@type": "Offer",
-      // `url` es la propiedad recomendada que faltaba: dónde se obtiene lo
-      // ofertado. Para un endpoint gratuito, el endpoint mismo.
+      // `url` is the recommended property that was missing: where the offered
+      // thing is obtained. For a free endpoint, the endpoint itself.
       url: server.endpoint,
       price: "0",
       priceCurrency: "USD",
       availability: "https://schema.org/InStock",
     },
     provider: ref(PERSON_ID),
-    // `provider` dice quién lo OPERA; `author` quién lo HIZO. Aquí son la
-    // misma persona y el texto visible ya lo afirma ("who is also the author
-    // of both servers") — el grafo debe contar la misma historia.
+    // `provider` says who OPERATES it; `author` who MADE it. Here they are the
+    // same person and the visible text already says so ("who is also the author
+    // of both servers") — the graph has to tell the same story.
     author: ref(PERSON_ID),
-    // Camino de vuelta al código: `targetProduct` no tiene inversa en
-    // schema.org, así que sin esto quien entra por `mainEntity` nunca llega
-    // al repositorio.
+    // The way back to the code: `targetProduct` has no inverse in schema.org,
+    // so without this whoever arrives through `mainEntity` never reaches the
+    // repository.
     isBasedOn: ref(sourceId(server)),
     // `softwareHelp` used to be a bare `ref()`, pointing at an `@id` nothing
     // defines: the gitlab docs site names its node `…/#webpage`, never the
@@ -266,12 +257,13 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
       "An MCP client speaking streamable HTTP (JSON-RPC 2.0 over POST).",
     // The descriptions are bilingual literals, so the node is too.
     inLanguage: ["en", "es"],
-    // Fichas de directorios MCP que describen ESTE servidor (no el repo: el
-    // repo se enlaza vía isBasedOn → codeRepository). Si no hay, el undefined
-    // desaparece solo al serializar.
+    // Listings in MCP directories that describe THIS server (not the repo: the
+    // repo is linked through isBasedOn → codeRepository). With none, the
+    // undefined disappears on its own at serialization.
     sameAs: server.sameAs,
-    // Cómo se llama de verdad: POST con JSON-RPC, no un GET a la URL. Un
-    // rastreador que siga `url` recibe un error (405 en libgen, 401 en gitlab), que es correcto por diseño.
+    // How it is really called: POST with JSON-RPC, not a GET on the URL. A
+    // crawler following `url` gets an error (405 on libgen, 401 on gitlab),
+    // which is correct by design.
     // Two actions: how to call it, and how to ask whether it is up. The second
     // is the question an agent asks BEFORE the first, and until now only
     // /servers.json answered it — the health URLs were absent from the graph
@@ -303,27 +295,28 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
 }
 
 /**
- * Descripción PARCIAL del endpoint de un servidor: qué es y dónde está, nada
- * más. Para las páginas que lo MENCIONAN sin ser su ficha.
+ * A PARTIAL description of a server's endpoint: what it is and where it is,
+ * nothing more. For the pages that MENTION it without being its card.
  *
- * No redefine el nodo completo. Sus cuatro claves salen de la MISMA entrada de
- * `servers.ts` que las de {@link buildApiNode}, así que no pueden
- * contradecirlo, y ningún hecho que decida algo —licencia, herramientas,
- * acciones, fechas— viaja fuera de la ficha.
+ * It does not redefine the full node. Its four keys come from the SAME
+ * `servers.ts` entry as {@link buildApiNode}'s, so they cannot contradict it,
+ * and no fact that decides anything — license, tools, actions, dates — travels
+ * outside the card.
  *
- * Tampoco basta la referencia desnuda que había antes: el `@id` es
- * `<endpoint>#api` y un GET a esa URL responde con un error —405 en libgen, 401 en gitlab; correcto por diseño, el
- * endpoint solo habla POST—, así que quien lee únicamente la portada no puede
- * saber qué es esa entidad ni siguiendo el enlace. Es el mismo patrón que
- * `softwareHelp` en {@link buildApiNode}: un nodo tipado en línea dice QUÉ es
- * una URL sin pretender definir el `@id` de otro.
+ * Nor is the bare reference that used to be here enough: the `@id` is
+ * `<endpoint>#api` and a GET on that URL answers an error — 405 on libgen, 401
+ * on gitlab; correct by design, the endpoint only speaks POST — so someone
+ * reading only the home page cannot tell what that entity is even by following
+ * the link. It is the same pattern as `softwareHelp` in {@link buildApiNode}:
+ * an inline typed node says WHAT a URL is without pretending to define another
+ * node's `@id`.
  *
- * Va ANIDADA en `mainEntity`, NUNCA como entrada del `@graph`: allí sería un
- * segundo nodo de primer nivel para la misma entidad, que es exactamente lo
- * que la corrección del 22-ago quitó.
+ * It goes NESTED in `mainEntity`, NEVER as a `@graph` entry: there it would be
+ * a second top-level node for the same entity, which is exactly what the
+ * 22 Aug correction removed.
  *
- * @param server Servidor de `src/data/servers.ts`.
- * @returns Las cuatro claves que identifican el endpoint, y ninguna más.
+ * @param server A server from `src/data/servers.ts`.
+ * @returns The four keys that identify the endpoint, and no others.
  */
 function partialApi(server: McpServer): Record<string, unknown> {
   return {
@@ -335,38 +328,38 @@ function partialApi(server: McpServer): Record<string, unknown> {
 }
 
 /**
- * Construye el nodo `SoftwareSourceCode` de UN servidor — el puente entre el
- * endpoint y el repositorio que lo produce, la prueba detrás de "¿puedo
- * fiarme?". Vive en la MISMA página que su `WebAPI` (ver {@link buildApiNode}):
- * la ficha de ese servidor, nunca en otra.
+ * Builds ONE server's `SoftwareSourceCode` node — the bridge between the
+ * endpoint and the repository that produces it, the evidence behind "can I
+ * trust this?". It lives on the SAME page as its `WebAPI` (see
+ * {@link buildApiNode}): that server's card, never another.
  *
- * Este `@id` NO es solo nuestro: el sitio de documentación de cada repo
- * (`https://jmrp.io/docs/<repo>`) es la casa de la entidad y publica el MISMO
- * `@id`. Por eso los cuatro hechos que se afirman aquí —`name`,
- * `programmingLanguage`, `license` y `author`— se han comprobado uno a uno
- * contra lo que ese sitio publica para ese `@id`, y solo se afirman porque
- * coinciden: al fusionarse los dos grafos no pueden contradecirse. Los dos que
- * varían por servidor salen de {@link SOURCE_FACTS}, que es donde vive la
- * copia verbatim.
+ * This `@id` is not only ours: each repo's documentation site
+ * (`https://jmrp.io/docs/<repo>`) is the entity's home and publishes the SAME
+ * `@id`. That is why the four facts asserted here — `name`,
+ * `programmingLanguage`, `license` and `author` — have been checked one by one
+ * against what that site publishes for that `@id`, and are only asserted
+ * because they match: when the two graphs merge they cannot contradict each
+ * other. The two that vary per server come from {@link SOURCE_FACTS}, which is
+ * where the verbatim copy lives.
  *
- * El riesgo asumido, y escrito aquí para que no se descubra dentro de seis
- * meses: si el sitio de documentación cambia su `name`, su licencia o su
- * lenguaje, este repo queda desincronizado y NINGÚN test lo ve — los tests
- * solo miran lo que construye este repo, no lo que publica el otro.
+ * The risk taken, written here so it is not discovered six months from now: if
+ * the documentation site changes its `name`, its license or its language, this
+ * repo goes out of sync and NO test sees it — the tests only look at what this
+ * repo builds, not at what the other one publishes.
  *
- * Lo que queda fuera —`creator`, `maintainer`, `isPartOf`, `runtimePlatform`,
- * `version`, `dateModified`— sigue fuera por la razón de siempre: solo el
- * sitio de documentación puede mantenerlo cierto, y afirmarlo desde aquí es
- * firmar que algún día dirá otra cosa.
+ * What is left out — `creator`, `maintainer`, `isPartOf`, `runtimePlatform`,
+ * `version`, `dateModified` — stays out for the usual reason: only the
+ * documentation site can keep it true, and asserting it from here is signing
+ * up for the day it says something else.
  *
- * Lo único que esta página aporta, y nadie más puede, es qué endpoint alojado
- * corre ese código — vía `targetProduct`, hacia el `WebAPI` de esta misma
- * página y, como referencia externa sin redefinir, hacia el `#software`
- * canónico de jmrp.io/projects (mismo principio que el `owns` del documento de
- * identidad).
+ * The one thing this page contributes, and nobody else can, is which hosted
+ * endpoint runs that code — through `targetProduct`, towards the `WebAPI` on
+ * this very page and, as an external reference without redefining it, towards
+ * jmrp.io/projects' canonical `#software` (the same principle as the identity
+ * document's `owns`).
  *
- * @param server Servidor de `src/data/servers.ts`.
- * @returns El nodo listo para el `@graph`.
+ * @param server A server from `src/data/servers.ts`.
+ * @returns The node, ready for the `@graph`.
  */
 function buildSourceNode(server: McpServer): Record<string, unknown> {
   const facts = SOURCE_FACTS[server.id];
@@ -375,22 +368,22 @@ function buildSourceNode(server: McpServer): Record<string, unknown> {
     "@id": sourceId(server),
     ...(facts && {
       name: facts.name,
-      // `programmingLanguage` como texto plano y no como nodo
-      // `ComputerLanguage` con su Q-id de Wikidata: el emisor canónico usa un
-      // literal, y un nodo aquí añadiría un segundo valor DISTINTO para la
-      // misma propiedad del mismo `@id`.
+      // `programmingLanguage` as plain text and not as a `ComputerLanguage`
+      // node with its Wikidata Q-id: the canonical publisher uses a literal,
+      // and a node here would add a second, DIFFERENT value for the same
+      // property of the same `@id`.
       programmingLanguage: facts.programmingLanguage,
     }),
     codeRepository: server.repo,
     license: MIT_LICENSE,
-    // Referencia, nunca sus datos: el documento de identidad es la única
-    // fuente de verdad de quién es el autor.
+    // A reference, never their data: the identity document is the single
+    // source of truth for who the author is.
     author: ref(PERSON_ID),
     targetProduct: [ref(apiId(server)), ref(`${server.repo}#software`)],
   };
 }
 
-/** Datos de la página que el grafo necesita del layout. */
+/** The page data the graph needs from the layout. */
 export interface PageMeta {
   lang: Lang;
   title: string;
@@ -415,11 +408,11 @@ export interface PageMeta {
    */
   serverId?: string;
   /**
-   * Action-domain page under a server's ficha
+   * Action-domain page under a server's card
    * (`/servers/<id>/actions/<domain>/`).
    *
    * Deliberately NOT `serverId`: that prop makes a page the HOME of the
-   * server's `WebAPI`/`SoftwareSourceCode` nodes, and those live on the ficha
+   * server's `WebAPI`/`SoftwareSourceCode` nodes, and those live on the card
    * alone — define-once is the rule the 2026-08-22 audit restored. A domain
    * page merely DESCRIBES a slice of that API, so it gets `partialApi` as its
    * `mainEntity` (the same shape every other mentioning page uses) and its
@@ -429,14 +422,14 @@ export interface PageMeta {
 }
 
 /**
- * Server this page IS the ficha of — `undefined` for every page except
+ * Server this page IS the card of — `undefined` for every page except
  * `/servers/<id>/`. Throws rather than silently ignoring a mismatch: a
  * `serverId` that does not match any entry in `servers.ts` is a caller bug (a
  * stale id, a typo), and rendering the page as if it were a normal one would
  * hide it behind a graph that quietly stopped matching the URL.
  *
  * @param serverId `PageMeta.serverId` — unset for every page but a server
- *   ficha.
+ *   card.
  * @returns The matching server, or `undefined` when `serverId` is unset.
  */
 function resolveTargetServer(
@@ -457,12 +450,12 @@ function resolveTargetServer(
  *
  * `pageUrl(lang, page)` only knows the FIXED path per `PageId` — for
  * `page: "servers"` that is the `/servers/` INDEX, not any one server's
- * ficha. `serverPageUrl` is the per-server equivalent every detail page needs
+ * card. `serverPageUrl` is the per-server equivalent every detail page needs
  * instead. See the `serverId` doc on `PageMeta`.
  *
  * @param lang This page's language.
  * @param page This page's `PageId`, used for the fixed-path case.
- * @param targetServer The server this page is the ficha of, from
+ * @param targetServer The server this page is the card of, from
  *   {@link resolveTargetServer}.
  * @returns `url` for this page and `otherUrl` for its translation.
  */
@@ -501,7 +494,7 @@ function resolvePageUrls(
  *
  * schema.org defines `mainEntity` as "the primary entity described in this
  * page", so it can only point at server APIs on pages that actually describe
- * one. A server ficha's primary entity is SOLELY its own server, never the
+ * one. A server card's primary entity is SOLELY its own server, never the
  * other one. The home page and `/servers/` describe every server, so they
  * keep the full list. Every other page — `/inspector/`, `/internals/`,
  * `/policies/` — describes no server at all, so `mainEntity` is omitted
@@ -509,7 +502,7 @@ function resolvePageUrls(
  * wholesale and claimed both server APIs as their primary entity despite
  * rendering no server description.
  *
- * The SHAPE differs by page, and deliberately so. A server's own ficha gets a
+ * The SHAPE differs by page, and deliberately so. A server's own card gets a
  * BARE reference, because the full node sits in this very document: a partial
  * description there would only repeat two of its keys. The pages that merely
  * mention the servers get {@link partialApi} instead — a bare `@id` there
@@ -517,7 +510,7 @@ function resolvePageUrls(
  * so nothing on the page says what the entity even is.
  *
  * @param page This page's `PageId`.
- * @param targetServer The server this page is the ficha of, from
+ * @param targetServer The server this page is the card of, from
  *   {@link resolveTargetServer}.
  * @returns The nodes for `mainEntity`, or `undefined` to omit the property.
  */
@@ -528,9 +521,9 @@ function selectMainEntity(
 ): Record<string, unknown>[] | undefined {
   if (targetServer) return [ref(apiId(targetServer))];
   if (actionsDomain) {
-    // Una página de dominio describe una PORCIÓN de un único servidor: la
-    // descripción parcial de ese servidor, con la misma forma que usan las
-    // demás páginas que lo mencionan sin definirlo.
+    // A domain page describes a PORTION of a single server: that server's
+    // partial description, in the same shape the other pages that mention it
+    // without defining it use.
     const server = servers.find((s) => s.id === actionsDomain.serverId);
     return server ? [partialApi(server)] : undefined;
   }
@@ -574,7 +567,7 @@ function pageLabels(lang: Lang): Record<PageId, string> {
  *
  * Three levels at most, because the site really is that flat: `/inspector/`,
  * `/internals/`, `/policies/` and `/servers/` all hang off the root, and only
- * a server ficha sits one level deeper (under the `/servers/` index).
+ * a server card sits one level deeper (under the `/servers/` index).
  *
  * The `/es/` prefix needs no special case: every step is built with
  * `pageUrl`/`serverPageUrl`, which already carry it, so a Spanish crumb
@@ -593,7 +586,7 @@ function pageLabels(lang: Lang): Record<PageId, string> {
  *
  * @param lang This page's language.
  * @param page This page's `PageId`.
- * @param targetServer The server this page is the ficha of, from
+ * @param targetServer The server this page is the card of, from
  *   {@link resolveTargetServer}.
  * @returns The steps root-first, or `undefined` on the home page.
  */
@@ -606,8 +599,8 @@ function breadcrumbSteps(
   if (page === "home") return undefined;
   const labels = pageLabels(lang);
   if (actionsDomain) {
-    // Cuatro niveles reales: raíz → índice → ficha → dominio. El nombre del
-    // dominio es DATO del manifiesto (como los ids), no se traduce.
+    // Four real levels: root → index → card → domain. The domain's name is
+    // manifest DATA (like the ids), so it is not translated.
     return [
       { name: labels.home, url: pageUrl(lang, "home") },
       { name: labels.servers, url: pageUrl(lang, "servers") },
@@ -639,11 +632,11 @@ function breadcrumbSteps(
 }
 
 /**
- * Construye el grafo JSON-LD completo de una página.
+ * Builds a page's complete JSON-LD graph.
  *
- * @param meta Idioma, título, descripción, página y —para una ficha de
- *   servidor— el `serverId` que dice de cuál se está pintando.
- * @returns Objeto listo para serializar con {@link safeJsonLd}.
+ * @param meta Language, title, description, page and — for a server card —
+ *   the `serverId` saying which one is being rendered.
+ * @returns An object ready to serialize with {@link safeJsonLd}.
  */
 export async function buildSiteGraph(
   meta: PageMeta,
@@ -672,7 +665,7 @@ export async function buildSiteGraph(
   const isHome = page === "home";
 
   // The full WebAPI+SoftwareApplication (and matching SoftwareSourceCode)
-  // node: built ONLY when this page IS that server's own ficha — see
+  // node: built ONLY when this page IS that server's own card — see
   // `buildApiNode`/`buildSourceNode`'s doc comments for why. Every other page
   // gets an empty array here and reaches the same entity through `apiRefs`
   // below instead, which is a bare `{"@id": …}` and never redeclares the
@@ -685,15 +678,14 @@ export async function buildSiteGraph(
   // through. `mainEntity` no longer uses it: it carries a partial description
   // instead of a bare ref on the pages that only mention the servers (see
   // `selectMainEntity`/`partialApi`).
-  // `provider` cierra el par recíproco con el `owns` del documento de
-  // identidad, que ya declara los `#software` de estos dos repos; `sameAs`
-  // lleva al repositorio, que es el sujeto de aquellos nodos.
+  // `provider` closes the reciprocal pair with the identity document's `owns`,
+  // which already declares these two repos' `#software`; `sameAs` leads to the
+  // repository, which is the subject of those nodes.
   const apiRefs = servers.map((server) => ref(apiId(server)));
   const mainEntity = selectMainEntity(page, targetServer, actionsDomain);
 
-  // La miga de pan, como nodo propio al que el `WebPage` apunta por `@id`
-  // (igual que el `FAQPage`). Se construye ANTES que `webpage` porque ese la
-  // referencia.
+  // The breadcrumb, as its own node the `WebPage` points at by `@id` (like the
+  // `FAQPage`). Built BEFORE `webpage` because that one references it.
   const breadcrumbId = `${url}#breadcrumb`;
   const steps = breadcrumbSteps(lang, page, targetServer, actionsDomain);
   const breadcrumb = steps
@@ -704,12 +696,12 @@ export async function buildSiteGraph(
           "@type": "ListItem",
           position: index + 1,
           name: step.name,
-          // `item` como NODO y no como cadena: schema.org no le da coerción
-          // `"@type": "@id"` en su contexto, así que una URL suelta expandiría
-          // a un literal de texto y el escalón no enlazaría con nada — el
-          // mismo defecto que arrastraba `about` hasta hoy. Y sin fragmento
-          // (`…/servers/`, no `…#webpage`), porque es la URL que un buscador
-          // pinta en la miga del resultado.
+          // `item` as a NODE and not as a string: schema.org gives it no
+          // `"@type": "@id"` coercion in its context, so a bare URL would
+          // expand to a text literal and the step would link to nothing — the
+          // same defect `about` carried until today. And without a fragment
+          // (`…/servers/`, not `…#webpage`), because it is the URL a search
+          // engine paints in the result's breadcrumb.
           item: { "@id": step.url },
         })),
       }
@@ -738,16 +730,16 @@ export async function buildSiteGraph(
     // way only: #faq declared its `isPartOf`, but nothing led from the page
     // down to it.
     ...(isHome && { hasPart: ref(`${url}#faq`) }),
-    // Nodo aparte enlazado por `@id`, igual que el `FAQPage`: el `WebPage`
-    // dice que la miga EXISTE y el nodo dice qué escalones tiene. Ausente en
-    // la portada, que es la raíz (ver `breadcrumbSteps`).
+    // A separate node linked by `@id`, like the `FAQPage`: the `WebPage` says
+    // the breadcrumb EXISTS and the node says which steps it has. Absent on
+    // the home page, which is the root (see `breadcrumbSteps`).
     ...(breadcrumb && { breadcrumb: ref(breadcrumbId) }),
     // hreflang already says these two pages are translations of each other;
     // the graph did not. Same pairing jmrp.io/about/#profile already emits.
     // The other language's `#webpage` for THIS SAME page, not the home
     // page's — each page pairs with its own translation. `otherUrl` already
-    // resolves through `serverPageUrl` for a server ficha (see above), so a
-    // ficha pairs with ITS OWN translation, never the `/servers/` index's.
+    // resolves through `serverPageUrl` for a server card (see above), so a
+    // card pairs with ITS OWN translation, never the `/servers/` index's.
     ...(lang === "en"
       ? { workTranslation: ref(`${otherUrl}#webpage`) }
       : { translationOfWork: ref(`${otherUrl}#webpage`) }),
@@ -763,22 +755,23 @@ export async function buildSiteGraph(
     publisher: ref(PERSON_ID),
     dateModified: BUILD_DATE,
     ...(PUBLISHED_DATE && { datePublished: PUBLISHED_DATE }),
-    // `mainEntity` y no `about`: estos servidores no son algo de lo que la
-    // página habla, son su asunto. `about` decía exactamente lo mismo con la
-    // afirmación más débil, así que sobraba: schema.org ya define mainEntity
-    // como "the primary entity described in this page", que es el caso.
-    // Nunca el nodo COMPLETO: ese solo se declara en la ficha de su servidor.
-    // Aquí va una descripción PARCIAL de cuatro claves en las páginas que se
-    // limitan a mencionarlo, y una referencia desnuda en su propia ficha,
-    // donde el nodo entero está a la vista (ver `selectMainEntity`).
+    // `mainEntity` and not `about`: these servers are not something the page
+    // talks about, they are its subject. `about` said exactly the same thing
+    // with the weaker claim, so it was redundant: schema.org already defines
+    // mainEntity as "the primary entity described in this page", which is the
+    // case here.
+    // Never the FULL node: that is only declared on its server's card. Here it
+    // is a PARTIAL four-key description on the pages that merely mention it,
+    // and a bare reference on its own card, where the whole node is in plain
+    // sight (see `selectMainEntity`).
     // Omitted entirely on pages that describe no server at all — emitting it
     // there claimed a primary entity the page never renders.
     ...(mainEntity && { mainEntity }),
-    // Los avisos son los pasajes concisos y autocontenidos de la página —
-    // política del token, postura legal, límites — y sus `id` de DOM ya
-    // existen (los pone ServerCard para poder enlazarlos). `speakable` los
-    // señala como los pasajes que un asistente puede leer en voz alta o citar.
-    // Solo existen en la portada, así que `speakable` también.
+    // The notices are the page's concise, self-contained passages — token
+    // policy, legal stance, limits — and their DOM `id`s already exist
+    // (ServerCard adds them so they can be linked). `speakable` marks them as
+    // the passages an assistant may read aloud or quote. They only exist on
+    // the home page, so `speakable` does too.
     //
     // These ids now sit on the <details>, which wraps the question in its
     // <summary> together with the answer. They used to sit on the inner notice
@@ -794,12 +787,12 @@ export async function buildSiteGraph(
     }),
   };
 
-  // Los avisos de las fichas son literalmente preguntas con su respuesta
-  // (política del token, postura legal, límites): marcarlos como FAQPage
-  // formaliza esa estructura para quien extrae respuestas. Google ya no pinta
-  // rich results de FAQ para sitios como este (restringido en 2023); el
-  // destinatario son los asistentes, no la SERP. Sale de `servers.ts`, la
-  // misma fuente que pinta los avisos: no puede desincronizarse del texto.
+  // The card notices are literally questions with their answer (token policy,
+  // legal stance, limits): marking them as a FAQPage formalizes that structure
+  // for whoever extracts answers. Google no longer paints FAQ rich results for
+  // sites like this one (restricted in 2023); the audience is assistants, not
+  // the SERP. It comes from `servers.ts`, the same source that renders the
+  // notices: it cannot drift from the text.
   // `url` and `name`: FAQPage is a subclass of WebPage, so without them the
   // graph described the same document as two WebPages, one of which could not
   // be tied to a URL at all. The `hasPart` on the WebPage node below is the
@@ -854,14 +847,15 @@ export async function buildSiteGraph(
 }
 
 /**
- * La respuesta de un aviso como texto plano para `acceptedAnswer`.
+ * A notice's answer as plain text for `acceptedAnswer`.
  *
- * Párrafos y viñetas en orden — las viñetas son frases completas — y sin los
- * acentos graves del markup: en un literal de texto JSON-LD serían ruido.
+ * Paragraphs and bullets in order — the bullets are complete sentences — and
+ * without the markup's backticks: in a JSON-LD text literal they would be
+ * noise.
  *
- * @param notice Aviso de `src/data/servers.ts`.
- * @param lang Idioma de la página.
- * @returns El texto de la respuesta, de una pieza.
+ * @param notice A notice from `src/data/servers.ts`.
+ * @param lang The page's language.
+ * @returns The answer's text, in one piece.
  */
 function noticeAnswer(notice: McpNotice, lang: Lang): string {
   const parts = [...notice.body, ...(notice.bullets ?? [])];
@@ -872,16 +866,15 @@ function noticeAnswer(notice: McpNotice, lang: Lang): string {
 }
 
 /**
- * Serializa un objeto para incrustarlo en `<script type="application/ld+json">`.
+ * Serializes an object for embedding in `<script type="application/ld+json">`.
  *
- * Escapa `<`, `>` y `&` para que ningún valor pueda cerrar la etiqueta ni
- * abrir otra, y los separadores de línea U+2028/U+2029, que son válidos en
- * JSON pero rompen el parseo en algunos consumidores. Todas las secuencias
- * emitidas son escapes `\uXXXX` legales, así que el resultado sigue siendo
- * JSON válido y `JSON.parse` lo recupera intacto.
+ * Escapes `<`, `>` and `&` so no value can close the tag or open another, plus
+ * the U+2028/U+2029 line separators, which are valid in JSON but break parsing
+ * in some consumers. Every sequence emitted is a legal `\uXXXX` escape, so the
+ * result is still valid JSON and `JSON.parse` recovers it intact.
  *
- * @param data Objeto a serializar.
- * @returns Cadena JSON segura para insertar tal cual en el HTML.
+ * @param data The object to serialize.
+ * @returns A JSON string safe to insert into the HTML as-is.
  */
 export function safeJsonLd(data: unknown): string {
   const json = JSON.stringify(data);

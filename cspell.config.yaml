@@ -2,15 +2,8 @@
 # Bilingual spell checker (English + Spanish)
 # Docs: https://cspell.org/configuration/
 
-# Both languages everywhere, deliberately. In jmrp.io Spanish lives in its
-# own files, so it is switched on by path overrides. Here the two are
-# interleaved: `src/i18n/ui/*.ts` holds the English and the Spanish copy in
-# ONE file, and the code comments are still largely Spanish (their
-# translation is a backlog item). Per-path overrides cannot express that,
-# and without this every ordinary Spanish word was reported — 21,668 of
-# them, which is the same as having no spell check at all.
 version: "0.2"
-language: en,es
+language: en
 
 # Import Spanish dictionary
 import:
@@ -60,6 +53,17 @@ ignorePaths:
   - plan
   - .git
   - plan/** # gitignored working notes (Spanish prose), not part of the project
+  # Untracked working notes, not repo prose. `git ls-files` returns nothing for
+  # any of these: captured vhosts, audit reports and design specs kept beside
+  # the code for reference. Spell-checking them says nothing about the project
+  # and buries the code findings this check exists for — 18,799 issues, of
+  # which the overwhelming majority were here.
+  - ops/**
+  - docs/superpowers/**
+  - .superpowers/**
+  - GEO-AUDIT-*.md
+  - test-results/**
+  - playwright-report/**
   - CHANGELOG-review.md # Spanish design-review report, not project content
   - design-audit/** # temporary generated screenshots + HTML for the design review
   - pnpm-lock.yaml
@@ -97,6 +101,12 @@ ignorePaths:
 # pages), none of which exist in this repo, so they matched nothing. Spanish is
 # enabled globally above instead.
 overrides:
+  # The bilingual UI strings: every key here exists twice, once per language.
+  - filename: "src/i18n/ui/*.ts"
+    language: en,es
+  # Server descriptions and notices, also written in both languages.
+  - filename: "src/data/servers.ts"
+    language: en,es
   # Generated from the live servers; the tool names and descriptions are the
   # binaries' own vocabulary, not prose this repo writes.
   - filename: "src/data/cards/*.json"
