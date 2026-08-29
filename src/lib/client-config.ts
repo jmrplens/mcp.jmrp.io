@@ -1,58 +1,59 @@
 /**
- * Fragmentos de configuración de clientes MCP, generados de `servers.ts`.
+ * MCP client configuration snippets, generated from `servers.ts`.
  *
- * La pregunta que trae a la gente a un endpoint alojado es «¿cómo lo añado a
- * mi cliente?», y hasta ahora la respuesta vivía fuera del dominio (en los
- * sitios de documentación de cada servidor). Estos builders la contestan en
- * la ficha y en `llms-full.txt` desde la misma fuente de verdad: un MCP nuevo
- * en `servers.ts` sale con sus fragmentos ya escritos.
+ * The question that brings people to a hosted endpoint is "how do I add this
+ * to my client?", and until now the answer lived off the domain (on each
+ * server's documentation site). These builders answer it on the card and in
+ * `llms-full.txt` from the same source of truth: a new MCP in `servers.ts`
+ * arrives with its snippets already written.
  *
- * Las formas están verificadas contra la documentación oficial de cada
- * cliente (2026-08): Cursor lee `mcpServers` SIN campo `type` (autodetecta el
- * transporte por la URL); VS Code lee `servers` CON `type: "http"` y pide los
- * secretos con `inputs`; Claude Code toma cabeceras con `--header`. Confundir
- * las dos claves de nivel raíz es el error clásico, por eso cada fragmento
- * nombra su fichero.
+ * The shapes are verified against each client's official documentation
+ * (2026-08): Cursor reads `mcpServers` WITHOUT a `type` field (it detects the
+ * transport from the URL); VS Code reads `servers` WITH `type: "http"` and
+ * asks for secrets through `inputs`; Claude Code takes headers with
+ * `--header`. Confusing the two root-level keys is the classic mistake, which
+ * is why every snippet names its file.
  */
 import type { McpHeader, McpServer } from "../data/servers";
 import type { Lang } from "../i18n/ui";
 
-/** Nombre de variable de entorno sugerido para el secreto de un servidor. */
+/** The suggested environment-variable name for a server's secret. */
 function tokenEnv(server: McpServer): string {
   return `${server.id.toUpperCase()}_TOKEN`;
 }
 
-/** Cabeceras que el fragmento debe rellenar: solo las obligatorias. */
+/** The headers the snippet must fill in: the required ones only. */
 function required(server: McpServer): McpHeader[] {
   return server.requiredHeaders;
 }
 
 /**
- * El valor que va DENTRO de la cabecera, esquema incluido.
+ * The value that goes INSIDE the header, scheme included.
  *
- * Existe desde que gitlab pasó a OAuth: su credencial viaja en
- * `Authorization`, cuyo valor es `Bearer ` + el token, no el token a secas.
- * Los tres generadores de abajo pegaban el valor crudo detrás de
- * `<nombre>: `, así que sin esto emitirían `Authorization: <your token>` —
- * sintaxis inválida, y un 401 para quien copiara el fragmento.
+ * It exists because gitlab moved to OAuth: its credential travels in
+ * `Authorization`, whose value is `Bearer ` + the token, not the bare token.
+ * The three generators below pasted the raw value after `<name>: `, so
+ * without this they would emit `Authorization: <your token>` — invalid
+ * syntax, and a 401 for anyone who copied the snippet.
  *
- * @param header La cabecera de `src/data/servers.ts`.
- * @param value Lo que aporta el visitante (o su marcador).
- * @returns El valor completo de la cabecera.
+ * @param header The header from `src/data/servers.ts`.
+ * @param value What the visitor supplies (or its placeholder).
+ * @returns The complete header value.
  */
 function headerValue(header: McpHeader, value: string): string {
   return `${header.valuePrefix ?? ""}${value}`;
 }
 
 /**
- * Alta por línea de comandos en Claude Code.
+ * Registering from the command line in Claude Code.
  *
- * El valor va como marcador literal `<your token>` y no como `${VAR}`: dentro
- * de comillas dobles la shell expandiría la variable ANTES de que el cliente
- * la viera, y lo almacenado sería el token resuelto, no la referencia.
+ * The value goes in as the literal placeholder `<your token>` and not as
+ * `${VAR}`: inside double quotes the shell would expand the variable BEFORE
+ * the client ever saw it, and what got stored would be the resolved token, not
+ * the reference.
  *
- * @param server Servidor de `src/data/servers.ts`.
- * @returns El comando completo, listo para copiar.
+ * @param server A server from `src/data/servers.ts`.
+ * @returns The complete command, ready to copy.
  */
 export function claudeCodeCommand(server: McpServer): string {
   const headers = required(server)
@@ -65,13 +66,13 @@ export function claudeCodeCommand(server: McpServer): string {
 }
 
 /**
- * Bloque para `~/.cursor/mcp.json` (o `.cursor/mcp.json` del proyecto).
+ * The block for `~/.cursor/mcp.json` (or the project's `.cursor/mcp.json`).
  *
- * Sin campo `type`: Cursor autodetecta streamable HTTP. `${env:VAR}` es la
- * interpolación documentada de Cursor y mantiene el token fuera del fichero.
+ * No `type` field: Cursor detects streamable HTTP itself. `${env:VAR}` is
+ * Cursor's documented interpolation and keeps the token out of the file.
  *
- * @param server Servidor de `src/data/servers.ts`.
- * @returns JSON indentado, listo para copiar.
+ * @param server A server from `src/data/servers.ts`.
+ * @returns Indented JSON, ready to copy.
  */
 export function cursorJson(server: McpServer): string {
   const headers = required(server);
@@ -97,22 +98,22 @@ export function cursorJson(server: McpServer): string {
 }
 
 /**
- * Bloque para `.vscode/mcp.json` (o el `mcp.json` del perfil de usuario).
+ * The block for `.vscode/mcp.json` (or the user profile's `mcp.json`).
  *
- * Clave raíz `servers` —no `mcpServers`— y `type: "http"` obligatorio. Los
- * secretos van como `inputs` de tipo `promptString`: VS Code los pide una vez
- * y los guarda él mismo, nunca en el fichero.
+ * Root key `servers` — not `mcpServers` — and `type: "http"` is mandatory.
+ * Secrets go in as `promptString` `inputs`: VS Code asks for them once and
+ * stores them itself, never in the file.
  *
- * @param server Servidor de `src/data/servers.ts`.
- * @param lang Idioma del texto del prompt que verá quien lo pegue.
- * @returns JSON indentado, listo para copiar.
+ * @param server A server from `src/data/servers.ts`.
+ * @param lang The language of the prompt text whoever pastes it will see.
+ * @returns Indented JSON, ready to copy.
  */
 export function vscodeJson(server: McpServer, lang: Lang): string {
   const headers = required(server);
-  // Deliberadamente NO se deriva del nombre de la cabecera: con `Authorization`
-  // el id saldría `gitlab-authorization`, que nombra el sobre en vez de lo que
-  // se le pide al usuario. `-token` describe lo que hay que teclear, y además
-  // no cambia si la cabecera se renombra otra vez.
+  // Deliberately NOT derived from the header's name: with `Authorization` the
+  // id would come out as `gitlab-authorization`, which names the envelope
+  // rather than what the user is being asked for. `-token` describes what has
+  // to be typed, and it also survives the header being renamed again.
   const inputId = (): string => `${server.id}-token`;
 
   return JSON.stringify(
@@ -145,30 +146,29 @@ export function vscodeJson(server: McpServer, lang: Lang): string {
   );
 }
 
-/* ===== Alta por OAuth ========================================================
-   Las tres formas de arriba pegan la credencial a mano. Estas tres son el
-   camino que el despliegue recomienda cuando el servidor delega en OAuth: el
-   cliente hace el baile (Authorization Code + PKCE) contra el servidor de
-   autorización que anuncia el documento RFC 9728, y el visitante no llega a
-   ver un token.
+/* ===== Registering through OAuth =============================================
+   The three forms above paste the credential by hand. These three are the path
+   the deployment recommends when the server delegates to OAuth: the client does
+   the dance (Authorization Code + PKCE) against the authorization server the
+   RFC 9728 document announces, and the visitor never sees a token.
 
-   El `clientId` es OBLIGATORIO y no un adorno: sin él estos clientes caen al
-   registro dinámico, que en GitLab entrega un token con alcance `mcp` — un
-   alcance que no puede mover la API REST sobre la que está construido este
-   servidor, así que todas las acciones fallarían. Lo dice su propia guía y por
-   eso el campo viaja en `servers.ts` en vez de dejarse al lector.
+   The `clientId` is MANDATORY and not an ornament: without it these clients
+   fall back to dynamic registration, which on GitLab hands out a token with the
+   `mcp` scope — a scope that cannot move the REST API this server is built on,
+   so every action would fail. Its own guide says so, and that is why the field
+   travels in `servers.ts` rather than being left to the reader.
 
-   Las formas salen de docs/guides/ide-configuration.md del propio servidor, no
-   de deducción: Cursor es un fork de VS Code y comparte el objeto `oauth`,
-   pero la clave de nivel superior NO es la misma (`mcpServers` frente a
-   `servers`), que es el error clásico de copiar el bloque de un cliente a
-   otro. */
+   The shapes come from the server's own docs/guides/ide-configuration.md, not
+   from deduction: Cursor is a VS Code fork and shares the `oauth` object, but
+   the top-level key is NOT the same (`mcpServers` versus `servers`), which is
+   the classic mistake when copying one client's block into another. */
 
 /**
- * Alta por OAuth en Claude Code.
+ * Registering through OAuth in Claude Code.
  *
- * @param server Servidor de `src/data/servers.ts`.
- * @returns El comando, o `undefined` si el servidor no delega en OAuth.
+ * @param server A server from `src/data/servers.ts`.
+ * @returns The command, or `undefined` when the server does not delegate to
+ *   OAuth.
  */
 export function claudeCodeOauthCommand(server: McpServer): string | undefined {
   const oauth = server.oauth;
@@ -177,10 +177,11 @@ export function claudeCodeOauthCommand(server: McpServer): string | undefined {
 }
 
 /**
- * Bloque OAuth para `.cursor/mcp.json`.
+ * The OAuth block for `.cursor/mcp.json`.
  *
- * @param server Servidor de `src/data/servers.ts`.
- * @returns JSON indentado, o `undefined` si el servidor no delega en OAuth.
+ * @param server A server from `src/data/servers.ts`.
+ * @returns Indented JSON, or `undefined` when the server does not delegate to
+ *   OAuth.
  */
 export function cursorOauthJson(server: McpServer): string | undefined {
   const oauth = server.oauth;
@@ -201,10 +202,11 @@ export function cursorOauthJson(server: McpServer): string | undefined {
 }
 
 /**
- * Bloque OAuth para `.vscode/mcp.json`.
+ * The OAuth block for `.vscode/mcp.json`.
  *
- * @param server Servidor de `src/data/servers.ts`.
- * @returns JSON indentado, o `undefined` si el servidor no delega en OAuth.
+ * @param server A server from `src/data/servers.ts`.
+ * @returns Indented JSON, or `undefined` when the server does not delegate to
+ *   OAuth.
  */
 export function vscodeOauthJson(server: McpServer): string | undefined {
   const oauth = server.oauth;

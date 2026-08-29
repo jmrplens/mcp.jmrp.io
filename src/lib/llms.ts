@@ -1,19 +1,19 @@
 /**
- * Generación de `/llms.txt` y `/llms-full.txt` (estándar llmstxt.org).
+ * Generates `/llms.txt` and `/llms-full.txt` (the llmstxt.org standard).
  *
- * El sitio hermano jmrp.io ya publica los suyos, así que un motor generativo
- * que resuelva la marca recibía un índice curado para jmrp.io y NADA para el
- * dominio donde viven de verdad los endpoints MCP. Estos dos ficheros cierran
- * ese hueco.
+ * The sibling site jmrp.io already publishes its own, so a generative engine
+ * resolving the brand got a curated index for jmrp.io and NOTHING for the
+ * domain where the MCP endpoints actually live. These two files close that
+ * gap.
  *
- * Se generan a partir de `src/data/servers.ts` y `src/i18n/ui.ts`, las mismas
- * fuentes que pintan las tarjetas: un MCP nuevo entra en la web, en el JSON-LD,
- * en `/servers.json`, en la tarjeta social y aquí de una sola vez. Duplicar
- * este texto a mano sería garantizar que se quedara viejo.
+ * They are generated from `src/data/servers.ts` and `src/i18n/ui.ts`, the same
+ * sources that render the cards: a new MCP enters the site, the JSON-LD,
+ * `/servers.json`, the social card and this, all in one go. Duplicating this
+ * text by hand would guarantee it went stale.
  *
- * Están en inglés (el `llms.txt` es un documento para máquinas, y el inglés es
- * lo que espera la herramienta que lo consuma), pero enlazan y nombran la
- * versión española del sitio.
+ * They are in English (an `llms.txt` is a document for machines, and English
+ * is what the tool consuming it expects), but they link to and name the
+ * site's Spanish version.
  */
 import type { ServerCardSummary } from "../data/server-cards";
 import {
@@ -43,14 +43,14 @@ import {
   SITE_ORIGIN,
 } from "../lib/seo";
 
-/** Nombre humano de cada idioma, para los enlaces del índice. */
+/** Each language's human name, for the index's links. */
 const LANG_NAMES: Record<string, string> = { en: "English", es: "Spanish" };
 
 /**
- * Catálogos de acciones dinámicas con snapshot committeado en
- * `src/data/surface/` (hoy solo gitlab) — la misma fuente que emite
- * `/servers.json` y el índice `/servers/<id>/actions.json`, para que las
- * tres superficies citen la misma cifra.
+ * Dynamic action catalogs with a committed snapshot in `src/data/surface/`
+ * (today only gitlab) — the same source `/servers.json` and the
+ * `/servers/<id>/actions.json` index emit from, so all three surfaces quote
+ * the same figure.
  */
 const actionCatalogs: Record<string, GitlabActionsSnapshot | undefined> = {
   gitlab: getGitlabActions(),
@@ -130,9 +130,9 @@ function pageEntries(
 }
 
 /**
- * Índice corto: qué es esto, dónde está cada cosa.
+ * The short index: what this is, and where each thing lives.
  *
- * @returns El cuerpo de `/llms.txt`.
+ * @returns `/llms.txt`'s body.
  */
 export function buildLlmsTxt(): string {
   // Seven page groups × two languages: every page an assistant can land on
@@ -166,12 +166,12 @@ export function buildLlmsTxt(): string {
     )
     .join("\n");
 
-  // Una línea por servidor con catálogo de acciones committeado, generada
-  // del mismo snapshot que `/servers.json` y el propio índice: un tercer MCP
-  // con catálogo entra aquí solo, sin tocar la plantilla de abajo. El matiz
-  // "Free-tier" viaja SIEMPRE junto al recuento: el manifiesto se lee con
-  // `cacheScope: "private"`, así que la cifra es la superficie de ese token,
-  // no la universal.
+  // One line per server with a committed action catalog, generated from the
+  // same snapshot as `/servers.json` and the index itself: a third MCP with a
+  // catalog gets in on its own, without touching the template below. The
+  // "Free-tier" qualifier ALWAYS travels with the count: the manifest is read
+  // with `cacheScope: "private"`, so the figure is that token's surface, not
+  // the universal one.
   const catalogLines = servers
     .flatMap((server) => {
       const catalog = actionCatalogs[server.id];
@@ -233,11 +233,11 @@ function exampleHeaders(server: McpServer): string {
 }
 
 /**
- * Renderiza una lista de cabeceras, marcando cuáles llevan credencial.
+ * Renders a header list, marking which ones carry a credential.
  *
- * @param headers Cabeceras declaradas en `src/data/servers.ts`.
- * @param kind Rótulo del bloque (`Required` u `Optional`).
- * @returns Las líneas del bloque, o cadena vacía si no hay ninguna.
+ * @param headers Headers declared in `src/data/servers.ts`.
+ * @param kind The block's label (`Required` or `Optional`).
+ * @returns The block's lines, or an empty string when there are none.
  */
 function headerBlock(headers: McpHeader[], kind: string): string {
   if (headers.length === 0) return "";
@@ -251,15 +251,16 @@ function headerBlock(headers: McpHeader[], kind: string): string {
 }
 
 /**
- * Renderiza un bloque de capacidades: prompts, recursos o plantillas.
+ * Renders a capability block: prompts, resources or templates.
  *
- * Existe por el mismo motivo que `headerBlock`: montar estas listas dentro de
- * la plantilla de `serverSection` anidaría una template literal en otra, que
- * es lo que sonarjs/no-nested-template-literals prohíbe en `src/lib`.
+ * It exists for the same reason as `headerBlock`: building these lists inside
+ * `serverSection`'s template would nest one template literal in another, which
+ * is what sonarjs/no-nested-template-literals forbids in `src/lib`.
  *
- * @param lead Frase que encabeza el bloque.
- * @param entries Clave con la que se invoca cada entrada, y su propósito.
- * @returns El bloque en Markdown, o cadena vacía si no hay entradas.
+ * @param lead The sentence heading the block.
+ * @param entries The key each entry is invoked with, and its purpose.
+ * @returns The block in Markdown, or an empty string when there are no
+ *   entries.
  */
 function capabilityBlock(
   lead: string,
@@ -273,19 +274,20 @@ function capabilityBlock(
 }
 
 /**
- * Renderiza el bloque de suscripciones de un servidor, si su card declara el
- * contrato (`subscriptions`).
+ * Renders a server's subscription block, when its card declares the contract
+ * (`subscriptions`).
  *
- * La disponibilidad de cada método se genera de `card.subscriptions.methods`
- * y el recuento de plantillas suscribibles sale del flag `subscribable` que
- * server-cards.ts cura desde `_meta` — el `_meta` crudo no sale de la capa de
- * datos, así que nada de este bloque puede desviarse del snapshot committeado
- * ni de las demás superficies que leen el mismo flag. El texto emitido sí
- * nombra la clave `_meta` original: es la que un cliente MCP verá en
+ * Each method's availability is generated from `card.subscriptions.methods`
+ * and the count of subscribable templates comes from the `subscribable` flag
+ * server-cards.ts curates out of `_meta` — the raw `_meta` never leaves the
+ * data layer, so nothing in this block can drift from the committed snapshot
+ * or from the other surfaces reading the same flag. The emitted text does name
+ * the original `_meta` key: that is the one an MCP client will see in
  * `resources/templates/list`.
  *
- * @param card Resumen curado del card, si existe.
- * @returns El bloque en Markdown, o cadena vacía si no hay contrato.
+ * @param card The card's curated summary, when there is one.
+ * @returns The block in Markdown, or an empty string when there is no
+ *   contract.
  */
 function subscriptionsBlock(card: ServerCardSummary | undefined): string {
   if (!card?.subscriptions) return "";
@@ -311,15 +313,15 @@ function subscriptionsBlock(card: ServerCardSummary | undefined): string {
 }
 
 /**
- * Renderiza el bloque del catálogo de acciones de un servidor, si tiene
- * snapshot committeado en `src/data/surface/`.
+ * Renders a server's action-catalog block, when it has a committed snapshot in
+ * `src/data/surface/`.
  *
- * Las cifras, los dominios de ejemplo y la URI de origen salen del snapshot,
- * nunca de literales; el matiz "Free-tier" viaja SIEMPRE junto al recuento
- * (mismo motivo que en `buildLlmsTxt`: `cacheScope: "private"`).
+ * The figures, the sample domains and the source URI come from the snapshot,
+ * never from literals; the "Free-tier" qualifier ALWAYS travels with the count
+ * (the same reason as in `buildLlmsTxt`: `cacheScope: "private"`).
  *
- * @param serverId Id del servidor en `src/data/servers.ts`.
- * @returns El bloque en Markdown, o cadena vacía si no hay catálogo.
+ * @param serverId The server's id in `src/data/servers.ts`.
+ * @returns The block in Markdown, or an empty string when there is no catalog.
  */
 function actionCatalogBlock(serverId: string): string {
   const catalog = actionCatalogs[serverId];
@@ -334,10 +336,11 @@ function actionCatalogBlock(serverId: string): string {
 }
 
 /**
- * Ficha completa de un servidor: cómo se llama, qué pide y cómo se invoca.
+ * A server's full entry: what it is called, what it asks for and how it is
+ * invoked.
  *
- * @param server Servidor de `src/data/servers.ts`.
- * @returns La sección en Markdown.
+ * @param server A server from `src/data/servers.ts`.
+ * @returns The section in Markdown.
  */
 function serverSection(server: McpServer): string {
   const auth =
@@ -345,19 +348,19 @@ function serverSection(server: McpServer): string {
       ? "\n- Authentication: none. The server is public and takes no credentials."
       : "";
 
-  // El card committeado es la fuente de reserva de los tres bloques de abajo.
-  // `servers.ts` solo lleva copia escrita a mano, y para los 37 prompts de
-  // gitlab no la hay: ese campo ausente significa "nadie ha escrito esa copia",
-  // no "este servidor no tiene prompts" —leerlo del segundo modo es lo que los
-  // dejó fuera de esta superficie—. El card lo refresca
-  // `scripts/sync-server-cards.sh` en cada release, así que lo que se emite no
-  // puede desviarse de lo que responde el servidor. Se comprueba en vez de
-  // indexar a secas: un servidor puede estar dado de alta antes de que aterrice
-  // su snapshot (mismo motivo que el filtro de `pageEntries`).
+  // The committed card is the fallback source for the three blocks below.
+  // `servers.ts` only carries hand-written copy, and for gitlab's 37 prompts
+  // there is none: that absent field means "nobody has written that copy", not
+  // "this server has no prompts" — reading it the second way is what left them
+  // out of this surface. `scripts/sync-server-cards.sh` refreshes the card on
+  // every release, so what is emitted cannot drift from what the server
+  // answers. It is checked rather than indexed blindly: a server can be
+  // registered before its snapshot lands (the same reason as `pageEntries`'
+  // filter).
   const card = serverCardDocuments[server.id];
 
-  // `servers.ts` manda donde tiene copia propia —los cuatro prompts de libgen
-  // están traducidos a mano—; el card cubre el resto.
+  // `servers.ts` wins where it has copy of its own — libgen's four prompts are
+  // translated by hand; the card covers the rest.
   const prompts = server.prompts?.length
     ? server.prompts.map((prompt) => ({
         key: prompt.name,
@@ -368,9 +371,9 @@ function serverSection(server: McpServer): string {
         what: prompt.description,
       }));
 
-  // Recursos y plantillas se listan por URI, no por nombre: es la diferencia
-  // con una herramienta, que `resources/read` direcciona por URI y el nombre a
-  // solas no deja al cliente nada que llamar.
+  // Resources and templates are listed by URI, not by name: that is the
+  // difference from a tool, since `resources/read` addresses by URI and the
+  // name alone leaves the client nothing to call.
   const resources = (card?.resources ?? []).map((resource) => ({
     key: resource.uri,
     what: resource.description,
@@ -441,9 +444,9 @@ ${vscodeJson(server, "en")}
 }
 
 /**
- * Documento largo: cuanto hace falta para llamar a los servidores.
+ * The long document: everything needed to call the servers.
  *
- * @returns El cuerpo de `/llms-full.txt`.
+ * @returns `/llms-full.txt`'s body.
  */
 export function buildLlmsFullTxt(): string {
   const sections = servers.map((server) => serverSection(server)).join("\n");
