@@ -90,10 +90,33 @@ import { ui } from "../../i18n/ui";
 import { internals } from "../../i18n/ui/internals.ts";
 import { getLangFromUrl } from "../../i18n/utils";
 import { pageUrl } from "../../lib/seo";
+import FailureLadder from "../FailureLadder.astro";
 import UpdatedLine from "../UpdatedLine.astro";
 
 const lang = getLangFromUrl(Astro.url);
 const t = internals[lang];
+
+// Bead colours for the two failure ladders, one per rung and in the rung's
+// order: the failure itself in danger, the states on the way back in warning
+// or info, the return in success, the mechanical restart in neutral. The
+// component checks the count against the steps. Rung 5 of the exit ladder
+// ("Moved", at twenty minutes) is reached by a jump in scale from the
+// minutes before it, hence `gapBefore`.
+const instanceTones = [
+  "danger",
+  "info",
+  "warning",
+  "neutral",
+  "success",
+] as const;
+const egressTones = [
+  "danger",
+  "warning",
+  "warning",
+  "success",
+  "info",
+  "success",
+] as const;
 // `backToHome` is shared chrome, so it lives in `common` and reaches this
 // page through `ui` — `internals` is deliberately outside that merge.
 const shared = ui[lang];
@@ -796,7 +819,26 @@ const MATCHED_NODE_INDEX = 0;
   >
     {t.failuresEyebrow}
   </h2>
-  {t.failuresBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+  <p class="prose-text">{t.failuresBody[0]}</p>
+  <p class="prose-text">{t.failuresBody[1]}</p>
+  {
+    /* Each ladder sits right after the paragraph it condenses — the instance
+      one after nginx/Docker/updates, the exit one after the watcher — not
+      both at the top: a figure next to its prose is a summary, two figures
+      before any prose are a puzzle. Tones are the beads' colours only; the
+      state word beside each bead carries the meaning (see the component). */
+  }
+  <FailureLadder
+    ladder={t.failureLadderInstance}
+    tones={instanceTones}
+  />
+  <p class="prose-text">{t.failuresBody[2]}</p>
+  <FailureLadder
+    ladder={t.failureLadderEgress}
+    tones={egressTones}
+    gapBefore={5}
+  />
+  <p class="prose-text">{t.failuresBody[3]}</p>
 </section>
 
 <section aria-labelledby="personal-h">

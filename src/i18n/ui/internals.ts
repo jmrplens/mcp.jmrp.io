@@ -221,11 +221,95 @@ export const internals = {
      */
     failuresEyebrow: "When something fails",
     failuresBody: [
-      "An instance can crash, hang, or be taken out on purpose for an update, and nginx handles all three the same way. A request whose connection to that instance never opened is retried on another one — up to three attempts in all, and transparently: the client sees one answer, not a failure. A request that had already been delivered is not retried, and that is deliberate: a tool call can have side effects — a write to GitLab, say — and repeating one blindly is worse than reporting that it failed. Three failures in a row set the instance aside for ten seconds; after that it is tried again, and a success keeps it in.",
+      "An instance can crash or hang. An update takes one out on purpose, but that is not a failure nginx ever sees: the instance is drained first, as the next paragraph describes. A request whose connection to a crashed instance never opened is retried on another one — up to three attempts in all, and transparently: the client sees one answer, not a failure. A request that had already been delivered is not retried, and that is deliberate: a tool call can have side effects — a write to GitLab, say — and repeating one blindly is worse than reporting that it failed. A hung instance is that case: it accepts the call and never answers, so the call times out rather than being replayed. Three failures in a row, refused or timed out, set the instance aside for ten seconds; after that it is tried again, and a success keeps it in.",
       "Underneath, Docker restarts an instance whose process dies, and a check that runs every two minutes recreates any container that has disappeared altogether. Updates take the same path, one instance at a time: it is marked down in nginx, its open connections get up to forty-five seconds to finish, it is recreated on the new version, it has to answer its own health check, and only then does it return — and none of that starts unless another instance of the same server is verifiably serving at that moment. Whoever was pinned to it is handed to another instance for those couple of minutes, and comes back afterwards.",
-      "An exit can fail too, and that is the failure this deployment is built around. Each instance's tunnel measures its own way out once a minute — a connection through the tunnel to the open internet and back, not a greeting to the far end, because a node can answer the handshake and still route nothing. Three failed readings in a row, and a watcher that reads them every minute takes that instance out of rotation: roughly three to four minutes after the cut, while the other two instances of that server carry on. It returns once it has been out for at least three minutes and has measured a working exit twice in a row. Only when both instances that share an exit node have been out for twenty minutes — or sooner, if a second node fails and a server would be left with one instance — does the watcher move one of them to another node, leaving the other out as the sensor that says when the node is back; twenty minutes of that sensor working and the moved one goes home. If all six tunnels fail at once, nothing moves: that is this machine or the internet, not three nodes at once — and traffic is never sent out through the home connection instead.",
+      "An exit can fail too, and that is the failure this deployment is built around. Each instance's tunnel measures its own way out once a minute — a connection through the tunnel to the open internet and back, not a greeting to the far end, because a node can answer the handshake and still route nothing. Three failed readings in a row, and a watcher that reads them every minute takes that instance out of rotation: roughly three to four minutes after the cut, while the other two instances of that server carry on. It returns once it has been out for at least three minutes and has read as healthy on two checks a minute apart. Only when both instances that share an exit node have been out for twenty minutes — or sooner, if a second node fails and a server would be left with one instance — does the watcher move one of them to another node, leaving the other out as the sensor that says when the node is back; twenty minutes of that sensor working and the moved one goes home. If all six tunnels fail at once, nothing moves: that is this machine or the internet, not three nodes at once — and traffic is never sent out through the home connection instead.",
       "What that means for you follows from the affinity section. Your key on the ring does not change when an instance is out: only the arc that instance owned is handed on, to the next point on the ring, so you land on one of the other two — the same one for as long as the outage lasts, not a different one per request — and everyone else stays where they were. Being handed on may change the country your calls appear to come from, since the substitute exits through its own; that comes back with your instance. Being moved is the reverse: after the couple of minutes the move itself takes, you are back on your instance, and its exit is that of its new node for as long as it is away from home. An instance that was only taken out of rotation still holds whatever it had for you when it returns; one that was recreated — for a move or an update — starts empty: for gitlab that is the one verification the affinity section already prices in, for libgen a cold read cache, which refills on use.",
     ],
+    /**
+     * The two ladders drawn inside "When something fails" — `FailureLadder.astro`
+     * on the page, `FailureLadder.md.ts` in the twin — each placed right after
+     * the paragraph it condenses. `at` is the moment a rung applies, kept to a
+     * word or two because it is a column; `state` is the word the reader
+     * scans for; `note` is one line of how. Same numbers as the prose, from
+     * the same scripts and config (see `failuresEyebrow`'s comment): change
+     * one, change both. The exit ladder forks at rung 4: "Back" is what
+     * happens if the exit recovers, "Moved" what happens if it does not, and
+     * the note on each says so.
+     */
+    failureLadderInstance: {
+      title: "An instance fails",
+      steps: [
+        {
+          at: "0 s",
+          state: "No answer",
+          note: "Its connection is refused because the process is gone. A hung instance is the harder case: it accepts the call, lets it time out, and that call is not retried either.",
+        },
+        {
+          at: "same call",
+          state: "Retried",
+          note: "The same request goes to another instance, up to three attempts in all; one already delivered is never replayed.",
+        },
+        {
+          at: "3 failures",
+          state: "Set aside",
+          note: "Ten seconds out, then tried again.",
+        },
+        {
+          at: "2 min",
+          state: "Restarted",
+          note: "Docker restarts a dead process at once; a check every two minutes notices a container that vanished and recreates it.",
+        },
+        {
+          at: "next call",
+          state: "Back",
+          note: "One success keeps it in, and whoever was pinned to it returns with it.",
+        },
+      ],
+    },
+    /**
+     * `at` reads two ways, on purpose: rungs 2 and 3 count from the cut
+     * ("about", because a reading takes up to a minute to come round and the
+     * watcher another), and a leading `+` counts from the rung before — the
+     * three minutes and the twenty both start when the instance was taken
+     * out, and rung 6's twenty when the sensor came back. Words, not `≈` or
+     * an en dash: "2–3 min" is read aloud as "2 3 min".
+     */
+    failureLadderEgress: {
+      title: "An exit fails",
+      steps: [
+        {
+          at: "0 min",
+          state: "Cut",
+          note: "The node stops routing; it may still answer the tunnel's handshake.",
+        },
+        {
+          at: "about 3 min",
+          state: "Unhealthy",
+          note: "Three failed readings in a row, one a minute, through the tunnel to the open internet.",
+        },
+        {
+          at: "about 4 min",
+          state: "Out of rotation",
+          note: "The watcher, reading every minute, marks the instance down in nginx; the other two carry on.",
+        },
+        {
+          at: "+3 min",
+          state: "Back",
+          note: "If the exit recovers: out for at least three minutes, and healthy again on two checks a minute apart.",
+        },
+        {
+          at: "+20 min",
+          state: "Moved",
+          note: "If it does not: with both instances of that node out for twenty minutes, or sooner if a second node fails, one moves to another node and the other stays out as the sensor.",
+        },
+        {
+          at: "+20 min",
+          state: "Home",
+          note: "The sensor returns first, the same way as above; twenty minutes of it healthy and the moved one goes back.",
+        },
+      ],
+    },
 
     personalEyebrow: "A personal service",
     personalBody: [
@@ -340,11 +424,78 @@ export const internals = {
     /** Ver `en.failuresEyebrow`: una sola sección, tras «Salida». */
     failuresEyebrow: "Cuando algo falla",
     failuresBody: [
-      "Una instancia puede caerse, colgarse o retirarse a propósito para actualizarla, y nginx trata los tres casos igual. Una petición cuya conexión con esa instancia nunca llegó a abrirse se reintenta en otra — hasta tres intentos en total, y de forma transparente: el cliente ve una respuesta, no un fallo. Una petición que ya se había entregado no se reintenta, y es a propósito: una llamada a una herramienta puede tener efectos — una escritura en GitLab, por ejemplo — y repetirla a ciegas es peor que informar de que falló. Tres fallos seguidos apartan la instancia diez segundos; pasados, se vuelve a probar, y un acierto la mantiene dentro.",
+      "Una instancia puede caerse o colgarse. Una actualización la retira a propósito, pero eso no es un fallo que nginx llegue a ver: la instancia se drena antes, como describe el párrafo siguiente. Una petición cuya conexión con una instancia caída nunca llegó a abrirse se reintenta en otra — hasta tres intentos en total, y de forma transparente: el cliente ve una respuesta, no un fallo. Una petición que ya se había entregado no se reintenta, y es a propósito: una llamada a una herramienta puede tener efectos — una escritura en GitLab, por ejemplo — y repetirla a ciegas es peor que informar de que falló. Una instancia colgada es justo ese caso: acepta la llamada y no contesta, así que la llamada agota su tiempo en vez de repetirse. Tres fallos seguidos, rechazados o agotados, apartan la instancia diez segundos; pasados, se vuelve a probar, y un acierto la mantiene dentro.",
       "Por debajo, Docker reinicia una instancia cuyo proceso muere, y una comprobación cada dos minutos recrea cualquier contenedor que haya desaparecido del todo. Las actualizaciones siguen el mismo camino, de una instancia en una: se marca fuera en nginx, sus conexiones abiertas tienen hasta cuarenta y cinco segundos para terminar, se recrea con la versión nueva, tiene que contestar a su propia comprobación de salud y solo entonces vuelve — y nada de eso empieza si otra instancia del mismo servidor no está sirviendo, comprobado, en ese momento. Quien estuviera fijado a ella pasa a otra instancia durante ese par de minutos, y después vuelve.",
-      "Una salida también puede fallar, y ese es el fallo alrededor del que está montado este despliegue. El túnel de cada instancia mide su propia salida una vez por minuto — una conexión por el túnel hasta internet abierto y vuelta, no un saludo al otro extremo, porque un nodo puede contestar al handshake y no encaminar nada. Tres lecturas fallidas seguidas, y un vigilante que las lee cada minuto saca esa instancia de rotación: unos tres o cuatro minutos después del corte, mientras las otras dos instancias de ese servidor siguen. Vuelve cuando lleva al menos tres minutos fuera y ha medido dos veces seguidas una salida que funciona. Solo cuando las dos instancias que comparten un nodo de salida llevan veinte minutos fuera — o antes, si cae un segundo nodo y un servidor se quedaría con una sola instancia — el vigilante mueve una de ellas a otro nodo, y deja la otra fuera como sensor que dice cuándo ha vuelto el nodo; veinte minutos de ese sensor funcionando y la movida regresa a casa. Si fallan los seis túneles a la vez, no se mueve nada: eso es esta máquina o internet, no tres nodos a la vez — y el tráfico nunca sale por la conexión de casa en su lugar.",
+      "Una salida también puede fallar, y ese es el fallo alrededor del que está montado este despliegue. El túnel de cada instancia mide su propia salida una vez por minuto — una conexión por el túnel hasta internet abierto y vuelta, no un saludo al otro extremo, porque un nodo puede contestar al handshake y no encaminar nada. Tres lecturas fallidas seguidas, y un vigilante que las lee cada minuto saca esa instancia de rotación: unos tres o cuatro minutos después del corte, mientras las otras dos instancias de ese servidor siguen. Vuelve cuando lleva al menos tres minutos fuera y se ha leído sana en dos comprobaciones con un minuto entre ellas. Solo cuando las dos instancias que comparten un nodo de salida llevan veinte minutos fuera — o antes, si cae un segundo nodo y un servidor se quedaría con una sola instancia — el vigilante mueve una de ellas a otro nodo, y deja la otra fuera como sensor que dice cuándo ha vuelto el nodo; veinte minutos de ese sensor funcionando y la movida regresa a casa. Si fallan los seis túneles a la vez, no se mueve nada: eso es esta máquina o internet, no tres nodos a la vez — y el tráfico nunca sale por la conexión de casa en su lugar.",
       "Lo que eso significa para ti se sigue de la sección de afinidad. Tu clave en el anillo no cambia cuando una instancia está fuera: solo el arco que era de esa instancia se cede al siguiente punto del anillo, así que caes en una de las otras dos — la misma mientras dure la avería, no una distinta por petición — y los demás se quedan donde estaban. Que te cedan puede cambiar el país del que parecen venir tus llamadas, porque la sustituta sale por el suyo; vuelve con tu instancia. Que la muevan es lo contrario: pasado el par de minutos que tarda la mudanza, estás de nuevo en tu instancia, y su salida es la del nodo nuevo mientras esté fuera de casa. Una instancia que solo salió de rotación conserva lo que tenía tuyo cuando vuelve; una recreada — por una mudanza o una actualización — empieza vacía: en gitlab es la verificación que la sección de afinidad ya da por descontada, en libgen una caché de lectura fría, que se vuelve a llenar con el uso.",
     ],
+    /** Ver `en.failureLadderInstance`: las dos escaleras de «Cuando algo falla». */
+    failureLadderInstance: {
+      title: "Cae una instancia",
+      steps: [
+        {
+          at: "0 s",
+          state: "No contesta",
+          note: "Su conexión se rechaza porque el proceso ya no está. Una instancia colgada es el caso difícil: acepta la llamada, la deja agotar su tiempo, y esa llamada tampoco se reintenta.",
+        },
+        {
+          at: "esa llamada",
+          state: "Reintento",
+          note: "La misma petición va a otra instancia, hasta tres intentos en total; una ya entregada no se repite nunca.",
+        },
+        {
+          at: "3 fallos",
+          state: "Apartada",
+          note: "Diez segundos fuera, y se vuelve a probar.",
+        },
+        {
+          at: "2 min",
+          state: "Reiniciada",
+          note: "Docker reinicia al momento un proceso muerto; una comprobación cada dos minutos detecta un contenedor desaparecido y lo recrea.",
+        },
+        {
+          at: "otra llamada",
+          state: "Vuelve",
+          note: "Un acierto la mantiene dentro, y quien estaba fijado a ella vuelve con ella.",
+        },
+      ],
+    },
+    /** Ver `en.failureLadderEgress`: «unos» cuenta desde el corte, `+` desde el peldaño anterior. */
+    failureLadderEgress: {
+      title: "Cae una salida",
+      steps: [
+        {
+          at: "0 min",
+          state: "Corte",
+          note: "El nodo deja de encaminar; puede seguir contestando al handshake del túnel.",
+        },
+        {
+          at: "unos 3 min",
+          state: "Enferma",
+          note: "Tres lecturas fallidas seguidas, una por minuto, por el túnel hasta internet abierto.",
+        },
+        {
+          at: "unos 4 min",
+          state: "Fuera de rotación",
+          note: "El vigilante, que lee cada minuto, la marca fuera en nginx; las otras dos siguen.",
+        },
+        {
+          at: "+3 min",
+          state: "Vuelve",
+          note: "Si la salida se recupera: al menos tres minutos fuera, y sana de nuevo en dos comprobaciones con un minuto entre ellas.",
+        },
+        {
+          at: "+20 min",
+          state: "Se muda",
+          note: "Si no: con las dos instancias de ese nodo veinte minutos fuera, o antes si cae un segundo nodo, una se muda a otro nodo y la otra se queda fuera como sensor.",
+        },
+        {
+          at: "+20 min",
+          state: "A casa",
+          note: "El sensor vuelve primero, igual que arriba; veinte minutos sano y la movida regresa.",
+        },
+      ],
+    },
 
     personalEyebrow: "Un servicio personal",
     personalBody: [

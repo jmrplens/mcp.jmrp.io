@@ -1,3 +1,4 @@
+import { failureLadderMarkdown } from "../components/FailureLadder.md.ts";
 import { serverCards } from "../data/server-cards";
 import type { McpServer } from "../data/servers";
 import { servers } from "../data/servers";
@@ -195,7 +196,16 @@ export function internalsMarkdown(lang: Lang): string {
       t.affinityConsequence,
     ]) +
     section(t.egressEyebrow, t.egressBody) +
-    section(t.failuresEyebrow, t.failuresBody) +
+    // The two ladders go where the page puts them, after the paragraph each
+    // one condenses — see the comment on them in InternalsPage.astro.
+    section(t.failuresEyebrow, [
+      t.failuresBody[0],
+      t.failuresBody[1],
+      failureLadderMarkdown(t.failureLadderInstance),
+      t.failuresBody[2],
+      failureLadderMarkdown(t.failureLadderEgress),
+      t.failuresBody[3],
+    ]) +
     section(t.personalEyebrow, t.personalBody) +
     "\n"
   );
