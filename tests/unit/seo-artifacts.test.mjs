@@ -138,6 +138,8 @@ const SERVED_PAGES = [
   "es/internals/index.html",
   "policies/index.html",
   "es/policies/index.html",
+  "license/index.html",
+  "es/license/index.html",
   "servers/index.html",
   "es/servers/index.html",
   "servers/libgen/index.html",
@@ -329,7 +331,7 @@ test("llms.txt and llms-full.txt describe the real servers", () => {
   assert.ok(full.length > short.length, "the long document is not longer");
 });
 
-test("llms.txt lists the fourteen pages in both languages", () => {
+test("llms.txt lists the sixteen pages in both languages", () => {
   const short = read("llms.txt");
   for (const path of [
     "/",
@@ -340,6 +342,8 @@ test("llms.txt lists the fourteen pages in both languages", () => {
     "/es/internals/",
     "/policies/",
     "/es/policies/",
+    "/license/",
+    "/es/license/",
     "/servers/",
     "/es/servers/",
     "/servers/libgen/",
@@ -430,6 +434,7 @@ test("every sitemap entry declares ITS OWN x-default, not the home page's", () =
     "inspector/",
     "internals/",
     "policies/",
+    "license/",
     "servers/",
     "servers/libgen/",
     "servers/gitlab/",

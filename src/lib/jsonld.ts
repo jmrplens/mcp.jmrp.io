@@ -557,6 +557,7 @@ function pageLabels(lang: Lang): Record<PageId, string> {
     home: t.navHome,
     inspector: t.navInspector,
     internals: t.navInternals,
+    license: t.navLicense,
     policies: t.navPolicies,
     servers: t.navServers,
   };

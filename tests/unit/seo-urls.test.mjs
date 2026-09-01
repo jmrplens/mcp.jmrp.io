@@ -17,6 +17,8 @@ test("pageUrl composes the URL of every page and language", () => {
   assert.equal(pageUrl("es", "internals"), "https://mcp.jmrp.io/es/internals/");
   assert.equal(pageUrl("en", "policies"), "https://mcp.jmrp.io/policies/");
   assert.equal(pageUrl("es", "policies"), "https://mcp.jmrp.io/es/policies/");
+  assert.equal(pageUrl("en", "license"), "https://mcp.jmrp.io/license/");
+  assert.equal(pageUrl("es", "license"), "https://mcp.jmrp.io/es/license/");
 });
 
 test("alternates emits ITS OWN page's cluster, not the home page's", () => {

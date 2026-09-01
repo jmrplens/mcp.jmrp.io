@@ -369,8 +369,8 @@ export const servers: McpServer[] = [
         },
         body: [
           {
-            en: "libgen is a client of third-party public indexes: it queries open-access providers (arXiv, Crossref, OpenLibrary, Gutenberg, dblp, PubMed, ERIC) and shadow-library sources — Library Genesis mirrors, Anna's Archive, Sci-Hub, SciDB and randombook.org. It hosts no catalogue and stores or redistributes no content of its own — `download` returns a link to the source, it does not serve the file.",
-            es: "libgen es un cliente de índices públicos de terceros: consulta proveedores de acceso abierto (arXiv, Crossref, OpenLibrary, Gutenberg, dblp, PubMed, ERIC) y fuentes de bibliotecas en la sombra — mirrors de Library Genesis, Anna's Archive, Sci-Hub, SciDB y randombook.org. No aloja catálogo alguno ni almacena o redistribuye contenido propio — `download` devuelve un enlace a la fuente, no sirve el fichero.",
+            en: "libgen is a client of third-party public indexes: it queries open-access providers (arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed, ERIC, OpenAlex, Europe PMC, bioRxiv, the RFC Editor, NIST, Dagstuhl, the ACL Anthology, Zenodo, SciELO, FAO, Fatcat, OAPEN and the Internet Archive) and shadow-library sources — a Library Genesis mirror, Anna's Archive, Sci-Hub, SciDB and randombook.org. It hosts no catalogue and stores or redistributes no content of its own — `download` returns a link to the source, it does not serve the file.",
+            es: "libgen es un cliente de índices públicos de terceros: consulta proveedores de acceso abierto (arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed, ERIC, OpenAlex, Europe PMC, bioRxiv, el RFC Editor, NIST, Dagstuhl, la ACL Anthology, Zenodo, SciELO, la FAO, Fatcat, OAPEN e Internet Archive) y fuentes de bibliotecas en la sombra — un mirror de Library Genesis, Anna's Archive, Sci-Hub, SciDB y randombook.org. No aloja catálogo alguno ni almacena o redistribuye contenido propio — `download` devuelve un enlace a la fuente, no sirve el fichero.",
           },
           {
             en: "What you do with those links is your responsibility, and the rules that apply depend on where you are.",
@@ -432,7 +432,7 @@ export const servers: McpServer[] = [
     name: "gitlab",
     registryName: "io.github.jmrplens/gitlab-mcp-server",
     nativeCard: true,
-    version: "2.7.5",
+    version: "branch:main",
     endpoint: "https://mcp.jmrp.io/gitlab",
     repo: "https://github.com/jmrplens/gitlab-mcp-server",
     docs: "https://github.com/jmrplens/gitlab-mcp-server#readme",
@@ -468,8 +468,8 @@ export const servers: McpServer[] = [
         },
         body: [
           {
-            en: "Your token stays in your browser's memory only. It is not written to localStorage or cookies, never travels in the URL, and is gone on reload. It is sent solely as an Authorization: Bearer header to mcp.jmrp.io/gitlab, which neither stores nor logs it: the server uses it for that request and forgets it.",
-            es: "Tu token se queda solo en la memoria de tu navegador. No se guarda en localStorage ni en cookies, no viaja en la URL y desaparece al recargar. Se envía únicamente como cabecera Authorization: Bearer a mcp.jmrp.io/gitlab, que no lo almacena ni lo registra: el servidor lo usa para esa petición y lo olvida.",
+            en: "Your token stays in your browser's memory only. It is not written to localStorage or cookies, never travels in the URL, and is gone on reload. It is sent solely as an Authorization: Bearer header to mcp.jmrp.io/gitlab, which never writes it to disk or logs it: the server keeps it in memory only while you keep using it — up to an hour after your last call — and then drops it.",
+            es: "Tu token se queda solo en la memoria de tu navegador. No se guarda en localStorage ni en cookies, no viaja en la URL y desaparece al recargar. Se envía únicamente como cabecera Authorization: Bearer a mcp.jmrp.io/gitlab, que nunca lo escribe en disco ni lo registra: el servidor lo conserva en memoria solo mientras lo sigas usando —hasta una hora después de tu última llamada— y después lo descarta.",
           },
           // Cada afirmación con su respaldo real: la CSP prueba el DESTINO
           // (el navegador la aplica); lo que el servidor haga después no lo
@@ -477,8 +477,8 @@ export const servers: McpServer[] = [
           // único verificable. La versión anterior presentaba las dos cosas
           // bajo el mismo "no hace falta que te fíes", y eso sobre-vendía.
           {
-            en: "The destination is not a matter of trust: this page's Content-Security-Policy declares connect-src 'self' https://gitlab.com and form-action 'self', so the browser itself refuses to send the token anywhere but this domain and the one that issues it. gitlab.com is on that list for exactly one reason — a sign-in button exchanging an authorization code for a token, currently disabled — and for nothing else. What the server then does with it, use it for that request and discard it, you can verify in its source code, which is public.",
-            es: "El destino no es cuestión de confianza: la Content-Security-Policy de esta página declara connect-src 'self' https://gitlab.com y form-action 'self', así que es el propio navegador el que impide enviar el token a ningún sitio que no sea este dominio y el que lo emite. gitlab.com está en esa lista por una única razón —un botón de acceso canjeando un código de autorización por un token, ahora mismo desactivado— y por ninguna otra. Lo que el servidor haga después con él, usarlo para esa petición y descartarlo, puedes comprobarlo en su código fuente, que es público.",
+            en: "The destination is not a matter of trust: this page's Content-Security-Policy declares connect-src 'self' https://gitlab.com and form-action 'self', so the browser itself refuses to send the token anywhere but this domain and the one that issues it. gitlab.com is on that list for exactly one reason — a sign-in button exchanging an authorization code for a token, currently disabled — and for nothing else. What the server then does with it — keep it in memory while you use it, re-check it with gitlab.com every fifteen minutes, and drop it — you can verify in its source code, which is public.",
+            es: "El destino no es cuestión de confianza: la Content-Security-Policy de esta página declara connect-src 'self' https://gitlab.com y form-action 'self', así que es el propio navegador el que impide enviar el token a ningún sitio que no sea este dominio y el que lo emite. gitlab.com está en esa lista por una única razón —un botón de acceso canjeando un código de autorización por un token, ahora mismo desactivado— y por ninguna otra. Lo que el servidor haga después con él —conservarlo en memoria mientras lo uses, volver a comprobarlo con gitlab.com cada quince minutos y descartarlo—, puedes comprobarlo en su código fuente, que es público.",
           },
           {
             en: "Even so, be suspicious of any site asking for a token — this one included. The sensible habits are:",
@@ -574,8 +574,8 @@ export const servers: McpServer[] = [
         valuePrefix: "Bearer ",
         placeholder: "glpat-…",
         description: {
-          en: "Your gitlab.com credential, sent as Bearer: an OAuth access token, or a personal access token used the same way. Never stored on the server.",
-          es: "Tu credencial de gitlab.com, enviada como Bearer: un token de acceso OAuth, o un personal access token usado igual. Nunca se guarda en el servidor.",
+          en: "Your gitlab.com credential, sent as Bearer: an OAuth access token, or a personal access token used the same way. Never written to disk or logged on the server.",
+          es: "Tu credencial de gitlab.com, enviada como Bearer: un token de acceso OAuth, o un personal access token usado igual. Nunca se escribe en disco ni se registra en el servidor.",
         },
       },
     ],

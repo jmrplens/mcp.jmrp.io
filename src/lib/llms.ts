@@ -98,6 +98,11 @@ function pageEntries(
       description: ui[lang].policiesIntro,
     },
     {
+      url: pageUrl(lang, "license"),
+      title: ui[lang].licenseTitle,
+      description: ui[lang].licenseIntro,
+    },
+    {
       url: pageUrl(lang, "servers"),
       title: serversPage[lang].titleIndex,
       description: serversPage[lang].ledeIndex,
@@ -195,6 +200,8 @@ answers with a page — libgen rejects the method with 405, gitlab checks
 credentials first and answers 401 — because the links under "MCP servers"
 below are call targets, not pages. Point an MCP client at the endpoint, or try the servers from the
 browser with the inspector on the site.
+
+Reuse: the site's text — the pages, their markdown twins and this file — is licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/): reuse it, including commercially, crediting "José Manuel Requena Plens" and noting any change. The site's code and both servers are MIT. The machine-readable files (/servers.json, /servers/gitlab/actions.json, the connection cards at /<id>/server-card and the documents under /.well-known/) carry no condition; the catalogue each server publishes at /<id>/.well-known/mcp/server-card.json is that server's MIT text. What the servers return is not licensed here. Full terms: ${pageUrl(DEFAULT_LANG, "license")}
 
 ## MCP servers
 

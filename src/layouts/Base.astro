@@ -152,6 +152,10 @@ const canonical = canonicalOverride ?? pageUrl(lang, page);
 // is above. It is in the shared footer, not just on the home page, so every
 // page — this one included — stays able to reach it.
 const policiesHref = new URL(pageUrl(lang, "policies")).pathname;
+// Footer link to `/license/`, for the same reason: the terms of reuse have to
+// be reachable from every page, and jmrp.io keeps its license in the footer
+// too rather than in the main navigation.
+const licenseHref = new URL(pageUrl(lang, "license")).pathname;
 const homeHref = new URL(pageUrl(lang, "home")).pathname;
 // First-level path only, like jmrp.io: `~` on the home page, `~/inspector`
 // elsewhere. `/servers/<id>/` pages ARE a real deeper slug now, but `page` is
@@ -193,16 +197,17 @@ const t = ui[lang];
 
 // One nav item per page, in the CURRENT language, for both the desktop nav
 // and the mobile drawer (they render from the same array, no JS involved).
-// Reading the ids from `PAGE_PATHS` — instead of a hand-written list — means
-// a future fifth page shows up here automatically instead of silently
-// missing from navigation. Every href is `pageUrl()` reduced to its
-// pathname, the same site-relative pattern `alternate` and `policiesHref`
-// already use above: an absolute URL here would send a dev/preview build
-// straight to production.
+// `NAV_LABELS` is typed over every `PageId`, so a new page cannot be added
+// without a label; whether it appears in the menu is `NAV_ORDER`'s call
+// below — `license` has a label and is deliberately not listed there. Every
+// href is `pageUrl()` reduced to its pathname, the same site-relative pattern
+// `alternate` and `policiesHref` already use above: an absolute URL here
+// would send a dev/preview build straight to production.
 const NAV_LABELS: Record<PageId, string> = {
   home: t.navHome,
   inspector: t.navInspector,
   internals: t.navInternals,
+  license: t.navLicense,
   policies: t.navPolicies,
   servers: t.navServers,
 };
@@ -213,6 +218,9 @@ const NAV_LABELS: Record<PageId, string> = {
  * order is the site's declared hierarchy. It runs what is here → try it → how
  * it works → the small print, and not alphabetically, which is what inheriting
  * the object's key order produced.
+ *
+ * `license` is left out on purpose: the terms of reuse belong in the footer,
+ * next to Policies, where jmrp.io keeps its own — not in a five-item menu.
  */
 const NAV_ORDER: PageId[] = [
   "home",
@@ -313,6 +321,29 @@ const serverSubItems = servers.map((server) => ({
         />
       )
     }
+    {
+      /* HTML link types `privacy-policy` and `terms-of-service`: how a user
+        agent, a crawler or a directory finds the policy without guessing its
+        path — the reason /policies/ did not need renaming to /privacy/. Both
+        point at the same page because it carries privacy (data, logs) AND
+        terms (no SLA, legal position). Neither is body-ok, so they live in
+        <head>. `license` is the same idea for the terms of reuse, as
+        jmrp.io's BaseHead emits it; all three site-relative like `canonical`
+        is not, for the same reason as `alternate` above. Outside the
+        `errorPage` guard: a 404 pointing at the policy is correct. */
+    }
+    <link
+      rel="privacy-policy"
+      href={policiesHref}
+    />
+    <link
+      rel="terms-of-service"
+      href={policiesHref}
+    />
+    <link
+      rel="license"
+      href={licenseHref}
+    />
 
     {
       /* `max-snippet:-1` lifts the cap on how much text Google may quote, and
@@ -940,7 +971,16 @@ const serverSubItems = servers.map((server) => ({
       <p class="footer-links">
         <a href="https://jmrp.io">jmrp.io</a>
         <a href="mailto:mail@jmrp.io">mail@jmrp.io</a>
-        <a href={policiesHref}>{t.footerPolicies}</a>
+        <a
+          href={policiesHref}
+          rel="privacy-policy terms-of-service"
+          >{t.footerPolicies}</a
+        >
+        <a
+          href={licenseHref}
+          rel="license"
+          >{t.footerLicense}</a
+        >
         <a href="/.well-known/security.txt">security.txt</a>
       </p>
     </footer>

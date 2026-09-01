@@ -26,6 +26,11 @@ const homeHref = new URL(pageUrl(lang, "home")).pathname;
 // raising the token question have to land on the one place that answers it,
 // or the two answers drift.
 const gitlabNoticeHref = `${homeHref}#gitlab-security`;
+// The mechanism behind the egress section lives on /internals; this page
+// keeps the consequence and points at the section that owns the rest.
+const egressHref = `${new URL(pageUrl(lang, "internals")).pathname}#egress-h`;
+// /license/ links back to `#legal-h`; this is the other direction.
+const licenseHref = new URL(pageUrl(lang, "license")).pathname;
 ---
 
 <div class="policies">
@@ -106,6 +111,14 @@ const gitlabNoticeHref = `${homeHref}#gitlab-security`;
       {t.egressEyebrow}
     </h2>
     {t.egressBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+    {
+      /* Same two-key shape as `credentialNotice` above: the prose used to end
+        "are described under Internals" with nothing to click. */
+    }
+    <p class="prose-text">
+      {t.egressPointer}{" "}
+      <a href={egressHref}>{t.egressPointerLink}</a>
+    </p>
   </section>
 
   <section
@@ -119,6 +132,20 @@ const gitlabNoticeHref = `${homeHref}#gitlab-security`;
       {t.legalEyebrow}
     </h2>
     {t.legalBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+    {
+      /* Where to write: the footer address, named here as the channel for
+        takedown requests and questions, because `slaBody` says "no support
+        channel" and a reader could take the footer's mailto for that. Then
+        the cross-link to /license/, which links back to this section. */
+    }
+    <p class="prose-text">
+      {t.legalContact}{" "}
+      <a href="mailto:mail@jmrp.io">{t.legalContactLink}</a>
+    </p>
+    <p class="prose-text">
+      {t.legalLicenseNote}{" "}
+      <a href={licenseHref}>{t.legalLicenseLink}</a>
+    </p>
   </section>
 
   {

@@ -6,6 +6,7 @@ import { common } from "../../src/i18n/ui/common.ts";
 import { home } from "../../src/i18n/ui/home.ts";
 import { inspector } from "../../src/i18n/ui/inspector.ts";
 import { internals } from "../../src/i18n/ui/internals.ts";
+import { license } from "../../src/i18n/ui/license.ts";
 import { policies } from "../../src/i18n/ui/policies.ts";
 import { serversPage } from "../../src/i18n/ui/servers-page.ts";
 
@@ -14,7 +15,7 @@ import { serversPage } from "../../src/i18n/ui/servers-page.ts";
 // keeps both languages in sync. That already happened once: `internals` was
 // spread in here and its `title` masked `common`'s, so deleting a Spanish
 // string produced zero type errors. This test is the guard.
-const MERGED = { common, home, inspector, policies };
+const MERGED = { common, home, inspector, license, policies };
 
 /** `sort()` compares as strings by default; ESLint wants that made explicit. */
 const sorted = (keys) => [...keys].sort((a, b) => a.localeCompare(b));

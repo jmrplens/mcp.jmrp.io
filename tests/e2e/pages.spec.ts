@@ -38,6 +38,8 @@ const PAGES = [
   { path: "/es/internals/", lang: "es", canonical: `${ORIGIN}/es/internals/` },
   { path: "/policies/", lang: "en", canonical: `${ORIGIN}/policies/` },
   { path: "/es/policies/", lang: "es", canonical: `${ORIGIN}/es/policies/` },
+  { path: "/license/", lang: "en", canonical: `${ORIGIN}/license/` },
+  { path: "/es/license/", lang: "es", canonical: `${ORIGIN}/es/license/` },
   // `/servers/` index: `PAGE_PATHS.servers`, one fixed URL like the rest above.
   { path: "/servers/", lang: "en", canonical: `${ORIGIN}/servers/` },
   { path: "/es/servers/", lang: "es", canonical: `${ORIGIN}/es/servers/` },
@@ -119,7 +121,7 @@ for (const { path, lang, canonical } of PAGES) {
   });
 }
 
-test("all fourteen pages respond and carry a title of their own", async ({
+test("all sixteen pages respond and carry a title of their own", async ({
   page,
 }) => {
   const paths = [
@@ -131,6 +133,8 @@ test("all fourteen pages respond and carry a title of their own", async ({
     "/es/internals/",
     "/policies/",
     "/es/policies/",
+    "/license/",
+    "/es/license/",
     "/servers/",
     "/es/servers/",
     "/servers/libgen/",
@@ -146,7 +150,7 @@ test("all fourteen pages respond and carry a title of their own", async ({
     expect(title, `${path} has no title`).not.toBe("");
     titles.add(title);
   }
-  // Fourteen distinct titles: two pages sharing a <title> compete with each
+  // Sixteen distinct titles: two pages sharing a <title> compete with each
   // other.
-  expect(titles.size).toBe(14);
+  expect(titles.size).toBe(16);
 });

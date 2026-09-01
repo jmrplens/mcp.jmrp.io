@@ -79,7 +79,7 @@ form represents well, there is a JSON mode.
 
 ## How it is built
 
-A static Astro site with one Preact island (the inspector). It is served by
+A static Astro site with three Preact islands (the inspector, the action search on the server pages and the domain filter on the action pages). It is served by
 nginx on the same host as the MCP servers, which hang off the same domain:
 that is why the inspector talks to them **same-origin** and the CSP never
 needs to open `connect-src`.
@@ -102,4 +102,11 @@ Project details and constraints live in [AGENTS.md](AGENTS.md).
 
 ## License
 
-MIT
+| What                                                                                                          | License                                                             |
+| ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| The code: pages, components, islands, build integrations, scripts                                             | [MIT](LICENSE)                                                      |
+| The site's text (`src/i18n/ui/`, the copy in `src/data/servers.ts`, and everything the build derives from it) | [CC BY 4.0](LICENSE-CONTENT.md)                                     |
+| Server cards and surface snapshots (`src/data/cards/`, `src/data/surface/`)                                   | The servers' own MIT — see [LICENSE-CONTENT.md](LICENSE-CONTENT.md) |
+| What the servers return                                                                                       | Not licensed here — see <https://mcp.jmrp.io/policies/#legal-h>     |
+
+The human-readable statement is <https://mcp.jmrp.io/license/>.

@@ -6,9 +6,10 @@ import type { GitlabActionEntry, GitlabActionParam } from "../data/surface";
 import type { Lang } from "../i18n/config";
 import { ui } from "../i18n/ui";
 import { internals } from "../i18n/ui/internals";
+import { license } from "../i18n/ui/license";
 import { policies } from "../i18n/ui/policies";
 import { serversPage } from "../i18n/ui/servers-page";
-import { pageUrl, serverPageUrl, SITE_ORIGIN } from "./seo";
+import { pageUrl, serverPageUrl, SITE_ORIGIN, SITE_REPO } from "./seo";
 
 /**
  * Markdown twins: every page of this site, as the markdown behind it.
@@ -46,7 +47,7 @@ export const MARKDOWN_HEADERS = {
 
 /** Pages that have a twin, beyond the per-server cards. */
 export type TwinPage =
-  "home" | "inspector" | "internals" | "policies" | "servers";
+  "home" | "inspector" | "internals" | "license" | "policies" | "servers";
 
 /**
  * Wraps a rendered body in the response every twin route returns.
@@ -130,6 +131,9 @@ export function inspectorMarkdown(lang: Lang): string {
       t.inspectorIntro,
       servers.map((server) => requiresLine(server, lang)).join("\n"),
       t.mdInspectorNote.replace("{url}", () => pageUrl(lang, "inspector")),
+      // The pointer to gitlab's security notice, as the page renders it —
+      // the notice lives on the home page, so the twin links there too.
+      `${t.noticePointer} ${t.noticePointerLink}: ${pageUrl(lang, "home")}#gitlab-security`,
     ]) +
     "\n"
   );
@@ -219,12 +223,66 @@ export function internalsMarkdown(lang: Lang): string {
  */
 export function policiesMarkdown(lang: Lang): string {
   const t = policies[lang];
+  // Every section the page renders, pointers included, and in the same
+  // order. The legal position and the credential pointer were missing from
+  // this twin for a while — the twin is what assistants read, and the legal
+  // position is the section most carefully written for exactly that reader.
+  // Links follow the `mdDirectiveNote` convention: the sentence, then the
+  // absolute URL.
   return (
     head(t.policiesTitle, t.policiesIntro, pageUrl(lang, "policies"), lang) +
-    section(t.privacyEyebrow, t.privacyBody) +
+    section(t.privacyEyebrow, [
+      ...t.privacyBody,
+      `${t.credentialNotice} ${t.credentialNoticeLink}: ${pageUrl(lang, "home")}#gitlab-security`,
+    ]) +
     section(t.logsEyebrow, t.logsBody) +
     section(t.slaEyebrow, t.slaBody) +
-    section(t.egressEyebrow, t.egressBody) +
+    section(t.egressEyebrow, [
+      ...t.egressBody,
+      `${t.egressPointer} ${t.egressPointerLink}: ${pageUrl(lang, "internals")}#egress-h`,
+    ]) +
+    section(t.legalEyebrow, [
+      ...t.legalBody,
+      `${t.legalContact} ${t.legalContactLink}`,
+      `${t.legalLicenseNote} ${t.legalLicenseLink}: ${pageUrl(lang, "license")}`,
+    ]) +
+    "\n"
+  );
+}
+
+/**
+ * The license page: what may be reused and how, section by section, with
+ * every link as an absolute URL after its sentence.
+ *
+ * @param lang Locale to render.
+ * @returns The markdown.
+ */
+export function licenseMarkdown(lang: Lang): string {
+  const t = license[lang];
+  const repos = servers.map((s) => `- ${s.name}: ${s.repo}`).join("\n");
+  return (
+    head(t.licenseTitle, t.licenseIntro, pageUrl(lang, "license"), lang) +
+    "\n\n" +
+    prose(t.licenseOpening) +
+    section(t.licenseTextEyebrow, [
+      ...t.licenseTextBody,
+      `${t.licenseTextLink}: ${t.licenseTextHref}`,
+    ]) +
+    section(t.licenseSiteEyebrow, [
+      ...t.licenseSiteBody,
+      `${t.licenseSiteLink}: ${SITE_REPO}`,
+    ]) +
+    section(t.licenseServersEyebrow, [...t.licenseServersBody, repos]) +
+    section(t.licenseIndexesEyebrow, t.licenseIndexesBody) +
+    section(t.licenseReturnedEyebrow, [
+      ...t.licenseReturnedBody,
+      `${t.licenseReturnedLink}: ${pageUrl(lang, "policies")}#legal-h`,
+    ]) +
+    section(t.licenseMarksEyebrow, t.licenseMarksBody) +
+    section(t.licensePermissionEyebrow, [
+      `${t.licensePermissionLead} ${t.licenseContact}`,
+      t.licensePermissionTail,
+    ]) +
     "\n"
   );
 }

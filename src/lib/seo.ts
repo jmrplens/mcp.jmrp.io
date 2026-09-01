@@ -62,7 +62,13 @@ export const SITE_NAME = "mcp.jmrp.io";
 
 /** Every page of the site. The key is what routes and the graph refer to. */
 export type PageId =
-  "home" | "inspector" | "internals" | "policies" | "servers";
+  "home" | "inspector" | "internals" | "license" | "policies" | "servers";
+
+/**
+ * The site's own repository. One constant, so the license page, the
+ * content-license file and security.txt cannot each spell it differently.
+ */
+export const SITE_REPO = "https://github.com/jmrplens/mcp.jmrp.io";
 
 /**
  * Path of each page, relative to its language root.
@@ -82,6 +88,7 @@ export const PAGE_PATHS: Record<PageId, string> = {
   home: "",
   inspector: "inspector/",
   internals: "internals/",
+  license: "license/",
   policies: "policies/",
   servers: "servers/",
 };
