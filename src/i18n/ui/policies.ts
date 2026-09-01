@@ -70,7 +70,7 @@ export const policies = {
     ],
     egressEyebrow: "Where a request appears to come from",
     egressBody: [
-      "Calls the servers make outward — to the Library Genesis mirrors, the open-access providers, or gitlab.com — leave through egress proxies hosted on VPS machines in Spain and the United Kingdom, not from wherever you or this site happen to be. To that third party, the request's source is one of those VPS addresses: neither your own IP address nor your home network's ever reaches it.",
+      "Calls the servers make outward — to the Library Genesis mirrors, the open-access providers, or gitlab.com — leave through one of three exit nodes in Spain and the United Kingdom, not from wherever you or this site happen to be. To that third party, the request's source is the exit node's address: neither your own IP address nor this server's ever reaches it. The nodes, and which instance uses which, are described under Internals.",
     ],
     legalEyebrow: "Legal position",
     /**
@@ -152,7 +152,7 @@ export const policies = {
     ],
     egressEyebrow: "De dónde parece venir una petición",
     egressBody: [
-      "Las llamadas que los servidores hacen hacia fuera — a los mirrors de Library Genesis, a los proveedores de acceso abierto, o a gitlab.com — salen por proxies de salida alojados en VPS en España y Reino Unido, no desde donde estés tú ni desde donde esté este sitio. Para ese tercero, el origen de la petición es una de esas direcciones de VPS: ni tu propia IP ni la de tu red doméstica le llegan nunca.",
+      "Las llamadas que los servidores hacen hacia fuera — a los mirrors de Library Genesis, a los proveedores de acceso abierto, o a gitlab.com — salen por uno de tres nodos de salida en España y Reino Unido, no desde donde estés tú ni desde donde esté este sitio. Para ese tercero, el origen de la petición es la dirección del nodo de salida: ni tu propia IP ni la de este servidor le llegan nunca. Los nodos, y qué instancia usa cuál, se describen en Funcionamiento interno.",
     ],
     legalEyebrow: "Postura legal",
     /**

@@ -106,10 +106,10 @@ const policiesHref = new URL(pageUrl(lang, "policies")).pathname;
 // visitor can check the claims in the surrounding prose against real code —
 // EXCEPT the salt itself, which is not a value this page can show.
 //
-// SECURITY: `"…"` stands in for the salt (48 hex characters), which lives
-// only in `secrets/affinity-salt.env` on the server and is never checked
-// into this repo or built into this site. Do not replace this placeholder
-// with a real value, here or anywhere else.
+// SECURITY: `"…"` stands in for the salt, which lives only inside the live
+// nginx vhost on the server and is never checked into this repo or built
+// into this site. Do not replace this placeholder with a real value, here or
+// anywhere else.
 //
 // SYNTAX HIGHLIGHTING: hand-marked tokens, not a highlighter. `astro:
 // components`'s `<Code />` (Shiki) was tried first, as the Restriction
@@ -203,32 +203,37 @@ const affinityTokens: SnippetToken[] = [
 // an assistant would have to run it.
 
 // "How many badges fit legibly", not an infrastructure fact — capped so the
-// diagram folds anything beyond it into the dim "+" ghost node instead of
-// needing a redraw if the real pool grows.
+// diagram never needs a redraw if the real pool grows; today the pool is
+// exactly this size, so nothing is folded.
 const MAX_DRAWN_NODES = 3;
 
 // The pool of real nodes this diagram draws — see this file's header
-// comment and `topology.ts`'s for why reusing one server's real, verified
-// pool here is deliberate: the diagram no longer claims to show which
-// server, only the mechanism every server uses.
-// if a future instance count exceeds `MAX_DRAWN_NODES`, it renders "+N"
-// instead — see the markup below.
+// comment and `topology.ts`'s for why reusing one server's real pool here
+// is deliberate: the diagram no longer claims to show which server, only
+// the mechanism every server uses. The data comes from `topology.json`,
+// regenerated from the census on every deploy, so the picture cannot drift
+// from the stack the way a hand-written literal did.
 const nodes: McpInstance[] = topology.libgen.slice(0, MAX_DRAWN_NODES);
 
 // ===== Fan geometry =========================================================
 // The strip stopped being a single row of six beads the moment the author
 // asked for what actually happens: nginx does not hand a request to "the
-// nodes", it picks ONE of three, and that node leaves through ONE of two
-// exits. A straight line through a stage called "nodes" drew a pipeline;
-// this draws a fork, the way a git graph does.
+// nodes", it picks ONE of three, and that node leaves through ONE exit — its
+// own. A straight line through a stage called "nodes" drew a pipeline; this
+// draws a fork, the way a git graph does.
 //
 // Everything below is derived from `topology.libgen`, never hand-drawn: the
-// number of nodes sets the fan's spread, and the number of DISTINCT egress
-// countries sets how many exits there are and which node joins which. Change
-// the topology and the picture changes with it — a hand-drawn fan would keep
-// claiming the old split. The countries themselves are NOT painted — the
-// author asked for them to stay out, since there are only two exits; they
-// only decide which node shares an exit with which.
+// number of nodes sets the fan's spread, and each node's exit is its own
+// row in the exit frame. Change the topology and the picture changes with
+// it — a hand-drawn fan would keep claiming the old split.
+//
+// UPDATE 2026-09-01: exits are one per NODE, not one per country. The first
+// cut collapsed the exits by country and drew two circles for three nodes;
+// the day a third exit node was added — in the same country as one of the
+// others — the figure kept showing two. Each exit circle now carries its
+// node's country code as real text (ES, GB, ES today), and the two "ES"
+// circles are told apart by the row they share with their node, not by a
+// label: the pairing IS the identity.
 //
 // Coordinates live in the SVG's own space: x as 0–100 across the strip (so it
 // stretches with the grid), y in the px of a track every column shares.
@@ -241,32 +246,19 @@ const MID_Y = TRACK_H / 2;
 const nodeY = (i: number): number =>
   Math.round((((i + 0.5) / nodes.length) * TRACK_H + Number.EPSILON) * 10) / 10;
 
-// The exits, in first-seen order, and which one each node uses. Two today
-// (two countries), and the code never assumes that number.
-const egressKeys = [...new Set(nodes.map((n) => n.egressCountry))];
+// One exit per node, in node order: exit `i` belongs to node `i`.
+const exits = nodes.map((n) => n.egressCountry);
 // KEEP-IN-SYNC with `.egress-stack` and `.stage-icon--egress` in the `style`
 // block: the exits are laid out with flexbox, so this number is not free — it
-// is the circle's diameter plus the stack's gap (22px + 8px). If the two drift,
-// the HTML's circles stop landing on the endpoints the SVG draws.
-const EGRESS_GAP = 30;
+// is the circle's diameter plus the stack's gap (18 + 8 units). If the two
+// drift, the HTML's circles stop landing on the endpoints the SVG draws.
+// Three circles of 18 with two gaps of 8 fill the frame's 70 units exactly,
+// which is why the exit beads are the nodes' size and not the 22 they were
+// when there were two of them.
+const EGRESS_GAP = 26;
 /** Vertical center of exit `i`, centred as a group on the same track. */
 const egressY = (i: number): number =>
-  MID_Y + (i - (egressKeys.length - 1) / 2) * EGRESS_GAP;
-
-/**
- * Where node `i` enters the exit zone: partway between its own row and the
- * middle, never AT the middle.
- *
- * `K` is how much of the way it travels. At 1 the three curves meet in a
- * single vertex and read as three things becoming one — which is a claim the
- * routing never makes: the exits are two, the nodes are three, and nothing
- * merges anywhere. At 0 they arrive flat and the fan does not close at all.
- * At 0.4 they visibly lean toward each other while still landing on three
- * distinct points of the frame's face, which is what actually happens.
- */
-const EGRESS_ENTRY_K = 0.4;
-const egressEntryY = (i: number): number =>
-  MID_Y + (nodeY(i) - MID_Y) * EGRESS_ENTRY_K;
+  MID_Y + (i - (exits.length - 1) / 2) * EGRESS_GAP;
 
 /**
  * One connector, as a cubic with horizontal tangents at both ends — the
@@ -288,24 +280,21 @@ function wire(x1: number, y1: number, x2: number, y2: number): string {
 const wires = {
   // you → Cloudflare → nginx: one straight run, TLS end to end.
   tls_in: [wire(COL_X[0], MID_Y, COL_X[2], MID_Y)],
-  // nginx → each node: the fork. Loopback, never on a network.
+  // nginx → each node: the fork. Never on a network — the kernel hands the
+  // connection straight into the node's namespace.
   local: nodes.map((_, i) => wire(COL_X[2], MID_Y, COL_X[3], nodeY(i))),
-  // each node → the exit zone: the join. Inside the SSH tunnel.
-  //
-  // Every node lands on the frame, each on its own point of it (see
-  // `egressEntryY`), instead of on the circle of the country it uses.
-  // Node→country is a real, fixed property (see `topology.ts`), so the earlier
-  // per-country curves were not wrong — but six curves crossing into two beads
-  // read as noise at this size, and what the fan is for is showing that traffic
-  // leaves through a controlled exit at all. The two lines LEAVING the frame
-  // still say there are exactly two of them, which is the part a reader needs.
-  ssh: nodes.map((_, i) => wire(COL_X[3], nodeY(i), COL_X[4], egressEntryY(i))),
+  // each node → ITS exit: inside the WireGuard tunnel. One wire per node,
+  // landing on that node's own exit bead: node→exit is one-to-one, and the
+  // fan says so by never crossing. (An earlier cut had the nodes converge on
+  // the frame's face because exits were per country and two nodes shared
+  // one; with one exit per node there is nothing to converge to.)
+  wg: nodes.map((_, i) => wire(COL_X[3], nodeY(i), COL_X[4], egressY(i))),
   // each exit → the destination: TLS again, and STRAIGHT. An earlier cut
-  // curved both exits into a single bead, which drew a claim the routing
-  // never makes: that the two exits share a destination. They do not — each
+  // curved the exits into a single bead, which drew a claim the routing
+  // never makes: that the exits share a destination. They do not — each
   // request goes wherever its caller pointed it, so the destination is a
   // region, not a host, and every exit enters it on its own line.
-  tls_out: egressKeys.map((_, i) =>
+  tls_out: exits.map((_, i) =>
     wire(COL_X[4], egressY(i), COL_X[5], egressY(i)),
   ),
 };
@@ -314,7 +303,7 @@ const wires = {
 const allWires = [
   ...wires.tls_in,
   ...wires.local,
-  ...wires.ssh,
+  ...wires.wg,
   ...wires.tls_out,
 ];
 
@@ -412,9 +401,9 @@ const MATCHED_NODE_INDEX = 0;
             ))
           }
           {
-            wires.ssh.map((d) => (
+            wires.wg.map((d) => (
               <path
-                class="wire wire--ssh"
+                class="wire wire--wg"
                 d={d}
                 vector-effect="non-scaling-stroke"
               />
@@ -493,8 +482,19 @@ const MATCHED_NODE_INDEX = 0;
           <div class="egress-zone">
             <div class="egress-stack">
               {
-                egressKeys.map((code) => (
-                  <span class="stage-icon stage-icon--egress">{code}</span>
+                /* One bead per node, same row as its node. The country code
+                is real text — two of them read "ES" today, and that is not
+                a mistake: two exits are in Spain, at different addresses.
+                The `--matched` bead pairs with `MATCHED_NODE_INDEX` in the
+                reduced-motion frozen frame — ILLUSTRATIVE, like the node ring. */
+              }
+              {
+                exits.map((code, i) => (
+                  <span
+                    class={`stage-icon stage-icon--egress${i === MATCHED_NODE_INDEX ? " stage-icon--egress-matched" : ""}`}
+                  >
+                    {code}
+                  </span>
                 ))
               }
             </div>
@@ -550,9 +550,9 @@ const MATCHED_NODE_INDEX = 0;
       </li>
       <li>
         <span
-          class="mcp-legend-swatch mcp-legend-swatch--ssh"
+          class="mcp-legend-swatch mcp-legend-swatch--wg"
           aria-hidden="true"
-        ></span>{t.diagramLegendSsh}
+        ></span>{t.diagramLegendWg}
       </li>
     </ul>
 
@@ -783,6 +783,22 @@ const MATCHED_NODE_INDEX = 0;
   {t.egressBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
 </section>
 
+{
+  /* After "Egress" and before "A personal service": what is there → what
+    happens when it fails → none of this is a promise. One section for both
+    kinds of failure (an instance, an exit) because they end in the same
+    consequence for the client, and that is worth stating once. */
+}
+<section aria-labelledby="failures-h">
+  <h2
+    class="eyebrow"
+    id="failures-h"
+  >
+    {t.failuresEyebrow}
+  </h2>
+  {t.failuresBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+</section>
+
 <section aria-labelledby="personal-h">
   <h2
     class="eyebrow"
@@ -958,16 +974,16 @@ const MATCHED_NODE_INDEX = 0;
 
   /* `--wire-*`: the three transport colours, defined once for the connector
      line and its legend. Site tokens, not new hex — `success` for a hop
-     encrypted with TLS, `info` for the SSH tunnel, and the muted text colour
-     for the hop that never touches a network (the same neutral this strip
-     already uses for structure rather than status). Both themes ship
+     encrypted with TLS, `info` for the WireGuard tunnel, and the muted text
+     colour for the hop that never touches a network (the same neutral this
+     strip already uses for structure rather than status). Both themes ship
      AA-contrast values for all three. */
   .mcp-flow-figure {
     /* The shared icon track, in px. Also the SVG's viewBox height, set from
        `TRACK_H` in the frontmatter — the two MUST stay equal or the curves
        stop landing on the icons. */
     --wire-tls: var(--color-success);
-    --wire-ssh: var(--color-info);
+    --wire-wg: var(--color-info);
     --wire-local: var(--color-text-muted);
 
     max-width: 62ch;
@@ -1086,8 +1102,8 @@ const MATCHED_NODE_INDEX = 0;
     stroke: var(--wire-local);
   }
 
-  .wire--ssh {
-    stroke: var(--wire-ssh);
+  .wire--wg {
+    stroke: var(--wire-wg);
   }
 
   /* The current. A dash of length 0 with a round cap paints a dot, so this is
@@ -1157,8 +1173,8 @@ const MATCHED_NODE_INDEX = 0;
     background: var(--wire-local);
   }
 
-  .mcp-legend-swatch--ssh {
-    background: var(--wire-ssh);
+  .mcp-legend-swatch--wg {
+    background: var(--wire-wg);
   }
 
   .mcp-legend-note {
@@ -1263,7 +1279,7 @@ const MATCHED_NODE_INDEX = 0;
      own bubble's window. */
 
   /* The destination is not a host: it is whatever each caller pointed its
-     client at, which is why the two exits enter it on separate straight lines
+     client at, which is why the exits enter it on separate straight lines
      instead of meeting at a bead. A tall block reads as a region the way a
      circle cannot — and, being opaque like every other icon, it also masks
      the wire ends that stop behind it. */
@@ -1301,9 +1317,10 @@ const MATCHED_NODE_INDEX = 0;
     height: calc(11 * var(--u));
   }
 
-  /* The exits, inside a single frame: the nodes' curves land on the frame, and
-     only the two lines LEAVING it are per country. Opaque on purpose, like the
-     other icons: it covers the ends of the wires that die behind it. */
+  /* The exits, inside a single frame: one bead per node, each on its node's
+     row, so every node's wire lands on its own exit and every exit leaves on
+     its own line. Opaque on purpose, like the other icons: it covers the ends
+     of the wires that die behind it. */
   .egress-zone {
     box-sizing: border-box;
     display: flex;
@@ -1316,16 +1333,19 @@ const MATCHED_NODE_INDEX = 0;
     border-radius: var(--radius-md);
   }
 
-  /* Larger than the other beads because they carry the exit country's ISO code
-     inside — real data from `topology.ts`, not decoration. */
+  /* The node beads' size, and for a reason: three of them plus two gaps fill
+     the frame's height exactly (18 + 8 + 18 + 8 + 18 = 70 units), and each one
+     sits on the same row as the node it belongs to. They carry the exit's
+     country code inside — real data from `topology.json`, not decoration.
+     KEEP-IN-SYNC with `EGRESS_GAP` in the frontmatter (18 + 8 = 26). */
   .stage-icon--egress {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: calc(22 * var(--u));
-    height: calc(22 * var(--u));
+    width: calc(18 * var(--u));
+    height: calc(18 * var(--u));
     font-family: var(--font-mono);
-    font-size: calc(8 * var(--u));
+    font-size: calc(7 * var(--u));
     font-weight: var(--fw-semibold);
     color: var(--color-text);
   }
@@ -1352,7 +1372,7 @@ const MATCHED_NODE_INDEX = 0;
 
     /* Dashed and with NO fill, unlike the egress frame, which is an opaque box:
        both are rectangles and they say different things — this one marks WHERE
-       its contents are, that one groups two exits. With a fill the two read the
+       its contents are, that one groups the exits. With a fill the two read the
        same, and it also muddied the highlight box passing over. */
     border: calc(1 * var(--u)) dashed var(--color-text-muted);
     border-radius: var(--radius-md);
@@ -1425,9 +1445,9 @@ const MATCHED_NODE_INDEX = 0;
     height: var(--track-h);
   }
 
-  /* The exits: as many as there are distinct egress countries, centred as a
-     group. The countries are not named here — see the fan geometry comment in
-     the frontmatter. */
+  /* The exits: one per node, centred as a group, each on its node's row. The
+     `gap` is half of `EGRESS_GAP` in the frontmatter — see the KEEP-IN-SYNC
+     note there and on `.stage-icon--egress`. */
   .egress-stack {
     display: flex;
     flex-direction: column;
@@ -1969,7 +1989,12 @@ const MATCHED_NODE_INDEX = 0;
       display: none;
     }
 
-    .node-badge--matched .node-badge-num {
+    /* Both rings — the node and ITS exit — because the frozen frame's whole
+       message is "the same client lands on the same node, and that is why
+       its exit is stable": a ring on the node alone showed half of it. Both
+       are ILLUSTRATIVE (see `MATCHED_NODE_INDEX`). */
+    .node-badge--matched .node-badge-num,
+    .stage-icon--egress-matched {
       background: var(--accent-dim);
       border-color: var(--color-accent);
       border-width: 2.5px;

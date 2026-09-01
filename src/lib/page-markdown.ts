@@ -175,6 +175,11 @@ export function internalsMarkdown(lang: Lang): string {
       t.diagramTimelineIntro,
       steps.join("\n"),
     ]) +
+    // Same order as InternalsPage.astro. The inspector-storage section was
+    // missing from this twin for a while: it is exactly the one the
+    // inspector's link points at as its contract, so an assistant reading
+    // the .md never saw it.
+    section(t.storageEyebrow, t.storageBody) +
     section(t.wireEyebrow, t.wireBody) +
     section(t.instancesEyebrow, t.instancesBody) +
     section(t.affinityEyebrow, [
@@ -190,6 +195,7 @@ export function internalsMarkdown(lang: Lang): string {
       t.affinityConsequence,
     ]) +
     section(t.egressEyebrow, t.egressBody) +
+    section(t.failuresEyebrow, t.failuresBody) +
     section(t.personalEyebrow, t.personalBody) +
     "\n"
   );

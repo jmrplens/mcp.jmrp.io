@@ -1,0 +1,36 @@
+{
+  "gitlab": [
+    {
+      "egress": "uk",
+      "egressCountry": "GB",
+      "replica": "gitlab-1"
+    },
+    {
+      "egress": "es",
+      "egressCountry": "ES",
+      "replica": "gitlab-2"
+    },
+    {
+      "egress": "cam",
+      "egressCountry": "ES",
+      "replica": "gitlab-3"
+    }
+  ],
+  "libgen": [
+    {
+      "egress": "es",
+      "egressCountry": "ES",
+      "replica": "libgen-1"
+    },
+    {
+      "egress": "uk",
+      "egressCountry": "GB",
+      "replica": "libgen-2"
+    },
+    {
+      "egress": "cam",
+      "egressCountry": "ES",
+      "replica": "libgen-3"
+    }
+  ]
+}
