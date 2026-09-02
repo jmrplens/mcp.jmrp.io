@@ -140,7 +140,7 @@ export const serversPage = {
     contextService:
       "This endpoint is a personal service, run by one person and offered as-is: no SLA, no support channel, and no promise it is still here — or unchanged — next week. Both servers are open source and ship as a single static binary, so anything you cannot afford to lose is better run on your own instance.",
     contextRouting:
-      "Behind the endpoint are three instances of this server. A consistent hash keeps sending the same client back to the same one, and each instance leaves for the outside world through a fixed country, Spain or the United Kingdom:",
+      "Behind the endpoint are three instances of this server. A consistent hash keeps sending the same client back to the same one, and each instance leaves for the outside world through its own exit node, in Spain or the United Kingdom:",
     contextRoutingLink: "How a request is routed, hop by hop",
     contextPolicies:
       "What is logged and for how long, where a request appears to come from, and the legal footing under all of it are set out in full:",
@@ -166,8 +166,15 @@ export const serversPage = {
     annotationDestructive: "destructive",
     /** `annotations.idempotentHint` — repeat calls with the same input have no extra effect. */
     annotationIdempotent: "idempotent",
-    /** `annotations.openWorldHint` — talks to something outside this server (the network, another API). */
-    annotationExternalNetwork: "external network",
+    /**
+     * `annotations.openWorldHint` — the server declares this tool's domain of
+     * interaction as OPEN rather than closed. It is not by itself a claim
+     * that the tool reaches the network: MCP defaults the hint to true, and
+     * `gitlab_find_action` carries it while its own description says "Read-only
+     * and no GitLab API call". The chip used to read "external network", which
+     * contradicted the sentence printed under it.
+     */
+    annotationExternalNetwork: "open world",
 
     /**
      * ---- `server/discover` instructions ----------------------------------
@@ -212,6 +219,18 @@ export const serversPage = {
     mdActionsHead: "Actions",
     mdActionOne: "action",
     mdActionMany: "actions",
+    mdDomainOne: "domain",
+    mdDomainMany: "domains",
+    /**
+     * The twin's counterpart to the page's catalog section. The twins had no
+     * word for the catalog at all, so the machine-readable view of gitlab was
+     * a two-tool endpoint — while the page gives the catalog a section, a TOC
+     * entry and a 28-row table. The token caveat travels INSIDE this string
+     * for the reason `catalogTokenNote`'s comment gives: the count is the
+     * asking token's surface, and it may not be published without it.
+     */
+    mdCatalogBody:
+      "The tools above front a catalog of {count} {actions} across {domains} {domainWord}: they are found and called through those tools, not exposed one by one. Counted with a Free-tier token — both the tier and the token's permissions move the figure. Index: {index}. One reference page per domain under {base}.",
     catalogIntro:
       "Behind the tools above sits a catalog of fine-grained actions, invoked through gitlab_execute_action and published as the gitlab://tools resource. This table only counts it, by domain — the full list is the resource itself.",
     catalogTokenNote:
@@ -352,7 +371,7 @@ export const serversPage = {
     contextService:
       "Este endpoint es un servicio personal, operado por una sola persona y ofrecido tal cual: sin SLA, sin canal de soporte y sin promesa de que siga en pie —o igual— la semana que viene. Los dos servidores son open source y son un único binario estático, así que lo que no puedas permitirte perder es mejor levantarlo en tu propia instancia.",
     contextRouting:
-      "Detrás del endpoint hay tres instancias de este servidor. Un hash consistente hace que el mismo cliente vuelva siempre a la misma, y cada instancia sale hacia fuera por un país fijo, España o Reino Unido:",
+      "Detrás del endpoint hay tres instancias de este servidor. Un hash consistente hace que el mismo cliente vuelva siempre a la misma, y cada instancia sale hacia fuera por su propio nodo de salida, en España o en Reino Unido:",
     contextRoutingLink: "Cómo se enruta una petición, salto a salto",
     contextPolicies:
       "Qué se registra y durante cuánto tiempo, de dónde parece venir una petición y la base legal de todo ello están escritos enteros en:",
@@ -371,8 +390,8 @@ export const serversPage = {
     annotationDestructive: "destructiva",
     /** Ver `en.annotationIdempotent`. */
     annotationIdempotent: "idempotente",
-    /** Ver `en.annotationExternalNetwork`. */
-    annotationExternalNetwork: "red externa",
+    /** Ver `en.annotationExternalNetwork`: el hint, no una llamada de red. */
+    annotationExternalNetwork: "mundo abierto",
 
     /** Ver `en.instructionsHead`. */
     instructionsHead: "Instrucciones de uso",
@@ -406,6 +425,13 @@ export const serversPage = {
     mdActionOne: "acción",
     /** See `en.mdActionMany`. */
     mdActionMany: "acciones",
+    /** Ver `en.mdDomainOne`. */
+    mdDomainOne: "dominio",
+    /** Ver `en.mdDomainMany`. */
+    mdDomainMany: "dominios",
+    /** Ver `en.mdCatalogBody`: la sección del catálogo en el gemelo. */
+    mdCatalogBody:
+      "Las tools de arriba dan la cara por un catálogo de {count} {actions} en {domains} {domainWord}: se encuentran y se llaman a través de ellas, no se exponen una a una. Contado con un token Free — el tier y los permisos del token mueven la cifra. Índice: {index}. Una página de referencia por dominio en {base}.",
     /** Ver `en.catalogIntro`. */
     catalogIntro:
       "Detrás de las tools de arriba hay un catálogo de acciones de grano fino, invocadas vía gitlab_execute_action y publicadas como el resource gitlab://tools. Esta tabla solo lo cuenta, por dominio — la lista completa es el propio resource.",

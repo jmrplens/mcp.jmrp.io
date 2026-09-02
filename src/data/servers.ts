@@ -611,8 +611,8 @@ export const servers: McpServer[] = [
     // `what`, so that EN and ES could carry the SAME four. Re-count the
     // characters on any rewrite: Spanish is the one that runs out of room.
     description: {
-      en: "Over 700 GitLab operations on gitlab.com — projects, merge requests, issues, pipelines. OAuth or a PAT as Bearer, per request, never stored.",
-      es: "Más de 700 operaciones de GitLab en gitlab.com — proyectos, merge requests, incidencias, pipelines. OAuth o PAT como Bearer, por petición, nunca se guarda.",
+      en: "Over 700 GitLab operations on gitlab.com — projects, merge requests, issues, pipelines. OAuth or a PAT as Bearer, never written to disk.",
+      es: "Más de 700 operaciones de GitLab en gitlab.com — proyectos, merge requests, incidencias, pipelines. OAuth o PAT como Bearer, nunca se escribe en disco.",
     },
   },
 ];

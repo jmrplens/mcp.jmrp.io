@@ -19,6 +19,7 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { serverCards } from "../../src/data/server-cards.ts";
+import { actionsDomainPaths } from "../../src/data/surface.ts";
 import {
   DEFAULT_LANG,
   LANGS,
@@ -468,9 +469,14 @@ test("every sitemap entry declares ITS OWN x-default, not the home page's", () =
  * server id for detail pages, so a test can tell the two apart without
  * comparing strings.
  *
- * @returns One entry per page/language combination the build emits — 14
- *   today: the 5 fixed pages (home/inspector/internals/policies/servers
- *   index) plus 2 server detail pages, each in both languages.
+ * NOT every page the build emits: the action-domain pages under
+ * `/servers/<id>/actions/<domain>/` are not here, because most assertions
+ * below are about the fixed pages' own shape. The two LENGTH assertions do
+ * cover them, through `domainPages()` right after this.
+ *
+ * @returns One entry per page/language the build emits from `PAGE_PATHS` and
+ *   from the committed server cards: `PAGE_PATHS.length × LANGS` plus one per
+ *   card per language.
  */
 function pages() {
   const found = [];
@@ -670,6 +676,13 @@ test("every page declares a favicon, a canonical and the JSON index", () => {
   }
 });
 
+/**
+ * What Google shows of a `<title>` before it truncates. It was a literal in
+ * the fixed pages' assertion; the action-domain pages need the same number,
+ * and two copies of a budget is how they end up different.
+ */
+const MAX_TITLE_LENGTH = 65;
+
 test("the <title> leaves room for the phrase this is searched by", () => {
   for (const { name, html, page, id } of pages()) {
     const title = /<title>([^<]*)<\/title>/.exec(html)?.[1];
@@ -703,7 +716,7 @@ test("the <title> leaves room for the phrase this is searched by", () => {
       );
     }
     assert.ok(
-      title.length <= 65,
+      title.length <= MAX_TITLE_LENGTH,
       `${name}: ${title.length} characters; Google trims past ~60`,
     );
   }
@@ -719,6 +732,37 @@ test("the <title> leaves room for the phrase this is searched by", () => {
  * subdomain do not apply two different criteria.
  */
 const MAX_DESCRIPTION = 155;
+
+test("the action-domain pages fit the same title and description budgets", () => {
+  // They are generated from a domain name of unbounded length and there are
+  // 56 of them, so they are exactly the pages a hand-written list forgets —
+  // `pages()` above walks none of them. The paths come from the same helper
+  // both routes' `getStaticPaths` uses, so this set cannot drift from what
+  // the build emits.
+  let checked = 0;
+  for (const { params } of actionsDomainPaths()) {
+    const { server, domain } = params;
+    for (const lang of LANGS) {
+      const name = `${lang === "es" ? "es/" : ""}servers/${server}/actions/${domain}/index.html`;
+      const html = read(name);
+      const title = /<title>([^<]*)<\/title>/.exec(html)?.[1];
+      assert.ok(title, `${name}: no <title>`);
+      assert.ok(
+        title.length <= MAX_TITLE_LENGTH,
+        `${name}: title is ${title.length} characters — "${title}"`,
+      );
+      const description = descriptionOf(html);
+      assert.ok(description, `${name}: no <meta name="description">`);
+      assert.ok(
+        description.length <= MAX_DESCRIPTION,
+        `${name}: ${description.length} characters; Google trims past ` +
+          `${MAX_DESCRIPTION} — "${description}"`,
+      );
+      checked += 1;
+    }
+  }
+  assert.ok(checked > 0, "no action-domain page was checked");
+});
 
 test("no description goes past what Google will show", () => {
   for (const { name, html } of pages()) {

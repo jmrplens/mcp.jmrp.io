@@ -47,6 +47,20 @@ import {
 const LANG_NAMES: Record<string, string> = { en: "English", es: "Spanish" };
 
 /**
+ * A card's version as a label: `v2.7.5`, but `branch:main` unprefixed.
+ *
+ * The `v` used to be hardcoded, which was right while every version was a
+ * semver. gitlab now reports the branch it was built from, so the index read
+ * that branch name with a stray `v` glued to its front.
+ *
+ * @param version The card's `serverInfo.version`.
+ * @returns The version with a `v` only when it starts with a digit.
+ */
+function versionLabel(version: string): string {
+  return /^\d/.test(version) ? `v${version}` : version;
+}
+
+/**
  * Dynamic action catalogs with a committed snapshot in `src/data/surface/`
  * (today only gitlab) — the same source `/servers.json` and the
  * `/servers/<id>/actions.json` index emit from, so all three surfaces quote
@@ -126,7 +140,7 @@ function pageEntries(
       const card = serverCards[server.id];
       return {
         url: serverPageUrl(lang, server.id),
-        title: `${server.name} — ${card.serverInfo.name} v${card.serverInfo.version}`,
+        title: `${server.name} — ${card.serverInfo.name} ${versionLabel(card.serverInfo.version)}`,
         description: server.description[lang],
       };
     });
@@ -468,8 +482,9 @@ export function buildLlmsFullTxt(): string {
 ## Credential policy
 
 ${secretHeaders.map((h) => `\`${h.name}\``).join(", ")} travels in the request that needs it and is
-never stored: not by the server, which uses it for that single call and forgets
-it, and not by the web inspector, which keeps it in the tab's memory only — no
+never written to disk or logged: not by the server, which holds it in memory
+only while a client keeps using it and drops it afterwards, and not by the web
+inspector, which keeps it in the tab's memory only — no
 localStorage, no cookies, no query string, no logs. Reloading the page drops it.
 
 For \`gitlab\` that credential is \`Authorization: Bearer <token>\`, and either

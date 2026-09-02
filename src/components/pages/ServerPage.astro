@@ -208,8 +208,10 @@ const tocFamilies = [
   { id: "connect-h", label: sp.connectHead },
   // No count: it is prose, not a family of entries — see `TocFamily.count`.
   { id: "context-h", label: sp.contextHead },
-  // `overview-h` is absent here: ServerToc renders it separately, with
-  // `overviewLabel`. See the component's call further down.
+  // In DOM order: the page renders connect → context → overview. This entry
+  // used to be special-cased inside ServerToc as a link to `#top`, which is
+  // the page header — so "Overview" landed two sections above the Overview.
+  { id: "overview-h", label: sp.overviewHead },
   ...(instructions
     ? [{ id: "instructions-h", label: sp.instructionsHead }]
     : []),
@@ -1093,7 +1095,6 @@ function toolAnnotationChips(
     }
     <aside class="toc-rail">
       <ServerToc
-        overviewLabel={sp.overviewHead}
         families={tocFamilies}
         ariaLabel={sp.tocLabel}
       />
@@ -1129,7 +1130,6 @@ function toolAnnotationChips(
         {sp.tocClose}
       </label>
       <ServerToc
-        overviewLabel={sp.overviewHead}
         families={tocFamilies}
         ariaLabel={sp.tocPanelLabel}
       />

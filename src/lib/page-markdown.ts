@@ -2,7 +2,12 @@ import { failureLadderMarkdown } from "../components/FailureLadder.md.ts";
 import { serverCards } from "../data/server-cards";
 import type { McpServer } from "../data/servers";
 import { servers } from "../data/servers";
-import type { GitlabActionEntry, GitlabActionParam } from "../data/surface";
+import type {
+  GitlabActionEntry,
+  GitlabActionParam,
+  SurfaceServerId,
+} from "../data/surface";
+import { actionCatalogs, getDiscover } from "../data/surface";
 import type { Lang } from "../i18n/config";
 import { ui } from "../i18n/ui";
 import { internals } from "../i18n/ui/internals";
@@ -341,6 +346,32 @@ export function serverMarkdown(server: McpServer, lang: Lang): string {
         `- ${card.resourceTemplates.length} ${t.countTemplates}`,
       ]
     : [];
+  // The service context the page prints under "Before you rely on this".
+  // Its own module doc calls these four non-negotiable for a reader who lands
+  // on a server's page without going through the home page — which is every
+  // reader of this twin. The links follow the `mdDirectiveNote` convention:
+  // the sentence, then its label and the absolute URL.
+  const context = [
+    t.contextService,
+    server.rateLimit[lang],
+    `${t.contextRouting} ${t.contextRoutingLink}: ${pageUrl(lang, "internals")}`,
+    `${t.contextPolicies} ${t.contextPoliciesLink}: ${pageUrl(lang, "policies")}`,
+  ];
+  // What the server tells every client on connect. For a server whose whole
+  // surface moved behind two tools, this is the one block that says how to
+  // use it at all — and the twin carried none of it. Verbatim server data,
+  // English in both locales, exactly as the page quotes it.
+  // The cast is the one `ServerPage.astro` makes for the same call and for
+  // the same reason: only two servers have a snapshot today, this renders any
+  // server with a card, and an id without a snapshot yields `undefined` —
+  // which is exactly the "section not rendered" path.
+  const discover = getDiscover(server.id as SurfaceServerId);
+  const instructions = discover?.instructions?.trim();
+  // The action catalog, for the servers that have one (gitlab today). Gated
+  // on the shared registry `actionCatalogs()`, the same one the page,
+  // `/servers.json` and the llms files read, so a server without a catalog
+  // renders no empty section.
+  const catalog = actionCatalogs()[server.id];
   return (
     head(
       server.name,
@@ -349,14 +380,48 @@ export function serverMarkdown(server: McpServer, lang: Lang): string {
       lang,
     ) +
     section(t.overviewHead, [facts.join("\n")]) +
+    section(t.contextHead, context) +
+    (instructions
+      ? section(t.instructionsHead, [t.instructionsIntro, instructions])
+      : "") +
     // `toolsHead` lives in `common` (through `ui`), not in `serversPage`.
     (surface.length > 0
       ? section(ui[lang].toolsHead, [surface.join("\n")])
       : "") +
+    (catalog
+      ? section(t.catalogHead, [
+          t.mdCatalogBody
+            .replace("{count}", () => String(catalog.meta.actionCount))
+            .replace("{actions}", () =>
+              catalog.meta.actionCount === 1 ? t.mdActionOne : t.mdActionMany,
+            )
+            .replace("{domains}", () => String(catalog.domains.length))
+            .replace("{domainWord}", () =>
+              catalog.domains.length === 1 ? t.mdDomainOne : t.mdDomainMany,
+            )
+            .replace(
+              "{index}",
+              () => `${SITE_ORIGIN}/servers/${server.id}/actions.json`,
+            )
+            .replace(
+              "{base}",
+              () =>
+                `${SITE_ORIGIN}${lang === "es" ? "/es" : ""}/servers/${server.id}/actions/`,
+            ),
+        ])
+      : "") +
     section(t.fullCatalogHead, [
       t.fullCatalogBody
         .replace("{corpus}", () => `${SITE_ORIGIN}/llms-full.txt`)
-        .replace("{card}", () => `\`${server.endpoint}/server-card\``),
+        // The SEP-1649 CATALOGUE the binary serves, not the SEP-2127
+        // connection card this site builds at `<endpoint>/server-card`: that
+        // one is a few hundred bytes of name/version/remotes and carries none
+        // of the four things this sentence promises. Two documents share the
+        // name "server card" here; the sentence is only true of this one.
+        .replace(
+          "{card}",
+          () => `\`${server.endpoint}/.well-known/mcp/server-card.json\``,
+        ),
     ]) +
     "\n"
   );
@@ -377,8 +442,10 @@ function paramLabel(param: GitlabActionParam): string {
  * One action-domain page as markdown.
  *
  * These are the twins worth having most, and the reason is volume: the domain
- * pages carry the whole 851-action catalog, thirty pages of reference that an
- * agent would otherwise have to read through the HTML of a filter island. The
+ * pages carry the whole action catalog — one page per domain — reference an
+ * agent would otherwise have to read through the HTML of a filter island. No
+ * figure here on purpose: the catalog is scoped to the asking token, so its
+ * size moves with the tier, which is what `catalogTokenNote` says. The
  * prose pages describe the service; these ARE the data.
  *
  * Every field the page paints is here — behaviour, description, required
@@ -443,6 +510,6 @@ export function domainMarkdown(
       `${actions.length} ${countLabel}`,
       url,
       lang,
-    ) + `\n\n## ${t.mdActionsHead}\n\n${body}\n`
+    ) + `\n${t.catalogTokenNote}\n\n## ${t.mdActionsHead}\n\n${body}\n`
   );
 }
