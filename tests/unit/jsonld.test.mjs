@@ -646,6 +646,37 @@ test("each page's dates are its own, not the repository's", (t) => {
   );
 });
 
+test("each WebAPI states its terms and its limits, not just that it is free", () => {
+  // `isAccessibleForFree` and `availability: InStock` together read as an
+  // unconditional invitation, while /policies/ says the opposite in detail:
+  // no SLA, and no commitment that either endpoint stays online — or
+  // unchanged — from one day to the next. An agent deciding whether to build
+  // on the endpoint reads the graph, not the FAQ.
+  for (const server of cardServers) {
+    const page = `servers/${server.id}/index.html`;
+    const api = graphOf(page).find((n) =>
+      String(n["@type"]).includes("WebAPI"),
+    );
+    assert.equal(
+      api.termsOfService,
+      "https://mcp.jmrp.io/policies/",
+      `${page}: the WebAPI does not point at the terms`,
+    );
+    const props = Object.fromEntries(
+      (api.additionalProperty ?? []).map((p) => [p.name, p.value]),
+    );
+    for (const name of ["transport", "authentication", "serviceLevelAgreement"]) {
+      assert.ok(props[name], `${page}: no ${name} declared`);
+    }
+    // Derived from the headers the server really requires, never restated.
+    assert.equal(
+      props.authentication === "None",
+      server.requiredHeaders.length === 0,
+      `${page}: the declared authentication disagrees with requiredHeaders`,
+    );
+  }
+});
+
 test("the FAQPage hangs ONLY off the home page", () => {
   // The notices belong to the cards, and the cards are on the home page. A
   // FAQPage on /policies/ or on a server detail page would describe questions

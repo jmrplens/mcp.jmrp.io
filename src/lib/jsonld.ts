@@ -274,6 +274,46 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
       priceCurrency: "USD",
       availability: "https://schema.org/InStock",
     },
+    // The terms the prose states and the graph did not. `isAccessibleForFree`
+    // and `availability: InStock` together read as an unconditional
+    // invitation, while /policies/ says the opposite in detail: no SLA, and no
+    // commitment that either endpoint stays online — or unchanged — from one
+    // day to the next. An agent deciding whether to build on this endpoint
+    // reads the graph, not the FAQ, so the graph has to carry the caveat.
+    //
+    // `termsOfService` is a `Service` property and `WebAPI` is a `Service`, so
+    // it applies directly. No rate limit is declared: the figure the pages
+    // give is an OUTBOUND one (how fast an instance queries its sources), not
+    // a limit on callers, and asserting it here would describe a rule that
+    // does not exist.
+    termsOfService: new URL(
+      pageUrl(DEFAULT_LANG, "policies"),
+    ).href,
+    additionalProperty: [
+      {
+        "@type": "PropertyValue",
+        name: "transport",
+        value: "Streamable HTTP (JSON-RPC 2.0 over POST)",
+      },
+      {
+        "@type": "PropertyValue",
+        name: "authentication",
+        // Derived from the headers the server actually requires, not restated:
+        // libgen needs none, gitlab needs a Bearer credential.
+        value:
+          server.requiredHeaders.length === 0
+            ? "None"
+            : server.requiredHeaders
+                .map((header) => `${header.name} header required`)
+                .join(", "),
+      },
+      {
+        "@type": "PropertyValue",
+        name: "serviceLevelAgreement",
+        value:
+          "None. A personal service, offered as-is: it may change or be withdrawn without notice.",
+      },
+    ],
     provider: ref(PERSON_ID),
     // `provider` says who OPERATES it; `author` who MADE it. Here they are the
     // same person and the visible text already says so ("who is also the author

@@ -248,6 +248,16 @@ export function policiesMarkdown(lang: Lang): string {
     ]) +
     section(t.legalEyebrow, [
       ...t.legalBody,
+      // The three resolution cases, as a labelled list per identifier. The
+      // HTML renders the same data as a <dl> of <ol>s — keep the two in step.
+      ...t.legalResolution.map(
+        (entry) =>
+          `**${entry.label}**\n${entry.steps
+            .map((step, i) => `${i + 1}. ${step}`)
+            .join("\n")}`,
+      ),
+      t.legalResolutionTail,
+      ...t.legalBodyTail,
       `${t.legalContact} ${t.legalContactLink}`,
       `${t.legalLicenseNote} ${t.legalLicenseLink}: ${pageUrl(lang, "license")}`,
     ]) +

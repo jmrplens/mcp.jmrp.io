@@ -21,6 +21,7 @@ import { fileURLToPath } from "node:url";
 
 import { serverCards } from "../../src/data/server-cards.ts";
 import { actionsDomainPaths } from "../../src/data/surface.ts";
+import { policies } from "../../src/i18n/ui/policies.ts";
 import {
   DEFAULT_LANG,
   LANGS,
@@ -257,6 +258,51 @@ test("the catalog's English is marked as English on the Spanish pages", () => {
       `${page}: ${marked} marked nodes for ${titles} actions (expected title + description each)`,
     );
   }
+});
+
+test("the legal resolution order is three labelled cases, not one long sentence", () => {
+  // The passage used to be a single 115-word sentence chaining the DOI, ISBN
+  // and catalogue-hash cases together — the least readable text on the site,
+  // on the page that most needs to be clear. The facts did not change; the
+  // shape did, and both the page and its markdown twin have to show it.
+  //
+  // The labels come from the i18n module rather than being written out here:
+  // this file is code, so it stays in English, and a copy of the strings
+  // would drift from the ones the page actually renders.
+  for (const lang of ["en", "es"]) {
+    const dir = lang === "en" ? "" : "es/";
+    const html = read(`${dir}policies/index.html`);
+    const md = read(`${dir}policies/index.md`);
+    const cases = policies[lang].legalResolution;
+    assert.equal(cases.length, 3, `${lang}: expected three cases`);
+    for (const entry of cases) {
+      assert.ok(
+        html.includes(entry.label),
+        `${dir}policies/: the case "${entry.label}" is missing`,
+      );
+      assert.ok(
+        md.includes(entry.label),
+        `${dir}policies/index.md: the case "${entry.label}" is missing`,
+      );
+      for (const step of entry.steps) {
+        assert.ok(
+          md.includes(step),
+          `${dir}policies/index.md: a step of "${entry.label}" is missing`,
+        );
+      }
+    }
+    assert.ok(
+      html.includes('class="legal-order"'),
+      `${dir}policies/: the resolution block is not rendered as a list`,
+    );
+  }
+  // The sentence that made this the worst-reading passage on the site.
+  assert.ok(
+    !read("policies/index.html").includes(
+      "is looked for at OAPEN and the Internet Archive only",
+    ),
+    "the 115-word sentence is still there",
+  );
 });
 
 test("every generated page has its location in the vhost", (t) => {
