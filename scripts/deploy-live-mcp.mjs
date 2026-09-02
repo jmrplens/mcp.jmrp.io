@@ -81,6 +81,27 @@ for (const f of FILES) {
 }
 
 /**
+ * The configuration the vhost includes from the generated directory.
+ *
+ * The sixty markdown-twin locations used to be written into the vhost by hand
+ * and are emitted by the build now, so a route check reading only the vhost
+ * warns about all 72 twins on every deploy — every one of which is served, by
+ * the include sitting right there. A check that cries wolf every time stops
+ * being read, which is worse than not having it.
+ *
+ * @returns The concatenated snippets, or "" when there are none to read.
+ */
+function generatedConfig() {
+  const dir = SNIPPETS ? path.join(SNIPPETS, "mcp") : undefined;
+  if (!dir || !fs.existsSync(dir)) return "";
+  return fs
+    .readdirSync(dir)
+    .filter((name) => name.endsWith(".conf"))
+    .map((name) => `\n${fs.readFileSync(path.join(dir, name), "utf8")}`)
+    .join("");
+}
+
+/**
  * Warns about the files in dist/ that nginx does not serve.
  *
  * The vhost serves by ALLOWLIST and ends in `location / { return 404; }`, so a
@@ -103,19 +124,9 @@ function warnUnservedFiles() {
     return;
   }
 
-  // The vhost PLUS what it includes from the generated directory. The sixty
-  // twin locations used to be written into the vhost by hand; they are emitted
-  // by the build now, so reading the vhost alone made this warn about all 72
-  // twins on every deploy — a check that cries wolf every time stops being
-  // read, which is worse than not having it.
-  const generatedDir = SNIPPETS ? path.join(SNIPPETS, "mcp") : undefined;
-  if (generatedDir && fs.existsSync(generatedDir)) {
-    for (const name of fs.readdirSync(generatedDir)) {
-      if (name.endsWith(".conf")) {
-        vhost += `\n${fs.readFileSync(path.join(generatedDir, name), "utf8")}`;
-      }
-    }
-  }
+  // What the vhost includes from the generated directory counts as vhost for
+  // this check — see `generatedConfig`.
+  vhost += generatedConfig();
 
   // `location = /x` (exact) and `location ^~ /x` or `location /x` (prefix).
   const exact = new Set();
