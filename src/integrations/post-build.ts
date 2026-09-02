@@ -34,6 +34,7 @@ import { compressAssets } from "./post-build/compression.js";
 import { finalizeCspConfig } from "./post-build/csp.js";
 import { extractCssDataUris } from "./post-build/css.js";
 import { processHtmlFiles } from "./post-build/html.js";
+import { stageNginxSnippets } from "./post-build/nginx-snippets.js";
 import type { CspData } from "./post-build/types.js";
 import { timed } from "./timing.js";
 
@@ -72,6 +73,11 @@ export default function postBuildIntegration(): AstroIntegration {
           );
           await timed("compressAssets", logger, () =>
             compressAssets(distDir, logger),
+          );
+          // AFTER compression, so the twins it walks are the real `index.md`
+          // files and not the `.br`/`.gz` the step above adds beside them.
+          await timed("stageNginxSnippets", logger, () =>
+            stageNginxSnippets(distDir, logger),
           );
         } catch (error) {
           logger.error("Fatal optimization error:");

@@ -57,6 +57,17 @@ const SNIPPETS = process.env.POSTBUILD_NGINX_SNIPPETS_PATH;
  * whatever was there with those privileges.
  */
 const NGINX_BIN = "/usr/sbin/nginx";
+
+/**
+ * Where the build stages the snippets it generates, and where they land.
+ *
+ * They are staged OUTSIDE the repository and outside the served tree (see
+ * `src/integrations/post-build/nginx-snippets.ts`) and moved into their own
+ * subdirectory here, which the vhost includes with a wildcard: a file this
+ * build did not produce degrades to an empty include instead of being fatal
+ * to the next reload, whoever triggers it.
+ */
+const STAGING = process.env.MCP_NGINX_STAGING ?? "/var/lib/mcp.jmrp.io/nginx-staged";
 const SYSTEMCTL_BIN = "/usr/bin/systemctl";
 const FILES = ["security_headers_mcp.conf", "security_headers_assets_mcp.conf"];
 const VHOST = "/etc/nginx/sites-enabled/mcp.jmrp.io.conf";
@@ -188,6 +199,65 @@ if (SNIPPETS) {
   execFileSync(SYSTEMCTL_BIN, ["reload", "nginx"]);
   console.log(`✓ ${FILES.join(", ")} deployed and nginx reloaded`);
 }
+
+/**
+ * Moves the build's generated snippets into place.
+ *
+ * Same contract as the block above: back up what is there, deliver, test, and
+ * restore everything if `nginx -t` refuses. It runs AFTER the blue/green swap,
+ * so the locations it delivers describe the build that is actually being
+ * served.
+ *
+ * A missing staging directory is not an error. It is the normal state off the
+ * production host, and it is also what happens when a scratch build is
+ * exercised with `MCP_NGINX_STAGING` pointed elsewhere.
+ */
+function deployStagedSnippets() {
+  if (!SNIPPETS || !fs.existsSync(STAGING)) return;
+
+  const target = path.join(SNIPPETS, "mcp");
+  fs.mkdirSync(target, { recursive: true });
+
+  const staged = fs
+    .readdirSync(STAGING)
+    .filter((name) => name.endsWith(".conf"));
+  if (staged.length === 0) return;
+
+  /** Previous content of each target, so the whole delivery can be undone. */
+  const previous = new Map();
+  for (const name of staged) {
+    const dst = path.join(target, name);
+    previous.set(dst, fs.existsSync(dst) ? fs.readFileSync(dst) : null);
+    // Copied and not renamed: the staging copy stays until the test passes,
+    // and the mode comes from the source, which the build set deliberately.
+    fs.copyFileSync(path.join(STAGING, name), dst);
+    // The nginx workers run unprivileged: a 0600 snippet is unreadable to
+    // them and produces a 520 on the next reload, which `nginx -t` does not
+    // catch because the master is root.
+    // eslint-disable-next-line sonarjs/file-permissions -- 0644 is the fix, see above
+    fs.chmodSync(dst, 0o644);
+  }
+
+  try {
+    execFileSync(NGINX_BIN, ["-t"], { stdio: "pipe" });
+  } catch (error) {
+    for (const [dst, buf] of previous) {
+      if (buf) fs.writeFileSync(dst, buf);
+      else fs.rmSync(dst, { force: true });
+    }
+    console.error(
+      "✗ 'nginx -t' failed on the generated snippets; the delivery was undone",
+    );
+    console.error(String(error.stderr ?? error));
+    process.exit(1);
+  }
+
+  execFileSync(SYSTEMCTL_BIN, ["reload", "nginx"]);
+  for (const name of staged) fs.rmSync(path.join(STAGING, name), { force: true });
+  console.log(`✓ ${staged.length} generated snippet(s) deployed to ${target}`);
+}
+
+deployStagedSnippets();
 
 /**
  * Flattens foreign text into a single readable line.
