@@ -74,9 +74,14 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
               >
                 {t.clientCopy}
               </button>
-              <pre>
-                <code>{block.code}</code>
-              </pre>
+              {/* The tags stay on ONE line and Prettier is told to leave
+                them there: everything between `<pre>` and `<code>` is
+                CONTENT. The HTML parser drops a single newline right after
+                `<pre>`, but not the indentation behind it, so the formatted
+                version rendered every snippet with a sixteen-space first
+                line and a blank last one. */}
+              {/* prettier-ignore */}
+              <pre><code>{block.code}</code></pre>
             </div>
           </details>
         ))}
@@ -98,9 +103,9 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
           >
             {t.clientCopy}
           </button>
-          <pre>
-            <code>{block.code}</code>
-          </pre>
+          {/* One line and unformatted, for the reason above. */}
+          {/* prettier-ignore */}
+          <pre><code>{block.code}</code></pre>
         </div>
       </details>
     ))
@@ -228,11 +233,23 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
 
   /* The block overflows horizontally WITHIN itself: the card lives in a grid
      with minmax(…, 1fr), and a <pre> with no overflow of its own widens the
-     whole thing on mobile. */
+     whole thing on mobile.
+
+     But overflowing was all it did, and inside a 360px card that hid the end
+     of every line: the commands are backslash-continued now, and the longest
+     line left is still wider than the block. `pre-wrap` lets what does not
+     fit fall to the next line instead of off the edge, and `anywhere` lets a
+     single unbreakable token — a 64-character client id, a URL — break too.
+     Nothing is lost by it: a soft wrap is not a character, so what the copy
+     button puts on the clipboard is still the exact command, and its real
+     line breaks are the backslashes. `overflow-x` stays as the floor for
+     anything that still cannot wrap. */
   pre {
     padding: 0.6rem 0.75rem;
     margin: 0;
     overflow-x: auto;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
 
     /* The PAGE background over the card's surface: that is what sets the code
        block apart from it without resorting to a translucency that would let
