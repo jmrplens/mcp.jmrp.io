@@ -359,9 +359,13 @@ test("llms.txt and llms-full.txt describe the real servers", () => {
       `llms-full.txt does not mention ${endpoint}`,
     );
   }
+  // llmstxt.org asks the H1 for the project or site NAME. It used to be the
+  // bare hostname, which the blockquote then had to recover; the name now
+  // carries what the site is. Still anchored to the host so the H1 cannot
+  // drift away from the domain it describes.
   assert.match(
     short,
-    /^# mcp\.jmrp\.io$/m,
+    /^# mcp\.jmrp\.io — .+$/m,
     "llms.txt without the standard's H1",
   );
   assert.ok(
