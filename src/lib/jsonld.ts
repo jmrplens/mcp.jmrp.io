@@ -677,9 +677,14 @@ function resolvePageUrls(
 function selectMainEntity(
   page: PageId,
   targetServer: McpServer | undefined,
+  articleId: string,
   actionsDomain?: PageMeta["actionsDomain"],
 ): Record<string, unknown>[] | undefined {
   if (targetServer) return [ref(apiId(targetServer))];
+  // A prose page describes no server, so the slot is free for the article the
+  // page IS — see `buildArticleNode`. Decided here and not at the assembly
+  // site so there is one answer to "what is this page's main entity".
+  if (PROSE_PAGES.has(page)) return [ref(articleId)];
   if (actionsDomain) {
     // A domain page describes a PORTION of a single server: that server's
     // partial description, in the same shape the other pages that mention it
@@ -843,7 +848,12 @@ export async function buildSiteGraph(
   // which already declares these two repos' `#software`; `sameAs` leads to the
   // repository, which is the subject of those nodes.
   const apiRefs = servers.map((server) => ref(apiId(server)));
-  const mainEntity = selectMainEntity(page, targetServer, actionsDomain);
+  const mainEntity = selectMainEntity(
+    page,
+    targetServer,
+    `${url}#article`,
+    actionsDomain,
+  );
 
   // The breadcrumb, as its own node the `WebPage` points at by `@id` (like the
   // `FAQPage`). Built BEFORE `webpage` because that one references it.
@@ -1013,9 +1023,6 @@ export async function buildSiteGraph(
     // Omitted entirely on pages that describe no server at all — emitting it
     // there claimed a primary entity the page never renders.
     ...(mainEntity && { mainEntity }),
-    // A prose page has no server to name, so the slot is free for the article
-    // it actually is. Guarded on the same set the node is built from.
-    ...(PROSE_PAGES.has(page) && { mainEntity: ref(articleId) }),
     // The notices are the page's concise, self-contained passages — token
     // policy, legal stance, limits — and their DOM `id`s already exist
     // (ServerCard adds them so they can be linked). `speakable` marks them as
