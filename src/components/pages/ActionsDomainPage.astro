@@ -30,14 +30,16 @@ interface Props {
   /** The token-scope caveat, shared verbatim with the card's catalog. */
   tokenNote: string;
   /**
-   * Domain of each `alias_of` target present in `actions`, resolved by the
-   * route from the full snapshot — the target may live in ANOTHER domain
-   * (issue.list_group → group.issues), so the link cannot derive it here.
+   * Domain of EVERY action id in this server's catalog, resolved by the route
+   * from the full snapshot. Needed because a reference may point at ANOTHER
+   * domain (issue.list_group → group.issues), so no link can derive it from
+   * the id's prefix — and needed for all ids, not just `alias_of` targets,
+   * because the descriptions name actions too ("See also: package.list, …").
    */
-  aliasDomains: Record<string, string>;
+  domainOf: Record<string, string>;
 }
 
-const { lang, serverId, domain, actions, tokenNote, aliasDomains } =
+const { lang, serverId, domain, actions, tokenNote, domainOf } =
   Astro.props;
 const sp = serversPage[lang];
 
@@ -66,6 +68,47 @@ function paramLabel(param: GitlabActionParam): string {
 /** Base href of a SIBLING domain page, for cross-domain alias links. */
 function domainHref(target: string): string {
   return `../${target}/`;
+}
+
+/** Anything shaped like an action id; membership decides if it really is one. */
+const ACTION_REF = /\b[a-z0-9]+(?:_[a-z0-9]+)*\.[a-z0-9]+(?:_[a-z0-9]+)*\b/g;
+
+/** A run of description text, or one action this run pointed at. */
+type Segment = string | { id: string; href: string };
+
+/**
+ * Splits a line of description into text and the actions it names.
+ *
+ * The catalog's descriptions cross-reference each other in prose — "See also:
+ * package.list, release.link_create, repository.raw_blob." — and every target
+ * already has a stable anchor on its own page. Rendered as plain text, those
+ * ~747 references resolved to nothing and each domain page was a dead end.
+ *
+ * Only ids the catalog actually defines become links, so a version number or
+ * a filename in a description is left alone: `domainOf` is the membership
+ * test, not the regex. A reference to the action being described is left as
+ * text too — a link to the paragraph you are reading is noise.
+ *
+ * @param line One line of an action's description.
+ * @param selfId The action this description belongs to.
+ * @returns The line as alternating text and reference segments.
+ */
+function lineSegments(line: string, selfId: string): Segment[] {
+  const segments: Segment[] = [];
+  let last = 0;
+  for (const match of line.matchAll(ACTION_REF)) {
+    const id = match[0];
+    const target = domainOf[id];
+    if (!target || id === selfId) continue;
+    if (match.index > last) segments.push(line.slice(last, match.index));
+    segments.push({
+      id,
+      href: `${target === domain ? "" : domainHref(target)}#${id}`,
+    });
+    last = match.index + id.length;
+  }
+  if (last < line.length) segments.push(line.slice(last));
+  return segments;
 }
 ---
 
@@ -124,16 +167,40 @@ function domainHref(target: string): string {
             data-read-only={String(action.read_only)}
           >
             <summary class="action-summary">
-              <code class="action-id">{action.id}</code>
-              <span class="action-title">{action.title}</span>
+              {
+                /* A heading, not a bare <code>: these pages are a reference
+                  list and had exactly ONE heading each — /issue/ is 111 KB
+                  with a single <h1> — so a retrieval system, which chunks on
+                  headings, saw the whole domain as one low-signal block. The
+                  id is the heading text because it is what a reader searches
+                  for. `<summary>` takes heading content, so this is valid
+                  where it sits; `.action-heading` strips the default margins
+                  and size so the row looks exactly as it did. */
+              }
+              <h2 class="action-heading">
+                <code class="action-id">{action.id}</code>
+              </h2>
+              {
+                /* The title and the description below are the catalog's own
+                  English, rendered verbatim on both editions (see this file's
+                  header). On the Spanish page they sit inside `lang="es"`, so
+                  a screen reader voiced English with Spanish phonetics until
+                  these two markers existed. */
+              }
+              <span
+                class="action-title"
+                lang={lang === "es" ? "en" : undefined}
+              >
+                {action.title}
+              </span>
               {action.alias_of && (
                 <span class="action-alias">
                   {sp.domainAliasOf}{" "}
                   <a
                     href={`${
-                      aliasDomains[action.alias_of] === domain
+                      domainOf[action.alias_of] === domain
                         ? ""
-                        : domainHref(aliasDomains[action.alias_of] ?? domain)
+                        : domainHref(domainOf[action.alias_of] ?? domain)
                     }#${action.alias_of}`}
                   >
                     <code>{action.alias_of}</code>
@@ -154,13 +221,24 @@ function domainHref(target: string): string {
               </span>
             </summary>
             <div class="action-body">
-              <div class="action-desc">
+              <div
+                class="action-desc"
+                lang={lang === "es" ? "en" : undefined}
+              >
                 {descriptionParagraphs(action.description).map((paragraph) => (
                   <p>
                     {paragraphLines(paragraph).map((line, i) => (
                       <>
                         {i > 0 && <br />}
-                        {line}
+                        {lineSegments(line, action.id).map((segment) =>
+                          typeof segment === "string" ? (
+                            segment
+                          ) : (
+                            <a href={segment.href}>
+                              <code>{segment.id}</code>
+                            </a>
+                          ),
+                        )}
                       </>
                     ))}
                   </p>
@@ -284,6 +362,16 @@ function domainHref(target: string): string {
     background: var(--color-bg-secondary);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
+  }
+
+  /* The heading is a semantic wrapper, not a visual one: the row already had
+     its type scale and its flex layout, and a default h2 would have imposed
+     both a font size and vertical margins on it. */
+  .action-heading {
+    margin: 0;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
   }
 
   .action-summary {

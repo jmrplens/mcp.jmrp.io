@@ -192,6 +192,73 @@ test("the OAuth landing step is kept out of the sitemap", () => {
   assert.equal(en, es, `EN and ES page counts differ: ${en} vs ${es}`);
 });
 
+/** Every built action-domain page, both languages. */
+function actionPages() {
+  return fs
+    .readdirSync(DIST, { recursive: true })
+    .map(String)
+    .filter((f) => /servers\/gitlab\/actions\/[^/]+\/index\.html$/.test(f));
+}
+
+test("each action is a heading, so the page is more than one chunk", () => {
+  // /issue/ is 111 KB and used to carry exactly one heading, its <h1>.
+  // Retrieval systems chunk on headings, so a domain collapsed into a single
+  // low-signal block no matter how much reference data it held. One heading
+  // per action turns the 28 pages into ~750 addressable targets.
+  const pages = actionPages();
+  assert.ok(pages.length >= 28, `only ${pages.length} action pages were built`);
+  for (const page of pages) {
+    const html = read(page);
+    const actions = (html.match(/<details/g) ?? []).length;
+    const headings = (html.match(/<h2[ >]/g) ?? []).length;
+    assert.ok(actions > 0, `${page}: no actions rendered`);
+    assert.equal(
+      headings,
+      actions,
+      `${page}: ${actions} actions but ${headings} h2 headings`,
+    );
+  }
+});
+
+test("the actions a description names are links, not prose", () => {
+  // "See also: package.list, release.link_create, repository.raw_blob" was
+  // plain text on every page, so ~747 cross-references resolved to nothing
+  // and each domain page was a dead end. Every target already had an anchor.
+  let linked = 0;
+  for (const page of actionPages()) {
+    const html = read(page);
+    for (const [, tail] of html.matchAll(/See also:((?:(?!<\/p>).){0,400})/g)) {
+      assert.match(
+        tail,
+        /^\s*<a /,
+        `${page}: a "See also" list is still plain text`,
+      );
+      linked += 1;
+    }
+  }
+  assert.ok(linked > 0, "no 'See also' list was found at all — did the copy change?");
+});
+
+test("the catalog's English is marked as English on the Spanish pages", () => {
+  // The descriptions and titles are protocol data, rendered verbatim in both
+  // editions. Inside a `lang="es"` document with no marker, a screen reader
+  // voices English with Spanish phonetics.
+  for (const page of actionPages()) {
+    if (!page.startsWith("es/")) continue;
+    const html = read(page);
+    const titles = (html.match(/class="action-title"/g) ?? []).length;
+    // The minifier reorders attributes, so the marker is matched on the tag
+    // as a whole and never on a fixed attribute order.
+    const marked = [...html.matchAll(/<[^>]*class="action-(?:title|desc)"[^>]*>/g)]
+      .filter((tag) => tag[0].includes('lang="en"')).length;
+    assert.equal(
+      marked,
+      titles * 2,
+      `${page}: ${marked} marked nodes for ${titles} actions (expected title + description each)`,
+    );
+  }
+});
+
 test("every generated page has its location in the vhost", (t) => {
   // Sibling of SERVED_AT_ROOT: that test only looks at the ROOT of dist/ (it
   // filters on entry.isFile()), so it does not see new pages, which live in
