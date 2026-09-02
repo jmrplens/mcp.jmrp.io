@@ -103,6 +103,20 @@ function warnUnservedFiles() {
     return;
   }
 
+  // The vhost PLUS what it includes from the generated directory. The sixty
+  // twin locations used to be written into the vhost by hand; they are emitted
+  // by the build now, so reading the vhost alone made this warn about all 72
+  // twins on every deploy — a check that cries wolf every time stops being
+  // read, which is worse than not having it.
+  const generatedDir = SNIPPETS ? path.join(SNIPPETS, "mcp") : undefined;
+  if (generatedDir && fs.existsSync(generatedDir)) {
+    for (const name of fs.readdirSync(generatedDir)) {
+      if (name.endsWith(".conf")) {
+        vhost += `\n${fs.readFileSync(path.join(generatedDir, name), "utf8")}`;
+      }
+    }
+  }
+
   // `location = /x` (exact) and `location ^~ /x` or `location /x` (prefix).
   const exact = new Set();
   const prefixes = [];
