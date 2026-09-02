@@ -112,6 +112,50 @@ function apiDates(server: McpServer): Record<string, string> {
 }
 
 /**
+ * The `TechArticle` a prose page IS, or null when the page is not one.
+ *
+ * `mainEntity` and not `hasPart` at the call site: on these three pages
+ * nothing else claims that slot (see `selectMainEntity`), and the document is
+ * the page's primary entity rather than a part of it.
+ *
+ * @param context The page's identity, dates and the servers it is about.
+ * @returns The node, or null.
+ */
+function buildArticleNode(context: {
+  page: PageId;
+  lang: Lang;
+  url: string;
+  articleId: string;
+  description: string;
+  dates: Record<string, string>;
+  apiRefs: { "@id": string }[];
+}): Record<string, unknown> | null {
+  const { page, lang, url, articleId, description, dates, apiRefs } = context;
+  if (!PROSE_PAGES.has(page)) return null;
+  return {
+    "@type": "TechArticle",
+    "@id": articleId,
+    headline: pageLabels(lang)[page],
+    description,
+    inLanguage: lang,
+    isPartOf: ref(`${url}#webpage`),
+    mainEntityOfPage: ref(`${url}#webpage`),
+    author: ref(PERSON_ID),
+    publisher: ref(PERSON_ID),
+    // The card's URL, not a reference to the image node the page declares:
+    // schema.org takes a URL for `image`, and the alternative — giving that
+    // node an `@id` and pointing at it — makes the graph-cohesion test read
+    // the declaration itself as a dangling reference, since it collects only
+    // top-level nodes. The licensing block stays stated once, on the page.
+    image: ogImageUrl(lang),
+    ...dates,
+    // The prose, like every other page's, is CC BY 4.0 — see /license/.
+    license: CC_BY_4_0,
+    about: apiRefs,
+  };
+}
+
+/**
  * Pages that are a written document rather than an interface.
  *
  * /internals/ is ~2,700 words in nine authored sections; /policies/ and
@@ -1033,33 +1077,15 @@ export async function buildSiteGraph(
       }
     : null;
 
-  // The article a prose page IS. `mainEntity` and not `hasPart`: on these
-  // three pages nothing else claims that slot (see `selectMainEntity`), and
-  // the document is the page's primary entity rather than a part of it.
-  const article = PROSE_PAGES.has(page)
-    ? {
-        "@type": "TechArticle",
-        "@id": articleId,
-        headline: pageLabels(lang)[page],
-        description,
-        inLanguage: lang,
-        isPartOf: ref(`${url}#webpage`),
-        mainEntityOfPage: ref(`${url}#webpage`),
-        author: ref(PERSON_ID),
-        publisher: ref(PERSON_ID),
-        // The card's URL, not a reference to the node above: schema.org takes
-        // a URL for `image`, and the alternative — giving that node an `@id`
-        // and pointing at it — makes the graph-cohesion test read the
-        // declaration itself as a dangling reference, since it collects only
-        // top-level nodes. The licensing block stays stated once, where the
-        // page describes the image.
-        image: ogImageUrl(lang),
-        ...webpageDates,
-        // The prose, like every other page's, is CC BY 4.0 — see /license/.
-        license: CC_BY_4_0,
-        about: apiRefs,
-      }
-    : null;
+  const article = buildArticleNode({
+    page,
+    lang,
+    url,
+    articleId,
+    description,
+    dates: webpageDates,
+    apiRefs,
+  });
 
   const graph = [
     website,
