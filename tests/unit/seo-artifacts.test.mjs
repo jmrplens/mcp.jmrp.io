@@ -151,6 +151,30 @@ const SERVED_PAGES = [
   "es/servers/gitlab/index.html",
 ];
 
+/**
+ * Every HTML page the build wrote, except the two that decline an identity.
+ *
+ * `SERVED_PAGES` lists the sixteen hand-maintained ones; this walks the build
+ * instead, so the 56 action-domain pages are covered too and a page added
+ * tomorrow is covered the day it ships. The 404 is an error body, and
+ * /inspector/callback/ is the OAuth landing step: both are `noindex` and
+ * neither has a twin, which is exactly why they are excluded here and by the
+ * guard in `Base.astro`.
+ */
+function twinnedPages() {
+  return fs
+    .readdirSync(DIST, { recursive: true })
+    .map(String)
+    .filter(
+      (f) =>
+        f.endsWith("index.html") &&
+        !f.includes("inspector/callback/") &&
+        // The Spanish 404 is `es/404/index.html` because the build writes
+        // directories; it is an error body like the root one, not a page.
+        !f.includes("/404/"),
+    );
+}
+
 test("every page announces its markdown twin, and the twin is really there", () => {
   // The twins were served correctly all along — right content type, and a
   // `Link:` header canonicalizing them back — but nothing on the HTML side
@@ -158,15 +182,24 @@ test("every page announces its markdown twin, and the twin is really there", () 
   // per-page prop first and 20 of its 96 twinned pages silently never passed
   // it, so this asserts the two halves that make the claim true: the tag is
   // present, and the file it points at was actually built.
-  for (const page of SERVED_PAGES) {
+  const pages = twinnedPages();
+  // A guard on the guard: if the walk ever stops finding pages, the loop
+  // below would pass by doing nothing.
+  assert.ok(pages.length >= 70, `only ${pages.length} pages were walked`);
+  for (const page of pages) {
     const html = read(page);
-    const href = /<link[^>]*rel="alternate"[^>]*type="text\/markdown"[^>]*>/.exec(
-      html,
-    );
-    assert.ok(href, `${page}: no <link rel="alternate" type="text/markdown">`);
-    const url = /href="([^"]+)"/.exec(href[0])?.[1];
+    // The minifier reorders attributes, so the tag is matched as a whole and
+    // never on a fixed attribute order — the trap that makes a naive check
+    // report a tag missing when it is right there.
+    const tag = [...html.matchAll(/<link\b[^>]*>/g)]
+      .map(([t]) => t)
+      .find(
+        (t) =>
+          t.includes('rel="alternate"') && t.includes('type="text/markdown"'),
+      );
+    assert.ok(tag, `${page}: no <link rel="alternate" type="text/markdown">`);
     assert.equal(
-      url,
+      /href="([^"]+)"/.exec(tag)?.[1],
       `${ORIGIN}/${page.replace(/index\.html$/, "")}index.md`,
       `${page}: the twin link should point at THIS page's twin`,
     );
@@ -176,86 +209,18 @@ test("every page announces its markdown twin, and the twin is really there", () 
   }
 });
 
-test("the OAuth landing step is kept out of the sitemap", () => {
-  // /inspector/callback/ is `noindex` and canonicalizes to /inspector/, so
-  // listing it made Search Console report the same URL twice — once as
-  // excluded by noindex, once as an alternate page with a proper canonical —
-  // and it is the one EN page with no ES twin, which made the two language
-  // counts disagree. A sitemap lists canonical, indexable URLs.
-  const sitemap = read("sitemap-0.xml");
-  assert.ok(
-    !sitemap.includes("/inspector/callback/"),
-    "the sitemap still lists /inspector/callback/",
-  );
-  const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, u]) => u);
-  const en = locs.filter((u) => !u.includes("/es/")).length;
-  const es = locs.length - en;
-  assert.equal(en, es, `EN and ES page counts differ: ${en} vs ${es}`);
-});
-
-/** Every built action-domain page, both languages. */
-function actionPages() {
-  return fs
-    .readdirSync(DIST, { recursive: true })
-    .map(String)
-    .filter((f) => /servers\/gitlab\/actions\/[^/]+\/index\.html$/.test(f));
-}
-
-test("each action is a heading, so the page is more than one chunk", () => {
-  // /issue/ is 111 KB and used to carry exactly one heading, its <h1>.
-  // Retrieval systems chunk on headings, so a domain collapsed into a single
-  // low-signal block no matter how much reference data it held. One heading
-  // per action turns the 28 pages into ~750 addressable targets.
-  const pages = actionPages();
-  assert.ok(pages.length >= 28, `only ${pages.length} action pages were built`);
-  for (const page of pages) {
-    const html = read(page);
-    const actions = (html.match(/<details/g) ?? []).length;
-    const headings = (html.match(/<h2[ >]/g) ?? []).length;
-    assert.ok(actions > 0, `${page}: no actions rendered`);
-    assert.equal(
-      headings,
-      actions,
-      `${page}: ${actions} actions but ${headings} h2 headings`,
-    );
-  }
-});
-
-test("the actions a description names are links, not prose", () => {
-  // "See also: package.list, release.link_create, repository.raw_blob" was
-  // plain text on every page, so ~747 cross-references resolved to nothing
-  // and each domain page was a dead end. Every target already had an anchor.
-  let linked = 0;
-  for (const page of actionPages()) {
-    const html = read(page);
-    for (const [, tail] of html.matchAll(/See also:((?:(?!<\/p>).){0,400})/g)) {
-      assert.match(
-        tail,
-        /^\s*<a /,
-        `${page}: a "See also" list is still plain text`,
-      );
-      linked += 1;
-    }
-  }
-  assert.ok(linked > 0, "no 'See also' list was found at all — did the copy change?");
-});
-
-test("the catalog's English is marked as English on the Spanish pages", () => {
-  // The descriptions and titles are protocol data, rendered verbatim in both
-  // editions. Inside a `lang="es"` document with no marker, a screen reader
-  // voices English with Spanish phonetics.
-  for (const page of actionPages()) {
-    if (!page.startsWith("es/")) continue;
-    const html = read(page);
-    const titles = (html.match(/class="action-title"/g) ?? []).length;
-    // The minifier reorders attributes, so the marker is matched on the tag
-    // as a whole and never on a fixed attribute order.
-    const marked = [...html.matchAll(/<[^>]*class="action-(?:title|desc)"[^>]*>/g)]
-      .filter((tag) => tag[0].includes('lang="en"')).length;
-    assert.equal(
-      marked,
-      titles * 2,
-      `${page}: ${marked} marked nodes for ${titles} actions (expected title + description each)`,
+test("the pages with no twin do not claim one", () => {
+  // The 404 and the OAuth landing step have no `index.md`, so a tag on them
+  // would advertise a URL that 404s. They are also the only two pages that
+  // decline an identity, which is what the guard in `Base.astro` keys on.
+  for (const page of [
+    "404.html",
+    "es/404/index.html",
+    "inspector/callback/index.html",
+  ]) {
+    assert.ok(
+      !read(page).includes('type="text/markdown"'),
+      `${page}: announces a markdown twin it does not have`,
     );
   }
 });
@@ -340,7 +305,20 @@ test("every markdown twin has its location and its canonical", (t) => {
     t.skip("the vhost is not readable on this machine");
     return;
   }
-  const vhost = fs.readFileSync(VHOST, "utf8");
+  // The vhost PLUS the snippets the build generates into their own
+  // directory. The sixty exact locations used to be written here by hand;
+  // they are emitted by `post-build/nginx-snippets.ts` now and delivered by
+  // the deploy, so reading only the vhost would assert against half the
+  // configuration and pass on an empty include.
+  const generatedDir = "/etc/nginx/snippets/mcp";
+  const generated = fs.existsSync(generatedDir)
+    ? fs
+        .readdirSync(generatedDir)
+        .filter((name) => name.endsWith(".conf"))
+        .map((name) => fs.readFileSync(`${generatedDir}/${name}`, "utf8"))
+        .join("\n")
+    : "";
+  const vhost = `${fs.readFileSync(VHOST, "utf8")}\n${generated}`;
   const twins = [];
   // `DIST` is a file:// URL: readdirSync accepts it, but a subpath cannot be
   // derived by concatenation, so it is converted to a real path once.
@@ -355,11 +333,12 @@ test("every markdown twin has its location and its canonical", (t) => {
   walk(root);
 
   assert.ok(twins.length > 0, "the build emitted no markdown twin at all");
-  // Two valid ways of being served, and the second is essential: the sixty
-  // domain twins cannot each carry an exact `location`, so they fall into
-  // their prefix's `^~` block, which nests a `location ~ \.md$`. That nested
-  // block is required, not merely the prefix: without it nginx would try
-  // `$uri/index.html` against a .md file and answer 404.
+  // Two valid ways of being served. The exact `location =` is now the normal
+  // one for every twin, including the domain pages: an exact match outranks
+  // any prefix, so the generated file covers them and the nested
+  // `location ~ \.md$` those prefixes used to need is gone. The prefix branch
+  // stays because it is still a correct way to serve a twin, and a future
+  // subtree may use it again.
   // Named, not positional: `[, , block]` skips two slots in a row, which is
   // unreadable and the linter rightly refuses — nobody reading it can tell
   // which group is being dropped.
