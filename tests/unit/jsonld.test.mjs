@@ -538,6 +538,64 @@ test("every WebPage carries ITS OWN url and @id, not the home page's nor the ser
   }
 });
 
+test("the social card carries the license metadata Search Console asks for", () => {
+  // Search Console reported "Missing field license" and "Missing field
+  // acquireLicensePage" for every page here: `primaryImageOfPage` was a bare
+  // url/width/height. Google's image metadata feature also needs `contentUrl`
+  // — a node carrying only `url` does not qualify at all, so the two license
+  // fields would have stayed inert had they been added alone.
+  const licensePages = [];
+  for (const htmlPage of htmlPages()) {
+    const { lang, page } = pageInfoFor(htmlPage);
+    if (page === "license") licensePages.push({ htmlPage, lang });
+    const webpage = graphOf(htmlPage).find((n) => n["@type"] === "WebPage");
+    const image = webpage.primaryImageOfPage;
+    assert.ok(image, `${htmlPage}: the WebPage declares no primaryImageOfPage`);
+    assert.equal(
+      image.contentUrl,
+      image.url,
+      `${htmlPage}: the card needs contentUrl; without it Google ignores license`,
+    );
+    for (const field of [
+      "license",
+      "acquireLicensePage",
+      "creator",
+      "creditText",
+      "copyrightNotice",
+    ]) {
+      assert.ok(
+        image[field],
+        `${htmlPage}: primaryImageOfPage is missing ${field}`,
+      );
+    }
+    // Google rejects the pair when both name the same address.
+    assert.notEqual(
+      image.license,
+      image.acquireLicensePage,
+      `${htmlPage}: license and acquireLicensePage have to be distinct URLs`,
+    );
+    assert.equal(
+      image.acquireLicensePage,
+      `${pageUrl(lang, "license")}#permission-h`,
+      `${htmlPage}: acquireLicensePage should point at THIS language's /license/`,
+    );
+  }
+  // The promise the field makes has to land somewhere: an anchor that no
+  // longer renders is the silent way this regresses.
+  assert.equal(licensePages.length, 2, "both /license/ pages should be built");
+  for (const { htmlPage } of licensePages) {
+    const html = fs.readFileSync(new URL(htmlPage, DIST), "utf8");
+    assert.ok(
+      html.includes('id="permission-h"'),
+      `${htmlPage}: acquireLicensePage points at #permission-h, which is not on the page`,
+    );
+    assert.ok(
+      html.includes('id="images-h"'),
+      `${htmlPage}: the section that grants the card's license is missing`,
+    );
+  }
+});
+
 test("the FAQPage hangs ONLY off the home page", () => {
   // The notices belong to the cards, and the cards are on the home page. A
   // FAQPage on /policies/ or on a server detail page would describe questions
