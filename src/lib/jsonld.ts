@@ -111,6 +111,20 @@ function apiDates(server: McpServer): Record<string, string> {
   return datesOf(new URL(serverPageUrl(DEFAULT_LANG, server.id)).pathname);
 }
 
+/**
+ * Pages that are a written document rather than an interface.
+ *
+ * /internals/ is ~2,700 words in nine authored sections; /policies/ and
+ * /license/ are the same shape. They were typed `WebPage` and nothing else,
+ * so nothing in the graph said they were articles with a thesis, and they
+ * were ineligible for the one rich result that still applies to them.
+ *
+ * The home page, `/servers/`, the server cards, the action pages and
+ * /inspector/ are deliberately absent: those are indexes and interfaces, and
+ * calling them articles would be the kind of stretch this file avoids.
+ */
+const PROSE_PAGES = new Set<PageId>(["internals", "license", "policies"]);
+
 /** A reference to a node declared elsewhere (here or in the identity doc). */
 function ref(id: string): { "@id": string } {
   return { "@id": id };
@@ -314,6 +328,19 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
           "None. A personal service, offered as-is: it may change or be withdrawn without notice.",
       },
     ],
+    // The connection card this site publishes for the endpoint (SEP-2127),
+    // which until now existed only in a `Link:` header. NOT the catalogue the
+    // binary serves at `/.well-known/mcp/server-card.json`: two different
+    // documents share that name, and the repo has confused them before.
+    // No `@id` on it: nothing references this node, and an `@id` here would
+    // read as a dangling reference to the graph-cohesion test, which collects
+    // only top-level declarations.
+    subjectOf: {
+      "@type": "MediaObject",
+      name: `${server.name} MCP connection card`,
+      contentUrl: `${server.endpoint}/server-card`,
+      encodingFormat: "application/mcp-server-card+json",
+    },
     provider: ref(PERSON_ID),
     // `provider` says who OPERATES it; `author` who MADE it. Here they are the
     // same person and the visible text already says so ("who is also the author
@@ -814,7 +841,45 @@ export async function buildSiteGraph(
     description: localized({ en: ui.en.lede, es: ui.es.lede }),
     inLanguage: LANGS,
     publisher: ref(PERSON_ID),
+    // The documents this site publishes for programs. They were reachable
+    // only through `<link rel="alternate">` and a `Link:` header, so a
+    // consumer that reads JSON-LD and nothing else could not find them —
+    // which is most of the audience they were written for.
+    subjectOf: [
+      {
+        "@type": "DataDownload",
+        name: "llms.txt index",
+        contentUrl: `${SITE_ORIGIN}/llms.txt`,
+        encodingFormat: "text/plain",
+      },
+      {
+        "@type": "DataDownload",
+        name: "llms.txt, long form",
+        contentUrl: `${SITE_ORIGIN}/llms-full.txt`,
+        encodingFormat: "text/plain",
+      },
+      {
+        "@type": "DataDownload",
+        name: "MCP server index",
+        contentUrl: `${SITE_ORIGIN}/servers.json`,
+        encodingFormat: "application/json",
+      },
+      {
+        "@type": "DataDownload",
+        name: "AI catalog",
+        contentUrl: `${SITE_ORIGIN}/.well-known/ai-catalog.json`,
+        encodingFormat: "application/json",
+      },
+      {
+        "@type": "DataDownload",
+        name: "API catalog (RFC 9727)",
+        contentUrl: `${SITE_ORIGIN}/.well-known/api-catalog`,
+        encodingFormat: "application/linkset+json",
+      },
+    ],
   };
+
+  const articleId = `${url}#article`;
 
   // This page's own dates. Resolved from `url` and not from `page`, so a
   // server card and an actions domain — which share a `PageId` with their
@@ -906,6 +971,9 @@ export async function buildSiteGraph(
     // Omitted entirely on pages that describe no server at all — emitting it
     // there claimed a primary entity the page never renders.
     ...(mainEntity && { mainEntity }),
+    // A prose page has no server to name, so the slot is free for the article
+    // it actually is. Guarded on the same set the node is built from.
+    ...(PROSE_PAGES.has(page) && { mainEntity: ref(articleId) }),
     // The notices are the page's concise, self-contained passages — token
     // policy, legal stance, limits — and their DOM `id`s already exist
     // (ServerCard adds them so they can be linked). `speakable` marks them as
@@ -967,9 +1035,38 @@ export async function buildSiteGraph(
       }
     : null;
 
+  // The article a prose page IS. `mainEntity` and not `hasPart`: on these
+  // three pages nothing else claims that slot (see `selectMainEntity`), and
+  // the document is the page's primary entity rather than a part of it.
+  const article = PROSE_PAGES.has(page)
+    ? {
+        "@type": "TechArticle",
+        "@id": articleId,
+        headline: pageLabels(lang)[page],
+        description,
+        inLanguage: lang,
+        isPartOf: ref(`${url}#webpage`),
+        mainEntityOfPage: ref(`${url}#webpage`),
+        author: ref(PERSON_ID),
+        publisher: ref(PERSON_ID),
+        // The card's URL, not a reference to the node above: schema.org takes
+        // a URL for `image`, and the alternative — giving that node an `@id`
+        // and pointing at it — makes the graph-cohesion test read the
+        // declaration itself as a dangling reference, since it collects only
+        // top-level nodes. The licensing block stays stated once, where the
+        // page describes the image.
+        image: ogImageUrl(lang),
+        ...webpageDates,
+        // The prose, like every other page's, is CC BY 4.0 — see /license/.
+        license: CC_BY_4_0,
+        about: apiRefs,
+      }
+    : null;
+
   const graph = [
     website,
     webpage,
+    ...(article ? [article] : []),
     ...(breadcrumb ? [breadcrumb] : []),
     ...(faq ? [faq] : []),
     ...apis,
