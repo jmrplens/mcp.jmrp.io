@@ -8,7 +8,7 @@ import { defineConfig, fontProviders } from "astro/config";
 import postBuild from "./src/integrations/post-build.ts";
 import { contentDate } from "./src/lib/build-date.ts";
 import { DEFAULT_LANG } from "./src/lib/seo.ts";
-import { createLastmodResolver } from "./src/lib/sitemap-lastmod.ts";
+import { createPageDatesResolver } from "./src/lib/sitemap-lastmod.ts";
 
 // The content date comes from the helper shared with the JSON-LD and the
 // footer: three surfaces, one single truth. See src/lib/build-date.ts for the
@@ -19,7 +19,7 @@ import { createLastmodResolver } from "./src/lib/sitemap-lastmod.ts";
 // what stopped the deploy from telling IndexNow and Bing what had really moved
 // — see src/lib/sitemap-lastmod.ts.
 const LASTMOD = contentDate();
-const lastmodFor = createLastmodResolver();
+const pageDatesFor = createPageDatesResolver();
 
 export default defineConfig({
   site: "https://mcp.jmrp.io",
@@ -107,10 +107,19 @@ export default defineConfig({
     // need to reconstruct the URL by hand.
     sitemap({
       i18n: { defaultLocale: "en", locales: { en: "en", es: "es" } },
+      // /inspector/callback/ is the OAuth landing step: it declares
+      // `noindex, follow` and canonicalizes to /inspector/. Listing it asked
+      // Search Console to report the same URL twice — once as "Excluded by
+      // 'noindex' tag" and once as "Alternate page with proper canonical tag"
+      // — for a page that was never meant to be indexed, and it is also the
+      // one EN page with no ES twin, so it made the two language counts
+      // disagree (37 vs 36). A sitemap lists canonical, indexable URLs.
+      filter: (page) => !page.includes("/inspector/callback/"),
       serialize: (item) => ({
         ...item,
         ...(() => {
-          const lastmod = lastmodFor(new URL(item.url).pathname) ?? LASTMOD;
+          const lastmod =
+            pageDatesFor(new URL(item.url).pathname).dateModified ?? LASTMOD;
           return lastmod ? { lastmod } : {};
         })(),
         ...(item.links && {

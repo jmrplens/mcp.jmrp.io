@@ -39,10 +39,10 @@ import type { McpNotice, McpServer } from "../data/servers";
 import { servers } from "../data/servers";
 import type { Lang } from "../i18n/ui";
 import { ui } from "../i18n/ui";
-import { buildDate, publishedDate } from "./build-date";
 import { loadPersonNode, PERSON_ID } from "./identity";
 import {
   actionsDomainPageUrl,
+  DEFAULT_LANG,
   LANGS,
   OG_IMAGE_SIZE,
   ogImageUrl,
@@ -52,15 +52,20 @@ import {
   SITE_NAME,
   SITE_ORIGIN,
 } from "./seo";
+import { createPageDatesResolver } from "./sitemap-lastmod";
 
-// See build-date.ts: HEAD when the tree is clean, now when it is dirty. The
-// fallback to the current time only applies without git, and `buildDate()`
-// caches it so this value matches the footer's and `<UpdatedLine>`'s.
-const BUILD_DATE = buildDate();
-
-// The repository's first commit. Without git there is no date and the field
-// is omitted: see build-date.ts.
-const PUBLISHED_DATE = publishedDate();
+// Each page's own dates, from the git history of the files that page is made
+// of. Built once: it memoizes per source set, and the graph is rendered 73
+// times per build.
+//
+// This REPLACES the two site-wide constants this file used to keep. HEAD's
+// commit date was stamped on all 73 pages, so the graph said the whole site
+// changed whenever any commit landed; and the repository's first commit was
+// stamped as every page's `datePublished`, so /license/ claimed to have
+// existed on 2026-08-06, weeks before it was written. The footer and
+// `<UpdatedLine>` still use `buildDate()` — a site-wide date is the honest one
+// there, because that line is about the deployment.
+const pageDates = createPageDatesResolver();
 
 /** `@id` of the `WebSite` node the pages hang off through `isPartOf`. */
 const WEBSITE_ID = `${SITE_ORIGIN}/#website`;
@@ -81,6 +86,29 @@ function localized(values: { en: string; es: string }): LocalizedValue[] {
     { "@value": values.en, "@language": "en" },
     { "@value": values.es, "@language": "es" },
   ];
+}
+
+/**
+ * A node's `dateModified`/`datePublished` pair, ready to spread.
+ *
+ * Each is omitted rather than emitted empty when git cannot answer — a missing
+ * date is a gap, an invented one is a false claim, and this file already
+ * carries the rule that it does not assert what it cannot verify.
+ *
+ * @param pathname The page whose sources date the node.
+ * @returns The keys to spread into the node.
+ */
+function datesOf(pathname: string): Record<string, string> {
+  const { dateModified, datePublished } = pageDates(pathname);
+  return {
+    ...(dateModified && { dateModified }),
+    ...(datePublished && { datePublished }),
+  };
+}
+
+/** The dates of one server's node, from its card page. */
+function apiDates(server: McpServer): Record<string, string> {
+  return datesOf(new URL(serverPageUrl(DEFAULT_LANG, server.id)).pathname);
 }
 
 /** A reference to a node declared elsewhere (here or in the identity doc). */
@@ -228,8 +256,12 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
       serverCards[server.id]?.serverInfo.version ?? server.version,
     license: MIT_LICENSE,
     isAccessibleForFree: true,
-    dateModified: BUILD_DATE,
-    ...(PUBLISHED_DATE && { datePublished: PUBLISHED_DATE }),
+    // This server's dates, taken from its own card page: the node describes
+    // one endpoint, so the repository's HEAD said nothing about it. The `@id`
+    // is shared by both languages, so the path is resolved in the default one
+    // — the resolver strips the language prefix anyway, since a page and its
+    // translation are built from the same sources.
+    ...apiDates(server),
     // What it can do, without running the endpoint: the question an agent asks
     // about an MCP server, and until now only a live `tools/list` answered it.
     featureList: server.tools.map((tool) => tool.name),
@@ -744,6 +776,11 @@ export async function buildSiteGraph(
     publisher: ref(PERSON_ID),
   };
 
+  // This page's own dates. Resolved from `url` and not from `page`, so a
+  // server card and an actions domain — which share a `PageId` with their
+  // index — each get the dates of the sources they actually render.
+  const webpageDates = datesOf(new URL(url).pathname);
+
   const webpage = {
     "@type": "WebPage",
     "@id": `${url}#webpage`,
@@ -816,8 +853,7 @@ export async function buildSiteGraph(
     },
     author: ref(PERSON_ID),
     publisher: ref(PERSON_ID),
-    dateModified: BUILD_DATE,
-    ...(PUBLISHED_DATE && { datePublished: PUBLISHED_DATE }),
+    ...webpageDates,
     // `mainEntity` and not `about`: these servers are not something the page
     // talks about, they are its subject. `about` said exactly the same thing
     // with the weaker claim, so it was redundant: schema.org already defines

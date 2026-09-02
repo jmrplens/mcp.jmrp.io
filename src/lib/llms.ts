@@ -202,7 +202,7 @@ export function buildLlmsTxt(): string {
     })
     .join("");
 
-  return `# ${SITE_NAME}
+  return `# ${SITE_NAME} — public MCP servers
 
 > ${ui.en.lede}
 
@@ -214,6 +214,8 @@ answers with a page — libgen rejects the method with 405, gitlab checks
 credentials first and answers 401 — because the links under "MCP servers"
 below are call targets, not pages. Point an MCP client at the endpoint, or try the servers from the
 browser with the inspector on the site.
+
+Markdown twins: every page of this site is also published as markdown at \`<page>index.md\` — the terms page below, for instance, is also at ${pageUrl(DEFAULT_LANG, "license")}index.md. Each twin carries the same prose as its page plus a \`Link\` header pointing back to it, so a page can be read without parsing HTML.
 
 Reuse: the site's text — the pages, their markdown twins and this file — is licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/): reuse it, including commercially, crediting "José Manuel Requena Plens" and noting any change. The two social cards (/og-en.png and /og-es.png) are the author's own work and carry that same license. The site's code and both servers are MIT. The machine-readable files (/servers.json, /servers/gitlab/actions.json, the connection cards at /<id>/server-card and the documents under /.well-known/) carry no condition; the catalogue each server publishes at /<id>/.well-known/mcp/server-card.json is that server's MIT text. What the servers return is not licensed here. Full terms: ${pageUrl(DEFAULT_LANG, "license")}
 
@@ -501,7 +503,7 @@ inspector; the OAuth application asks for \`api\`, because the same server also
 writes, and that scope is fixed by the application rather than chosen per user.
 `;
 
-  return `# ${SITE_NAME}
+  return `# ${SITE_NAME} — public MCP servers
 
 > ${ui.en.lede}
 

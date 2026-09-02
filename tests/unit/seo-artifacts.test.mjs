@@ -150,6 +150,48 @@ const SERVED_PAGES = [
   "es/servers/gitlab/index.html",
 ];
 
+test("every page announces its markdown twin, and the twin is really there", () => {
+  // The twins were served correctly all along — right content type, and a
+  // `Link:` header canonicalizing them back — but nothing on the HTML side
+  // said they existed. jmrp.io shipped the same announcement as an opt-in
+  // per-page prop first and 20 of its 96 twinned pages silently never passed
+  // it, so this asserts the two halves that make the claim true: the tag is
+  // present, and the file it points at was actually built.
+  for (const page of SERVED_PAGES) {
+    const html = read(page);
+    const href = /<link[^>]*rel="alternate"[^>]*type="text\/markdown"[^>]*>/.exec(
+      html,
+    );
+    assert.ok(href, `${page}: no <link rel="alternate" type="text/markdown">`);
+    const url = /href="([^"]+)"/.exec(href[0])?.[1];
+    assert.equal(
+      url,
+      `${ORIGIN}/${page.replace(/index\.html$/, "")}index.md`,
+      `${page}: the twin link should point at THIS page's twin`,
+    );
+    // The file, not just the promise: a link to a twin the build never wrote
+    // is a 404 advertised in every head.
+    read(page.replace(/index\.html$/, "index.md"));
+  }
+});
+
+test("the OAuth landing step is kept out of the sitemap", () => {
+  // /inspector/callback/ is `noindex` and canonicalizes to /inspector/, so
+  // listing it made Search Console report the same URL twice — once as
+  // excluded by noindex, once as an alternate page with a proper canonical —
+  // and it is the one EN page with no ES twin, which made the two language
+  // counts disagree. A sitemap lists canonical, indexable URLs.
+  const sitemap = read("sitemap-0.xml");
+  assert.ok(
+    !sitemap.includes("/inspector/callback/"),
+    "the sitemap still lists /inspector/callback/",
+  );
+  const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, u]) => u);
+  const en = locs.filter((u) => !u.includes("/es/")).length;
+  const es = locs.length - en;
+  assert.equal(en, es, `EN and ES page counts differ: ${en} vs ${es}`);
+});
+
 test("every generated page has its location in the vhost", (t) => {
   // Sibling of SERVED_AT_ROOT: that test only looks at the ROOT of dist/ (it
   // filters on entry.isFile()), so it does not see new pages, which live in
