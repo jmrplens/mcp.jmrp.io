@@ -273,6 +273,7 @@ export function licenseMarkdown(lang: Lang): string {
       ...t.licenseTextBody,
       `${t.licenseTextLink}: ${t.licenseTextHref}`,
     ]) +
+    section(t.licenseImagesEyebrow, t.licenseImagesBody) +
     section(t.licenseSiteEyebrow, [
       ...t.licenseSiteBody,
       `${t.licenseSiteLink}: ${SITE_REPO}`,

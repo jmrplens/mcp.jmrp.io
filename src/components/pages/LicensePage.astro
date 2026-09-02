@@ -67,6 +67,23 @@ const legalHref = `${new URL(pageUrl(lang, "policies")).pathname}#legal-h`;
 
   <section
     class="license-section"
+    aria-labelledby="images-h"
+  >
+    <h2
+      class="subsection-title"
+      id="images-h"
+    >
+      {t.licenseImagesEyebrow}
+    </h2>
+    {
+      t.licenseImagesBody.map((paragraph) => (
+        <p class="prose-text">{paragraph}</p>
+      ))
+    }
+  </section>
+
+  <section
+    class="license-section"
     aria-labelledby="site-h"
   >
     <h2

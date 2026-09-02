@@ -123,6 +123,16 @@ function sourceId(server: McpServer): string {
  */
 const MIT_LICENSE = "https://opensource.org/licenses/MIT";
 
+/**
+ * The license the site's own social cards carry, for `primaryImageOfPage`.
+ *
+ * The canonical URI and NOT the localized `deed.es` that `license.ts` gives
+ * the Spanish page: that link exists for a human to read, this value is an
+ * identifier a consumer matches, and the same image must not appear to be
+ * under two licenses depending on which language rendered the page.
+ */
+const CC_BY_4_0 = "https://creativecommons.org/licenses/by/4.0/";
+
 /** Repository facts this domain copies from the canonical publisher. */
 interface SourceFacts {
   name: string;
@@ -717,6 +727,13 @@ export async function buildSiteGraph(
       }
     : null;
 
+  // Loaded here and not just before the graph is assembled: the card's credit
+  // line below comes out of this node. The author's name is NOT restated in
+  // this file — see the rule at the top — so if the identity document ever
+  // stops carrying one, the credit keys drop out instead of printing a guess.
+  const person = await loadPersonNode();
+  const authorName = typeof person.name === "string" ? person.name : null;
+
   const website = {
     "@type": "WebSite",
     "@id": WEBSITE_ID,
@@ -758,6 +775,42 @@ export async function buildSiteGraph(
     primaryImageOfPage: {
       "@type": "ImageObject",
       url: ogImageUrl(lang),
+      // Where the bytes are, as distinct from what `url` identifies. Google's
+      // image metadata documentation asks for `contentUrl` specifically, and a
+      // node carrying only `url` does not qualify for the feature at all —
+      // which would have made the two license fields below inert even once
+      // they existed. The same address here: the card is a PNG with no landing
+      // page of its own.
+      contentUrl: ogImageUrl(lang),
+      // The card IS this page's image, not decoration beside it — the
+      // distinction Google draws when picking a thumbnail.
+      representativeOfPage: true,
+      // Attribution by reference to the canonical entity rather than a second
+      // Person node, following the rule at the top of this file. `creator`
+      // says who made it, `copyrightHolder` who holds the right the license
+      // grants from — the one thing someone reusing it has to know to judge
+      // whether the grant was the owner's to make — and `creditText` how to
+      // name them.
+      creator: ref(PERSON_ID),
+      copyrightHolder: ref(PERSON_ID),
+      ...(authorName && {
+        creditText: authorName,
+        copyrightNotice: `© ${authorName}`,
+      }),
+      // The two fields Search Console reports as missing on every page here:
+      // `license` states the terms, `acquireLicensePage` says where to ask
+      // about anything they do not grant. Google requires the two to be
+      // distinct URLs, so one is the license itself and the other the
+      // Permission section of /license/.
+      //
+      // The cards are drawn at build time from this site's own headings and
+      // server data (`src/pages/og-[lang].png.ts`), with nothing in them taken
+      // from anywhere else, so the CC BY 4.0 that covers the text covers them
+      // too — which /license/ now says in prose, under `Images`. A `license`
+      // asserted here that no page granted would be a claim with nothing
+      // behind it.
+      license: CC_BY_4_0,
+      acquireLicensePage: `${pageUrl(lang, "license")}#permission-h`,
       width: OG_IMAGE_SIZE.width,
       height: OG_IMAGE_SIZE.height,
     },
@@ -837,8 +890,6 @@ export async function buildSiteGraph(
         ),
       }
     : null;
-
-  const person = await loadPersonNode();
 
   const graph = [
     website,

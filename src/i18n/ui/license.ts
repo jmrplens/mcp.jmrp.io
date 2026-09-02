@@ -1,13 +1,21 @@
 /**
  * License page strings: what on this site may be reused and on what terms —
- * the text, the site's code, the two servers, the files written for
- * programs, what the servers return (not the author's to license), other
- * people's names and logos, and where to ask for anything else.
+ * the text, the site's own images, the site's code, the two servers, the
+ * files written for programs, what the servers return (not the author's to
+ * license), other people's names and logos, and where to ask for anything
+ * else.
  *
  * Modelled on jmrp.io's /license/ page (its `license.mdx`), which this host
  * had nothing equivalent to: the only trace of a license on the site was the
  * MIT URL on the two servers' JSON-LD nodes. The portrait section from
  * jmrp.io is deliberately absent — this site renders no portrait.
+ *
+ * The `Images` section is what the equivalent of jmrp.io's cover-image grant
+ * looks like here. It is not decoration: every page's JSON-LD points its
+ * `primaryImageOfPage` at that language's social card and states the card's
+ * terms there, and a `license` in structured data that no page grants in
+ * prose would be an assertion with nothing behind it. Search Console reports
+ * `license` and `acquireLicensePage` as missing until both exist.
  *
  * Every claim was checked on 2026-09-01: the site repository and both server
  * repositories are MIT (GitHub API, the LICENSE files, and the
@@ -32,7 +40,7 @@ export const license = {
     licenseTitle: "What you may reuse and how",
     /** Meta description AND opening paragraph, like `policiesIntro`. */
     licenseIntro:
-      "How to reuse what is here: text under CC BY 4.0, the site and both servers under MIT, data files with no conditions, and what is not mine to license.",
+      "How to reuse what is here: text and social cards under CC BY 4.0, site and servers under MIT, data files with no conditions, and what is not mine.",
     licenseOpening: [
       "Not everything here carries the same terms. The text is yours to reuse with credit, the code of the site and of both servers is open, the files written for programs carry no condition at all, and what the servers return was never mine to license. This page says which is which.",
     ],
@@ -45,6 +53,12 @@ export const license = {
     ],
     licenseTextLink: "CC BY 4.0",
     licenseTextHref: "https://creativecommons.org/licenses/by/4.0/",
+
+    licenseImagesEyebrow: "Images",
+    licenseImagesBody: [
+      "The site draws two images of its own: the social cards at /og-en.png and /og-es.png, which is what a chat client or a social network paints when someone shares a link from here. They are generated during the build from the same headings and server data the pages render — type, rules and a background, with nothing in them taken from anywhere else — so they are the author's own work and carry the same terms as the text: CC BY 4.0, reusable with credit. Every page repeats those terms in its own structured data, on the card it points at, so a machine does not have to read this page to find them.",
+      "The favicon is not a separate case: it is a file in the site's repository and carries the code's license, below, like everything else in it.",
+    ],
 
     licenseSiteEyebrow: "The site",
     licenseSiteBody: [
@@ -92,7 +106,7 @@ export const license = {
     licenseTitle: "Qué puedes reutilizar y cómo",
     /** Ver `en.licenseIntro`: meta description y párrafo inicial. */
     licenseIntro:
-      "Cómo reutilizar lo que hay aquí: textos bajo CC BY 4.0, el sitio y los dos servidores bajo MIT, ficheros de datos sin condiciones, y lo que no es mío.",
+      "Cómo reutilizar lo que hay aquí: textos y tarjetas sociales bajo CC BY 4.0, sitio y servidores bajo MIT, ficheros de datos sin condiciones, y lo demás.",
     licenseOpening: [
       "No todo lo que hay aquí se publica en las mismas condiciones. Los textos puedes reutilizarlos atribuyendo la autoría, el código del sitio y el de los dos servidores está abierto, los ficheros escritos para programas no llevan condición alguna, y lo que devuelven los servidores nunca fue mío para licenciarlo. Esta página dice qué es cada cosa.",
     ],
@@ -105,6 +119,13 @@ export const license = {
     ],
     licenseTextLink: "CC BY 4.0",
     licenseTextHref: "https://creativecommons.org/licenses/by/4.0/deed.es",
+
+    /** Ver `en.licenseImagesEyebrow`: las tarjetas sociales, obra del autor. */
+    licenseImagesEyebrow: "Imágenes",
+    licenseImagesBody: [
+      "El sitio dibuja dos imágenes propias: las tarjetas sociales de /og-en.png y /og-es.png, que es lo que pinta un cliente de chat o una red social cuando alguien comparte un enlace de aquí. Se generan durante la compilación a partir de los mismos titulares y datos de servidores que muestran las páginas —tipografía, líneas y un fondo, sin nada tomado de ninguna otra parte—, así que son obra del autor y llevan las mismas condiciones que los textos: CC BY 4.0, reutilizables atribuyendo la autoría. Cada página repite esas condiciones en sus propios datos estructurados, sobre la tarjeta a la que apunta, para que una máquina no tenga que leer esta página para encontrarlas.",
+      "El favicon no es un caso aparte: es un fichero del repositorio del sitio y lleva la licencia del código, más abajo, como todo lo demás que hay en él.",
+    ],
 
     licenseSiteEyebrow: "El sitio",
     licenseSiteBody: [
