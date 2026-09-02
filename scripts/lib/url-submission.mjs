@@ -65,7 +65,8 @@ export function parseSitemapEntries(xml) {
 export function selectChangedUrls(current, previous) {
   const total = current?.size ?? 0;
   if (total === 0) return { changed: [], total: 0, isBootstrap: false };
-  if (!previous) return { changed: [...current.keys()], total, isBootstrap: true };
+  if (!previous)
+    return { changed: [...current.keys()], total, isBootstrap: true };
   const changed = [...current.entries()]
     .filter(([loc, lastmod]) => !lastmod || previous[loc] !== lastmod)
     .map(([loc]) => loc);

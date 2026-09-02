@@ -95,9 +95,7 @@ test("only the pages whose lastmod moved, plus new ones, are announced", () => {
 });
 
 test("a URL with no lastmod is always announced: there is no change signal", () => {
-  const current = parseSitemapEntries(
-    sitemap(["https://mcp.jmrp.io/", null]),
-  );
+  const current = parseSitemapEntries(sitemap(["https://mcp.jmrp.io/", null]));
   assert.deepEqual(
     selectChangedUrls(current, { "https://mcp.jmrp.io/": "" }).changed,
     ["https://mcp.jmrp.io/"],

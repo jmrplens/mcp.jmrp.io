@@ -39,8 +39,7 @@ interface Props {
   domainOf: Record<string, string>;
 }
 
-const { lang, serverId, domain, actions, tokenNote, domainOf } =
-  Astro.props;
+const { lang, serverId, domain, actions, tokenNote, domainOf } = Astro.props;
 const sp = serversPage[lang];
 
 const localePrefix = lang === "es" ? "/es/" : "/";
@@ -167,26 +166,22 @@ function lineSegments(line: string, selfId: string): Segment[] {
             data-read-only={String(action.read_only)}
           >
             <summary class="action-summary">
-              {
-                /* A heading, not a bare <code>: these pages are a reference
+              {/* A heading, not a bare <code>: these pages are a reference
                   list and had exactly ONE heading each — /issue/ is 111 KB
                   with a single <h1> — so a retrieval system, which chunks on
                   headings, saw the whole domain as one low-signal block. The
                   id is the heading text because it is what a reader searches
                   for. `<summary>` takes heading content, so this is valid
                   where it sits; `.action-heading` strips the default margins
-                  and size so the row looks exactly as it did. */
-              }
+                  and size so the row looks exactly as it did. */}
               <h2 class="action-heading">
                 <code class="action-id">{action.id}</code>
               </h2>
-              {
-                /* The title and the description below are the catalog's own
+              {/* The title and the description below are the catalog's own
                   English, rendered verbatim on both editions (see this file's
                   header). On the Spanish page they sit inside `lang="es"`, so
                   a screen reader voiced English with Spanish phonetics until
-                  these two markers existed. */
-              }
+                  these two markers existed. */}
               <span
                 class="action-title"
                 lang={lang === "es" ? "en" : undefined}

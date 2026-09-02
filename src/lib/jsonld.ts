@@ -300,9 +300,7 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
     // give is an OUTBOUND one (how fast an instance queries its sources), not
     // a limit on callers, and asserting it here would describe a rule that
     // does not exist.
-    termsOfService: new URL(
-      pageUrl(DEFAULT_LANG, "policies"),
-    ).href,
+    termsOfService: new URL(pageUrl(DEFAULT_LANG, "policies")).href,
     additionalProperty: [
       {
         "@type": "PropertyValue",

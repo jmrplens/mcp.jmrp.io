@@ -100,7 +100,9 @@ function twinPages(dir: string, base = ""): string[] {
   const pages: string[] = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (entry.isDirectory()) {
-      pages.push(...twinPages(path.join(dir, entry.name), `${base}/${entry.name}`));
+      pages.push(
+        ...twinPages(path.join(dir, entry.name), `${base}/${entry.name}`),
+      );
     } else if (entry.isFile() && entry.name === "index.md") {
       pages.push(`${base}/`);
     }
@@ -126,7 +128,9 @@ export function stageNginxSnippets(
 ): void {
   const pages = twinPages(distDir);
   if (pages.length === 0) {
-    logger.warn("  ⚠ no markdown twins found: the Nginx snippets are not staged");
+    logger.warn(
+      "  ⚠ no markdown twins found: the Nginx snippets are not staged",
+    );
     return;
   }
 

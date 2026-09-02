@@ -665,7 +665,11 @@ test("each WebAPI states its terms and its limits, not just that it is free", ()
     const props = Object.fromEntries(
       (api.additionalProperty ?? []).map((p) => [p.name, p.value]),
     );
-    for (const name of ["transport", "authentication", "serviceLevelAgreement"]) {
+    for (const name of [
+      "transport",
+      "authentication",
+      "serviceLevelAgreement",
+    ]) {
       assert.ok(props[name], `${page}: no ${name} declared`);
     }
     // Derived from the headers the server really requires, never restated.

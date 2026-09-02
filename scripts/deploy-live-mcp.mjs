@@ -67,7 +67,8 @@ const NGINX_BIN = "/usr/sbin/nginx";
  * build did not produce degrades to an empty include instead of being fatal
  * to the next reload, whoever triggers it.
  */
-const STAGING = process.env.MCP_NGINX_STAGING ?? "/var/lib/mcp.jmrp.io/nginx-staged";
+const STAGING =
+  process.env.MCP_NGINX_STAGING ?? "/var/lib/mcp.jmrp.io/nginx-staged";
 const SYSTEMCTL_BIN = "/usr/bin/systemctl";
 const FILES = ["security_headers_mcp.conf", "security_headers_assets_mcp.conf"];
 const VHOST = "/etc/nginx/sites-enabled/mcp.jmrp.io.conf";
@@ -253,7 +254,8 @@ function deployStagedSnippets() {
   }
 
   execFileSync(SYSTEMCTL_BIN, ["reload", "nginx"]);
-  for (const name of staged) fs.rmSync(path.join(STAGING, name), { force: true });
+  for (const name of staged)
+    fs.rmSync(path.join(STAGING, name), { force: true });
   console.log(`✓ ${staged.length} generated snippet(s) deployed to ${target}`);
 }
 
@@ -503,7 +505,10 @@ async function bingQuota(key) {
   const response = await fetch(
     "https://ssl.bing.com/webmaster/api.svc/json/GetUrlSubmissionQuota" +
       `?siteUrl=${encodeURIComponent(BING_SITE_URL)}&apikey=${encodeURIComponent(key)}`,
-    { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(15_000) },
+    {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(15_000),
+    },
   );
   if (!response.ok) return null;
   const { d } = await response.json();
@@ -513,7 +518,9 @@ async function bingQuota(key) {
 }
 
 if (bingKey && SUBMIT_URLS.length === 0) {
-  console.log("ℹ Bing Webmaster: nothing changed since the last deploy, skipping");
+  console.log(
+    "ℹ Bing Webmaster: nothing changed since the last deploy, skipping",
+  );
 } else if (bingKey) {
   try {
     // Asked BEFORE submitting, because an over-sized batch is rejected whole:
