@@ -39,10 +39,10 @@ import type { McpNotice, McpServer } from "../data/servers";
 import { servers } from "../data/servers";
 import type { Lang } from "../i18n/ui";
 import { ui } from "../i18n/ui";
-import { buildDate, publishedDate } from "./build-date";
 import { loadPersonNode, PERSON_ID } from "./identity";
 import {
   actionsDomainPageUrl,
+  DEFAULT_LANG,
   LANGS,
   OG_IMAGE_SIZE,
   ogImageUrl,
@@ -52,15 +52,20 @@ import {
   SITE_NAME,
   SITE_ORIGIN,
 } from "./seo";
+import { createPageDatesResolver } from "./sitemap-lastmod";
 
-// See build-date.ts: HEAD when the tree is clean, now when it is dirty. The
-// fallback to the current time only applies without git, and `buildDate()`
-// caches it so this value matches the footer's and `<UpdatedLine>`'s.
-const BUILD_DATE = buildDate();
-
-// The repository's first commit. Without git there is no date and the field
-// is omitted: see build-date.ts.
-const PUBLISHED_DATE = publishedDate();
+// Each page's own dates, from the git history of the files that page is made
+// of. Built once: it memoizes per source set, and the graph is rendered 73
+// times per build.
+//
+// This REPLACES the two site-wide constants this file used to keep. HEAD's
+// commit date was stamped on all 73 pages, so the graph said the whole site
+// changed whenever any commit landed; and the repository's first commit was
+// stamped as every page's `datePublished`, so /license/ claimed to have
+// existed on 2026-08-06, weeks before it was written. The footer and
+// `<UpdatedLine>` still use `buildDate()` — a site-wide date is the honest one
+// there, because that line is about the deployment.
+const pageDates = createPageDatesResolver();
 
 /** `@id` of the `WebSite` node the pages hang off through `isPartOf`. */
 const WEBSITE_ID = `${SITE_ORIGIN}/#website`;
@@ -82,6 +87,87 @@ function localized(values: { en: string; es: string }): LocalizedValue[] {
     { "@value": values.es, "@language": "es" },
   ];
 }
+
+/**
+ * A node's `dateModified`/`datePublished` pair, ready to spread.
+ *
+ * Each is omitted rather than emitted empty when git cannot answer — a missing
+ * date is a gap, an invented one is a false claim, and this file already
+ * carries the rule that it does not assert what it cannot verify.
+ *
+ * @param pathname The page whose sources date the node.
+ * @returns The keys to spread into the node.
+ */
+function datesOf(pathname: string): Record<string, string> {
+  const { dateModified, datePublished } = pageDates(pathname);
+  return {
+    ...(dateModified && { dateModified }),
+    ...(datePublished && { datePublished }),
+  };
+}
+
+/** The dates of one server's node, from its card page. */
+function apiDates(server: McpServer): Record<string, string> {
+  return datesOf(new URL(serverPageUrl(DEFAULT_LANG, server.id)).pathname);
+}
+
+/**
+ * The `TechArticle` a prose page IS, or null when the page is not one.
+ *
+ * `mainEntity` and not `hasPart` at the call site: on these three pages
+ * nothing else claims that slot (see `selectMainEntity`), and the document is
+ * the page's primary entity rather than a part of it.
+ *
+ * @param context The page's identity, dates and the servers it is about.
+ * @returns The node, or null.
+ */
+function buildArticleNode(context: {
+  page: PageId;
+  lang: Lang;
+  url: string;
+  articleId: string;
+  description: string;
+  dates: Record<string, string>;
+  apiRefs: { "@id": string }[];
+}): Record<string, unknown> | null {
+  const { page, lang, url, articleId, description, dates, apiRefs } = context;
+  if (!PROSE_PAGES.has(page)) return null;
+  return {
+    "@type": "TechArticle",
+    "@id": articleId,
+    headline: pageLabels(lang)[page],
+    description,
+    inLanguage: lang,
+    isPartOf: ref(`${url}#webpage`),
+    mainEntityOfPage: ref(`${url}#webpage`),
+    author: ref(PERSON_ID),
+    publisher: ref(PERSON_ID),
+    // The card's URL, not a reference to the image node the page declares:
+    // schema.org takes a URL for `image`, and the alternative — giving that
+    // node an `@id` and pointing at it — makes the graph-cohesion test read
+    // the declaration itself as a dangling reference, since it collects only
+    // top-level nodes. The licensing block stays stated once, on the page.
+    image: ogImageUrl(lang),
+    ...dates,
+    // The prose, like every other page's, is CC BY 4.0 — see /license/.
+    license: CC_BY_4_0,
+    about: apiRefs,
+  };
+}
+
+/**
+ * Pages that are a written document rather than an interface.
+ *
+ * /internals/ is ~2,700 words in nine authored sections; /policies/ and
+ * /license/ are the same shape. They were typed `WebPage` and nothing else,
+ * so nothing in the graph said they were articles with a thesis, and they
+ * were ineligible for the one rich result that still applies to them.
+ *
+ * The home page, `/servers/`, the server cards, the action pages and
+ * /inspector/ are deliberately absent: those are indexes and interfaces, and
+ * calling them articles would be the kind of stretch this file avoids.
+ */
+const PROSE_PAGES = new Set<PageId>(["internals", "license", "policies"]);
 
 /** A reference to a node declared elsewhere (here or in the identity doc). */
 function ref(id: string): { "@id": string } {
@@ -228,8 +314,12 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
       serverCards[server.id]?.serverInfo.version ?? server.version,
     license: MIT_LICENSE,
     isAccessibleForFree: true,
-    dateModified: BUILD_DATE,
-    ...(PUBLISHED_DATE && { datePublished: PUBLISHED_DATE }),
+    // This server's dates, taken from its own card page: the node describes
+    // one endpoint, so the repository's HEAD said nothing about it. The `@id`
+    // is shared by both languages, so the path is resolved in the default one
+    // — the resolver strips the language prefix anyway, since a page and its
+    // translation are built from the same sources.
+    ...apiDates(server),
     // What it can do, without running the endpoint: the question an agent asks
     // about an MCP server, and until now only a live `tools/list` answered it.
     featureList: server.tools.map((tool) => tool.name),
@@ -241,6 +331,57 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
       price: "0",
       priceCurrency: "USD",
       availability: "https://schema.org/InStock",
+    },
+    // The terms the prose states and the graph did not. `isAccessibleForFree`
+    // and `availability: InStock` together read as an unconditional
+    // invitation, while /policies/ says the opposite in detail: no SLA, and no
+    // commitment that either endpoint stays online — or unchanged — from one
+    // day to the next. An agent deciding whether to build on this endpoint
+    // reads the graph, not the FAQ, so the graph has to carry the caveat.
+    //
+    // `termsOfService` is a `Service` property and `WebAPI` is a `Service`, so
+    // it applies directly. No rate limit is declared: the figure the pages
+    // give is an OUTBOUND one (how fast an instance queries its sources), not
+    // a limit on callers, and asserting it here would describe a rule that
+    // does not exist.
+    termsOfService: new URL(pageUrl(DEFAULT_LANG, "policies")).href,
+    additionalProperty: [
+      {
+        "@type": "PropertyValue",
+        name: "transport",
+        value: "Streamable HTTP (JSON-RPC 2.0 over POST)",
+      },
+      {
+        "@type": "PropertyValue",
+        name: "authentication",
+        // Derived from the headers the server actually requires, not restated:
+        // libgen needs none, gitlab needs a Bearer credential.
+        value:
+          server.requiredHeaders.length === 0
+            ? "None"
+            : server.requiredHeaders
+                .map((header) => `${header.name} header required`)
+                .join(", "),
+      },
+      {
+        "@type": "PropertyValue",
+        name: "serviceLevelAgreement",
+        value:
+          "None. A personal service, offered as-is: it may change or be withdrawn without notice.",
+      },
+    ],
+    // The connection card this site publishes for the endpoint (SEP-2127),
+    // which until now existed only in a `Link:` header. NOT the catalogue the
+    // binary serves at `/.well-known/mcp/server-card.json`: two different
+    // documents share that name, and the repo has confused them before.
+    // No `@id` on it: nothing references this node, and an `@id` here would
+    // read as a dangling reference to the graph-cohesion test, which collects
+    // only top-level declarations.
+    subjectOf: {
+      "@type": "MediaObject",
+      name: `${server.name} MCP connection card`,
+      contentUrl: `${server.endpoint}/server-card`,
+      encodingFormat: "application/mcp-server-card+json",
     },
     provider: ref(PERSON_ID),
     // `provider` says who OPERATES it; `author` who MADE it. Here they are the
@@ -536,9 +677,14 @@ function resolvePageUrls(
 function selectMainEntity(
   page: PageId,
   targetServer: McpServer | undefined,
+  articleId: string,
   actionsDomain?: PageMeta["actionsDomain"],
 ): Record<string, unknown>[] | undefined {
   if (targetServer) return [ref(apiId(targetServer))];
+  // A prose page describes no server, so the slot is free for the article the
+  // page IS — see `buildArticleNode`. Decided here and not at the assembly
+  // site so there is one answer to "what is this page's main entity".
+  if (PROSE_PAGES.has(page)) return [ref(articleId)];
   if (actionsDomain) {
     // A domain page describes a PORTION of a single server: that server's
     // partial description, in the same shape the other pages that mention it
@@ -702,7 +848,12 @@ export async function buildSiteGraph(
   // which already declares these two repos' `#software`; `sameAs` leads to the
   // repository, which is the subject of those nodes.
   const apiRefs = servers.map((server) => ref(apiId(server)));
-  const mainEntity = selectMainEntity(page, targetServer, actionsDomain);
+  const mainEntity = selectMainEntity(
+    page,
+    targetServer,
+    `${url}#article`,
+    actionsDomain,
+  );
 
   // The breadcrumb, as its own node the `WebPage` points at by `@id` (like the
   // `FAQPage`). Built BEFORE `webpage` because that one references it.
@@ -742,7 +893,50 @@ export async function buildSiteGraph(
     description: localized({ en: ui.en.lede, es: ui.es.lede }),
     inLanguage: LANGS,
     publisher: ref(PERSON_ID),
+    // The documents this site publishes for programs. They were reachable
+    // only through `<link rel="alternate">` and a `Link:` header, so a
+    // consumer that reads JSON-LD and nothing else could not find them —
+    // which is most of the audience they were written for.
+    subjectOf: [
+      {
+        "@type": "DataDownload",
+        name: "llms.txt index",
+        contentUrl: `${SITE_ORIGIN}/llms.txt`,
+        encodingFormat: "text/plain",
+      },
+      {
+        "@type": "DataDownload",
+        name: "llms.txt, long form",
+        contentUrl: `${SITE_ORIGIN}/llms-full.txt`,
+        encodingFormat: "text/plain",
+      },
+      {
+        "@type": "DataDownload",
+        name: "MCP server index",
+        contentUrl: `${SITE_ORIGIN}/servers.json`,
+        encodingFormat: "application/json",
+      },
+      {
+        "@type": "DataDownload",
+        name: "AI catalog",
+        contentUrl: `${SITE_ORIGIN}/.well-known/ai-catalog.json`,
+        encodingFormat: "application/json",
+      },
+      {
+        "@type": "DataDownload",
+        name: "API catalog (RFC 9727)",
+        contentUrl: `${SITE_ORIGIN}/.well-known/api-catalog`,
+        encodingFormat: "application/linkset+json",
+      },
+    ],
   };
+
+  const articleId = `${url}#article`;
+
+  // This page's own dates. Resolved from `url` and not from `page`, so a
+  // server card and an actions domain — which share a `PageId` with their
+  // index — each get the dates of the sources they actually render.
+  const webpageDates = datesOf(new URL(url).pathname);
 
   const webpage = {
     "@type": "WebPage",
@@ -816,8 +1010,7 @@ export async function buildSiteGraph(
     },
     author: ref(PERSON_ID),
     publisher: ref(PERSON_ID),
-    dateModified: BUILD_DATE,
-    ...(PUBLISHED_DATE && { datePublished: PUBLISHED_DATE }),
+    ...webpageDates,
     // `mainEntity` and not `about`: these servers are not something the page
     // talks about, they are its subject. `about` said exactly the same thing
     // with the weaker claim, so it was redundant: schema.org already defines
@@ -891,9 +1084,20 @@ export async function buildSiteGraph(
       }
     : null;
 
+  const article = buildArticleNode({
+    page,
+    lang,
+    url,
+    articleId,
+    description,
+    dates: webpageDates,
+    apiRefs,
+  });
+
   const graph = [
     website,
     webpage,
+    ...(article ? [article] : []),
     ...(breadcrumb ? [breadcrumb] : []),
     ...(faq ? [faq] : []),
     ...apis,

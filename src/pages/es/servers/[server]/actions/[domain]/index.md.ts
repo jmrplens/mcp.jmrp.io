@@ -34,7 +34,7 @@ export const GET = ({
       props.server,
       props.domain,
       props.actions,
-      props.aliasDomains,
+      props.domainOf,
       "es",
     ),
   );

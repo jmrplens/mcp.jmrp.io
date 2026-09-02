@@ -1,0 +1,101 @@
+---
+/**
+ * The Spanish 404 body, served by nginx for `/es/…` only.
+ *
+ * The root 404 is bilingual on purpose: when an address exists nowhere,
+ * nginx cannot know which language you were browsing in, so that page runs
+ * English with the Spanish beside it. Under `/es/` it does know — the path
+ * prefix says so — and serving a `lang="en"` document with an English title
+ * there was the last bilingual inconsistency on the site.
+ *
+ * Same structure and same styles as `src/pages/404.astro` with the two
+ * languages swapped: Spanish leads, English sits beside it carrying its own
+ * `lang` so a screen reader pronounces each correctly. Still `errorPage`, so
+ * it declares no identity, announces no markdown twin, and answers noindex.
+ *
+ * The build writes it to `/es/404/index.html` (directory format), which is
+ * the path the vhost's `$mcp_404_body` map names.
+ */
+import { ui } from "../../i18n/ui";
+import Base from "../../layouts/Base.astro";
+---
+
+<Base
+  title="Página no encontrada — Servidores MCP · jmrp.io"
+  description={ui.es.lede}
+  errorPage
+>
+  <section class="nf">
+    <p
+      class="code"
+      aria-hidden="true"
+    >
+      404
+    </p>
+    <h1>Página no encontrada</h1>
+    <p>
+      Esta dirección no existe. Los servidores, sus endpoints y el inspector
+      están en la portada.
+    </p>
+    <p lang="en">
+      Nothing lives at this address. The servers, their endpoints and the
+      inspector are on the home page.
+    </p>
+    <p class="links">
+      <a href="/es/">Español</a>
+      <a href="/">English</a>
+      <a href="/servers.json"><code>/servers.json</code></a>
+      <a href="/llms.txt"><code>/llms.txt</code></a>
+    </p>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    padding-block: clamp(3rem, 9vw, 5.5rem);
+  }
+
+  .code {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: var(--color-accent);
+    letter-spacing: 0.12em;
+  }
+
+  h1 {
+    margin: 0 0 1.25rem;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 6vw, 3rem);
+    font-weight: 700;
+    line-height: 1.05;
+    color: var(--color-text-heading);
+    letter-spacing: -0.03em;
+  }
+
+  p {
+    max-width: 58ch;
+    margin: 0 0 0.6rem;
+    color: var(--color-text);
+    text-wrap: pretty;
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+  }
+
+  .links a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .links a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

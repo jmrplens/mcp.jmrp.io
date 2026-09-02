@@ -432,8 +432,17 @@ export interface ActionsDomainPath {
     server: string;
     domain: string;
     actions: GitlabActionEntry[];
-    /** The real domain of each id this page's alias_of entries point at. */
-    aliasDomains: Record<string, string>;
+    /**
+     * The real domain of EVERY action id in this server's catalog.
+     *
+     * It used to carry only the `alias_of` targets. It carries all of them
+     * now because the descriptions name other actions too — "See also:
+     * package.list, release.link_create" — and those were rendered as plain
+     * text, so ~747 cross-references on the site resolved to nothing. Both
+     * cases need the same answer to the same question, and neither can derive
+     * it from the id's prefix: `issue.list_group` lives in `group`.
+     */
+    domainOf: Record<string, string>;
   };
 }
 
@@ -450,24 +459,18 @@ export function actionsDomainPaths(): ActionsDomainPath[] {
       (pair): pair is [string, GitlabActionsSnapshot] => pair[1] !== undefined,
     )
     .flatMap(([server, catalog]) => {
-      // The real domain of each id, to resolve where an alias_of points — the
-      // target can live in ANOTHER domain (issue.list_group → group.issues)
-      // and the page cannot derive it from the id's prefix.
-      const domainOf = new Map(catalog.entries.map((e) => [e.id, e.domain]));
+      // The real domain of each id. Built once for the catalog and handed to
+      // every page whole: it is build-time data on a static route, so it never
+      // reaches a browser, and a page-scoped subset would have to be widened
+      // again the next time something on the page wants to link an id.
+      const domainOf = Object.fromEntries(
+        catalog.entries.map((e) => [e.id, e.domain]),
+      );
       return catalog.domains.map((d) => {
         const actions = catalog.entries.filter((e) => e.domain === d.domain);
-        const aliasDomains = Object.fromEntries(
-          actions
-            .filter((e) => e.alias_of !== undefined)
-            .map((e) => [
-              e.alias_of as string,
-              domainOf.get(e.alias_of as string),
-            ])
-            .filter((pair): pair is [string, string] => pair[1] !== undefined),
-        );
         return {
           params: { server, domain: d.domain },
-          props: { server, domain: d.domain, actions, aliasDomains },
+          props: { server, domain: d.domain, actions, domainOf },
         };
       });
     });

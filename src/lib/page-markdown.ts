@@ -248,6 +248,16 @@ export function policiesMarkdown(lang: Lang): string {
     ]) +
     section(t.legalEyebrow, [
       ...t.legalBody,
+      // The three resolution cases, as a labelled list per identifier. The
+      // HTML renders the same data as a <dl> of <ol>s — keep the two in step.
+      ...t.legalResolution.map(
+        (entry) =>
+          `**${entry.label}**\n${entry.steps
+            .map((step, i) => `${i + 1}. ${step}`)
+            .join("\n")}`,
+      ),
+      t.legalResolutionTail,
+      ...t.legalBodyTail,
       `${t.legalContact} ${t.legalContactLink}`,
       `${t.legalLicenseNote} ${t.legalLicenseLink}: ${pageUrl(lang, "license")}`,
     ]) +
@@ -459,7 +469,7 @@ function paramLabel(param: GitlabActionParam): string {
  * @param server The server that owns the catalog.
  * @param domain The domain being rendered.
  * @param actions Its actions, in catalog order.
- * @param aliasDomains Domain of each id an `alias_of` in this page points at.
+ * @param domainOf Domain of each id an `alias_of` in this page points at.
  * @param lang Locale to render.
  * @returns The markdown.
  */
@@ -467,7 +477,7 @@ export function domainMarkdown(
   server: string,
   domain: string,
   actions: GitlabActionEntry[],
-  aliasDomains: Record<string, string>,
+  domainOf: Record<string, string>,
   lang: Lang,
 ): string {
   const t = serversPage[lang];
@@ -494,7 +504,7 @@ export function domainMarkdown(
         lines.push(`**${t.domainAnyOfLabel}:** ${groups}`);
       }
       if (action.alias_of) {
-        const target = aliasDomains[action.alias_of];
+        const target = domainOf[action.alias_of];
         const where = target ? ` (${target})` : "";
         lines.push(`**${t.domainAliasOf}:** ${code(action.alias_of)}${where}`);
       }

@@ -106,7 +106,7 @@ export const policies = {
      * own list.
      */
     logsBody: [
-      "The web server keeps standard access logs — IP address, user agent, the request line (method, path and query string), status code, response size, referrer, and the country, city and network operator that IP resolves to, looked up locally in a MaxMind database rather than by asking anyone — for abuse prevention (CrowdSec reads them) and for the author's own usage dashboards. The files are rotated daily and deleted after a year; the copy that feeds the dashboards lives on the author's own network.",
+      "The web server keeps standard access logs — IP address, user agent, the request line (method, path and query string), status code, response size, referrer, and the country, city and network operator that IP resolves to, looked up locally in a MaxMind database rather than by asking anyone — for abuse prevention (CrowdSec reads them) and for the author's own usage dashboards. The files are rotated daily and deleted after a year; the copy that feeds the dashboards lives on the author's own network and is kept no longer than that.",
       "The body of a call is never logged: it carries the arguments, which is to say whatever you actually searched for or asked — nginx inspects it only to pull out two names. Usage metrics record the JSON-RPC method, the tool name, the call's status, timing and response size, which instance and exit served it, and the caller's IP address — which is there so the author can tell their own test traffic from real use — but never the arguments, and never the content of the response. Those metrics feed the same dashboards.",
       "gitlab additionally exports OpenTelemetry traces and metrics to a collector on the author's network: the method, the tool and the catalogue action (issue.list, say), success or the error code, timings, and a keyed pseudonym of the caller and of any resource read — stable across restarts, readable by no one — but never the arguments, the results, the token or any GitLab response.",
     ],
@@ -164,7 +164,47 @@ export const policies = {
      */
     legalBody: [
       "libgen runs no catalogue and hosts nothing of its own: it is a client of indexes and libraries other people operate. On the open side those are arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed, ERIC, OpenAlex, Europe PMC, bioRxiv, the RFC Editor, NIST, Dagstuhl, the ACL Anthology, Zenodo, SciELO, FAO, Fatcat, OAPEN and the Internet Archive; on the shadow-library side, a Library Genesis mirror, randombook.org, Anna's Archive, Sci-Hub, and the SciDB article viewer Anna's Archive runs. Which of them a call reaches, and in what order, is a property of the tool you call rather than of the service as a whole.",
-      "search starts from the Library Genesis catalogue; on this deployment the operator's default is extra_sources=always, so a call that does not say otherwise also reaches Anna's Archive and seven open providers — arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed and ERIC — on every call, and a call that sets extra_sources=never keeps to the catalogue alone. download and read go by identifier — read takes a hash or a DOI only: an article asked for by DOI is tried at thirteen open sources first — OpenAlex, Europe PMC, bioRxiv, the RFC Editor, NIST, Dagstuhl, the ACL Anthology, Zenodo, SciELO, FAO, Fatcat, Crossref and OAPEN — and reaches Sci-Hub, then SciDB, only when none of those serves it; a book asked for by ISBN is looked for at OAPEN and the Internet Archive only, which serve openly licensed copies and nothing else; and a book asked for by its catalogue hash, which is the shadow libraries' own identifier, goes straight to them — the Library Genesis mirror, then randombook.org, then Anna's Archive. get_details adds Crossref and OpenLibrary metadata on request, and falls back to Anna's Archive for a hash the catalogue does not carry. download states that order in its own description, and read lists its sources in its source parameter, on libgen's server card.",
+      "search starts from the Library Genesis catalogue; on this deployment the operator's default is extra_sources=always, so a call that does not say otherwise also reaches Anna's Archive and seven open providers — arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed and ERIC — on every call, and a call that sets extra_sources=never keeps to the catalogue alone.",
+      "download and read go by identifier instead, and read takes a hash or a DOI only. Which sources an identifier reaches, and in what order, follows from which identifier it is:",
+    ],
+    /**
+     * The resolution order of `download`/`read`, by identifier.
+     *
+     * It used to be one 115-word sentence inside `legalBody` that chained the
+     * three cases together — the least readable passage on the site, on the
+     * page that most needs to be clear. Same facts, same sources, same order;
+     * only the shape changed, to the labelled-steps pattern /internals/
+     * already uses for its failure ladders.
+     */
+    legalResolution: [
+      {
+        label: "An article asked for by DOI",
+        steps: [
+          "Thirteen open sources first: OpenAlex, Europe PMC, bioRxiv, the RFC Editor, NIST, Dagstuhl, the ACL Anthology, Zenodo, SciELO, FAO, Fatcat, Crossref and OAPEN.",
+          "Sci-Hub, only when none of those serves it.",
+          "SciDB, only when Sci-Hub does not either.",
+        ],
+      },
+      {
+        label: "A book asked for by ISBN",
+        steps: [
+          "OAPEN and the Internet Archive, and nowhere else: both serve openly licensed copies and nothing more.",
+        ],
+      },
+      {
+        label: "A book asked for by its catalogue hash",
+        steps: [
+          "The Library Genesis mirror first. A catalogue hash is the shadow libraries' own identifier, so a request carrying one goes straight to them.",
+          "randombook.org, when the mirror does not serve it.",
+          "Anna's Archive, when neither of those does.",
+        ],
+      },
+    ],
+    /** Closes the block above: where each tool states this order itself. */
+    legalResolutionTail:
+      "get_details adds Crossref and OpenLibrary metadata on request, and falls back to Anna's Archive for a hash the catalogue does not carry. download states that order in its own description, and read lists its sources in its source parameter, on libgen's server card.",
+    /** The rest of the legal position, after the resolution block. */
+    legalBodyTail: [
       "libgen's download tool never delivers a file over HTTP, which is the only way this endpoint is reached: it resolves the identifier you gave it and hands back a link to whichever source holds the item, for your own client to fetch. Its read tool does fetch the file, to return the slice of text you asked for, and keeps what it fetched in a cache on the instance that served you. Either way, mcp.jmrp.io publishes no catalogue and offers no file for anyone else to fetch: the transfer, if you make it, is between you and that third party.",
       "What you do with the links libgen returns is your responsibility, under whichever law applies to you. gitlab does nothing more than relay calls to gitlab.com with the credential you supply, and grants no right beyond what gitlab.com already grants you.",
       "This service is operated from Spain by a private individual, not a company, and is not affiliated with any of the sources named above: it only queries them, and their names belong to their owners.",
@@ -210,9 +250,9 @@ export const policies = {
     /** Ver `en.credentialNoticeLink`: literal el `<h4>` del aviso destino. */
     credentialNoticeLink: "¿A dónde va tu token de GitLab?",
     logsEyebrow: "Logs y retención",
-    /** Ver `en.logsBody`: campos reales, quién los lee, y la copia de métricas sin plazo a propósito. */
+    /** Ver `en.logsBody`: campos reales, quién los lee, y la copia de métricas acotada por el mismo año. */
     logsBody: [
-      "El servidor web guarda logs de acceso estándar —dirección IP, user agent, la línea de petición (método, ruta y query string), código de estado, tamaño de la respuesta, referente, y el país, la ciudad y el operador de red a los que resuelve esa IP, consultados en local en una base de datos de MaxMind y no preguntando a nadie— para prevenir abusos (los lee CrowdSec) y para los paneles de uso del propio autor. Los ficheros rotan a diario y se borran al año; la copia que alimenta los paneles vive en la red del propio autor.",
+      "El servidor web guarda logs de acceso estándar —dirección IP, user agent, la línea de petición (método, ruta y query string), código de estado, tamaño de la respuesta, referente, y el país, la ciudad y el operador de red a los que resuelve esa IP, consultados en local en una base de datos de MaxMind y no preguntando a nadie— para prevenir abusos (los lee CrowdSec) y para los paneles de uso del propio autor. Los ficheros rotan a diario y se borran al año; la copia que alimenta los paneles vive en la red del propio autor y no se conserva más tiempo que eso.",
       "El cuerpo de una llamada nunca se registra: lleva los argumentos, es decir, lo que de verdad buscas o preguntas —nginx lo mira solo para extraer dos nombres—. Las métricas de uso registran el método JSON-RPC, el nombre de la herramienta, el estado, los tiempos y el tamaño de la respuesta, qué instancia y qué salida la sirvieron, y la IP de quien llama —que está ahí para que el autor pueda separar su propio tráfico de pruebas del real—, pero nunca los argumentos ni el contenido de la respuesta. Esas métricas alimentan los mismos paneles.",
       "gitlab exporta además trazas y métricas OpenTelemetry a un colector en la red del autor: el método, la herramienta y la acción de catálogo (issue.list, por ejemplo), el éxito o el código de error, los tiempos y un seudónimo con clave de quien llama y del recurso leído —estable entre reinicios, que nadie puede leer—, pero nunca los argumentos, los resultados, el token ni respuesta alguna de GitLab.",
     ],
@@ -237,7 +277,39 @@ export const policies = {
      */
     legalBody: [
       "libgen no opera catálogo alguno ni aloja nada propio: es un cliente de índices y bibliotecas que gestionan otros. Del lado abierto son arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed, ERIC, OpenAlex, Europe PMC, bioRxiv, el RFC Editor, NIST, Dagstuhl, la ACL Anthology, Zenodo, SciELO, la FAO, Fatcat, OAPEN e Internet Archive; del lado de las bibliotecas en la sombra, un mirror de Library Genesis, randombook.org, Anna's Archive, Sci-Hub y el visor de artículos SciDB de Anna's Archive. A cuáles llega una llamada, y en qué orden, lo decide la herramienta que llamas y no el servicio entero.",
-      "search parte del catálogo de Library Genesis; en este despliegue el valor por defecto del operador es extra_sources=always, así que una llamada que no diga otra cosa llega además a Anna's Archive y a siete proveedores abiertos —arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed y ERIC— en todas las llamadas, y una que fije extra_sources=never se queda solo en el catálogo. download y read van por identificador —read solo admite hash o DOI—: un artículo pedido por DOI se intenta primero en trece fuentes abiertas —OpenAlex, Europe PMC, bioRxiv, el RFC Editor, NIST, Dagstuhl, la ACL Anthology, Zenodo, SciELO, la FAO, Fatcat, Crossref y OAPEN— y solo llega a Sci-Hub, y después a SciDB, cuando ninguna de ellas lo sirve; un libro pedido por ISBN se busca únicamente en OAPEN e Internet Archive, que sirven copias con licencia abierta y nada más; y un libro pedido por su hash de catálogo, que es el identificador propio de esas bibliotecas, va directo a ellas: el mirror de Library Genesis, luego randombook.org, luego Anna's Archive. get_details añade metadatos de Crossref y OpenLibrary si se le pide, y recurre a Anna's Archive para un hash que el catálogo no tenga. download declara ese orden en su propia descripción, y read lista sus fuentes en su parámetro source, en la ficha de libgen.",
+      "search parte del catálogo de Library Genesis; en este despliegue el valor por defecto del operador es extra_sources=always, así que una llamada que no diga otra cosa llega además a Anna's Archive y a siete proveedores abiertos —arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed y ERIC— en todas las llamadas, y una que fije extra_sources=never se queda solo en el catálogo.",
+      "download y read van por identificador, y read solo admite hash o DOI. A qué fuentes llega un identificador, y en qué orden, depende de cuál sea:",
+    ],
+    /** Ver `en.legalResolution`: los tres casos, antes una frase de 115 palabras. */
+    legalResolution: [
+      {
+        label: "Un artículo pedido por DOI",
+        steps: [
+          "Primero trece fuentes abiertas: OpenAlex, Europe PMC, bioRxiv, el RFC Editor, NIST, Dagstuhl, la ACL Anthology, Zenodo, SciELO, la FAO, Fatcat, Crossref y OAPEN.",
+          "Sci-Hub, solo cuando ninguna de ellas lo sirve.",
+          "SciDB, solo cuando Sci-Hub tampoco.",
+        ],
+      },
+      {
+        label: "Un libro pedido por ISBN",
+        steps: [
+          "OAPEN e Internet Archive, y en ningún otro sitio: ambos sirven copias con licencia abierta y nada más.",
+        ],
+      },
+      {
+        label: "Un libro pedido por su hash de catálogo",
+        steps: [
+          "Primero el mirror de Library Genesis. Un hash de catálogo es el identificador propio de esas bibliotecas, así que una petición que lo lleve va directa a ellas.",
+          "randombook.org, cuando el mirror no lo sirve.",
+          "Anna's Archive, cuando ninguno de los dos lo hace.",
+        ],
+      },
+    ],
+    /** Ver `en.legalResolutionTail`: cierra el bloque de arriba. */
+    legalResolutionTail:
+      "get_details añade metadatos de Crossref y OpenLibrary si se le pide, y recurre a Anna's Archive para un hash que el catálogo no tenga. download declara ese orden en su propia descripción, y read lista sus fuentes en su parámetro source, en la ficha de libgen.",
+    /** Ver `en.legalBodyTail`: el resto de la postura legal. */
+    legalBodyTail: [
       "La herramienta download de libgen nunca entrega un fichero por HTTP, que es la única forma de llegar a este endpoint: resuelve el identificador que le des y devuelve un enlace a la fuente que tenga el ítem, para que lo descargue tu propio cliente. Su herramienta read sí descarga el fichero, para devolverte el fragmento de texto que pediste, y guarda lo descargado en una caché de la instancia que te atendió. En ambos casos, mcp.jmrp.io no publica catálogo alguno ni pone ningún fichero a disposición de nadie: la transferencia, si la haces, es entre ese tercero y tú.",
       "Lo que hagas con los enlaces que devuelve libgen es responsabilidad tuya, bajo la ley que te sea aplicable. gitlab no hace más que retransmitir llamadas a gitlab.com con la credencial que le des, y no concede ningún derecho más allá del que ya te concede gitlab.com.",
       "Este servicio lo opera desde España una persona física, no una empresa, y no está vinculado a ninguna de las fuentes citadas: solo las consulta, y sus nombres pertenecen a sus dueños.",

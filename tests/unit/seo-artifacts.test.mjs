@@ -14,12 +14,14 @@
  * remember nginx.
  */
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { serverCards } from "../../src/data/server-cards.ts";
 import { actionsDomainPaths } from "../../src/data/surface.ts";
+import { policies } from "../../src/i18n/ui/policies.ts";
 import {
   DEFAULT_LANG,
   LANGS,
@@ -149,6 +151,125 @@ const SERVED_PAGES = [
   "es/servers/gitlab/index.html",
 ];
 
+/**
+ * Every HTML page the build wrote, except the two that decline an identity.
+ *
+ * `SERVED_PAGES` lists the sixteen hand-maintained ones; this walks the build
+ * instead, so the 56 action-domain pages are covered too and a page added
+ * tomorrow is covered the day it ships. The 404 is an error body, and
+ * /inspector/callback/ is the OAuth landing step: both are `noindex` and
+ * neither has a twin, which is exactly why they are excluded here and by the
+ * guard in `Base.astro`.
+ */
+function twinnedPages() {
+  return fs
+    .readdirSync(DIST, { recursive: true })
+    .map(String)
+    .filter(
+      (f) =>
+        f.endsWith("index.html") &&
+        !f.includes("inspector/callback/") &&
+        // The Spanish 404 is `es/404/index.html` because the build writes
+        // directories; it is an error body like the root one, not a page.
+        !f.includes("/404/"),
+    );
+}
+
+test("every page announces its markdown twin, and the twin is really there", () => {
+  // The twins were served correctly all along — right content type, and a
+  // `Link:` header canonicalizing them back — but nothing on the HTML side
+  // said they existed. jmrp.io shipped the same announcement as an opt-in
+  // per-page prop first and 20 of its 96 twinned pages silently never passed
+  // it, so this asserts the two halves that make the claim true: the tag is
+  // present, and the file it points at was actually built.
+  const pages = twinnedPages();
+  // A guard on the guard: if the walk ever stops finding pages, the loop
+  // below would pass by doing nothing.
+  assert.ok(pages.length >= 70, `only ${pages.length} pages were walked`);
+  for (const page of pages) {
+    const html = read(page);
+    // The minifier reorders attributes, so the tag is matched as a whole and
+    // never on a fixed attribute order — the trap that makes a naive check
+    // report a tag missing when it is right there.
+    const tag = [...html.matchAll(/<link\b[^>]*>/g)]
+      .map(([t]) => t)
+      .find(
+        (t) =>
+          t.includes('rel="alternate"') && t.includes('type="text/markdown"'),
+      );
+    assert.ok(tag, `${page}: no <link rel="alternate" type="text/markdown">`);
+    assert.equal(
+      /href="([^"]+)"/.exec(tag)?.[1],
+      `${ORIGIN}/${page.replace(/index\.html$/, "")}index.md`,
+      `${page}: the twin link should point at THIS page's twin`,
+    );
+    // The file, not just the promise: a link to a twin the build never wrote
+    // is a 404 advertised in every head.
+    read(page.replace(/index\.html$/, "index.md"));
+  }
+});
+
+test("the pages with no twin do not claim one", () => {
+  // The 404 and the OAuth landing step have no `index.md`, so a tag on them
+  // would advertise a URL that 404s. They are also the only two pages that
+  // decline an identity, which is what the guard in `Base.astro` keys on.
+  for (const page of [
+    "404.html",
+    "es/404/index.html",
+    "inspector/callback/index.html",
+  ]) {
+    assert.ok(
+      !read(page).includes('type="text/markdown"'),
+      `${page}: announces a markdown twin it does not have`,
+    );
+  }
+});
+
+test("the legal resolution order is three labelled cases, not one long sentence", () => {
+  // The passage used to be a single 115-word sentence chaining the DOI, ISBN
+  // and catalogue-hash cases together — the least readable text on the site,
+  // on the page that most needs to be clear. The facts did not change; the
+  // shape did, and both the page and its markdown twin have to show it.
+  //
+  // The labels come from the i18n module rather than being written out here:
+  // this file is code, so it stays in English, and a copy of the strings
+  // would drift from the ones the page actually renders.
+  for (const lang of ["en", "es"]) {
+    const dir = lang === "en" ? "" : "es/";
+    const html = read(`${dir}policies/index.html`);
+    const md = read(`${dir}policies/index.md`);
+    const cases = policies[lang].legalResolution;
+    assert.equal(cases.length, 3, `${lang}: expected three cases`);
+    for (const entry of cases) {
+      assert.ok(
+        html.includes(entry.label),
+        `${dir}policies/: the case "${entry.label}" is missing`,
+      );
+      assert.ok(
+        md.includes(entry.label),
+        `${dir}policies/index.md: the case "${entry.label}" is missing`,
+      );
+      for (const step of entry.steps) {
+        assert.ok(
+          md.includes(step),
+          `${dir}policies/index.md: a step of "${entry.label}" is missing`,
+        );
+      }
+    }
+    assert.ok(
+      html.includes('class="legal-order"'),
+      `${dir}policies/: the resolution block is not rendered as a list`,
+    );
+  }
+  // The sentence that made this the worst-reading passage on the site.
+  assert.ok(
+    !read("policies/index.html").includes(
+      "is looked for at OAPEN and the Internet Archive only",
+    ),
+    "the 115-word sentence is still there",
+  );
+});
+
 test("every generated page has its location in the vhost", (t) => {
   // Sibling of SERVED_AT_ROOT: that test only looks at the ROOT of dist/ (it
   // filters on entry.isFile()), so it does not see new pages, which live in
@@ -184,7 +305,20 @@ test("every markdown twin has its location and its canonical", (t) => {
     t.skip("the vhost is not readable on this machine");
     return;
   }
-  const vhost = fs.readFileSync(VHOST, "utf8");
+  // The vhost PLUS the snippets the build generates into their own
+  // directory. The sixty exact locations used to be written here by hand;
+  // they are emitted by `post-build/nginx-snippets.ts` now and delivered by
+  // the deploy, so reading only the vhost would assert against half the
+  // configuration and pass on an empty include.
+  const generatedDir = "/etc/nginx/snippets/mcp";
+  const generated = fs.existsSync(generatedDir)
+    ? fs
+        .readdirSync(generatedDir)
+        .filter((name) => name.endsWith(".conf"))
+        .map((name) => fs.readFileSync(`${generatedDir}/${name}`, "utf8"))
+        .join("\n")
+    : "";
+  const vhost = `${fs.readFileSync(VHOST, "utf8")}\n${generated}`;
   const twins = [];
   // `DIST` is a file:// URL: readdirSync accepts it, but a subpath cannot be
   // derived by concatenation, so it is converted to a real path once.
@@ -199,11 +333,12 @@ test("every markdown twin has its location and its canonical", (t) => {
   walk(root);
 
   assert.ok(twins.length > 0, "the build emitted no markdown twin at all");
-  // Two valid ways of being served, and the second is essential: the sixty
-  // domain twins cannot each carry an exact `location`, so they fall into
-  // their prefix's `^~` block, which nests a `location ~ \.md$`. That nested
-  // block is required, not merely the prefix: without it nginx would try
-  // `$uri/index.html` against a .md file and answer 404.
+  // Two valid ways of being served. The exact `location =` is now the normal
+  // one for every twin, including the domain pages: an exact match outranks
+  // any prefix, so the generated file covers them and the nested
+  // `location ~ \.md$` those prefixes used to need is gone. The prefix branch
+  // stays because it is still a correct way to serve a twin, and a future
+  // subtree may use it again.
   // Named, not positional: `[, , block]` skips two slots in a row, which is
   // unreadable and the linter rightly refuses — nobody reading it can tell
   // which group is being dropped.
@@ -316,9 +451,13 @@ test("llms.txt and llms-full.txt describe the real servers", () => {
       `llms-full.txt does not mention ${endpoint}`,
     );
   }
+  // llmstxt.org asks the H1 for the project or site NAME. It used to be the
+  // bare hostname, which the blockquote then had to recover; the name now
+  // carries what the site is. Still anchored to the host so the H1 cannot
+  // drift away from the domain it describes.
   assert.match(
     short,
-    /^# mcp\.jmrp\.io$/m,
+    /^# mcp\.jmrp\.io — .+$/m,
     "llms.txt without the standard's H1",
   );
   assert.ok(
@@ -420,6 +559,46 @@ test("the sitemap carries lastmod and the hreflang annotations", () => {
   for (const [, value] of lastmods) {
     assert.ok(!Number.isNaN(Date.parse(value)), `unreadable lastmod: ${value}`);
   }
+});
+
+test("pages carry their OWN lastmod, not one shared date for the whole site", (t) => {
+  // Every URL used to be stamped with `contentDate()`, the HEAD commit, so any
+  // commit moved every date. That is untrue on its face, and it also disabled
+  // the deploy's differential submission: `deploy-live-mcp.mjs` diffs these
+  // values against a ledger to decide what to announce, and a date that always
+  // moves selects all 73 URLs — which Bing then rejects whole, over quota.
+  // See src/lib/sitemap-lastmod.ts.
+  //
+  // A build from a DIRTY tree deliberately falls back to the single date: a
+  // tree matching no commit has no per-page git date to give. Skipping there
+  // (rather than passing) keeps the assertion below meaningful — it must be
+  // able to fail on the clean builds that CI and production actually run.
+  let dirty;
+  try {
+    dirty =
+      execFileSync("/usr/bin/git", ["status", "--porcelain"], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      }).trim() !== "";
+  } catch {
+    dirty = true;
+  }
+  if (dirty) {
+    t.skip("dirty tree: the sitemap falls back to one date by design");
+    return;
+  }
+
+  const sitemap = read("sitemap-0.xml");
+  const distinct = new Set(
+    [...sitemap.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map(([, v]) => v),
+  );
+  // The two languages of a page share a date (they are built from the same
+  // sources), so there are far fewer dates than URLs — but more than one.
+  assert.ok(
+    distinct.size > 1,
+    "every URL shares one lastmod: the per-page resolver in " +
+      "src/lib/sitemap-lastmod.ts is not running",
+  );
 });
 
 test("every sitemap entry declares ITS OWN x-default, not the home page's", () => {

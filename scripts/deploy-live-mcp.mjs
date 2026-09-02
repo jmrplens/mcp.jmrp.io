@@ -14,6 +14,12 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
+import {
+  parseSitemapEntries,
+  selectChangedUrls,
+  submissionLimit,
+} from "./lib/url-submission.mjs";
+
 // The repo's `.env` (gitignored) carries the Bing Webmaster key. Same as in
 // jmrp.io: `loadEnvFile` does NOT override what already comes from the
 // environment, so an exported value still wins. A missing file is fine — each
@@ -51,6 +57,18 @@ const SNIPPETS = process.env.POSTBUILD_NGINX_SNIPPETS_PATH;
  * whatever was there with those privileges.
  */
 const NGINX_BIN = "/usr/sbin/nginx";
+
+/**
+ * Where the build stages the snippets it generates, and where they land.
+ *
+ * They are staged OUTSIDE the repository and outside the served tree (see
+ * `src/integrations/post-build/nginx-snippets.ts`) and moved into their own
+ * subdirectory here, which the vhost includes with a wildcard: a file this
+ * build did not produce degrades to an empty include instead of being fatal
+ * to the next reload, whoever triggers it.
+ */
+const STAGING =
+  process.env.MCP_NGINX_STAGING ?? "/var/lib/mcp.jmrp.io/nginx-staged";
 const SYSTEMCTL_BIN = "/usr/bin/systemctl";
 const FILES = ["security_headers_mcp.conf", "security_headers_assets_mcp.conf"];
 const VHOST = "/etc/nginx/sites-enabled/mcp.jmrp.io.conf";
@@ -184,6 +202,66 @@ if (SNIPPETS) {
 }
 
 /**
+ * Moves the build's generated snippets into place.
+ *
+ * Same contract as the block above: back up what is there, deliver, test, and
+ * restore everything if `nginx -t` refuses. It runs AFTER the blue/green swap,
+ * so the locations it delivers describe the build that is actually being
+ * served.
+ *
+ * A missing staging directory is not an error. It is the normal state off the
+ * production host, and it is also what happens when a scratch build is
+ * exercised with `MCP_NGINX_STAGING` pointed elsewhere.
+ */
+function deployStagedSnippets() {
+  if (!SNIPPETS || !fs.existsSync(STAGING)) return;
+
+  const target = path.join(SNIPPETS, "mcp");
+  fs.mkdirSync(target, { recursive: true });
+
+  const staged = fs
+    .readdirSync(STAGING)
+    .filter((name) => name.endsWith(".conf"));
+  if (staged.length === 0) return;
+
+  /** Previous content of each target, so the whole delivery can be undone. */
+  const previous = new Map();
+  for (const name of staged) {
+    const dst = path.join(target, name);
+    previous.set(dst, fs.existsSync(dst) ? fs.readFileSync(dst) : null);
+    // Copied and not renamed: the staging copy stays until the test passes,
+    // and the mode comes from the source, which the build set deliberately.
+    fs.copyFileSync(path.join(STAGING, name), dst);
+    // The nginx workers run unprivileged: a 0600 snippet is unreadable to
+    // them and produces a 520 on the next reload, which `nginx -t` does not
+    // catch because the master is root.
+    // eslint-disable-next-line sonarjs/file-permissions -- 0644 is the fix, see above
+    fs.chmodSync(dst, 0o644);
+  }
+
+  try {
+    execFileSync(NGINX_BIN, ["-t"], { stdio: "pipe" });
+  } catch (error) {
+    for (const [dst, buf] of previous) {
+      if (buf) fs.writeFileSync(dst, buf);
+      else fs.rmSync(dst, { force: true });
+    }
+    console.error(
+      "✗ 'nginx -t' failed on the generated snippets; the delivery was undone",
+    );
+    console.error(String(error.stderr ?? error));
+    process.exit(1);
+  }
+
+  execFileSync(SYSTEMCTL_BIN, ["reload", "nginx"]);
+  for (const name of staged)
+    fs.rmSync(path.join(STAGING, name), { force: true });
+  console.log(`✓ ${staged.length} generated snippet(s) deployed to ${target}`);
+}
+
+deployStagedSnippets();
+
+/**
  * Flattens foreign text into a single readable line.
  *
  * What is logged here comes from an HTTP response: a newline in its content
@@ -286,21 +364,91 @@ if (cfToken) {
 // submitted the day it ships. It used to be the two home pages only, which
 // meant nothing else was ever submitted; the two home pages remain the
 // fallback if the sitemap cannot be read.
-const SUBMIT_URLS = (() => {
+const HOME_URLS = ["https://mcp.jmrp.io/", "https://mcp.jmrp.io/es/"];
+
+/** `loc -> lastmod` for this build, or an empty map if the sitemap is unreadable. */
+const SITEMAP_ENTRIES = (() => {
   try {
-    const xml = fs.readFileSync(path.join("dist", "sitemap-0.xml"), "utf8");
-    const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
-    if (urls.length > 0) return urls;
+    return parseSitemapEntries(
+      fs.readFileSync(path.join("dist", "sitemap-0.xml"), "utf8"),
+    );
   } catch {
-    // fall through to the fallback below
+    return new Map();
   }
-  return ["https://mcp.jmrp.io/", "https://mcp.jmrp.io/es/"];
 })();
+
+/**
+ * Records what was last announced, so the next deploy can diff against it.
+ *
+ * `.cache/` is gitignored, survives a build and is wiped by a cache clear — at
+ * which point the next deploy announces everything again, which is harmless.
+ */
+const LEDGER_PATH = path.resolve(".cache", "url-submission-ledger.json");
+
+/** The previous ledger, or null when there is none (first deploy). */
+const PREVIOUS_LEDGER = (() => {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(LEDGER_PATH, "utf8"));
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? parsed
+      : null;
+  } catch {
+    return null;
+  }
+})();
+
+/**
+ * The URLs to announce this deploy.
+ *
+ * Not the whole sitemap: only what moved since the ledger. Announcing pages
+ * that did not change spends Bing's finite daily quota to say "nothing
+ * happened", and IndexNow's documentation warns that it lowers the trust the
+ * engines place in the source. This works only because every page now carries
+ * a `lastmod` of its OWN — see `src/lib/sitemap-lastmod.ts`; while all 73
+ * shared the HEAD date, every commit marked every page as changed.
+ *
+ * The two home pages remain the fallback when the sitemap cannot be read at
+ * all, which is what this step submitted before it learned to read it.
+ */
+const { changed: SUBMIT_URLS, total: SITEMAP_TOTAL } =
+  SITEMAP_ENTRIES.size > 0
+    ? selectChangedUrls(SITEMAP_ENTRIES, PREVIOUS_LEDGER)
+    : { changed: HOME_URLS, total: HOME_URLS.length };
+
+/**
+ * Records the announced state once IndexNow has accepted it.
+ *
+ * Keyed to IndexNow and not to Bing on purpose: IndexNow takes the whole diff
+ * in one call, whereas Bing's quota may only take part of it. Holding the
+ * ledger back until Bing catches up would re-announce to IndexNow every day.
+ * Bing lags by design and loses nothing by it — IndexNow already notifies Bing
+ * through the open protocol; the Webmaster API is the site's own second
+ * channel, not the only one.
+ *
+ * Never fatal: a failed write just means the next deploy re-announces.
+ */
+function writeLedger() {
+  try {
+    fs.mkdirSync(path.dirname(LEDGER_PATH), { recursive: true });
+    fs.writeFileSync(
+      LEDGER_PATH,
+      `${JSON.stringify(Object.fromEntries(SITEMAP_ENTRIES), null, 2)}\n`,
+    );
+  } catch (error) {
+    console.warn(
+      `⚠ could not write the URL submission ledger: ${oneLine(error.message)}`,
+    );
+  }
+}
 const INDEXNOW_KEY = /INDEXNOW_KEY = "([a-f0-9]+)"/.exec(
   fs.readFileSync(path.join("src", "lib", "seo.ts"), "utf8"),
 )?.[1];
 
-if (INDEXNOW_KEY) {
+if (INDEXNOW_KEY && SUBMIT_URLS.length === 0) {
+  console.log(
+    `ℹ IndexNow: nothing changed since the last deploy (${SITEMAP_TOTAL} URLs in the sitemap), skipping`,
+  );
+} else if (INDEXNOW_KEY) {
   try {
     const response = await fetch("https://api.indexnow.org/IndexNow", {
       method: "POST",
@@ -314,11 +462,16 @@ if (INDEXNOW_KEY) {
       signal: AbortSignal.timeout(15_000),
     });
     // 200 and 202 are both acceptance; 422 usually means the key is not visible yet.
-    console.log(
-      response.ok
-        ? `✓ IndexNow notified (HTTP ${response.status})`
-        : `⚠ IndexNow returned HTTP ${response.status}`,
-    );
+    if (response.ok) {
+      console.log(
+        `✓ IndexNow notified (HTTP ${response.status}, ${SUBMIT_URLS.length} of ${SITEMAP_TOTAL} URLs)`,
+      );
+      // Only now: the ledger records what an API has actually accepted, so a
+      // rejected submission is retried rather than silently forgotten.
+      if (SITEMAP_ENTRIES.size > 0) writeLedger();
+    } else {
+      console.warn(`⚠ IndexNow returned HTTP ${response.status}`);
+    }
   } catch (error) {
     console.warn(`⚠ could not notify IndexNow: ${oneLine(error.message)}`);
   }
@@ -340,31 +493,77 @@ if (INDEXNOW_KEY) {
 // The key comes from the repo's `.env`. If it is missing we warn and do NOT
 // fail: the origin is already deployed and indexing is a bonus.
 const bingKey = process.env.BING_WEBMASTER_API_KEY;
+const BING_SITE_URL = "https://mcp.jmrp.io";
 
-if (bingKey) {
+/**
+ * What Bing will still accept, or null when the quota cannot be read.
+ *
+ * @param key The Webmaster API key.
+ * @returns `{ daily, monthly }`, or null.
+ */
+async function bingQuota(key) {
+  const response = await fetch(
+    "https://ssl.bing.com/webmaster/api.svc/json/GetUrlSubmissionQuota" +
+      `?siteUrl=${encodeURIComponent(BING_SITE_URL)}&apikey=${encodeURIComponent(key)}`,
+    {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(15_000),
+    },
+  );
+  if (!response.ok) return null;
+  const { d } = await response.json();
+  return Number.isFinite(d?.DailyQuota) && Number.isFinite(d?.MonthlyQuota)
+    ? { daily: d.DailyQuota, monthly: d.MonthlyQuota }
+    : null;
+}
+
+if (bingKey && SUBMIT_URLS.length === 0) {
+  console.log(
+    "ℹ Bing Webmaster: nothing changed since the last deploy, skipping",
+  );
+} else if (bingKey) {
   try {
-    const response = await fetch(
-      `https://ssl.bing.com/webmaster/api.svc/json/SubmitUrlbatch?apikey=${encodeURIComponent(bingKey)}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json; charset=utf-8",
-          Accept: "application/json",
+    // Asked BEFORE submitting, because an over-sized batch is rejected whole:
+    // sending 73 URLs against 27 left published nothing and logged a bare
+    // "HTTP 400". What does not fit today is not lost — it stays out of the
+    // ledger only if IndexNow also failed, and Bing catches it up on a later
+    // deploy.
+    const quota = await bingQuota(bingKey);
+    const limit = quota
+      ? submissionLimit(quota, SUBMIT_URLS.length)
+      : SUBMIT_URLS.length;
+    if (limit === 0) {
+      console.log(
+        `ℹ Bing Webmaster: no quota left today for ${SUBMIT_URLS.length} URLs, skipping`,
+      );
+    } else {
+      const batch = SUBMIT_URLS.slice(0, limit);
+      const response = await fetch(
+        `https://ssl.bing.com/webmaster/api.svc/json/SubmitUrlbatch?apikey=${encodeURIComponent(bingKey)}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ siteUrl: BING_SITE_URL, urlList: batch }),
+          signal: AbortSignal.timeout(15_000),
         },
-        body: JSON.stringify({
-          siteUrl: "https://mcp.jmrp.io",
-          urlList: SUBMIT_URLS,
-        }),
-        signal: AbortSignal.timeout(15_000),
-      },
-    );
-    // The API returns 200 with `{"d":null}` when it accepts. A 400 is usually
-    // the daily quota being spent, which is not a deployment failure.
-    console.log(
-      response.ok
-        ? `✓ Bing Webmaster notified (HTTP ${response.status})`
-        : `⚠ Bing Webmaster returned HTTP ${response.status}`,
-    );
+      );
+      // The API returns 200 with `{"d":null}` when it accepts.
+      if (response.ok) {
+        console.log(
+          `✓ Bing Webmaster notified (${batch.length} of ${SUBMIT_URLS.length} changed URLs)`,
+        );
+      } else {
+        // The BODY, not just the status: Bing explains its refusals in it
+        // ("Quota remaining for today: 27, Submitted: 73"), and logging the
+        // status alone is what turned a one-line answer into an investigation.
+        console.warn(
+          `⚠ Bing Webmaster returned HTTP ${response.status}: ${oneLine(await response.text())}`,
+        );
+      }
+    }
   } catch (error) {
     console.warn(`⚠ could not notify Bing: ${oneLine(error.message)}`);
   }

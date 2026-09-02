@@ -10,6 +10,7 @@
  * invisible: it breaks nothing on screen and nobody sees it fail.
  */
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import { test } from "node:test";
 
@@ -592,6 +593,90 @@ test("the social card carries the license metadata Search Console asks for", () 
     assert.ok(
       html.includes('id="images-h"'),
       `${htmlPage}: the section that grants the card's license is missing`,
+    );
+  }
+});
+
+test("each page's dates are its own, not the repository's", (t) => {
+  // Every page used to carry `dateModified` = HEAD's commit and
+  // `datePublished` = the repository's FIRST commit. So the graph said the
+  // whole site changed whenever any commit landed, and it said /license/ had
+  // existed since 2026-08-06 — weeks before that page was written. Three
+  // independent reviewers filed it in the same audit.
+  //
+  // A build from a DIRTY tree falls back to the site-wide dates on purpose (a
+  // tree matching no commit has no per-page date to give), so this skips
+  // rather than passes there: the assertion has to be able to fail on the
+  // clean builds CI and production actually run.
+  let dirty;
+  try {
+    dirty =
+      execFileSync("/usr/bin/git", ["status", "--porcelain"], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      }).trim() !== "";
+  } catch {
+    dirty = true;
+  }
+  if (dirty) {
+    t.skip("dirty tree: the graph falls back to site-wide dates by design");
+    return;
+  }
+
+  const modified = new Set();
+  const published = new Set();
+  for (const htmlPage of htmlPages()) {
+    const webpage = graphOf(htmlPage).find((n) => n["@type"] === "WebPage");
+    assert.ok(
+      webpage.dateModified,
+      `${htmlPage}: the WebPage carries no dateModified`,
+    );
+    modified.add(webpage.dateModified);
+    if (webpage.datePublished) published.add(webpage.datePublished);
+  }
+  // Two languages of a page share a date (same sources), so there are far
+  // fewer dates than pages — but more than one.
+  assert.ok(
+    modified.size > 1,
+    `all pages share one dateModified: the per-page resolver is not running`,
+  );
+  assert.ok(
+    published.size > 1,
+    `all pages share one datePublished: they cannot all have been published together`,
+  );
+});
+
+test("each WebAPI states its terms and its limits, not just that it is free", () => {
+  // `isAccessibleForFree` and `availability: InStock` together read as an
+  // unconditional invitation, while /policies/ says the opposite in detail:
+  // no SLA, and no commitment that either endpoint stays online — or
+  // unchanged — from one day to the next. An agent deciding whether to build
+  // on the endpoint reads the graph, not the FAQ.
+  for (const server of cardServers) {
+    const page = `servers/${server.id}/index.html`;
+    const api = graphOf(page).find((n) =>
+      String(n["@type"]).includes("WebAPI"),
+    );
+    assert.equal(
+      api.termsOfService,
+      "https://mcp.jmrp.io/policies/",
+      `${page}: the WebAPI does not point at the terms`,
+    );
+    const props = Object.fromEntries(
+      (api.additionalProperty ?? []).map((p) => [p.name, p.value]),
+    );
+    for (const name of [
+      "transport",
+      "authentication",
+      "serviceLevelAgreement",
+    ]) {
+      assert.ok(props[name], `${page}: no ${name} declared`);
+    }
+    // Derived from the headers the server really requires, never restated.
+    assert.equal(
+      props.authentication === "None",
+      server.requiredHeaders.length === 0,
+      `${page}: the declared authentication disagrees with requiredHeaders`,
     );
   }
 });

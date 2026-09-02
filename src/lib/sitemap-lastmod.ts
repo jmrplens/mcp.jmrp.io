@@ -1,0 +1,255 @@
+/**
+ * Each page's dates, from the git history of what that page is made of.
+ *
+ * ── Why this exists ───────────────────────────────────────────────────────
+ * The sitemap used to stamp ONE date — `contentDate()`, the HEAD commit — on
+ * all 73 URLs. Every commit therefore moved every `lastmod`, so the sitemap
+ * asserted that the whole site changed whenever anything did. That is wrong on
+ * its own terms, and it also made the deploy's differential submission
+ * impossible: `scripts/deploy-live-mcp.mjs` diffs this value against a ledger
+ * to work out what to announce to IndexNow and Bing, and a date that always
+ * moves selects everything, every time. Bing's daily quota is smaller than the
+ * sitemap, and it rejects an over-sized batch WHOLE, so "everything changed"
+ * ended up announcing nothing at all.
+ *
+ * The approach is jmrp.io's (`src/integrations/sitemap-post-dates.ts`): key
+ * each route to the files that actually hold its content and ask git when they
+ * last moved.
+ *
+ * ── The deliberate trade-off ──────────────────────────────────────────────
+ * The site's shell — `Base.astro`, the nav and footer strings in
+ * `i18n/ui/common.ts` — is NOT a source of any page here. Including it would
+ * put every page back on one shared date the first time a footer link changed,
+ * which is the exact failure this module exists to undo. The cost is that a
+ * purely-chrome edit is under-reported; the benefit is that `lastmod` means
+ * "this page's own content moved", which is what a crawler is being told.
+ */
+import { execFileSync } from "node:child_process";
+
+import { contentDate, publishedDate } from "./build-date";
+
+/** A page's own dates, as the JSON-LD and the sitemap need them. */
+export interface PageDates {
+  /** When the page last changed: `dateModified` and `<lastmod>`. */
+  dateModified?: string;
+  /** When the page first existed: `datePublished`. */
+  datePublished?: string;
+}
+
+// Absolute path, like `build-date.ts`: resolving `git` through PATH is an
+// injection vector and sonarjs forbids it.
+const GIT = "/usr/bin/git";
+
+/**
+ * Files that hold each route's content, by route shape.
+ *
+ * Paths are git pathspecs, so a directory covers everything under it. The
+ * language prefix is stripped before matching: the two translations of a page
+ * are rendered from the same sources, so they share a date.
+ */
+const STATIC_SOURCES: Record<string, string[]> = {
+  "/": [
+    "src/components/pages/HomePage.astro",
+    "src/i18n/ui/home.ts",
+    "src/data/servers.ts",
+  ],
+  // The island is the page: almost nothing on /inspector/ comes from the
+  // .astro shell. `inspector-parts.tsx` and the deeplink helper render and
+  // route its panels, so an edit to either is an edit to the page.
+  "/inspector/": [
+    "src/components/pages/InspectorPage.astro",
+    "src/components/Inspector.tsx",
+    "src/components/inspector-parts.tsx",
+    "src/lib/inspector-deeplink.ts",
+    "src/i18n/ui/inspector.ts",
+  ],
+  "/internals/": [
+    "src/components/pages/InternalsPage.astro",
+    "src/i18n/ui/internals.ts",
+    // Generated from the live census by sync-topology.sh: when the topology
+    // moves, the page's diagrams and counts move with it.
+    "src/data/topology.json",
+  ],
+  "/license/": [
+    "src/components/pages/LicensePage.astro",
+    "src/i18n/ui/license.ts",
+  ],
+  "/policies/": [
+    "src/components/pages/PoliciesPage.astro",
+    "src/i18n/ui/policies.ts",
+  ],
+  "/servers/": [
+    "src/components/pages/ServersIndexPage.astro",
+    "src/i18n/ui/servers-page.ts",
+    "src/data/servers.ts",
+  ],
+};
+
+// `/inspector/callback/` is the same page's OAuth landing step and carries no
+// copy of its own — it moves when the inspector does.
+STATIC_SOURCES["/inspector/callback/"] = STATIC_SOURCES["/inspector/"];
+
+/** Sources of one server's card page, `/servers/<id>/`. */
+function serverSources(id: string): string[] {
+  return [
+    "src/components/pages/ServerPage.astro",
+    "src/i18n/ui/servers-page.ts",
+    "src/data/servers.ts",
+    "src/data/server-cards.ts",
+    `src/data/cards/${id}.json`,
+    `src/data/surface/${id}-discover.json`,
+  ];
+}
+
+/** Sources of one action-domain page, `/servers/<id>/actions/<domain>/`. */
+function actionsSources(id: string): string[] {
+  return [
+    "src/components/pages/ActionsDomainPage.astro",
+    "src/i18n/ui/servers-page.ts",
+    "src/data/servers.ts",
+    `src/data/surface/${id}-actions.json`,
+  ];
+}
+
+/**
+ * When git last touched any of `pathspecs`.
+ *
+ * @param pathspecs Repository-relative paths or directories.
+ * @returns An ISO date, or undefined when git says nothing about them.
+ */
+function gitDate(pathspecs: string[]): string | undefined {
+  try {
+    const out = execFileSync(
+      GIT,
+      ["log", "-1", "--format=%cI", "--", ...pathspecs],
+      { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] },
+    ).trim();
+    return out || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * When git FIRST added any of `pathspecs`.
+ *
+ * `--diff-filter=A` lists the commits that added a file, newest first, so the
+ * last line is the oldest addition — the moment the page began to exist. The
+ * whole-repo equivalent (`publishedDate()`) claimed 2026-08-06, the first
+ * commit of the repository, for pages that did not exist until weeks later:
+ * /license/ was published on the day it shipped, not on the day the repo
+ * started.
+ *
+ * @param pathspecs Repository-relative paths or directories.
+ * @returns An ISO date, or undefined when git says nothing about them.
+ */
+function gitAddedDate(pathspecs: string[]): string | undefined {
+  try {
+    const out = execFileSync(
+      GIT,
+      ["log", "--diff-filter=A", "--format=%cI", "--", ...pathspecs],
+      { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] },
+    ).trim();
+    // A page built from several sources was "added" once per source; the
+    // earliest of those is when the page itself appeared.
+    return out ? out.split("\n").at(-1) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** `/servers/<id>/actions/<domain>/`, language prefix already stripped. */
+const ACTIONS_ROUTE = /^\/servers\/([^/]+)\/actions\/[^/]+\/$/;
+
+/** `/servers/<id>/`, language prefix already stripped. */
+const SERVER_ROUTE = /^\/servers\/([^/]+)\/$/;
+
+/** Whether the working tree has uncommitted changes. */
+function isDirty(): boolean {
+  try {
+    return (
+      execFileSync(GIT, ["status", "--porcelain"], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      }).trim() !== ""
+    );
+  } catch {
+    // No git at all: treat as dirty so the caller keeps its single fallback
+    // date rather than emitting no `lastmod`.
+    return true;
+  }
+}
+
+/**
+ * The route a URL path describes, with the language prefix removed.
+ *
+ * @param pathname A path from the sitemap, e.g. `/es/servers/gitlab/`.
+ * @returns The language-independent route, always with a trailing slash.
+ */
+function routeOf(pathname: string): string {
+  const withSlash = pathname.endsWith("/") ? pathname : `${pathname}/`;
+  // `/es/` is the Spanish HOME, so stripping the prefix has to leave "/" and
+  // not the empty string, which would match no route at all.
+  if (withSlash === "/es/") return "/";
+  return withSlash.startsWith("/es/") ? withSlash.slice(3) : withSlash;
+}
+
+/**
+ * Builds the per-page `lastmod` resolver the sitemap serializer calls.
+ *
+ * git is asked once per distinct source set and the answer is memoized: the
+ * sitemap has 73 URLs but only a handful of shapes, and a subprocess per URL
+ * would be paid on every build.
+ *
+ * On a DIRTY tree (or with no git) it resolves nothing and the caller keeps
+ * its single fallback date. That is deliberate: `build-date.ts` already treats
+ * a dirty tree as "the commit date is not the content date", and inventing
+ * per-page dates from a tree that does not match any commit would be worse
+ * than the honest whole-site stamp.
+ *
+ * @returns A function from URL path to that page's dates; both fields are
+ *   undefined when the caller should fall back to its own site-wide values.
+ */
+export function createPageDatesResolver(): (pathname: string) => PageDates {
+  const dirty = isDirty();
+  // The repository's own dates, used for a route with no entry of its own so a
+  // new page never ships without them. On a dirty tree they are left unset,
+  // which is what makes every lookup below resolve to nothing and hands the
+  // decision back to the caller's own fallback.
+  const fallbackModified = dirty ? undefined : contentDate();
+  const fallbackPublished = dirty ? undefined : publishedDate();
+  const fallback: PageDates = {
+    dateModified: fallbackModified,
+    datePublished: fallbackPublished,
+  };
+  const cache = new Map<string, PageDates>();
+
+  const datesFor = (pathspecs: string[]): PageDates => {
+    const key = pathspecs.join(" ");
+    let dates = cache.get(key);
+    if (!dates) {
+      dates = {
+        dateModified: gitDate(pathspecs) ?? fallbackModified,
+        datePublished: gitAddedDate(pathspecs) ?? fallbackPublished,
+      };
+      cache.set(key, dates);
+    }
+    return dates;
+  };
+
+  return (pathname: string) => {
+    if (dirty) return fallback;
+
+    const route = routeOf(pathname);
+    const staticSources = STATIC_SOURCES[route];
+    if (staticSources) return datesFor(staticSources);
+
+    const actions = ACTIONS_ROUTE.exec(route);
+    if (actions) return datesFor(actionsSources(actions[1]));
+
+    const server = SERVER_ROUTE.exec(route);
+    if (server) return datesFor(serverSources(server[1]));
+
+    return fallback;
+  };
+}

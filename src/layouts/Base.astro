@@ -405,6 +405,32 @@ const serverSubItems = servers.map((server) => ({
       title="llms.txt index"
     />
 
+    {
+      /* The page's markdown twin, which the build writes at `<page>index.md`.
+        It was reachable and correctly served all along — right content type,
+        and a `Link:` header canonicalizing it back here — but nothing on this
+        side said it existed: no head tag, no `.md` in the sitemap, and
+        llms.txt named the twins without ever giving the pattern. An agent
+        reading the `<head>` is exactly the audience that wants it.
+
+        The URL comes from `canonical` and not from a per-page prop, for the
+        reason jmrp.io learned the hard way: it shipped this as an opt-in prop
+        first and 20 of its 96 twinned pages silently never passed it. The only
+        two pages here with no twin are the two that decline an identity
+        altogether — the 404 and /inspector/callback/ — so the guard is the one
+        the canonical itself already uses. */
+    }
+    {
+      !errorPage && !noindex && (
+        <link
+          rel="alternate"
+          type="text/markdown"
+          href={`${canonical}index.md`}
+          title="Markdown twin"
+        />
+      )
+    }
+
     <meta
       name="color-scheme"
       content="light dark"

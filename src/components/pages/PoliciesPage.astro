@@ -133,6 +133,33 @@ const licenseHref = new URL(pageUrl(lang, "license")).pathname;
     </h2>
     {t.legalBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
     {
+      /* The resolution order, one labelled block per identifier. It used to
+        be a single 115-word sentence inside the prose above — the least
+        readable passage on the site, on the page that most needs to be
+        clear. The facts and the order are unchanged; this is the shape
+        /internals/ already gives its failure sequences, because a reader
+        checking "where does an ISBN go?" is looking up a case, not reading
+        a paragraph. */
+    }
+    <dl class="legal-order">
+      {
+        t.legalResolution.map((entry) => (
+          <>
+            <dt>{entry.label}</dt>
+            <dd>
+              <ol>
+                {entry.steps.map((step) => (
+                  <li>{step}</li>
+                ))}
+              </ol>
+            </dd>
+          </>
+        ))
+      }
+    </dl>
+    <p class="prose-text">{t.legalResolutionTail}</p>
+    {t.legalBodyTail.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+    {
       /* Where to write: the footer address, named here as the channel for
         takedown requests and questions, because `slaBody` says "no support
         channel" and a reader could take the footer's mailto for that. Then
@@ -196,6 +223,38 @@ const licenseHref = new URL(pageUrl(lang, "license")).pathname;
      scoping is per component — without a copy here the one link in this
      page's prose falls back to the UA's default blue, which is the one color
      on the page nobody chose. */
+
+  /* The resolution order. It inherits `.prose-text`'s measure and rhythm so
+     the block reads as part of the section rather than as a table dropped
+     into it; the label carries the case and the numbers carry the order,
+     which is the whole reason this stopped being a sentence. */
+  .legal-order {
+    max-width: var(--max-width-prose);
+    margin: 0 0 var(--space-md);
+    font-size: var(--text-base);
+    line-height: 1.7;
+    color: var(--color-text);
+  }
+
+  .legal-order dt {
+    margin-top: var(--space-sm);
+    font-weight: 600;
+    color: var(--color-heading);
+  }
+
+  .legal-order dd {
+    margin: 0;
+  }
+
+  .legal-order ol {
+    padding-left: 1.5rem;
+    margin: 0.25rem 0 0;
+  }
+
+  .legal-order li {
+    margin-bottom: 0.25rem;
+  }
+
   .prose-text a {
     color: var(--color-accent);
     text-decoration: none;
