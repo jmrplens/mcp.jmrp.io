@@ -8,11 +8,18 @@ import { defineConfig, fontProviders } from "astro/config";
 import postBuild from "./src/integrations/post-build.ts";
 import { contentDate } from "./src/lib/build-date.ts";
 import { DEFAULT_LANG } from "./src/lib/seo.ts";
+import { createLastmodResolver } from "./src/lib/sitemap-lastmod.ts";
 
 // The content date comes from the helper shared with the JSON-LD and the
 // footer: three surfaces, one single truth. See src/lib/build-date.ts for the
 // rule (HEAD when the tree is clean, now when it is dirty) and its reasoning.
+// Here it is only the FALLBACK: `lastmodFor` gives each page the date of the
+// files it is actually made of. Stamping this one value on all 73 URLs claimed
+// the whole site changed whenever any commit landed, which is both untrue and
+// what stopped the deploy from telling IndexNow and Bing what had really moved
+// — see src/lib/sitemap-lastmod.ts.
 const LASTMOD = contentDate();
+const lastmodFor = createLastmodResolver();
 
 export default defineConfig({
   site: "https://mcp.jmrp.io",
@@ -102,7 +109,10 @@ export default defineConfig({
       i18n: { defaultLocale: "en", locales: { en: "en", es: "es" } },
       serialize: (item) => ({
         ...item,
-        ...(LASTMOD && { lastmod: LASTMOD }),
+        ...(() => {
+          const lastmod = lastmodFor(new URL(item.url).pathname) ?? LASTMOD;
+          return lastmod ? { lastmod } : {};
+        })(),
         ...(item.links && {
           links: [
             ...item.links,

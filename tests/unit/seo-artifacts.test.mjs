@@ -14,6 +14,7 @@
  * remember nginx.
  */
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -420,6 +421,46 @@ test("the sitemap carries lastmod and the hreflang annotations", () => {
   for (const [, value] of lastmods) {
     assert.ok(!Number.isNaN(Date.parse(value)), `unreadable lastmod: ${value}`);
   }
+});
+
+test("pages carry their OWN lastmod, not one shared date for the whole site", (t) => {
+  // Every URL used to be stamped with `contentDate()`, the HEAD commit, so any
+  // commit moved every date. That is untrue on its face, and it also disabled
+  // the deploy's differential submission: `deploy-live-mcp.mjs` diffs these
+  // values against a ledger to decide what to announce, and a date that always
+  // moves selects all 73 URLs — which Bing then rejects whole, over quota.
+  // See src/lib/sitemap-lastmod.ts.
+  //
+  // A build from a DIRTY tree deliberately falls back to the single date: a
+  // tree matching no commit has no per-page git date to give. Skipping there
+  // (rather than passing) keeps the assertion below meaningful — it must be
+  // able to fail on the clean builds that CI and production actually run.
+  let dirty;
+  try {
+    dirty =
+      execFileSync("/usr/bin/git", ["status", "--porcelain"], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      }).trim() !== "";
+  } catch {
+    dirty = true;
+  }
+  if (dirty) {
+    t.skip("dirty tree: the sitemap falls back to one date by design");
+    return;
+  }
+
+  const sitemap = read("sitemap-0.xml");
+  const distinct = new Set(
+    [...sitemap.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map(([, v]) => v),
+  );
+  // The two languages of a page share a date (they are built from the same
+  // sources), so there are far fewer dates than URLs — but more than one.
+  assert.ok(
+    distinct.size > 1,
+    "every URL shares one lastmod: the per-page resolver in " +
+      "src/lib/sitemap-lastmod.ts is not running",
+  );
 });
 
 test("every sitemap entry declares ITS OWN x-default, not the home page's", () => {

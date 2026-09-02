@@ -204,3 +204,6 @@ tdmrep
 opencontainers
 licenciarlo
 reinicios
+pathspecs
+apikey
+Urlbatch
