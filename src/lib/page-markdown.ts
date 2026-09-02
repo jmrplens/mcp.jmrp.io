@@ -1,13 +1,20 @@
+import { failureLadderMarkdown } from "../components/FailureLadder.md.ts";
 import { serverCards } from "../data/server-cards";
 import type { McpServer } from "../data/servers";
 import { servers } from "../data/servers";
-import type { GitlabActionEntry, GitlabActionParam } from "../data/surface";
+import type {
+  GitlabActionEntry,
+  GitlabActionParam,
+  SurfaceServerId,
+} from "../data/surface";
+import { actionCatalogs, getDiscover } from "../data/surface";
 import type { Lang } from "../i18n/config";
 import { ui } from "../i18n/ui";
 import { internals } from "../i18n/ui/internals";
+import { license } from "../i18n/ui/license";
 import { policies } from "../i18n/ui/policies";
 import { serversPage } from "../i18n/ui/servers-page";
-import { pageUrl, serverPageUrl, SITE_ORIGIN } from "./seo";
+import { pageUrl, serverPageUrl, SITE_ORIGIN, SITE_REPO } from "./seo";
 
 /**
  * Markdown twins: every page of this site, as the markdown behind it.
@@ -45,7 +52,7 @@ export const MARKDOWN_HEADERS = {
 
 /** Pages that have a twin, beyond the per-server cards. */
 export type TwinPage =
-  "home" | "inspector" | "internals" | "policies" | "servers";
+  "home" | "inspector" | "internals" | "license" | "policies" | "servers";
 
 /**
  * Wraps a rendered body in the response every twin route returns.
@@ -129,6 +136,9 @@ export function inspectorMarkdown(lang: Lang): string {
       t.inspectorIntro,
       servers.map((server) => requiresLine(server, lang)).join("\n"),
       t.mdInspectorNote.replace("{url}", () => pageUrl(lang, "inspector")),
+      // The pointer to gitlab's security notice, as the page renders it —
+      // the notice lives on the home page, so the twin links there too.
+      `${t.noticePointer} ${t.noticePointerLink}: ${pageUrl(lang, "home")}#gitlab-security`,
     ]) +
     "\n"
   );
@@ -175,6 +185,11 @@ export function internalsMarkdown(lang: Lang): string {
       t.diagramTimelineIntro,
       steps.join("\n"),
     ]) +
+    // Same order as InternalsPage.astro. The inspector-storage section was
+    // missing from this twin for a while: it is exactly the one the
+    // inspector's link points at as its contract, so an assistant reading
+    // the .md never saw it.
+    section(t.storageEyebrow, t.storageBody) +
     section(t.wireEyebrow, t.wireBody) +
     section(t.instancesEyebrow, t.instancesBody) +
     section(t.affinityEyebrow, [
@@ -190,6 +205,16 @@ export function internalsMarkdown(lang: Lang): string {
       t.affinityConsequence,
     ]) +
     section(t.egressEyebrow, t.egressBody) +
+    // The two ladders go where the page puts them, after the paragraph each
+    // one condenses — see the comment on them in InternalsPage.astro.
+    section(t.failuresEyebrow, [
+      t.failuresBody[0],
+      t.failuresBody[1],
+      failureLadderMarkdown(t.failureLadderInstance),
+      t.failuresBody[2],
+      failureLadderMarkdown(t.failureLadderEgress),
+      t.failuresBody[3],
+    ]) +
     section(t.personalEyebrow, t.personalBody) +
     "\n"
   );
@@ -203,12 +228,66 @@ export function internalsMarkdown(lang: Lang): string {
  */
 export function policiesMarkdown(lang: Lang): string {
   const t = policies[lang];
+  // Every section the page renders, pointers included, and in the same
+  // order. The legal position and the credential pointer were missing from
+  // this twin for a while — the twin is what assistants read, and the legal
+  // position is the section most carefully written for exactly that reader.
+  // Links follow the `mdDirectiveNote` convention: the sentence, then the
+  // absolute URL.
   return (
     head(t.policiesTitle, t.policiesIntro, pageUrl(lang, "policies"), lang) +
-    section(t.privacyEyebrow, t.privacyBody) +
+    section(t.privacyEyebrow, [
+      ...t.privacyBody,
+      `${t.credentialNotice} ${t.credentialNoticeLink}: ${pageUrl(lang, "home")}#gitlab-security`,
+    ]) +
     section(t.logsEyebrow, t.logsBody) +
     section(t.slaEyebrow, t.slaBody) +
-    section(t.egressEyebrow, t.egressBody) +
+    section(t.egressEyebrow, [
+      ...t.egressBody,
+      `${t.egressPointer} ${t.egressPointerLink}: ${pageUrl(lang, "internals")}#egress-h`,
+    ]) +
+    section(t.legalEyebrow, [
+      ...t.legalBody,
+      `${t.legalContact} ${t.legalContactLink}`,
+      `${t.legalLicenseNote} ${t.legalLicenseLink}: ${pageUrl(lang, "license")}`,
+    ]) +
+    "\n"
+  );
+}
+
+/**
+ * The license page: what may be reused and how, section by section, with
+ * every link as an absolute URL after its sentence.
+ *
+ * @param lang Locale to render.
+ * @returns The markdown.
+ */
+export function licenseMarkdown(lang: Lang): string {
+  const t = license[lang];
+  const repos = servers.map((s) => `- ${s.name}: ${s.repo}`).join("\n");
+  return (
+    head(t.licenseTitle, t.licenseIntro, pageUrl(lang, "license"), lang) +
+    "\n\n" +
+    prose(t.licenseOpening) +
+    section(t.licenseTextEyebrow, [
+      ...t.licenseTextBody,
+      `${t.licenseTextLink}: ${t.licenseTextHref}`,
+    ]) +
+    section(t.licenseSiteEyebrow, [
+      ...t.licenseSiteBody,
+      `${t.licenseSiteLink}: ${SITE_REPO}`,
+    ]) +
+    section(t.licenseServersEyebrow, [...t.licenseServersBody, repos]) +
+    section(t.licenseIndexesEyebrow, t.licenseIndexesBody) +
+    section(t.licenseReturnedEyebrow, [
+      ...t.licenseReturnedBody,
+      `${t.licenseReturnedLink}: ${pageUrl(lang, "policies")}#legal-h`,
+    ]) +
+    section(t.licenseMarksEyebrow, t.licenseMarksBody) +
+    section(t.licensePermissionEyebrow, [
+      `${t.licensePermissionLead} ${t.licenseContact}`,
+      t.licensePermissionTail,
+    ]) +
     "\n"
   );
 }
@@ -267,6 +346,32 @@ export function serverMarkdown(server: McpServer, lang: Lang): string {
         `- ${card.resourceTemplates.length} ${t.countTemplates}`,
       ]
     : [];
+  // The service context the page prints under "Before you rely on this".
+  // Its own module doc calls these four non-negotiable for a reader who lands
+  // on a server's page without going through the home page — which is every
+  // reader of this twin. The links follow the `mdDirectiveNote` convention:
+  // the sentence, then its label and the absolute URL.
+  const context = [
+    t.contextService,
+    server.rateLimit[lang],
+    `${t.contextRouting} ${t.contextRoutingLink}: ${pageUrl(lang, "internals")}`,
+    `${t.contextPolicies} ${t.contextPoliciesLink}: ${pageUrl(lang, "policies")}`,
+  ];
+  // What the server tells every client on connect. For a server whose whole
+  // surface moved behind two tools, this is the one block that says how to
+  // use it at all — and the twin carried none of it. Verbatim server data,
+  // English in both locales, exactly as the page quotes it.
+  // The cast is the one `ServerPage.astro` makes for the same call and for
+  // the same reason: only two servers have a snapshot today, this renders any
+  // server with a card, and an id without a snapshot yields `undefined` —
+  // which is exactly the "section not rendered" path.
+  const discover = getDiscover(server.id as SurfaceServerId);
+  const instructions = discover?.instructions?.trim();
+  // The action catalog, for the servers that have one (gitlab today). Gated
+  // on the shared registry `actionCatalogs()`, the same one the page,
+  // `/servers.json` and the llms files read, so a server without a catalog
+  // renders no empty section.
+  const catalog = actionCatalogs()[server.id];
   return (
     head(
       server.name,
@@ -275,14 +380,48 @@ export function serverMarkdown(server: McpServer, lang: Lang): string {
       lang,
     ) +
     section(t.overviewHead, [facts.join("\n")]) +
+    section(t.contextHead, context) +
+    (instructions
+      ? section(t.instructionsHead, [t.instructionsIntro, instructions])
+      : "") +
     // `toolsHead` lives in `common` (through `ui`), not in `serversPage`.
     (surface.length > 0
       ? section(ui[lang].toolsHead, [surface.join("\n")])
       : "") +
+    (catalog
+      ? section(t.catalogHead, [
+          t.mdCatalogBody
+            .replace("{count}", () => String(catalog.meta.actionCount))
+            .replace("{actions}", () =>
+              catalog.meta.actionCount === 1 ? t.mdActionOne : t.mdActionMany,
+            )
+            .replace("{domains}", () => String(catalog.domains.length))
+            .replace("{domainWord}", () =>
+              catalog.domains.length === 1 ? t.mdDomainOne : t.mdDomainMany,
+            )
+            .replace(
+              "{index}",
+              () => `${SITE_ORIGIN}/servers/${server.id}/actions.json`,
+            )
+            .replace(
+              "{base}",
+              () =>
+                `${SITE_ORIGIN}${lang === "es" ? "/es" : ""}/servers/${server.id}/actions/`,
+            ),
+        ])
+      : "") +
     section(t.fullCatalogHead, [
       t.fullCatalogBody
         .replace("{corpus}", () => `${SITE_ORIGIN}/llms-full.txt`)
-        .replace("{card}", () => `\`${server.endpoint}/server-card\``),
+        // The SEP-1649 CATALOGUE the binary serves, not the SEP-2127
+        // connection card this site builds at `<endpoint>/server-card`: that
+        // one is a few hundred bytes of name/version/remotes and carries none
+        // of the four things this sentence promises. Two documents share the
+        // name "server card" here; the sentence is only true of this one.
+        .replace(
+          "{card}",
+          () => `\`${server.endpoint}/.well-known/mcp/server-card.json\``,
+        ),
     ]) +
     "\n"
   );
@@ -303,8 +442,10 @@ function paramLabel(param: GitlabActionParam): string {
  * One action-domain page as markdown.
  *
  * These are the twins worth having most, and the reason is volume: the domain
- * pages carry the whole 851-action catalog, thirty pages of reference that an
- * agent would otherwise have to read through the HTML of a filter island. The
+ * pages carry the whole action catalog — one page per domain — reference an
+ * agent would otherwise have to read through the HTML of a filter island. No
+ * figure here on purpose: the catalog is scoped to the asking token, so its
+ * size moves with the tier, which is what `catalogTokenNote` says. The
  * prose pages describe the service; these ARE the data.
  *
  * Every field the page paints is here — behaviour, description, required
@@ -369,6 +510,6 @@ export function domainMarkdown(
       `${actions.length} ${countLabel}`,
       url,
       lang,
-    ) + `\n\n## ${t.mdActionsHead}\n\n${body}\n`
+    ) + `\n${t.catalogTokenNote}\n\n## ${t.mdActionsHead}\n\n${body}\n`
   );
 }

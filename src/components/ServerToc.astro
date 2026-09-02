@@ -27,12 +27,11 @@ export interface TocFamily {
 }
 
 interface Props {
-  overviewLabel: string;
   families: TocFamily[];
   ariaLabel: string;
 }
 
-const { overviewLabel, families, ariaLabel } = Astro.props;
+const { families, ariaLabel } = Astro.props;
 ---
 
 <nav
@@ -40,7 +39,6 @@ const { overviewLabel, families, ariaLabel } = Astro.props;
   aria-label={ariaLabel}
 >
   <ul class="toc-list">
-    <li><a href="#top">{overviewLabel}</a></li>
     {
       families.map((family) => (
         <li>

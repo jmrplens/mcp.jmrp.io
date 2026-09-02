@@ -25,7 +25,6 @@ export const inspector = {
     inspectorEyebrow: "Inspector",
     inspectorIntro:
       "Query the servers straight from your browser. Pick one, call a method and read the raw JSON-RPC response.",
-    /** Link from `/inspector/` back to the home page. */
     /**
      * The notice it points at lives on the home page's server cards, not
      * here, so this has to be a link: saying "above" was leftover from when

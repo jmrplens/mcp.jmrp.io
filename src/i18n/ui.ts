@@ -1,6 +1,7 @@
 import { common } from "./ui/common.ts";
 import { home } from "./ui/home.ts";
 import { inspector } from "./ui/inspector.ts";
+import { license } from "./ui/license.ts";
 import { policies } from "./ui/policies.ts";
 
 /**
@@ -24,8 +25,20 @@ import { policies } from "./ui/policies.ts";
  * than through this merged object.
  */
 export const ui = {
-  en: { ...home.en, ...inspector.en, ...policies.en, ...common.en },
-  es: { ...home.es, ...inspector.es, ...policies.es, ...common.es },
+  en: {
+    ...home.en,
+    ...inspector.en,
+    ...license.en,
+    ...policies.en,
+    ...common.en,
+  },
+  es: {
+    ...home.es,
+    ...inspector.es,
+    ...license.es,
+    ...policies.es,
+    ...common.es,
+  },
 } as const;
 
 // `Lang` now lives in `./config`; re-exported so existing imports keep working.

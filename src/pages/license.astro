@@ -1,0 +1,20 @@
+---
+/**
+ * License route. Delegates to the shared page component; the language comes
+ * from the URL.
+ */
+import LicensePage from "../components/pages/LicensePage.astro";
+import { ui } from "../i18n/ui";
+import { getLangFromUrl } from "../i18n/utils";
+import Base from "../layouts/Base.astro";
+
+const t = ui[getLangFromUrl(Astro.url)];
+---
+
+<Base
+  title={t.licenseMetaTitle}
+  description={t.licenseIntro}
+  page="license"
+>
+  <LicensePage />
+</Base>

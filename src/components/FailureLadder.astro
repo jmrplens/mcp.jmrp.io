@@ -1,0 +1,261 @@
+---
+/**
+ * A failure ladder: what happens after one kind of failure, rung by rung,
+ * with the moment each rung applies at down the left. Drawn twice on
+ * /internals/ ("When something fails"): once for an instance, once for an
+ * exit.
+ *
+ * Why a figure at all: that section is the one part of the page made of
+ * thresholds — a reading a minute, three of them, a watcher a minute behind,
+ * three minutes to come back, twenty to move — and thresholds read at a
+ * glance in a column of times where they blur in a paragraph. It is an
+ * infographic in the sense the request-path figure had to learn the hard
+ * way (see `InternalsPage.astro`'s header comment): nothing moves, nothing
+ * reserves space for something that is not there yet, and every word is
+ * real text the prose repeats in full. Colour on the beads is a second
+ * carrier, never the only one — the state is written next to each.
+ *
+ * Vertical, not the horizontal ruler one might sketch first: six rungs with
+ * a note each do not fit across 360px, the narrowest width this site
+ * supports, and a sequence reads down as naturally as across. The rail is
+ * not to scale on purpose — twenty minutes next to one would leave the
+ * figure mostly empty — so the times are written instead, and the one jump
+ * in scale (from minutes to twenty) is drawn as a dashed run of rail
+ * (`gapBefore`).
+ *
+ * Markdown twin: `FailureLadder.md.ts`, which takes the same `ladder` and
+ * renders it as a numbered list for the `.md` pages. Keep the two in step.
+ */
+import type { Ladder } from "./FailureLadder.md.ts";
+
+/** Bead colour per rung, presentation only: the state next to it says it. */
+type Tone = "danger" | "warning" | "success" | "info" | "neutral";
+
+interface Props {
+  ladder: Ladder;
+  /** One tone per rung, in order — checked below. */
+  tones: readonly Tone[];
+  /**
+   * 1-based index of a rung reached by a jump in scale rather than the next
+   * tick — the rail above it is drawn dashed. Omit when every step follows
+   * the one before at the same scale.
+   */
+  gapBefore?: number;
+}
+
+const { ladder, tones, gapBefore } = Astro.props;
+
+// A missing tone would silently paint a rung with no bead colour at all.
+if (tones.length !== ladder.steps.length) {
+  throw new Error(
+    `FailureLadder "${ladder.title}": ${ladder.steps.length} steps but ${tones.length} tones`,
+  );
+}
+---
+
+<figure class="ladder">
+  <figcaption class="ladder-title">{ladder.title}</figcaption>
+  {
+    /* `role="list"` on a list that hides its markers: WebKit drops list
+      semantics from a `list-style: none` <ol>, so VoiceOver would read the
+      rungs as loose text with no count. The explicit spaces between the
+      three cells are for the same reader — adjacent spans with no whitespace
+      run together ("0 sNo answer"); the grid ignores the text nodes. */
+  }
+  <ol
+    class="ladder-steps"
+    role="list"
+  >
+    {
+      ladder.steps.map((step, i) => (
+        <li
+          class:list={[
+            "ladder-step",
+            `ladder-step--${tones[i]}`,
+            {
+              "ladder-step--gap": gapBefore === i + 1,
+              "ladder-step--before-gap": gapBefore === i + 2,
+            },
+          ]}
+        >
+          <span class="ladder-at">{step.at}</span>{" "}
+          <span
+            class="ladder-rail"
+            aria-hidden="true"
+          >
+            <span class="ladder-bead" />
+          </span>{" "}
+          <span class="ladder-body">
+            <strong class="ladder-state">{step.state}</strong>{" "}
+            <span class="ladder-note">{step.note}</span>
+          </span>
+        </li>
+      ))
+    }
+  </ol>
+</figure>
+
+<style>
+  /* Same surface as the request-path figure and the nginx snippet on this
+     page: opaque card, hairline border, the prose's own measure. */
+  .ladder {
+    /* One line of rung text (0.875rem × 1.4): the bead sits centred on the
+       first line of its rung, and the rail's two halves meet at that same
+       point, so every number below derives from these two. */
+    --line: calc(0.875rem * 1.4);
+    --bead: 0.75rem;
+    --pad: 0.3rem; /* vertical air inside every rung */
+    --bead-center: calc(var(--pad) + var(--line) / 2);
+
+    max-width: 62ch;
+    padding: 0.9rem 1rem 0.7rem;
+    margin: 0.25rem 0 1.5rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-hair);
+    border-radius: var(--radius-md);
+  }
+
+  .ladder-title {
+    margin: 0 0 0.6rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    font-weight: var(--fw-medium);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  /* Three columns shared by every rung through subgrid: the moment (as wide
+     as its longest value), the rail, the text. No row gap — the rail must be
+     continuous, so the air between rungs is padding inside the cells. */
+  .ladder-steps {
+    display: grid;
+    grid-template-columns: max-content var(--bead) 1fr;
+    column-gap: 0.75rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  .ladder-step {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+
+  /* Without subgrid each rung would collapse to one column and stack its
+     three cells. The same three columns per rung keeps the shape; only the
+     first column's width then varies from rung to rung. */
+  @supports not (grid-template-columns: subgrid) {
+    .ladder-step {
+      grid-template-columns: max-content var(--bead) 1fr;
+      column-gap: 0.75rem;
+    }
+  }
+
+  .ladder-at,
+  .ladder-body {
+    padding-block: var(--pad);
+  }
+
+  .ladder-at {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  /* The rail: two halves per rung, above and below the bead, so the first
+     rung can drop its upper half and the last its lower. A border, not a
+     background: forced-colours mode (Windows High Contrast) strips
+     backgrounds from pseudo-elements and keeps borders, and `dashed` is
+     then free. */
+  .ladder-rail {
+    position: relative;
+    align-self: stretch;
+  }
+
+  .ladder-rail::before,
+  .ladder-rail::after {
+    position: absolute;
+    left: calc(50% - 1px);
+    width: 0;
+    content: "";
+    border-left: 2px solid var(--color-border);
+  }
+
+  .ladder-rail::before {
+    top: 0;
+    height: var(--bead-center);
+  }
+
+  .ladder-rail::after {
+    top: var(--bead-center);
+    bottom: 0;
+  }
+
+  .ladder-step:first-child .ladder-rail::before,
+  .ladder-step:last-child .ladder-rail::after {
+    display: none;
+  }
+
+  /* The jump in scale is the whole run between two beads: the lower half of
+     the rung before the gap and the upper half of the gap rung itself. Only
+     the latter was dashed at first, and the bead covered most of it. */
+  .ladder-step--before-gap .ladder-rail::after,
+  .ladder-step--gap .ladder-rail::before {
+    border-left-style: dashed;
+  }
+
+  /* The bead: a ring in the rung's tone over the card's background, so it
+     masks the rail like the beads on the request-path figure do. The first
+     rung — the failure itself — is the one solid disc. */
+  .ladder-bead {
+    position: absolute;
+    top: calc(var(--bead-center) - var(--bead) / 2);
+    left: 0;
+    box-sizing: border-box;
+    width: var(--bead);
+    height: var(--bead);
+    background: var(--color-bg-secondary);
+    border: 2px solid var(--tone);
+    border-radius: 50%;
+  }
+
+  .ladder-step--danger {
+    --tone: var(--color-danger);
+  }
+
+  .ladder-step--warning {
+    --tone: var(--color-warning);
+  }
+
+  .ladder-step--success {
+    --tone: var(--color-success);
+  }
+
+  .ladder-step--info {
+    --tone: var(--color-info);
+  }
+
+  .ladder-step--neutral {
+    --tone: var(--color-text-muted);
+  }
+
+  .ladder-step--danger .ladder-bead {
+    background: var(--tone);
+  }
+
+  .ladder-state {
+    font-weight: var(--fw-semibold);
+    color: var(--color-text-heading);
+  }
+
+  .ladder-note {
+    color: var(--color-text);
+    text-wrap: pretty;
+  }
+</style>

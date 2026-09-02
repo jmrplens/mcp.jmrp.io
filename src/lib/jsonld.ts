@@ -34,6 +34,7 @@
  * serves by a `location =` allowlist and adding an entry would mean editing
  * /etc/nginx by hand. Its dereferenceable URL is still jmrp.io's.
  */
+import { serverCards } from "../data/server-cards";
 import type { McpNotice, McpServer } from "../data/servers";
 import { servers } from "../data/servers";
 import type { Lang } from "../i18n/ui";
@@ -207,6 +208,14 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
     about: { "@id": "http://www.wikidata.org/entity/Q133436854" },
     applicationCategory: "DeveloperApplication",
     operatingSystem: "Any (HTTP)",
+    // The version the endpoint actually runs, from the same committed card
+    // the page and the twin print, with `server.version` as the fallback that
+    // field is documented to be. Without it the only version reachable in the
+    // merged graph was the one the software's own node publishes — a release
+    // number that says nothing about what is deployed here, and today does
+    // not even match it.
+    softwareVersion:
+      serverCards[server.id]?.serverInfo.version ?? server.version,
     license: MIT_LICENSE,
     isAccessibleForFree: true,
     dateModified: BUILD_DATE,
@@ -557,6 +566,7 @@ function pageLabels(lang: Lang): Record<PageId, string> {
     home: t.navHome,
     inspector: t.navInspector,
     internals: t.navInternals,
+    license: t.navLicense,
     policies: t.navPolicies,
     servers: t.navServers,
   };

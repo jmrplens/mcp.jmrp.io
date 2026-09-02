@@ -101,9 +101,11 @@ const noscriptCurl = noscriptServer
               <figcaption class="ns-caption">
                 {t.noscript.requestLabel}
               </figcaption>
-              <pre class="ns-pre">
-                <code>{noscriptCurl}</code>
-              </pre>
+              {/* One line and unformatted: whitespace between `<pre>`
+                and `<code>` is content, and it rendered as an indented
+                first line. See ClientSetup.astro for the full note. */}
+              {/* prettier-ignore */}
+              <pre class="ns-pre"><code>{noscriptCurl}</code></pre>
             </figure>
             <p class="ns-body">{t.noscript.response}</p>
             <p class="ns-body">
@@ -226,10 +228,16 @@ const noscriptCurl = noscriptServer
      itself. No tabindex — post-build's `processCodeBlocks` runs on cheerio,
      which cannot see in here, so a focusable <pre> would never get the
      `<section aria-label>` wrapper that pass adds everywhere else. */
+
+  /* Wraps rather than hiding its tail — see the `pre` rule in
+     ClientSetup.astro for the full reasoning; this is the same kind of block
+     (a copyable command) in the same kind of narrow column. */
   .ns-pre {
     padding: 0.6rem 0.75rem;
     margin: 0;
     overflow-x: auto;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
 
     /* A surface, not a tint: `--color-bg-subtle` is 5% translucent and this
        block sits on the page background, so the grid ran through it. */

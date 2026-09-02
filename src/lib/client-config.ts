@@ -17,6 +17,23 @@
 import type { McpHeader, McpServer } from "../data/servers";
 import type { Lang } from "../i18n/ui";
 
+/**
+ * Joins the parts of a shell command into a block that wraps instead of
+ * scrolling: one part per line, each continued with a trailing backslash.
+ *
+ * The commands run to ~160 characters — the OAuth one carries a 64-character
+ * client id — and a `<pre>` scrolls horizontally rather than wrapping, so the
+ * end of the command was off-screen on any narrow viewport. A backslash
+ * continuation is the shell's own line break, so what is copied still runs as
+ * one command.
+ *
+ * @param parts The command, split where it may break.
+ * @returns The parts joined by ` \\` + newline + two spaces.
+ */
+function shellLines(parts: readonly string[]): string {
+  return parts.join(" \\\n  ");
+}
+
 /** The suggested environment-variable name for a server's secret. */
 function tokenEnv(server: McpServer): string {
   return `${server.id.toUpperCase()}_TOKEN`;
@@ -56,13 +73,15 @@ function headerValue(header: McpHeader, value: string): string {
  * @returns The complete command, ready to copy.
  */
 export function claudeCodeCommand(server: McpServer): string {
-  const headers = required(server)
-    .map(
-      (header) =>
-        ` --header "${header.name}: ${headerValue(header, "<your token>")}"`,
-    )
-    .join("");
-  return `claude mcp add --transport http ${server.id} ${server.endpoint}${headers}`;
+  const headers = required(server).map(
+    (header) =>
+      `--header "${header.name}: ${headerValue(header, "<your token>")}"`,
+  );
+  return shellLines([
+    `claude mcp add --transport http ${server.id}`,
+    server.endpoint,
+    ...headers,
+  ]);
 }
 
 /**
@@ -173,7 +192,12 @@ export function vscodeJson(server: McpServer, lang: Lang): string {
 export function claudeCodeOauthCommand(server: McpServer): string | undefined {
   const oauth = server.oauth;
   if (!oauth) return undefined;
-  return `claude mcp add ${server.id} --transport http --client-id ${oauth.clientId} --callback-port ${oauth.callbackPort} ${server.endpoint}`;
+  return shellLines([
+    `claude mcp add ${server.id} --transport http`,
+    `--client-id ${oauth.clientId}`,
+    `--callback-port ${oauth.callbackPort}`,
+    server.endpoint,
+  ]);
 }
 
 /**

@@ -1,0 +1,244 @@
+---
+/**
+ * License page — what on this site may be reused, and on what terms.
+ *
+ * Same shell as `PoliciesPage.astro` (kicker + h1 + intro, one section per
+ * heading, the visible freshness line), because it is the same kind of page:
+ * small print that every other page links to from the footer. It is NOT in
+ * the main navigation, like jmrp.io's own /license/ — see `NAV_ORDER` in
+ * `Base.astro`.
+ *
+ * Every link lives outside the i18n arrays (`*Link`/`*Href` keys, or the
+ * data in `servers.ts`), because the bodies are printed as plain text —
+ * the same split `PoliciesPage.astro` uses for `credentialNotice`.
+ */
+import { servers } from "../../data/servers";
+import { ui } from "../../i18n/ui";
+import { getLangFromUrl } from "../../i18n/utils";
+import { pageUrl, SITE_REPO } from "../../lib/seo";
+import UpdatedLine from "../UpdatedLine.astro";
+
+const lang = getLangFromUrl(Astro.url);
+const t = ui[lang];
+// Site-relative, like every other cross-page link on this site: an absolute
+// URL here would jump a dev or preview server straight to production.
+const homeHref = new URL(pageUrl(lang, "home")).pathname;
+// The legal position is the one place the sources are named one by one;
+// this page points at it instead of repeating the list.
+const legalHref = `${new URL(pageUrl(lang, "policies")).pathname}#legal-h`;
+---
+
+<div class="license">
+  <p class="back-link">
+    <a href={homeHref}>{t.backToHome}</a>
+  </p>
+
+  <header class="subpage-header">
+    <p class="section-title">{t.licenseEyebrow}</p>
+    <h1 class="subpage-title">{t.licenseTitle}</h1>
+    <p class="subpage-intro">{t.licenseIntro}</p>
+  </header>
+
+  {t.licenseOpening.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+
+  <section
+    class="license-section"
+    aria-labelledby="text-h"
+  >
+    <h2
+      class="subsection-title"
+      id="text-h"
+    >
+      {t.licenseTextEyebrow}
+    </h2>
+    {
+      t.licenseTextBody.map((paragraph) => (
+        <p class="prose-text">{paragraph}</p>
+      ))
+    }
+    <p class="prose-text">
+      <a
+        href={t.licenseTextHref}
+        rel="license"
+        >{t.licenseTextLink}</a
+      >
+    </p>
+  </section>
+
+  <section
+    class="license-section"
+    aria-labelledby="site-h"
+  >
+    <h2
+      class="subsection-title"
+      id="site-h"
+    >
+      {t.licenseSiteEyebrow}
+    </h2>
+    {
+      t.licenseSiteBody.map((paragraph) => (
+        <p class="prose-text">{paragraph}</p>
+      ))
+    }
+    <p class="prose-text">
+      <a href={SITE_REPO}>{t.licenseSiteLink}</a>
+    </p>
+  </section>
+
+  <section
+    class="license-section"
+    aria-labelledby="servers-h"
+  >
+    <h2
+      class="subsection-title"
+      id="servers-h"
+    >
+      {t.licenseServersEyebrow}
+    </h2>
+    {
+      t.licenseServersBody.map((paragraph) => (
+        <p class="prose-text">{paragraph}</p>
+      ))
+    }
+    {
+      /* One link per server, from the same data the cards use: a hand-written
+        pair here would be the third copy of each repository URL. */
+    }
+    <ul class="license-repos">
+      {
+        servers.map((server) => (
+          <li>
+            <a href={server.repo}>{server.name}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section
+    class="license-section"
+    aria-labelledby="indexes-h"
+  >
+    <h2
+      class="subsection-title"
+      id="indexes-h"
+    >
+      {t.licenseIndexesEyebrow}
+    </h2>
+    {
+      t.licenseIndexesBody.map((paragraph) => (
+        <p class="prose-text">{paragraph}</p>
+      ))
+    }
+  </section>
+
+  <section
+    class="license-section"
+    aria-labelledby="returned-h"
+  >
+    <h2
+      class="subsection-title"
+      id="returned-h"
+    >
+      {t.licenseReturnedEyebrow}
+    </h2>
+    {
+      t.licenseReturnedBody.map((paragraph) => (
+        <p class="prose-text">{paragraph}</p>
+      ))
+    }
+    <p class="prose-text">
+      <a href={legalHref}>{t.licenseReturnedLink}</a>
+    </p>
+  </section>
+
+  <section
+    class="license-section"
+    aria-labelledby="marks-h"
+  >
+    <h2
+      class="subsection-title"
+      id="marks-h"
+    >
+      {t.licenseMarksEyebrow}
+    </h2>
+    {
+      t.licenseMarksBody.map((paragraph) => (
+        <p class="prose-text">{paragraph}</p>
+      ))
+    }
+  </section>
+
+  <section
+    class="license-section"
+    aria-labelledby="permission-h"
+  >
+    <h2
+      class="subsection-title"
+      id="permission-h"
+    >
+      {t.licensePermissionEyebrow}
+    </h2>
+    {
+      /* A plain mailto, not an obfuscated one like jmrp.io's: this site already
+        prints the same address in clear in every footer and in the JSON-LD
+        #person node, so hiding it here would protect nothing. */
+    }
+    <p class="prose-text">
+      {t.licensePermissionLead}{" "}
+      <a href="mailto:mail@jmrp.io">{t.licenseContact}</a>
+    </p>
+    <p class="prose-text">{t.licensePermissionTail}</p>
+  </section>
+
+  <UpdatedLine lang={lang} />
+</div>
+
+<style>
+  /* Same rhythm and rules as PoliciesPage.astro — Astro scopes styles per
+     component, so the shared shell is copied rather than inherited. */
+  .license {
+    padding-top: var(--space-xl);
+    padding-bottom: var(--space-xl);
+  }
+
+  .back-link {
+    margin: 0 0 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+  }
+
+  .back-link a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .back-link a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .prose-text a,
+  .license-repos a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .prose-text a:hover,
+  .license-repos a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .license-section {
+    max-width: var(--max-width-prose);
+    margin-top: var(--space-lg-xl);
+  }
+
+  .license-repos {
+    padding-left: 1.25rem;
+    margin: 0 0 1rem;
+    line-height: 1.7;
+  }
+</style>

@@ -1,54 +1,79 @@
 /**
  * Instance/egress topology for the two MCP servers — how many instances run
- * behind nginx for each one, in the same order as its real `upstream` block
- * (see `docs/nginx-vhost-reference.conf`), and which country each instance's
- * egress proxy exits through. The prose it backs is `instancesBody`/
- * `egressBody` in `internals.ts` (three instances per server, egress split
- * cross-wise between the two).
+ * behind each nginx upstream, and which exit node (and country) each one
+ * leaves through. The prose it backs is `instancesBody`/`egressBody` in
+ * `internals.ts`, and the request-path figure on `/internals/` draws its
+ * node pool and its exits from `topology.libgen`.
  *
- * `InternalsPage.astro`'s request-path diagram also draws from this: it
- * uses `topology.libgen` as ITS illustrative pool of real nodes. That is
- * deliberate, not an oversight — the diagram draws ONE static strip (client
- * → Cloudflare → nginx → one of N nodes → egress → destination) plus a
- * six-bubble annotation sequence that describes the mechanism in general
- * terms, never singling out libgen vs gitlab or which node a given request
- * actually lands on (see that component's header comment for the full
- * rationale, and for why an earlier version that forked into a libgen
- * branch and a gitlab branch was rejected). So it no longer needs, or
- * draws, two separate node pools side by side. `topology.gitlab` stays
- * here, real and unused by the diagram, because the egress prose above
- * still states its numbers precisely and this file is their one source of
- * truth.
+ * `topology.libgen` is the figure's ILLUSTRATIVE pool of real nodes: the
+ * figure shows the mechanism every server uses (client → Cloudflare → nginx
+ * → one of N nodes → that node's exit → destination), never libgen vs gitlab
+ * — see `InternalsPage.astro`'s header comment for why an earlier version
+ * that forked into two branches was rejected. `topology.gitlab` stays here,
+ * real and unused by the figure, because the egress prose states both
+ * servers' numbers and this file is their one source of truth.
  *
- * Kept OUT of `servers.ts` on purpose, even though nothing there would leak
- * it today: `/servers.json` (`servers.json.ts`), the JSON-LD graph
- * (`jsonld.ts`), the API catalog (`api-catalog.ts`) and the Server Card
- * (`server-card.ts`) all build their public output by listing fields
- * explicitly, never by spreading a whole `McpServer` — so this array would
- * stay private even living there. It lives here anyway so that guarantee
- * never has to be re-verified for a future consumer of `servers.ts`:
- * `/internals/` is the only reader of this file, by construction, and
- * `servers.ts`'s own header comment describes it as the source for
- * `/servers.json`, the site pages and the inspector — capability metadata,
- * not infrastructure topology.
+ * GENERATED, not written: the data is `topology.json`, refreshed from the
+ * egress census in ops/ by `scripts/sync-topology.sh` and committed. Until
+ * 2026-09-01 this file held a hand-written literal "verified against the
+ * live upstream" on a date, and by the time anyone looked again it was
+ * wrong: a third exit node existed and the page still drew two. Same fix
+ * as the Server Cards — a committed snapshot the deploy path refreshes.
  *
- * Descriptive, not generative: changing this array does not change nginx.
- * If the real upstream changes, this is updated by hand in the same commit —
- * same discipline `servers.ts` already asks for `version`/`tools`.
+ * Kept OUT of `servers.ts` on purpose: `/servers.json`, the JSON-LD graph,
+ * the API catalog and the Server Card all build their public output by
+ * listing fields explicitly, never by spreading a whole `McpServer`, so
+ * this would stay private even living there. It lives here anyway so that
+ * guarantee never has to be re-verified for a future consumer of
+ * `servers.ts`: `/internals/` is the only reader, by construction.
+ *
+ * What is published is deliberately small — an exit id and a country per
+ * instance. No endpoints, no keys, no host names, no ports.
  */
-export type McpInstance = { egressCountry: "ES" | "GB" };
+import raw from "./topology.json";
 
-export const topology: Record<"libgen" | "gitlab", McpInstance[]> = {
-  // Verified against the live upstream 2026-08-22: 3 instances, egress split
-  // cross-wise between the two servers.
-  libgen: [
-    { egressCountry: "ES" },
-    { egressCountry: "ES" },
-    { egressCountry: "GB" },
-  ],
-  gitlab: [
-    { egressCountry: "GB" },
-    { egressCountry: "GB" },
-    { egressCountry: "ES" },
-  ],
+/** One running instance: the exit node it leaves through, and that node's country. */
+export type McpInstance = {
+  /** Census id of the exit node (`uk`, `es`, `cam`). Distinct per node, even when two share a country. */
+  egress: string;
+  /** ISO 3166-1 alpha-2 of that node — what "the country a request appears to come from" means. */
+  egressCountry: "ES" | "GB";
 };
+
+type ServerId = "libgen" | "gitlab";
+
+/**
+ * The same minimum `scripts/sync-topology.sh` enforces before writing the
+ * JSON, checked again here so a hand-edited or truncated file fails the
+ * build with a message that names the field, not a TypeError deep in the
+ * figure's geometry.
+ */
+function validate(input: unknown): Record<ServerId, McpInstance[]> {
+  if (typeof input !== "object" || input === null) {
+    throw new Error("topology.json: not an object");
+  }
+  const out = {} as Record<ServerId, McpInstance[]>;
+  for (const server of ["libgen", "gitlab"] as const) {
+    const list = (input as Record<string, unknown>)[server];
+    if (!Array.isArray(list) || list.length === 0) {
+      throw new Error(`topology.json: "${server}" must be a non-empty array`);
+    }
+    out[server] = list.map((item, i) => {
+      const o = item as Record<string, unknown>;
+      const egress = o.egress;
+      const country = o.egressCountry;
+      if (typeof egress !== "string" || egress.length === 0) {
+        throw new Error(`topology.json: ${server}[${i}].egress missing`);
+      }
+      if (country !== "ES" && country !== "GB") {
+        throw new Error(
+          `topology.json: ${server}[${i}].egressCountry must be "ES" or "GB", got ${JSON.stringify(country)}`,
+        );
+      }
+      return { egress, egressCountry: country };
+    });
+  }
+  return out;
+}
+
+export const topology: Record<ServerId, McpInstance[]> = validate(raw);

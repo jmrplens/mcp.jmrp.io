@@ -275,11 +275,27 @@ if (cfToken) {
 //
 // Tells Bing and Yandex the content has changed. For a freshly published site
 // it is the difference between being indexed in hours and in weeks — the GEO
-// audit pointed it out, and it is one of the few things a two-page site can do
+// audit pointed it out, and it is one of the few things a static site can do
 // to speed up its discovery.
 //
 // It does not fail the deployment when the ping fails: the origin is already
 // up to date and indexing is a bonus.
+//
+// The URL list is every `<loc>` of the sitemap the build just wrote — `dist`
+// already points at the new build when this script runs — so a new page is
+// submitted the day it ships. It used to be the two home pages only, which
+// meant nothing else was ever submitted; the two home pages remain the
+// fallback if the sitemap cannot be read.
+const SUBMIT_URLS = (() => {
+  try {
+    const xml = fs.readFileSync(path.join("dist", "sitemap-0.xml"), "utf8");
+    const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    if (urls.length > 0) return urls;
+  } catch {
+    // fall through to the fallback below
+  }
+  return ["https://mcp.jmrp.io/", "https://mcp.jmrp.io/es/"];
+})();
 const INDEXNOW_KEY = /INDEXNOW_KEY = "([a-f0-9]+)"/.exec(
   fs.readFileSync(path.join("src", "lib", "seo.ts"), "utf8"),
 )?.[1];
@@ -293,7 +309,7 @@ if (INDEXNOW_KEY) {
         host: "mcp.jmrp.io",
         key: INDEXNOW_KEY,
         keyLocation: `https://mcp.jmrp.io/${INDEXNOW_KEY}.txt`,
-        urlList: ["https://mcp.jmrp.io/", "https://mcp.jmrp.io/es/"],
+        urlList: SUBMIT_URLS,
       }),
       signal: AbortSignal.timeout(15_000),
     });
@@ -337,7 +353,7 @@ if (bingKey) {
         },
         body: JSON.stringify({
           siteUrl: "https://mcp.jmrp.io",
-          urlList: ["https://mcp.jmrp.io/", "https://mcp.jmrp.io/es/"],
+          urlList: SUBMIT_URLS,
         }),
         signal: AbortSignal.timeout(15_000),
       },

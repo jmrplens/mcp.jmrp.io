@@ -73,11 +73,19 @@ export const common = {
      * no link to it from anywhere.
      */
     footerPolicies: "Policies",
+    /**
+     * Footer link to `/license/`, next to Policies, and NOT in the main
+     * navigation — like jmrp.io, which keeps its license in the footer only.
+     * `navLicense` below still exists because `NAV_LABELS` and the JSON-LD
+     * breadcrumb are typed over every `PageId`; `NAV_ORDER` leaves it out.
+     */
+    footerLicense: "License",
     // Header navigation: one label per PageId. Short on purpose — they sit
     // next to each other in a single row, unlike the page's own <h1>.
     navHome: "Home",
     navInspector: "Inspector",
     navInternals: "Internals",
+    navLicense: "License",
     navPolicies: "Policies",
     navServers: "Servers",
     /** `aria-label` of the `<nav>` landmark that holds the four page links. */
@@ -120,10 +128,13 @@ export const common = {
     footerUpdated: "Actualizado",
     /** Ver `en.footerPolicies`: enlace del pie a `/policies/`. */
     footerPolicies: "Políticas",
+    /** Ver `en.footerLicense`: enlace del pie a `/license/`, fuera de la navegación principal. */
+    footerLicense: "Licencia",
     /** Ver `en.navHome`..`en.navPolicies`: etiquetas cortas de la navegación. */
     navHome: "Inicio",
     navInspector: "Inspector",
     navInternals: "Funcionamiento interno",
+    navLicense: "Licencia",
     navPolicies: "Políticas",
     navServers: "Servidores",
     /** Ver `en.mainNavLabel`. */
