@@ -1007,21 +1007,7 @@ export async function buildSiteGraph(
     ...(lang === "en"
       ? { workTranslation: ref(`${otherUrl}#webpage`) }
       : { translationOfWork: ref(`${otherUrl}#webpage`) }),
-    // What may be done with this page. /license/ says "every page repeats
-    // those terms in its own structured data", and until now only the social
-    // card did: 66 of the 72 `WebPage` nodes were silent, including the 56
-    // action pages, which are precisely the ones an AI crawler is deciding
-    // whether it may quote.
-    //
-    // The split is the one /license/ already draws. A page that is wholly
-    // this site's prose states CC BY 4.0 outright. A page that renders a
-    // server's own tool catalogue alongside it — the server cards and the
-    // action pages — carries two regimes at once, so it points at the terms
-    // instead of picking one; asserting a blanket license there would be
-    // claiming this site's terms over the servers' MIT text.
-    ...(targetServer || actionsDomain
-      ? { usageInfo: `${pageUrl(lang, "license")}#servers-h` }
-      : { license: CC_BY_4_0, usageInfo: pageUrl(lang, "license") }),
+    ...pageTerms(lang, Boolean(targetServer || actionsDomain)),
     copyrightHolder: ref(PERSON_ID),
     // The OG cards exist and return 200, and the page node carried no image
     // at all.
@@ -1169,6 +1155,32 @@ export async function buildSiteGraph(
     "@context": "https://schema.org",
     "@graph": graph,
   };
+}
+
+/**
+ * What may be done with one page, as the keys to spread into its `WebPage`.
+ *
+ * /license/ says "every page repeats those terms in its own structured data",
+ * and only the social card did: 66 of the 72 `WebPage` nodes were silent, the
+ * 56 action pages among them — precisely the ones an AI crawler is deciding
+ * whether it may quote.
+ *
+ * The split is the one /license/ already draws. A page that is wholly this
+ * site's prose states CC BY 4.0 outright. A page that renders a server's own
+ * tool catalogue alongside it — the server cards and the action pages —
+ * carries two regimes at once, so it points at the terms instead of picking
+ * one: asserting a blanket license there would be claiming this site's terms
+ * over the servers' MIT text.
+ *
+ * @param lang The page's language, so the link stays in it.
+ * @param mixed Whether the page renders a server's own catalogue.
+ * @returns `license` and `usageInfo`, or `usageInfo` alone.
+ */
+function pageTerms(lang: Lang, mixed: boolean): Record<string, string> {
+  const terms = pageUrl(lang, "license");
+  return mixed
+    ? { usageInfo: `${terms}#servers-h` }
+    : { license: CC_BY_4_0, usageInfo: terms };
 }
 
 /**
