@@ -16,6 +16,7 @@ import type { Lang } from "../i18n/config.ts";
 import { ui } from "../i18n/ui";
 import { buildDate } from "../lib/build-date";
 import { humanDate } from "../lib/format";
+import { pageDatesOf } from "../lib/sitemap-lastmod";
 
 interface Props {
   lang: Lang;
@@ -23,10 +24,22 @@ interface Props {
 
 const { lang } = Astro.props;
 const t = ui[lang];
-// Same date as the footer, dateModified and the sitemap's lastmod. `buildDate()`
-// is memoized in the shared module, so this reads the exact same resolved
-// value as every other consumer instead of computing its own "now" fallback.
-const updated = buildDate();
+// THIS page's date, the same value the graph publishes as `dateModified` and
+// the sitemap as `lastmod`, from the one shared resolver.
+//
+// It used to read `buildDate()`, and the comment here claimed that was the
+// same date as `dateModified` — true when both were site-wide, and false from
+// the moment the dates became per-page. The line said "this page was last
+// updated on <the day the site was last deployed>", under a label that says
+// "this page". On a site whose argument is that its claims are checkable, a
+// visible date meaning something other than what it says is the wrong one to
+// leave approximate.
+//
+// `buildDate()` remains the fallback, which is what a dirty tree resolves to
+// anyway: there the resolver deliberately answers nothing rather than invent
+// a per-page date from a tree that matches no commit.
+const pageDate = pageDatesOf(Astro.url.pathname).dateModified;
+const updated = pageDate ?? buildDate();
 ---
 
 <p class="updated-line">

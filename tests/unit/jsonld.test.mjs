@@ -679,16 +679,27 @@ test("each page's dates are its own, not the repository's", (t) => {
     modified.add(webpage.dateModified);
     if (webpage.datePublished) published.add(webpage.datePublished);
   }
-  // Two languages of a page share a date (same sources), so there are far
-  // fewer dates than pages — but more than one.
-  assert.ok(
-    modified.size > 1,
-    `all pages share one dateModified: the per-page resolver is not running`,
-  );
+  // `datePublished` and NOT `dateModified` is what proves the per-page
+  // resolver ran, and the difference is structural rather than a preference.
+  //
+  // This repository squash-merges, so a broad pull request lands as ONE commit
+  // that touches every content source at once. After it, every page's
+  // `dateModified` is legitimately that commit — and the whole-repo fallback
+  // is the same commit's date too, so the two are indistinguishable and no
+  // assertion about `dateModified` varying can tell a working resolver from a
+  // broken one. It asserted exactly that until #24 landed and turned the whole
+  // site one date, which is a true statement about the day, not a regression.
+  //
+  // `datePublished` cannot collapse that way: it reads when each route file
+  // was ADDED, and a squash on top does not move an older add. Four distinct
+  // values survive across the 72 pages, so it stays a real signal.
   assert.ok(
     published.size > 1,
-    `all pages share one datePublished: they cannot all have been published together`,
+    `all pages share one datePublished: the per-page resolver is not running`,
   );
+  // Two languages of a page share a date, so there are far fewer dates than
+  // pages either way; the count is reported rather than bounded.
+  assert.ok(modified.size > 0, `no page carries a dateModified at all`);
 
   // The assertion above is too weak on its own: it passed while 64 of 72
   // pages claimed 2026-08-06, the repository's first commit, because three
@@ -838,4 +849,91 @@ test("the 404 declares no identity and does not ask to be indexed", () => {
     /<meta[^>]+content="noindex, follow"[^>]*>/,
     "the 404 does not ask for noindex",
   );
+});
+
+test("an action-domain page says what it holds, and every anchor it names is real", () => {
+  // These 56 pages are the largest thing the site publishes — 747 operations
+  // with ids, titles, parameters and destructive flags — and their graph used
+  // to be four nodes of boilerplate. Diffing /issue/ against /pipeline/
+  // produced a difference of four strings: nothing said the pages held
+  // anything at all.
+  //
+  // The last assertion is the one that matters most. Emitting a `url` per
+  // action is only worth the bytes if the fragment exists; a list of anchors
+  // resolving nowhere is a worse claim than no list, and exactly the kind of
+  // thing that rots silently the next time the page's markup changes.
+  const domainPages = fs
+    .readdirSync(DIST, { recursive: true })
+    .map(String)
+    .filter((f) => /servers\/[^/]+\/actions\/[^/]+\/index\.html$/.test(f));
+  assert.ok(domainPages.length > 0, "no action-domain pages were built");
+
+  for (const page of domainPages) {
+    const graph = graphOf(page);
+    const reference = graph.find((n) => n["@type"] === "APIReference");
+    const list = graph.find((n) => n["@type"] === "ItemList");
+    assert.ok(reference, `${page}: no APIReference node`);
+    assert.ok(list, `${page}: no ItemList node`);
+    assert.equal(
+      reference.hasPart["@id"],
+      list["@id"],
+      `${page}: the reference does not point at its own list`,
+    );
+    assert.equal(
+      list.numberOfItems,
+      list.itemListElement.length,
+      `${page}: numberOfItems disagrees with the list it counts`,
+    );
+
+    const html = fs.readFileSync(new URL(page, DIST), "utf8");
+    const ids = new Set([...html.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+    for (const item of list.itemListElement) {
+      const fragment = item.url.split("#", 2)[1];
+      assert.ok(
+        ids.has(fragment),
+        `${page}: the list names #${fragment}, which is not on the page`,
+      );
+    }
+  }
+});
+
+test("every page states what may be done with it, and mixed pages do not claim too much", () => {
+  // /license/ says "every page repeats those terms in its own structured
+  // data". Only the social card did: 66 of the 72 `WebPage` nodes said
+  // nothing, the 56 action pages among them — the ones an AI crawler is
+  // deciding whether it may quote.
+  //
+  // The distinction is the one /license/ itself draws, and getting it wrong
+  // in the other direction would be worse than silence: a server card and an
+  // action page render the server's own tool catalogue, which is that
+  // server's MIT text, so a blanket CC BY there would be this site claiming
+  // terms over someone else's work. Those pages point at the terms instead.
+  const CC_BY = "https://creativecommons.org/licenses/by/4.0/";
+  const mixed = /servers\/[^/]+\/(index|actions\/[^/]+\/index)\.html$/;
+
+  for (const htmlPage of htmlPages()) {
+    const webpage = graphOf(htmlPage).find((n) => n["@type"] === "WebPage");
+    assert.ok(
+      webpage.usageInfo,
+      `${htmlPage}: the WebPage says nothing about what may be done with it`,
+    );
+    if (mixed.test(htmlPage)) {
+      assert.equal(
+        webpage.license,
+        undefined,
+        `${htmlPage}: renders the server's own catalogue, so it must not assert this site's license`,
+      );
+      assert.match(
+        webpage.usageInfo,
+        /#servers-h$/,
+        `${htmlPage}: should point at the section that separates the two regimes`,
+      );
+    } else {
+      assert.equal(
+        webpage.license,
+        CC_BY,
+        `${htmlPage}: is wholly this site's prose and should say so`,
+      );
+    }
+  }
 });

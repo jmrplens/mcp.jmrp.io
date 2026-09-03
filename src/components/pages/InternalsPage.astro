@@ -90,6 +90,7 @@ import { ui } from "../../i18n/ui";
 import { internals } from "../../i18n/ui/internals.ts";
 import { getLangFromUrl } from "../../i18n/utils";
 import { pageUrl } from "../../lib/seo";
+import { affinityTokens as affinityTokensOf } from "../AffinitySnippet.md.ts";
 import FailureLadder from "../FailureLadder.astro";
 import UpdatedLine from "../UpdatedLine.astro";
 
@@ -159,61 +160,12 @@ const policiesHref = new URL(pageUrl(lang, "policies")).pathname;
 // Inspector.css for other consumers of the last four as text). Each line
 // is an array of `{ text, cls? }` tokens rendered through Astro's normal
 // `{expression}` escaping below — no `set:html`, no manual HTML-escaping.
-type SnippetToken = { text: string; cls?: "kw" | "var" | "str" | "com" };
-const affinityTokens: SnippetToken[] = [
-  { text: "set", cls: "kw" },
-  { text: " " },
-  { text: "$mcp_affinity_salt", cls: "var" },
-  { text: " " },
-  { text: '"…"', cls: "str" },
-  { text: ";   " },
-  { text: t.affinityCodeComment, cls: "com" },
-  { text: "\n\n" },
-  { text: "set_by_lua_block", cls: "kw" },
-  { text: " " },
-  { text: "$mcp_affinity", cls: "var" },
-  { text: " {\n    " },
-  { text: "local", cls: "kw" },
-  { text: " auth = " },
-  { text: "ngx.var.http_authorization", cls: "var" },
-  { text: "\n    " },
-  { text: "if", cls: "kw" },
-  { text: " auth " },
-  { text: "then", cls: "kw" },
-  { text: "\n        " },
-  { text: "local", cls: "kw" },
-  { text: " scheme, token = auth:match(" },
-  { text: '"^(%a+)%s+([^%s]+)"', cls: "str" },
-  { text: ")\n        " },
-  { text: "if", cls: "kw" },
-  { text: " scheme " },
-  { text: "and", cls: "kw" },
-  { text: " scheme:lower() == " },
-  { text: '"bearer"', cls: "str" },
-  { text: " " },
-  { text: "and", cls: "kw" },
-  { text: " token ~= " },
-  { text: '""', cls: "str" },
-  { text: " " },
-  { text: "then", cls: "kw" },
-  { text: "\n            " },
-  { text: "return", cls: "kw" },
-  { text: " ngx.md5(" },
-  { text: "ngx.var.mcp_affinity_salt", cls: "var" },
-  { text: " .. token)\n        " },
-  { text: "end", cls: "kw" },
-  { text: "\n    " },
-  { text: "end", cls: "kw" },
-  { text: "\n    " },
-  { text: "return", cls: "kw" },
-  { text: " " },
-  { text: "ngx.var.remote_addr", cls: "var" },
-  { text: " " },
-  { text: "or", cls: "kw" },
-  { text: " " },
-  { text: '""', cls: "str" },
-  { text: "\n}" },
-];
+// The tokens live in `AffinitySnippet.md.ts` so the markdown twin can emit
+// the same bytes: the section's argument is that the directive is SHOWN
+// rather than asserted, and the twin used to carry the claim without the
+// code. The split into tokens is for the coloring described above;
+// markdown drops the classes and keeps the text.
+const affinityTokens = affinityTokensOf(t.affinityCodeComment);
 
 // ===== Request-path diagram — build-time data, no runtime JS ===============
 //

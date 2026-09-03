@@ -37,8 +37,10 @@
 import { serverCards } from "../data/server-cards";
 import type { McpNotice, McpServer } from "../data/servers";
 import { servers } from "../data/servers";
+import { actionCatalogs } from "../data/surface";
 import type { Lang } from "../i18n/ui";
 import { ui } from "../i18n/ui";
+import { serversPage } from "../i18n/ui/servers-page";
 import { loadPersonNode, PERSON_ID } from "./identity";
 import {
   actionsDomainPageUrl,
@@ -925,36 +927,49 @@ export async function buildSiteGraph(
     // only through `<link rel="alternate">` and a `Link:` header, so a
     // consumer that reads JSON-LD and nothing else could not find them —
     // which is most of the audience they were written for.
+    // The two `llms` files carry this site's own sentences, so they are CC BY
+    // like the pages they summarize. The three machine-readable indexes are
+    // the other case /license/ draws: "no condition attaches to them". That is
+    // stated with `usageInfo` and NOT with a CC0 `license`, because CC0 is a
+    // license — a stronger claim than the prose makes — and this file does not
+    // assert more than the page it points at.
     subjectOf: [
       {
         "@type": "DataDownload",
         name: "llms.txt index",
         contentUrl: `${SITE_ORIGIN}/llms.txt`,
         encodingFormat: "text/plain",
+        license: CC_BY_4_0,
+        usageInfo: `${pageUrl(DEFAULT_LANG, "license")}#text-h`,
       },
       {
         "@type": "DataDownload",
         name: "llms.txt, long form",
         contentUrl: `${SITE_ORIGIN}/llms-full.txt`,
         encodingFormat: "text/plain",
+        license: CC_BY_4_0,
+        usageInfo: `${pageUrl(DEFAULT_LANG, "license")}#text-h`,
       },
       {
         "@type": "DataDownload",
         name: "MCP server index",
         contentUrl: `${SITE_ORIGIN}/servers.json`,
         encodingFormat: "application/json",
+        usageInfo: `${pageUrl(DEFAULT_LANG, "license")}#indexes-h`,
       },
       {
         "@type": "DataDownload",
         name: "AI catalog",
         contentUrl: `${SITE_ORIGIN}/.well-known/ai-catalog.json`,
         encodingFormat: "application/json",
+        usageInfo: `${pageUrl(DEFAULT_LANG, "license")}#indexes-h`,
       },
       {
         "@type": "DataDownload",
         name: "API catalog (RFC 9727)",
         contentUrl: `${SITE_ORIGIN}/.well-known/api-catalog`,
         encodingFormat: "application/linkset+json",
+        usageInfo: `${pageUrl(DEFAULT_LANG, "license")}#indexes-h`,
       },
     ],
   };
@@ -992,6 +1007,8 @@ export async function buildSiteGraph(
     ...(lang === "en"
       ? { workTranslation: ref(`${otherUrl}#webpage`) }
       : { translationOfWork: ref(`${otherUrl}#webpage`) }),
+    ...pageTerms(lang, Boolean(targetServer || actionsDomain)),
+    copyrightHolder: ref(PERSON_ID),
     // The OG cards exist and return 200, and the page node carried no image
     // at all.
     primaryImageOfPage: {
@@ -1128,6 +1145,7 @@ export async function buildSiteGraph(
     ...(article ? [article] : []),
     ...(breadcrumb ? [breadcrumb] : []),
     ...(faq ? [faq] : []),
+    ...buildActionsNodes(lang, actionsDomain, url, webpageDates),
     ...apis,
     ...sources,
     ...(person ? [person] : []),
@@ -1137,6 +1155,128 @@ export async function buildSiteGraph(
     "@context": "https://schema.org",
     "@graph": graph,
   };
+}
+
+/**
+ * What may be done with one page, as the keys to spread into its `WebPage`.
+ *
+ * /license/ says "every page repeats those terms in its own structured data",
+ * and only the social card did: 66 of the 72 `WebPage` nodes were silent, the
+ * 56 action pages among them — precisely the ones an AI crawler is deciding
+ * whether it may quote.
+ *
+ * The split is the one /license/ already draws. A page that is wholly this
+ * site's prose states CC BY 4.0 outright. A page that renders a server's own
+ * tool catalogue alongside it — the server cards and the action pages —
+ * carries two regimes at once, so it points at the terms instead of picking
+ * one: asserting a blanket license there would be claiming this site's terms
+ * over the servers' MIT text.
+ *
+ * @param lang The page's language, so the link stays in it.
+ * @param mixed Whether the page renders a server's own catalogue.
+ * @returns `license` and `usageInfo`, or `usageInfo` alone.
+ */
+function pageTerms(lang: Lang, mixed: boolean): Record<string, string> {
+  const terms = pageUrl(lang, "license");
+  return mixed
+    ? { usageInfo: `${terms}#servers-h` }
+    : { license: CC_BY_4_0, usageInfo: terms };
+}
+
+/**
+ * The two nodes an action-domain page owes: what the document is, and what it
+ * lists.
+ *
+ * These fifty-six pages are the largest thing this site publishes — 747
+ * operations, each with an id, a human title, a full description, its required
+ * parameters and whether it destroys anything — and their graph was four nodes
+ * of boilerplate: `WebSite`, `WebPage`, `BreadcrumbList`, `Person`. Diffing
+ * /issue/ against /pipeline/ produced a difference of four strings. Nothing in
+ * the graph said the pages held anything at all, let alone what.
+ *
+ * `APIReference` is the type, and it is not a stretch: schema.org defines it
+ * as "reference documentation for application programming interfaces", under
+ * `TechArticle`. `PROSE_PAGES` deliberately excludes these pages from
+ * `TechArticle` because they are not essays — but `APIReference` is the
+ * subtype that exists for exactly this, and it is the strongest single signal
+ * available about what these pages are.
+ *
+ * The list items carry NO `description`, and that is measured rather than
+ * assumed: including them adds 27.6 KB to the 59-action `issue` page and about
+ * 58 KB to `project`, against 8.5 KB for the lean form. AGENTS.md's second
+ * constraint is that HTML is never pre-compressed, so that lands on disk and
+ * travels through `sub_filter` on every request. The descriptions are already
+ * in the DOM and in the markdown twin; what the graph adds here is an
+ * enumerable list with stable identifiers, not a second copy of the prose.
+ *
+ * Both are built from the same snapshot the page renders from, so they cannot
+ * describe a page that does not exist.
+ *
+ * @param lang The page's language.
+ * @param actionsDomain Which server and domain this page is.
+ * @param url The page's canonical URL.
+ * @param dates The page's `datePublished`/`dateModified`.
+ * @returns The two nodes, or an empty array when the page is not one of these.
+ */
+function buildActionsNodes(
+  lang: Lang,
+  actionsDomain: PageMeta["actionsDomain"],
+  url: string,
+  dates: Record<string, string>,
+): Record<string, unknown>[] {
+  if (!actionsDomain) return [];
+  const catalog = actionCatalogs()[actionsDomain.serverId];
+  if (!catalog) return [];
+  const entries = catalog.entries.filter(
+    (entry) => entry.domain === actionsDomain.domain,
+  );
+  if (entries.length === 0) return [];
+
+  const server = servers.find((s) => s.id === actionsDomain.serverId);
+  const listId = `${url}#actions`;
+  return [
+    {
+      "@type": "APIReference",
+      "@id": `${url}#reference`,
+      // The page's own title minus the site name: `[domain].astro` builds it
+      // as "<domain> — <server> <suffix>", and the suffix is
+      // "actions · mcp.jmrp.io". Split on the title separator rather than on
+      // whitespace, and reuse the same i18n string the page reads, so the
+      // headline and the title cannot drift apart or need translating twice.
+      headline: `${actionsDomain.domain} — ${actionsDomain.serverId} ${serversPage[lang].domainPageTitleSuffix.split(" · ", 1)[0]}`,
+      inLanguage: lang,
+      isPartOf: ref(`${url}#webpage`),
+      mainEntityOfPage: ref(`${url}#webpage`),
+      author: ref(PERSON_ID),
+      publisher: ref(PERSON_ID),
+      ...dates,
+      // The endpoint these actions are called through, as a partial node
+      // rather than a bare `@id`: that entity lives on the server's card and
+      // its own IRI answers 401/405 to a GET, so a reference alone would name
+      // something this document cannot identify.
+      ...(server && { about: partialApi(server) }),
+      programmingModel: "JSON-RPC 2.0 over streamable HTTP",
+      hasPart: ref(listId),
+      // Two regimes on one page: this site's prose around a catalogue that is
+      // the server's own MIT text. `/license/` draws that line, so the page
+      // points at it instead of picking one.
+      usageInfo: `${pageUrl(lang, "license")}#servers-h`,
+    },
+    {
+      "@type": "ItemList",
+      "@id": listId,
+      name: `${actionsDomain.serverId} ${actionsDomain.domain}`,
+      numberOfItems: entries.length,
+      itemListOrder: "https://schema.org/ItemListOrderAscending",
+      itemListElement: entries.map((entry, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: entry.id,
+        alternateName: entry.title,
+        url: `${url}#${entry.id}`,
+      })),
+    },
+  ];
 }
 
 /**

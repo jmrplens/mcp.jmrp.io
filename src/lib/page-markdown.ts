@@ -1,3 +1,4 @@
+import { affinitySnippetMarkdown } from "../components/AffinitySnippet.md.ts";
 import {
   clientSetupHeading,
   clientSetupMarkdown,
@@ -275,11 +276,12 @@ export function internalsMarkdown(lang: Lang): string {
       t.affinityLibgen,
       t.affinityGitlab,
       ...t.affinityCodeIntro,
-      // The prose says "see the directive above", and the directive is quoted
-      // in the component, not in i18n — so in the twin that sentence would
-      // point at nothing. Naming where it lives keeps the reference honest
-      // instead of silently dangling.
-      t.mdDirectiveNote.replace("{url}", () => pageUrl(lang, "internals")),
+      // The directive itself, not a pointer to where it is quoted. The
+      // paragraph above ends with "that is exactly why the directive is shown
+      // in full instead of just asserted", and until now the twin carried that
+      // sentence and no directive — asserting, which is the thing it
+      // criticizes. Same bytes as the page: both read `AffinitySnippet.md.ts`.
+      affinitySnippetMarkdown(t.affinityCodeComment),
       t.affinityConsequence,
     ]) +
     section(t.egressEyebrow, t.egressBody) +
