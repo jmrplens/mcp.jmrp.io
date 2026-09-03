@@ -73,7 +73,15 @@ export const home = {
     credentialsRequired: "Credentials required",
     toolsHead: "Tools",
     mdCredentialsLabel: "Credentials",
-    mdCanonicalLabel: "Canonical page",
+    /**
+     * Opens every markdown twin, pointing back at the site's index.
+     *
+     * A twin is the one document here most likely to be read on its own,
+     * detached from the site that produced it, so it carries the way back to
+     * the rest: the index names every other page and every machine-readable
+     * file.
+     */
+    mdIndexPointer: "This page as plain markdown. Index",
     mdRequiresLabel: "Requires",
     mdPageLabel: "Page",
     mdNoneLabel: "none",
@@ -156,8 +164,8 @@ export const home = {
     toolsHead: "Tools",
     /** Ver `en.mdCredentialsLabel`. */
     mdCredentialsLabel: "Credenciales",
-    /** Ver `en.mdCanonicalLabel`. */
-    mdCanonicalLabel: "Página canónica",
+    /** Ver `en.mdIndexPointer`: la vuelta al índice desde un gemelo suelto. */
+    mdIndexPointer: "Esta página en markdown. Índice",
     /** Ver `en.mdRequiresLabel`. */
     mdRequiresLabel: "Requiere",
     /** Ver `en.mdPageLabel`. */

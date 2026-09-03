@@ -52,7 +52,7 @@ import {
   SITE_NAME,
   SITE_ORIGIN,
 } from "./seo";
-import { createPageDatesResolver } from "./sitemap-lastmod";
+import { pageDatesOf } from "./sitemap-lastmod";
 
 // Each page's own dates, from the git history of the files that page is made
 // of. Built once: it memoizes per source set, and the graph is rendered 73
@@ -65,7 +65,6 @@ import { createPageDatesResolver } from "./sitemap-lastmod";
 // existed on 2026-08-06, weeks before it was written. The footer and
 // `<UpdatedLine>` still use `buildDate()` — a site-wide date is the honest one
 // there, because that line is about the deployment.
-const pageDates = createPageDatesResolver();
 
 /** `@id` of the `WebSite` node the pages hang off through `isPartOf`. */
 const WEBSITE_ID = `${SITE_ORIGIN}/#website`;
@@ -99,7 +98,7 @@ function localized(values: { en: string; es: string }): LocalizedValue[] {
  * @returns The keys to spread into the node.
  */
 function datesOf(pathname: string): Record<string, string> {
-  const { dateModified, datePublished } = pageDates(pathname);
+  const { dateModified, datePublished } = pageDatesOf(pathname);
   return {
     ...(dateModified && { dateModified }),
     ...(datePublished && { datePublished }),

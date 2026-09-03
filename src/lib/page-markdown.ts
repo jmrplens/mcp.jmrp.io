@@ -21,6 +21,7 @@ import { policies } from "../i18n/ui/policies";
 import { serversPage } from "../i18n/ui/servers-page";
 import { noscriptCurl } from "./client-config";
 import { pageUrl, serverPageUrl, SITE_ORIGIN, SITE_REPO } from "./seo";
+import { pageDatesOf } from "./sitemap-lastmod";
 
 /**
  * Markdown twins: every page of this site, as the markdown behind it.
@@ -82,7 +83,52 @@ export function markdownResponse(body: string): Response {
  * @returns The opening block.
  */
 function head(title: string, summary: string, url: string, lang: Lang): string {
-  return `# ${title}\n\n> ${summary}\n\n${ui[lang].mdCanonicalLabel}: ${url}\n`;
+  const pathname = new URL(url).pathname;
+  const { dateModified } = pageDatesOf(pathname);
+  // The keys are English because they are the schema, not prose; the values
+  // are localized because a markdown file has no `lang` attribute and its own
+  // text is the only language signal it carries. Same reasoning jmrp.io
+  // records for the identical header.
+  const lines = [
+    // `Canonical`, not the localized "Canonical page"/"Página canónica" this
+    // line used to carry: the keys are the schema and stay English in both
+    // languages, or a consumer parsing the header has to know Spanish to find
+    // the URL. Only the values are localized, and the summary above them.
+    `Canonical: ${url}`,
+    `Language: ${lang}`,
+    `Alternate: ${otherLanguageTwin(url)}`,
+    // The same value as the sitemap's `lastmod` and the JSON-LD's
+    // `dateModified`, from the one shared resolver — three statements of when
+    // this page changed, made to three audiences, that cannot disagree.
+    // Omitted rather than invented when the tree is dirty and git cannot
+    // answer.
+    ...(dateModified ? [`Updated: ${dateModified}`] : []),
+    `License: ${pageUrl(lang, "license")}`,
+  ];
+  return (
+    `# ${title}\n\n> ${summary}\n` +
+    `> ${ui[lang].mdIndexPointer}: ${SITE_ORIGIN}/llms.txt\n\n` +
+    `${lines.join("\n")}\n`
+  );
+}
+
+/**
+ * The same page's twin in the other language.
+ *
+ * A twin quoted on its own is a document with no address and no siblings; the
+ * `Alternate:` line is what lets a reader find the version they can actually
+ * read. Derived from the URL rather than passed in, so no caller can forget
+ * it — the home pages are the only pair where the path is not a prefix swap.
+ *
+ * @param url The canonical URL of the page this twin mirrors.
+ * @returns The other language's twin URL.
+ */
+function otherLanguageTwin(url: string): string {
+  const { pathname } = new URL(url);
+  const other = pathname.startsWith("/es/")
+    ? pathname.slice(3)
+    : `/es${pathname}`;
+  return `${SITE_ORIGIN}${other}index.md`;
 }
 
 /** Renders a list of paragraphs as markdown prose. */

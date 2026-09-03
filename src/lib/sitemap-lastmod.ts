@@ -250,12 +250,34 @@ function routeOf(pathname: string): { route: string; spanish: boolean } {
     : { route: withSlash, spanish: false };
 }
 
+/** The one resolver every caller shares, built on first use. */
+let sharedResolver: ((pathname: string) => PageDates) | undefined;
+
+/**
+ * One page's dates, from the resolver every consumer shares.
+ *
+ * The sitemap's `lastmod`, the JSON-LD's `dateModified` and the `Updated:`
+ * line of the markdown twin are the same claim about the same page, made to
+ * three different audiences. Reading them from one memoized resolver is what
+ * makes them the same VALUE rather than three computations that agree today.
+ *
+ * @param pathname A page path, e.g. `/es/servers/gitlab/`.
+ * @returns That page's dates; fields are undefined when the caller should
+ *   fall back to its own site-wide values.
+ */
+export function pageDatesOf(pathname: string): PageDates {
+  sharedResolver ??= createPageDatesResolver();
+  return sharedResolver(pathname);
+}
+
 /**
  * Builds the per-page `lastmod` resolver the sitemap serializer calls.
  *
  * git is asked once per distinct source set and the answer is memoized: the
  * sitemap has 73 URLs but only a handful of shapes, and a subprocess per URL
- * would be paid on every build.
+ * would be paid on every build. Most callers want {@link pageDatesOf}, which
+ * shares one of these; this stays exported for the sitemap integration, which
+ * builds its own for one pass.
  *
  * On a DIRTY tree (or with no git) it resolves nothing and the caller keeps
  * its single fallback date. That is deliberate: `build-date.ts` already treats
