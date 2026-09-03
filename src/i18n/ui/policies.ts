@@ -18,7 +18,7 @@
 export const policies = {
   en: {
     policiesMetaTitle:
-      "Policies — privacy, logging and legal position · jmrp.io",
+      "Policies — privacy, logging and legal position · mcp.jmrp.io",
     /**
      * The page's `<h1>`. Prefixed like the rest of this module: these keys are
      * flattened into the shared `ui` object, where a bare `title` would
@@ -113,6 +113,30 @@ export const policies = {
     slaEyebrow: "No SLA",
     slaBody: [
       "This is a personal service, offered as-is with no service-level agreement: no uptime guarantee, no support channel, and no commitment that either endpoint stays online — or unchanged — from one day to the next. Do not build anything critical on top of it; both servers are open source, and running your own instance is one static binary away.",
+    ],
+    /**
+     * The counterweight to `slaBody`, and the only positive statement about
+     * continuity this site makes.
+     *
+     * Everything else here answers the question in the negative — no SLA, no
+     * uptime guarantee, may go away without notice, said four times across
+     * four pages — so a reader deciding whether to point a client at a
+     * stranger's endpoint gets four disclaimers and no reason. This states
+     * the mechanism instead of adding a promise: the endpoints are not
+     * carried by anything bought to carry them, so keeping them up is not a
+     * decision anyone has to take.
+     *
+     * It names NO figure. There is no cost number the author has measured,
+     * and inventing one to make the argument land would be the single worst
+     * thing this page could do — it is the page whose whole value is being
+     * checkable. It names no location either: `/internals` publishes the
+     * egress countries, and that is as specific as this site gets about
+     * where the machines are.
+     */
+    continuityEyebrow: "Why it is likely to still be here",
+    continuityBody: [
+      "Nothing above is a promise and this section does not add one. But the reason these endpoints have not gone away is not goodwill: nothing here was bought to run them. Both servers are containers on machines and exit nodes that were already running, and would go on running, for other reasons — so there is no month in which keeping them up is a decision someone has to make, and no bill whose renewal would end them.",
+      "What would end this service is the author losing interest, and the honest hedge against that is the one stated above rather than a commitment: both servers are open source, and running your own is one static binary away.",
     ],
     egressEyebrow: "Where a request appears to come from",
     /**
@@ -225,7 +249,8 @@ export const policies = {
     legalLicenseLink: "License",
   },
   es: {
-    policiesMetaTitle: "Políticas — privacidad, logs y postura legal · jmrp.io",
+    policiesMetaTitle:
+      "Políticas — privacidad, logs y postura legal · mcp.jmrp.io",
     /** Ver `en.policiesTitle`: el `<h1>` de la página. */
     policiesTitle: "Políticas",
     /** Ver `en.policiesEyebrow`: kicker encima del h1. */
@@ -259,6 +284,12 @@ export const policies = {
     slaEyebrow: "Sin SLA",
     slaBody: [
       "Este es un servicio personal, ofrecido tal cual y sin acuerdo de nivel de servicio: sin garantía de disponibilidad, sin canal de soporte y sin compromiso de que ninguno de los dos endpoints siga en pie —o igual— de un día para otro. No montes nada crítico encima: los dos servidores son open source y cada uno es un único binario estático, así que para levantar tu propia instancia basta con ese binario.",
+    ],
+    /** Ver `en.continuityBody`: el mecanismo, sin promesa, sin cifra y sin decir dónde están las máquinas. */
+    continuityEyebrow: "Por qué es probable que siga aquí",
+    continuityBody: [
+      "Nada de lo anterior es una promesa y esta sección no añade ninguna. Pero la razón de que estos endpoints sigan en pie no es la buena voluntad: aquí no se ha comprado nada para hacerlos funcionar. Los dos servidores son contenedores sobre máquinas y nodos de salida que ya estaban funcionando, y seguirían funcionando, por otros motivos — así que no hay mes en el que mantenerlos sea una decisión que alguien tenga que tomar, ni factura cuya renovación pueda acabar con ellos.",
+      "Lo que sí acabaría con este servicio es que el autor pierda el interés, y la cobertura honesta frente a eso es la que ya está dicha arriba y no un compromiso: los dos servidores son open source, y levantar el tuyo está a un binario estático de distancia.",
     ],
     egressEyebrow: "De dónde parece venir una petición",
     /** Ver `en.egressBody`: la consecuencia y los países; el recuento de nodos vive en Funcionamiento interno. */

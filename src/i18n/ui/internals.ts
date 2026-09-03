@@ -24,7 +24,7 @@
 export const internals = {
   en: {
     title: "Internals",
-    metaTitle: "Internals — how a request reaches mcp.jmrp.io · jmrp.io",
+    metaTitle: "Internals — how a request reaches these servers · mcp.jmrp.io",
     /**
      * Doubles as this page's meta description (`src/pages/internals.astro`
      * passes it straight to `Base`), so it is written to the snippet ceiling
@@ -320,7 +320,7 @@ export const internals = {
   },
   es: {
     title: "Funcionamiento interno",
-    metaTitle: "Funcionamiento interno — cómo enruta mcp.jmrp.io · jmrp.io",
+    metaTitle: "Funcionamiento interno — cómo llega una petición · mcp.jmrp.io",
     /** Ver `en.lede`: es también la meta description, de ahí la brevedad. */
     lede: "Cómo llega de verdad una petición a estos servidores: tu cliente, Cloudflare, nginx, una de las tres instancias, su salida WireGuard y el destino pedido.",
 

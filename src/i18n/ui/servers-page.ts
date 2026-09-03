@@ -233,8 +233,26 @@ export const serversPage = {
       "The tools above front a catalog of {count} {actions} across {domains} {domainWord}: they are found and called through those tools, not exposed one by one. Counted with a Free-tier token — both the tier and the token's permissions move the figure. Index: {index}. One reference page per domain under {base}.",
     catalogIntro:
       "Behind the tools above sits a catalog of fine-grained actions, invoked through gitlab_execute_action and published as the gitlab://tools resource. This table only counts it, by domain — the full list is the resource itself.",
+    /**
+     * The figure, its scope, and why it disagrees with every other figure the
+     * author publishes.
+     *
+     * Five surfaces named five different counts — "over 700" in this site's
+     * descriptions, 747 here, 851 in the upstream README's Free/CE surface,
+     * "850+ (1,000+ Enterprise)" in the repository description and 1,006 in
+     * the documentation site and the awesome-list. Each is right about its
+     * own vantage point, and this site never named the other two, so a model
+     * reconciling them had this one as the outlier and the README as the
+     * consensus. Naming all three here turns a contradiction into something
+     * quotable.
+     *
+     * It also says what the endpoint talks to. The count is a fact about
+     * gitlab.com, and this deployment reaches nothing else — a self-managed
+     * instance is a reason to run the server yourself, not a gap in the
+     * catalog.
+     */
     catalogTokenNote:
-      "Counted with a Free-tier GitLab token. The catalog is scoped to the token that asks, so the count moves with both its tier and its permissions: higher tiers expose more actions, and administration domains only appear to tokens allowed to use them.",
+      "Counted with a Free-tier token against gitlab.com, which is the only host this endpoint talks to: to use it against a self-managed instance, run the server yourself — its documentation covers that. The catalog is scoped to the token that asks, so the count moves with both its tier and its permissions: higher tiers expose more actions, and administration domains only appear to tokens allowed to use them. That is why the figures differ elsewhere: the upstream project catalogues 1,006 actions across 162 domains, and 851 on the Free/CE surface, while this deployment publishes 747 because it is OAuth-only and acts with your token, so the administration domains a non-admin account cannot call never appear. All three describe the same catalog, counted from three vantage points.",
     catalogTableCaption: "Actions by domain",
     catalogColDomain: "Domain",
     catalogColTotal: "Actions",
@@ -435,9 +453,9 @@ export const serversPage = {
     /** Ver `en.catalogIntro`. */
     catalogIntro:
       "Detrás de las tools de arriba hay un catálogo de acciones de grano fino, invocadas vía gitlab_execute_action y publicadas como el resource gitlab://tools. Esta tabla solo lo cuenta, por dominio — la lista completa es el propio resource.",
-    /** Ver `en.catalogTokenNote`. */
+    /** Ver `en.catalogTokenNote`: la cifra, su alcance, y por qué las otras difieren. */
     catalogTokenNote:
-      "Contado con un token Free de GitLab. El catálogo depende del token que pregunta, así que el recuento se mueve con su tier y con sus permisos: los tiers superiores exponen más acciones, y los dominios de administración solo aparecen a tokens autorizados a usarlos.",
+      "Contado con un token Free contra gitlab.com, que es el único host con el que habla este endpoint: para usarlo contra una instancia self-managed, levanta tú el servidor — su documentación lo cubre. El catálogo depende del token que pregunta, así que el recuento se mueve con su tier y con sus permisos: los tiers superiores exponen más acciones, y los dominios de administración solo aparecen a tokens autorizados a usarlos. Por eso las cifras difieren en otros sitios: el proyecto upstream cataloga 1.006 acciones en 162 dominios, y 851 en la superficie Free/CE, mientras que este despliegue publica 747 porque es solo-OAuth y actúa con tu token, así que los dominios de administración que una cuenta sin admin no puede llamar no aparecen nunca. Las tres describen el mismo catálogo, contado desde tres sitios distintos.",
     /** Ver `en.catalogTableCaption`. */
     catalogTableCaption: "Acciones por dominio",
     /** Ver `en.catalogColDomain`. */

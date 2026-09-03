@@ -52,7 +52,7 @@ import {
   SITE_NAME,
   SITE_ORIGIN,
 } from "./seo";
-import { createPageDatesResolver } from "./sitemap-lastmod";
+import { pageDatesOf } from "./sitemap-lastmod";
 
 // Each page's own dates, from the git history of the files that page is made
 // of. Built once: it memoizes per source set, and the graph is rendered 73
@@ -65,10 +65,18 @@ import { createPageDatesResolver } from "./sitemap-lastmod";
 // existed on 2026-08-06, weeks before it was written. The footer and
 // `<UpdatedLine>` still use `buildDate()` — a site-wide date is the honest one
 // there, because that line is about the deployment.
-const pageDates = createPageDatesResolver();
 
 /** `@id` of the `WebSite` node the pages hang off through `isPartOf`. */
 const WEBSITE_ID = `${SITE_ORIGIN}/#website`;
+
+/**
+ * Letters that take "an" rather than "a" before a header name.
+ *
+ * The only required header today is `Authorization`, and the article used to
+ * be hardcoded, so the graph published "Requires a Authorization header" —
+ * a sentence an assistant quotes verbatim.
+ */
+const VOWELS = new Set(["a", "e", "i", "o", "u"]);
 
 /** One literal per language, for nodes that share an `@id`. */
 type LocalizedValue = { "@value": string; "@language": Lang };
@@ -99,7 +107,7 @@ function localized(values: { en: string; es: string }): LocalizedValue[] {
  * @returns The keys to spread into the node.
  */
 function datesOf(pathname: string): Record<string, string> {
-  const { dateModified, datePublished } = pageDates(pathname);
+  const { dateModified, datePublished } = pageDatesOf(pathname);
   return {
     ...(dateModified && { dateModified }),
     ...(datePublished && { datePublished }),
@@ -128,9 +136,10 @@ function buildArticleNode(context: {
   articleId: string;
   description: string;
   dates: Record<string, string>;
-  apiRefs: { "@id": string }[];
+  apiPartials: Record<string, unknown>[];
 }): Record<string, unknown> | null {
-  const { page, lang, url, articleId, description, dates, apiRefs } = context;
+  const { page, lang, url, articleId, description, dates, apiPartials } =
+    context;
   if (!PROSE_PAGES.has(page)) return null;
   return {
     "@type": "TechArticle",
@@ -151,7 +160,13 @@ function buildArticleNode(context: {
     ...dates,
     // The prose, like every other page's, is CC BY 4.0 — see /license/.
     license: CC_BY_4_0,
-    about: apiRefs,
+    // The partial nodes, not bare refs: these pages carry no `WebAPI` of their
+    // own, and an `@id` alone would name an entity that lives on another page
+    // and answers 401/405 when dereferenced — the very thing
+    // `selectMainEntity` refuses to do. Home and /servers/ can use bare refs
+    // for their FAQ because `mainEntity` already puts the partials in the
+    // same document.
+    about: apiPartials,
   };
 }
 
@@ -285,6 +300,13 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
     "@id": apiId(server),
     name: server.name,
     url: server.endpoint,
+    // The `@id` is the endpoint's IRI, and the endpoint only speaks POST: a
+    // consumer that dereferences it gets 405 from libgen and 401 from gitlab,
+    // by design. So the node also names the document that DOES describe it
+    // and answers 200 — its own server card. The `@id` itself must not move:
+    // jmrp.io's canonical person.jsonld lists both of them in `owns`, and six
+    // external consumers read that file.
+    mainEntityOfPage: ref(`${serverPageUrl(DEFAULT_LANG, server.id)}#webpage`),
     description: localized(server.description),
     documentation: server.docsSite ?? server.docs,
     serviceType: "Model Context Protocol server",
@@ -407,10 +429,16 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
     },
     // What a caller has to bring. This is the "can I actually use this?" fact,
     // and until now only /servers.json answered it — the graph did not.
+    // The article is derived rather than hardcoded: the only required header
+    // today is `Authorization`, and "a Authorization header" is a sentence an
+    // assistant would quote verbatim.
     permissions:
       server.requiredHeaders.length > 0
         ? server.requiredHeaders
-            .map((h) => `Requires a ${h.name} header on every request.`)
+            .map(
+              (h) =>
+                `Requires ${VOWELS.has(h.name[0]?.toLowerCase() ?? "") ? "an" : "a"} ${h.name} header on every request.`,
+            )
             .join(" ")
         : "None. The server is public and takes no credentials.",
     softwareRequirements:
@@ -1091,7 +1119,7 @@ export async function buildSiteGraph(
     articleId,
     description,
     dates: webpageDates,
-    apiRefs,
+    apiPartials: servers.map((server) => partialApi(server)),
   });
 
   const graph = [

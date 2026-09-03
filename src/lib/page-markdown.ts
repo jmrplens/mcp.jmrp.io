@@ -1,4 +1,9 @@
+import {
+  clientSetupHeading,
+  clientSetupMarkdown,
+} from "../components/ClientSetup.md.ts";
 import { failureLadderMarkdown } from "../components/FailureLadder.md.ts";
+import { noticeMarkdown } from "../components/Notice.md.ts";
 import { serverCards } from "../data/server-cards";
 import type { McpServer } from "../data/servers";
 import { servers } from "../data/servers";
@@ -14,7 +19,9 @@ import { internals } from "../i18n/ui/internals";
 import { license } from "../i18n/ui/license";
 import { policies } from "../i18n/ui/policies";
 import { serversPage } from "../i18n/ui/servers-page";
+import { noscriptCurl } from "./client-config";
 import { pageUrl, serverPageUrl, SITE_ORIGIN, SITE_REPO } from "./seo";
+import { pageDatesOf } from "./sitemap-lastmod";
 
 /**
  * Markdown twins: every page of this site, as the markdown behind it.
@@ -76,7 +83,52 @@ export function markdownResponse(body: string): Response {
  * @returns The opening block.
  */
 function head(title: string, summary: string, url: string, lang: Lang): string {
-  return `# ${title}\n\n> ${summary}\n\n${ui[lang].mdCanonicalLabel}: ${url}\n`;
+  const pathname = new URL(url).pathname;
+  const { dateModified } = pageDatesOf(pathname);
+  // The keys are English because they are the schema, not prose; the values
+  // are localized because a markdown file has no `lang` attribute and its own
+  // text is the only language signal it carries. Same reasoning jmrp.io
+  // records for the identical header.
+  const lines = [
+    // `Canonical`, not the translated label this line used to carry: the keys
+    // are the schema and stay English in both languages, or a consumer
+    // parsing the header has to read Spanish to find the URL. Only the values
+    // are localized, and the summary above them.
+    `Canonical: ${url}`,
+    `Language: ${lang}`,
+    `Alternate: ${otherLanguageTwin(url)}`,
+    // The same value as the sitemap's `lastmod` and the JSON-LD's
+    // `dateModified`, from the one shared resolver — three statements of when
+    // this page changed, made to three audiences, that cannot disagree.
+    // Omitted rather than invented when the tree is dirty and git cannot
+    // answer.
+    ...(dateModified ? [`Updated: ${dateModified}`] : []),
+    `License: ${pageUrl(lang, "license")}`,
+  ];
+  return (
+    `# ${title}\n\n> ${summary}\n` +
+    `> ${ui[lang].mdIndexPointer}: ${SITE_ORIGIN}/llms.txt\n\n` +
+    `${lines.join("\n")}\n`
+  );
+}
+
+/**
+ * The same page's twin in the other language.
+ *
+ * A twin quoted on its own is a document with no address and no siblings; the
+ * `Alternate:` line is what lets a reader find the version they can actually
+ * read. Derived from the URL rather than passed in, so no caller can forget
+ * it — the home pages are the only pair where the path is not a prefix swap.
+ *
+ * @param url The canonical URL of the page this twin mirrors.
+ * @returns The other language's twin URL.
+ */
+function otherLanguageTwin(url: string): string {
+  const { pathname } = new URL(url);
+  const other = pathname.startsWith("/es/")
+    ? pathname.slice(3)
+    : `/es${pathname}`;
+  return `${SITE_ORIGIN}${other}index.md`;
 }
 
 /** Renders a list of paragraphs as markdown prose. */
@@ -108,9 +160,19 @@ export function homeMarkdown(lang: Lang): string {
       return `- **${server.name}** — \`${server.endpoint}\`\n  ${server.description[lang]}\n  ${t.mdCredentialsLabel}: ${credential}. ${t.mdPageLabel}: ${serverPageUrl(lang, server.id)}`;
     })
     .join("\n");
+  // The notices the home page folds under each server card: where libgen
+  // searches and its legal footing, where a GitLab token goes, and what each
+  // server's limits are. They are the four question-shaped headings on the
+  // page, the four entries in its FAQPage graph and the four `speakable`
+  // targets — and the twin carried none of them, which left it at 145 words
+  // against the page's 884 and dropped the best trust copy on the site from
+  // the one surface written for machines to read.
+  const noticeSections = servers.flatMap((server) =>
+    server.notices.map((notice) => noticeMarkdown(notice, lang)),
+  );
   return (
     head(t.title, t.subtitle, pageUrl(lang, "home"), lang) +
-    section(t.serversEyebrow, [t.serversIntro, list]) +
+    section(t.serversEyebrow, [t.serversIntro, list, ...noticeSections]) +
     section(t.mdMachineHead, [
       `- ${t.mdIndexLabel}: ${SITE_ORIGIN}/servers.json`,
       `- ${t.mdCorpusLabel}: ${SITE_ORIGIN}/llms.txt ${t.mdAndWord} ${SITE_ORIGIN}/llms-full.txt`,
@@ -130,6 +192,21 @@ export function homeMarkdown(lang: Lang): string {
  */
 export function inspectorMarkdown(lang: Lang): string {
   const t = ui[lang];
+  // The page's <noscript> block, which is the most useful thing on it for a
+  // reader who is not running a browser — a complete, working call that needs
+  // no client, no account and no install. The twin quoted none of it, which
+  // is the wrong way round: the audience that cannot run the island IS the
+  // audience reading the markdown. Same builder as the page, so the two
+  // cannot drift.
+  const noscript = servers.find((server) => server.id === "libgen");
+  const noscriptSection = noscript
+    ? section(t.noscript.title, [
+        t.noscript.lead,
+        `\`\`\`sh\n${noscriptCurl(noscript)}\n\`\`\``,
+        t.noscript.response,
+        `${t.noscript.more} ${t.noscript.moreLink}: ${serverPageUrl(lang, noscript.id)}`,
+      ])
+    : "";
   return (
     head(t.inspectorTitle, t.inspectorIntro, pageUrl(lang, "inspector"), lang) +
     section(t.inspectorEyebrow, [
@@ -140,6 +217,7 @@ export function inspectorMarkdown(lang: Lang): string {
       // the notice lives on the home page, so the twin links there too.
       `${t.noticePointer} ${t.noticePointerLink}: ${pageUrl(lang, "home")}#gitlab-security`,
     ]) +
+    noscriptSection +
     "\n"
   );
 }
@@ -242,6 +320,7 @@ export function policiesMarkdown(lang: Lang): string {
     ]) +
     section(t.logsEyebrow, t.logsBody) +
     section(t.slaEyebrow, t.slaBody) +
+    section(t.continuityEyebrow, t.continuityBody) +
     section(t.egressEyebrow, [
       ...t.egressBody,
       `${t.egressPointer} ${t.egressPointerLink}: ${pageUrl(lang, "internals")}#egress-h`,
@@ -391,6 +470,9 @@ export function serverMarkdown(server: McpServer, lang: Lang): string {
       lang,
     ) +
     section(t.overviewHead, [facts.join("\n")]) +
+    // The component's own twin, not a second composition of the same blocks:
+    // see `ClientSetup.md.ts` for why this section in particular earned one.
+    section(clientSetupHeading(lang), [clientSetupMarkdown(server, lang)]) +
     section(t.contextHead, context) +
     (instructions
       ? section(t.instructionsHead, [t.instructionsIntro, instructions])

@@ -19,7 +19,7 @@ export const inspector = {
      * which is exactly what `i18n-modules.test.mjs` exists to catch.
      */
     inspectorMetaTitle:
-      "Inspector — try the MCP servers in your browser · jmrp.io",
+      "Inspector — try the MCP servers in your browser · mcp.jmrp.io",
     /** The page's `<h1>`. Prefixed for the same reason as the keys above. */
     inspectorTitle: "Inspector",
     inspectorEyebrow: "Inspector",
@@ -163,7 +163,7 @@ export const inspector = {
   es: {
     /** See `en.inspectorMetaTitle`: document `<title>`, not the H1. */
     inspectorMetaTitle:
-      "Inspector — prueba los servidores MCP en tu navegador · jmrp.io",
+      "Inspector — prueba servidores MCP en tu navegador · mcp.jmrp.io",
     /** The page's `<h1>`. Prefixed for the same reason as the keys above. */
     inspectorTitle: "Inspector",
     inspectorEyebrow: "Inspector",

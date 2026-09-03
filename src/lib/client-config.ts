@@ -39,6 +39,33 @@ function tokenEnv(server: McpServer): string {
   return `${server.id.toUpperCase()}_TOKEN`;
 }
 
+/**
+ * The bare `curl` that calls a server with no client and no JavaScript.
+ *
+ * `/inspector/` shows this in its `<noscript>`, and the page's markdown twin
+ * shows the same bytes. It lives here rather than in the component because
+ * the twin used to carry no `curl` at all, and the obvious fix — writing the
+ * command out a second time in `page-markdown.ts` — is the drift this
+ * module exists to prevent: two copies of one command, one of which
+ * eventually stops working.
+ *
+ * `-X POST` is deliberately absent: `-d` already makes this a POST, and
+ * forcing it is what breaks the command the day anything redirects the
+ * endpoint, since curl replays POST on a 301 only when `-X` forced it. The
+ * single quotes around the body are load-bearing too — the JSON is full of
+ * double quotes, so shell double quotes would hand `$` and `!` to the shell
+ * instead of to curl.
+ *
+ * @param server A server from `src/data/servers.ts`.
+ * @returns The complete command, ready to copy.
+ */
+export function noscriptCurl(server: McpServer): string {
+  return String.raw`curl -sS ${server.endpoint} \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'`;
+}
+
 /** The headers the snippet must fill in: the required ones only. */
 function required(server: McpServer): McpHeader[] {
   return server.requiredHeaders;

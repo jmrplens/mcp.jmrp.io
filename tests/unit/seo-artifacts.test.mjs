@@ -28,6 +28,7 @@ import {
   PAGE_PATHS,
   pageUrl,
   serverPageUrl,
+  SITE_NAME,
 } from "../../src/lib/seo.ts";
 
 // `dist` is a SYMLINK to the active blue/green colour, so it points at what is
@@ -207,6 +208,113 @@ test("every page announces its markdown twin, and the twin is really there", () 
     // is a 404 advertised in every head.
     read(page.replace(/index\.html$/, "index.md"));
   }
+});
+
+test("a server's twin carries the configuration its page carries", () => {
+  // The twins are the surface llms.txt points every assistant at, and the
+  // server ones used to drop the whole "Connect it to your client" block:
+  // 828 words against the page's 5244, with the endpoint, the OAuth client id
+  // and all six client snippets living only in the HTML. "How do I connect
+  // this to Claude Code" is the question this site answers, so the answer
+  // being absent from the machine-readable copy was the expensive kind of
+  // omission — silent, and exactly where it would be looked for.
+  //
+  // Asserted on the built twin so it covers the renderer and the data
+  // together, in both languages.
+  for (const dir of ["", "es/"]) {
+    for (const server of ["libgen", "gitlab"]) {
+      const name = `${dir}servers/${server}/index.md`;
+      const md = read(name);
+      // The server name and `--transport http` swap places between the OAuth
+      // form and the token one, so the name is matched anywhere on the line
+      // rather than pinned to a position.
+      assert.ok(
+        new RegExp(String.raw`claude mcp add[^\n]*\b${server}\b`).test(md),
+        `${name}: no Claude Code command — the twin dropped the connect block`,
+      );
+      // Inside a fence, not merely mentioned in prose: what makes it useful
+      // is that it can be copied out whole.
+      const fenced = [...md.matchAll(/```[a-z]*\n([\s\S]*?)```/g)].map(
+        (m) => m[1],
+      );
+      assert.ok(
+        fenced.some((block) => block.includes(`https://mcp.jmrp.io/${server}`)),
+        `${name}: the endpoint appears in no fenced block`,
+      );
+    }
+  }
+  // gitlab is the one with an OAuth path, and the client id is the part a
+  // client cannot guess: without it these clients fall back to dynamic
+  // registration, which gitlab.com answers with an unusable scope.
+  for (const dir of ["", "es/"]) {
+    const name = `${dir}servers/gitlab/index.md`;
+    assert.ok(
+      /--client-id [0-9a-f]{64}/.test(read(name)),
+      `${name}: the OAuth client id is missing from the twin`,
+    );
+  }
+});
+
+test("every title ends in the site's own name", () => {
+  // Eleven pages used to end in "· jmrp.io" and sixty-two in "· mcp.jmrp.io",
+  // split cleanly along trunk-pages versus catalogue-pages — which looks like
+  // a decision and was not one, just two sittings. The eleven were the
+  // problem: `SITE_NAME` is mcp.jmrp.io, the `WebSite` node is called
+  // mcp.jmrp.io, and every `WebPage` declares `isPartOf` that node, so those
+  // titles named a site their own graph does not describe.
+  //
+  // Nothing derives the suffix — each title is a whole string in its i18n
+  // module, which is what let the two forms coexist unnoticed. This is the
+  // cheap guard for that.
+  for (const { name, html } of pages()) {
+    const title = /<title>([^<]*)<\/title>/.exec(html)?.[1];
+    assert.ok(title, `${name}: no <title>`);
+    assert.ok(
+      title.endsWith(`· ${SITE_NAME}`),
+      `${name}: title ends "${title.slice(-24)}", not "· ${SITE_NAME}"`,
+    );
+    // The domain twice in one title reads like a mistake, and is how the
+    // internals pages came out of the first pass of this change.
+    assert.equal(
+      title.split(SITE_NAME).length - 1,
+      1,
+      `${name}: names ${SITE_NAME} twice — "${title}"`,
+    );
+  }
+});
+
+test("no markdown twin is an orphan", () => {
+  // The closure check jmrp.io runs at build time, in the direction the other
+  // tests do not cover. They walk pages and ask whether the twin exists; this
+  // walks twins and asks whether a page announces them. A twin nothing points
+  // at is served, indexed by nobody and quietly out of date — and since the
+  // announcement is now derived from the twin ROUTES rather than guessed from
+  // the page, the two sets should be exactly equal.
+  // Read the announcements out of the built HTML rather than from `pages()`,
+  // which deliberately omits the action-domain pages — and those are 56 of
+  // the 72 twins.
+  const all = fs.readdirSync(DIST, { recursive: true }).map(String);
+  const announced = new Set();
+  for (const file of all) {
+    if (!file.endsWith(".html")) continue;
+    const href = /<link[^>]*type="text\/markdown"[^>]*>/.exec(read(file));
+    if (!href) continue;
+    const url = /href="([^"]+)"/.exec(href[0])?.[1];
+    if (url) announced.add(new URL(url).pathname.slice(1));
+  }
+  const built = all.filter((file) => file.endsWith("index.md"));
+
+  for (const twin of built) {
+    assert.ok(
+      announced.has(twin),
+      `${twin}: built, but no page announces it — an orphan twin`,
+    );
+  }
+  assert.equal(
+    built.length,
+    72,
+    `expected 72 twins, found ${built.length} — a page gained or lost one`,
+  );
 });
 
 test("the pages with no twin do not claim one", () => {
@@ -1063,4 +1171,35 @@ test("the pages carry the tokens nginx replaces with the live status", () => {
       );
     }
   }
+});
+
+test("llms-full.txt and the site agree on which GitLab token scope works", () => {
+  // These two surfaces drifted apart once: llms-full.txt called a `read_api`
+  // token "the sane way to try the inspector" while the site said such a
+  // token is refused outright. llms-full.txt is the file an agent reads
+  // BEFORE connecting, so the stale copy handed every LLM-driven user a
+  // credential that fails at the door. src/data/servers.ts documents why it
+  // fails: the deployment checks the scope once against what its whole tool
+  // set could need, and gitlab.com answers -40300 even for `initialize`.
+  //
+  // Asserted on the BUILT artifacts rather than the source strings: what
+  // ships is what a client reads, and the two are generated from different
+  // modules (src/lib/llms.ts and src/data/servers.ts).
+  const full = read("llms-full.txt");
+  const home = read("index.html");
+
+  assert.ok(
+    /`read_api`[\s\S]{0,120}refused/.test(full),
+    "llms-full.txt does not say a read_api token is refused",
+  );
+  assert.ok(
+    !/read_api[\s\S]{0,120}sane way/.test(full),
+    "llms-full.txt still recommends a read_api token, which the server rejects",
+  );
+  // The home page is the other half of the contract; if it ever stops saying
+  // this, the assertion above is guarding a claim nothing else makes.
+  assert.ok(
+    /read_api token is refused/.test(home),
+    "the home page no longer states that a read_api token is refused",
+  );
 });

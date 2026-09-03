@@ -30,11 +30,7 @@ import { ui } from "../i18n/ui";
 import { internals } from "../i18n/ui/internals";
 import { serversPage } from "../i18n/ui/servers-page";
 import {
-  claudeCodeCommand,
-  cursorJson,
-  vscodeJson,
-} from "../lib/client-config";
-import {
+  actionsDomainPageUrl,
   DEFAULT_LANG,
   LANGS,
   pageUrl,
@@ -202,6 +198,38 @@ export function buildLlmsTxt(): string {
     })
     .join("");
 
+  // One line per action domain, for every server with a catalog. These are the
+  // largest thing this site publishes — 747 operations over 28 domains, each
+  // with its id, behaviour flag, description and required parameters — and
+  // until now an llms.txt reader could not reach a single one: the index named
+  // `actions.json` and stopped, so the only route in was a JSON envelope
+  // rather than the prose.
+  //
+  // This is also the shape llmstxt.org actually asks for. The spec defines no
+  // `llms-full.txt`; what it defines is a small curated index of links to
+  // markdown versions of the pages, which is what these are. Each one's twin
+  // is its URL plus `index.md`, a convention stated once at the top of this
+  // file rather than repeated on twenty-eight lines.
+  const reference = servers
+    .flatMap((server) => {
+      const catalog = actionCatalogs[server.id];
+      if (!catalog) return [];
+      return catalog.domains.map((domain) => {
+        const url = actionsDomainPageUrl(
+          DEFAULT_LANG,
+          server.id,
+          domain.domain,
+        );
+        const noun = domain.count === 1 ? "action" : "actions";
+        // The two counts are the fact a caller most needs before choosing an
+        // action: how many of them only read, and how many can destroy
+        // something. Both come from the snapshot, so they cannot drift from
+        // the page they describe.
+        return `- [${server.id} ${domain.domain}](${url}): ${domain.count} ${noun}, ${domain.readOnlyCount} read-only, ${domain.destructiveCount} destructive.`;
+      });
+    })
+    .join("\n");
+
   return `# ${SITE_NAME} — public MCP servers
 
 > ${ui.en.lede}
@@ -227,13 +255,17 @@ ${list}
 
 ${pages}
 
+## Reference
+
+${reference}
+
 ## Machine-readable
 
 - [/servers.json](${SITE_ORIGIN}/servers.json): endpoint index as JSON.${catalogLines}
 - [/llms-full.txt](${SITE_ORIGIN}/llms-full.txt): required headers, example calls and the credential policy of every server.
 - [/sitemap-index.xml](${SITE_ORIGIN}/sitemap-index.xml): sitemap.
 
-## Optional
+## Author
 
 - [jmrp.io](https://jmrp.io/): the author's site, which publishes the canonical identity document that attributes these servers to him.
 `;
@@ -443,26 +475,12 @@ Accept: application/json, text/event-stream${exampleHeaders(server)}
 {"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}
 \`\`\`
 
-Use it in a client — mind the top-level key: Cursor reads \`mcpServers\` with
-no \`type\` field, VS Code reads \`servers\` with \`type: "http"\`.
+Client configuration — Claude Code, Cursor and VS Code, for both the OAuth
+and the pasted-token paths — is on the server's page and in its markdown
+twin: ${serverPageUrl(DEFAULT_LANG, server.id)}index.md
 
-Claude Code:
-
-\`\`\`sh
-${claudeCodeCommand(server)}
-\`\`\`
-
-Cursor (\`~/.cursor/mcp.json\`):
-
-\`\`\`json
-${cursorJson(server)}
-\`\`\`
-
-VS Code (\`.vscode/mcp.json\`):
-
-\`\`\`json
-${vscodeJson(server, "en")}
-\`\`\`
+Mind the top-level key when you read them: Cursor reads \`mcpServers\` with no
+\`type\` field, VS Code reads \`servers\` with \`type: "http"\`.
 `;
 }
 
@@ -496,19 +514,26 @@ access token sent the same way. An unauthenticated call answers \`401\` with a
 \`${SITE_ORIGIN}/.well-known/oauth-protected-resource/gitlab\`, the RFC 9728
 document that says which authorization server issues tokens for this endpoint.
 
-Treat any site that asks for a token with suspicion, this one included. The two
-paths differ in what they can ask for: a personal access token scoped to
-\`read_api\`, short-lived and revoked right after, is the sane way to try the
-inspector; the OAuth application asks for \`api\`, because the same server also
-writes, and that scope is fixed by the application rather than chosen per user.
+Treat any site that asks for a token with suspicion, this one included. Both
+paths ask for \`api\`, and neither can ask for less: this deployment checks the
+scope once, against what its full tool set could need, rather than per call, so
+a \`read_api\` token is refused outright — even for \`initialize\`. Use a personal
+access token you created for this, and revoke it when you are done.
 `;
 
   return `# ${SITE_NAME} — public MCP servers
 
 > ${ui.en.lede}
+> This file is an index, not a corpus. Every entry links to the markdown twin
+> that carries the detail, which is what keeps the index small enough to fit
+> in an agent's context. Each page of this site is published as markdown at
+> its own URL with \`index.md\` appended.
 
-This file is the long form of ${SITE_ORIGIN}/llms.txt: one section per server
-with its endpoint, headers and an example call, plus the credential policy.
+This file is the protocol-level companion to ${SITE_ORIGIN}/llms.txt: one
+section per server with its endpoint, headers, surface and an example call,
+plus the credential policy that spans both. What a single page already says —
+its prose, and the client configuration — stays in that page's twin rather
+than being repeated here, so the two cannot come to disagree.
 Both language versions of the site (${LANGS.map((lang) => pageUrl(lang)).join(", ")}) describe exactly the same
 servers; only the prose is translated.
 
