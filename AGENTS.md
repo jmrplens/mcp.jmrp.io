@@ -35,8 +35,19 @@ All five break something **silently**: nothing fails, and you find out late.
    state and disappears on reload. There are e2e tests that check it.
 
 5. **The vhost serves by allowlist.** A new file in `dist/` returns **404**
-   until its `location` is added. `scripts/deploy-live-mcp.mjs` warns about the
-   missing ones and prints the exact line; a human edits the vhost.
+   until its `location` is added, and a generated snippet does nothing at all
+   until the vhost `include`s it — `nginx -t` passes either way, because an
+   unreferenced file in the snippets directory is not an error, it is simply
+   never read. `scripts/deploy-live-mcp.mjs` warns about both and prints the
+   exact line.
+
+   **Editing the vhost and its snippets is part of the job, not something to
+   hand off.** Do it, then `nginx -t`, then `systemctl reload nginx`, then
+   verify against the live URL — a change that tests clean and was never
+   reloaded is not done. Keep a copy of what you replaced so the reload can be
+   undone. What must not change is the allowlist itself: it is the reason a
+   stray file in `dist/` is not served, and widening it to a prefix to save a
+   few lines gives that reason away.
 
 ## Things that have already bitten
 
@@ -142,7 +153,8 @@ Refresh the snapshot with `pnpm run identity:sync`. CI watches it with
 ## Adding an MCP server
 
 1. One entry in `src/data/servers.ts`.
-2. In the vhost, an `upstream` and a `location ^~` (a human does this).
+2. In the vhost, an `upstream` and a `location ^~`, then `nginx -t` and a
+   reload.
 3. One line in the `SERVICES` array of `/root/scripts/mcp_update.sh`.
 
 Neither the markup nor the DNS needs touching. And the CSP's `connect-src

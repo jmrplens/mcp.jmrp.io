@@ -295,8 +295,12 @@ function deployStagedSnippets() {
  * long as it takes someone to notice — the same failure shape as a `dist/`
  * file with no `location`, which this script already warns about.
  *
- * The vhost is edited by a human on purpose (see AGENTS.md), so this warns
- * and prints the line to paste rather than editing anything.
+ * This warns and prints the line rather than editing the vhost itself: the
+ * deploy runs unattended after every build, and a script that rewrites the
+ * served configuration on its own has no good answer for the run where the
+ * edit is wrong. Adding the include is a normal edit for whoever is working
+ * on the change — followed by `nginx -t` and a reload, and verified against
+ * the live URL.
  *
  * @param staged Names of the snippets that were just delivered.
  */
