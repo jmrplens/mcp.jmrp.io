@@ -8,7 +8,7 @@ import type { McpServer } from "../data/servers";
 import { ui } from "../i18n/ui";
 import { safeIcon } from "../lib/card-icons";
 import { pageUrl, serverPageUrl } from "../lib/seo";
-import Notice from "./Notice.astro";
+import NoticeFolds from "./NoticeFolds.astro";
 
 interface Props {
   server: McpServer;
@@ -161,54 +161,10 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
       the detail page, which is where that question is answered in full. */
   }
 
-  {
-    /* The security notice arrives OPEN: it is where the visitor decides whether
-       to paste a credential, and folded it left the reassurance visible ("never
-       stored") with every caution hidden behind the click — exactly the wrong
-       way round. The others do fold: the scrolling problem that motivated the
-       folds was real, it was just solved on the wrong notice.
-
-       The title goes in an <h4> INSIDE the summary (valid HTML): without it the
-       page had 734 words hanging off two H2s, and retrievers chunk by heading —
-       each notice becomes a passage with an anchor of its own. */
-    server.notices.map((notice) => (
-      /* The id lives on the <details>, not on the notice body inside it, so
-         that it wraps the QUESTION and its ANSWER. Two things depend on that:
-         an `#gitlab-security` link now lands on the question rather than
-         mid-answer, and `speakable` in the JSON-LD points at these same ids —
-         with the id on the inner div, a read-aloud got the answer with no
-         question attached. */
-      /* Every notice starts collapsed, security ones included. They used to
-         open by default so the caution sat next to the reassurance; the
-         author asked for it closed. The content is unchanged and the anchor
-         still lands on the question, so a link to `#gitlab-security` opens
-         it. */
-      <details
-        class={`fold fold-${notice.kind}`}
-        id={`${server.id}-${notice.kind}`}
-      >
-        <summary>
-          <h4 class="fold-label">{notice.title[lang]}</h4>
-        </summary>
-        <Notice
-          notice={notice}
-          lang={lang}
-        />
-        {
-          /* Only gitlab's security notice qualifies: it is the one that
-             raises the token question, and `/internals/#affinity-h` is
-             where the hashing it describes is shown in full, code included.
-             libgen's affinity key is the IP address — no token, nothing to
-             point at here. */
-          server.id === "gitlab" && notice.kind === "security" && (
-            <p class="notice-link">
-              <a href={affinityHref}>{t.affinityLink}</a>
-            </p>
-          )
-        }
-      </details>
-    ))
-  }
+  <NoticeFolds
+    server={server}
+    lang={lang}
+  />
 
   <p class="links">
     <a href={server.repo}>
@@ -448,121 +404,6 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
     margin: 0;
     color: var(--color-text-muted);
     text-wrap: pretty;
-  }
-
-  /* Native disclosures: zero JavaScript, keyboard accessible out of the box
-     and — what matters here — the content stays in the HTML, so crawlers and
-     LLMs read it just the same while closed.
-
-     Each card ran to ~1,400 px on mobile and left the inspector four screens
-     down; with five servers it would have been eight. What does NOT fold is
-     what is quotable: description, endpoint, headers and the tool names. */
-  .fold {
-    padding-top: 0.9rem;
-    border-top: 1px solid var(--color-hair);
-  }
-
-  .fold summary {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    align-items: baseline;
-
-    /* Touch target: without this the summary sits at ~19 px tall. */
-    padding-block: 0.35rem;
-    cursor: pointer;
-    list-style: none;
-  }
-
-  .fold summary::-webkit-details-marker {
-    display: none;
-  }
-
-  /* Our own triangle: the native one cannot be coloured and disappears in some
-     browsers once list-style is removed. */
-  .fold summary::before {
-    display: inline-block;
-    font-family: var(--font-mono);
-    color: var(--color-accent);
-    content: "›";
-    transition: transform 0.15s ease;
-  }
-
-  .fold[open] summary::before {
-    transform: rotate(90deg);
-  }
-
-  .fold summary:hover .fold-label,
-  .fold summary:focus-visible .fold-label {
-    color: var(--color-accent);
-  }
-
-  .fold summary:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
-  }
-
-  /* Works for the old <span> and for today's <h4> (previously <h3>, moved one
-     level down when the server's name went from <h2> to <h3> — see the `h3`
-     rule above): the heading arrives with base.css's title margins and size,
-     and here it is given the look of a label. It is still a heading for the
-     outline and for extractors. */
-  .fold-label {
-    /* flex:1 with basis 0: the summary has flex-wrap, and the line break is
-       decided by the item's BASE (its max-content), not by the shrink — so a
-       long title jumped whole to the next line and left the chevron orphaned.
-       With basis 0 it never jumps: it grows alongside the chevron and wraps
-       inside itself. */
-    flex: 1 1 0;
-    min-width: 0;
-    margin: 0;
-    font-family: var(--font-mono);
-
-    /* Was 0.7rem, which left the question smaller than the answer under it —
-       the heading of a passage cannot be the quietest thing in it. Matched to
-       the notice body it opens (--text-md), not one step below. */
-    font-size: var(--text-md);
-    font-weight: 500;
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .fold summary::before {
-      transition: none;
-    }
-  }
-
-  .fold dl {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 0.3rem 0.85rem;
-    margin: 0;
-    font-size: 0.85rem;
-  }
-
-  .fold dt code {
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    color: var(--color-accent);
-  }
-
-  /* Trailing link inside the security notice, pointing at `/internals/`. */
-  .notice-link {
-    margin: 0.6rem 0 0;
-    font-family: var(--font-mono);
-    font-size: 0.8125rem;
-  }
-
-  .notice-link a {
-    color: var(--color-accent);
-    text-decoration: none;
-  }
-
-  .notice-link a:hover {
-    text-decoration: underline;
-    text-underline-offset: 3px;
   }
 
   .links {

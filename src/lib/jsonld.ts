@@ -859,6 +859,16 @@ export async function buildSiteGraph(
   // a FAQPage on /inspector/ or /policies/ would be structured data with no
   // matching content on the page, which is the defect this task fixes.
   const isHome = page === "home";
+  // Whose notices this page renders, which is what decides whether it may
+  // declare a `FAQPage` and a `speakable` at all. The home page shows both
+  // servers'; a server's own card shows only its own; every other page shows
+  // none and therefore claims none.
+  //
+  // It used to be `isHome` alone, because the folds only existed on the home
+  // page. They render on the server cards now, and the graph follows the DOM
+  // rather than the other way round: `speakable` nominates these exact ids, so
+  // a page may only nominate ids it actually carries.
+  const noticeServers = serversWithNoticesOn(isHome, targetServer);
 
   // The full WebAPI+SoftwareApplication (and matching SoftwareSourceCode)
   // node: built ONLY when this page IS that server's own card — see
@@ -869,15 +879,6 @@ export async function buildSiteGraph(
   const apis = targetServer ? [buildApiNode(targetServer)] : [];
   const sources = targetServer ? [buildSourceNode(targetServer)] : [];
 
-  // References to EVERY server's WebAPI node, regardless of whether this
-  // page defines one — this is what the FAQ's `about` (home only) points
-  // through. `mainEntity` no longer uses it: it carries a partial description
-  // instead of a bare ref on the pages that only mention the servers (see
-  // `selectMainEntity`/`partialApi`).
-  // `provider` closes the reciprocal pair with the identity document's `owns`,
-  // which already declares these two repos' `#software`; `sameAs` leads to the
-  // repository, which is the subject of those nodes.
-  const apiRefs = servers.map((server) => ref(apiId(server)));
   const mainEntity = selectMainEntity(
     page,
     targetServer,
@@ -993,7 +994,7 @@ export async function buildSiteGraph(
     // only one with notice cards to describe. Without this the link ran one
     // way only: #faq declared its `isPartOf`, but nothing led from the page
     // down to it.
-    ...(isHome && { hasPart: ref(`${url}#faq`) }),
+    ...(noticeServers.length > 0 && { hasPart: ref(`${url}#faq`) }),
     // A separate node linked by `@id`, like the `FAQPage`: the `WebPage` says
     // the breadcrumb EXISTS and the node says which steps it has. Absent on
     // the home page, which is the root (see `breadcrumbSteps`).
@@ -1078,10 +1079,10 @@ export async function buildSiteGraph(
     // <summary> together with the answer. They used to sit on the inner notice
     // div — the answer alone — so a read-aloud produced "libgen is a client of
     // third-party public indexes…" with no question attached to it.
-    ...(isHome && {
+    ...(noticeServers.length > 0 && {
       speakable: {
         "@type": "SpeakableSpecification",
-        cssSelector: servers.flatMap((server) =>
+        cssSelector: noticeServers.flatMap((server) =>
           server.notices.map((notice) => `#${server.id}-${notice.kind}`),
         ),
       },
@@ -1102,32 +1103,39 @@ export async function buildSiteGraph(
   // Only built for the home page: it is the only page with notice cards to
   // describe, and the `isHome` checks on `webpage` above already keep it
   // undiscoverable (no `hasPart`) from every other page's node.
-  const faq = isHome
-    ? {
-        "@type": "FAQPage",
-        "@id": `${url}#faq`,
-        url,
-        name: title,
-        inLanguage: lang,
-        isPartOf: ref(`${url}#webpage`),
-        // The FAQ only ever renders on the home page (see `isHome` above), so
-        // this is always the full list, both servers. Bare refs on purpose:
-        // the home page's `mainEntity` already carries each endpoint's partial
-        // description (see `selectMainEntity`), so these resolve to something
-        // typed WITHIN this same document.
-        about: apiRefs,
-        mainEntity: servers.flatMap((server) =>
-          server.notices.map((notice) => ({
-            "@type": "Question",
-            name: notice.title[lang],
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: noticeAnswer(notice, lang),
-            },
-          })),
-        ),
-      }
-    : null;
+  const faq =
+    noticeServers.length > 0
+      ? {
+          "@type": "FAQPage",
+          "@id": `${url}#faq`,
+          url,
+          name: title,
+          inLanguage: lang,
+          isPartOf: ref(`${url}#webpage`),
+          // The FAQ only ever renders on the home page (see `isHome` above), so
+          // this is always the full list, both servers. Bare refs on purpose:
+          // the home page's `mainEntity` already carries each endpoint's partial
+          // description (see `selectMainEntity`), so these resolve to something
+          // typed WITHIN this same document.
+          // Bare refs, not partial descriptions: every page that carries a FAQ
+          // also carries the entity it is about — the home page through
+          // `mainEntity`'s partials, a server's card through the full `WebAPI`
+          // node that lives there and nowhere else. Emitting a partial beside a
+          // definition of the same `@id` in the same document is the restating
+          // this file's header exists to avoid, even when the values agree.
+          about: noticeServers.map((server) => ref(apiId(server))),
+          mainEntity: noticeServers.flatMap((server) =>
+            server.notices.map((notice) => ({
+              "@type": "Question",
+              name: notice.title[lang],
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: noticeAnswer(notice, lang),
+              },
+            })),
+          ),
+        }
+      : null;
 
   const article = buildArticleNode({
     page,
@@ -1155,6 +1163,28 @@ export async function buildSiteGraph(
     "@context": "https://schema.org",
     "@graph": graph,
   };
+}
+
+/**
+ * Whose notices a page renders, which is what lets it declare a `FAQPage`.
+ *
+ * The home page shows both servers'; a server's own card shows only its own;
+ * every other page shows none and therefore claims none. It used to be
+ * `isHome` alone, because the folds only existed on the home page — they
+ * render on the server cards now, and the graph follows the DOM rather than
+ * the other way round, since `speakable` nominates these exact ids and a page
+ * may only nominate ids it carries.
+ *
+ * @param isHome Whether this is one of the two home pages.
+ * @param targetServer The server whose card this page is, if it is one.
+ * @returns The servers whose notices are on this page, possibly none.
+ */
+function serversWithNoticesOn(
+  isHome: boolean,
+  targetServer: McpServer | undefined,
+): McpServer[] {
+  if (isHome) return servers;
+  return servers.filter((server) => server.id === targetServer?.id);
 }
 
 /**

@@ -757,42 +757,70 @@ test("each WebAPI states its terms and its limits, not just that it is free", ()
   }
 });
 
-test("the FAQPage hangs ONLY off the home page", () => {
-  // The notices belong to the cards, and the cards are on the home page. A
-  // FAQPage on /policies/ or on a server detail page would describe questions
-  // that page does not contain.
-  const withFaq = [];
-  for (const page of htmlPages()) {
-    const graph = graphOf(page);
-    if (graph.some((n) => n["@type"] === "FAQPage")) withFaq.push(page);
-  }
-  assert.deepEqual(
-    withFaq.sort((a, b) => a.localeCompare(b)),
-    ["es/index.html", "index.html"],
-    "the FAQPage has to be on both home pages and on no other page",
-  );
-});
-
-test("speakable hangs ONLY off the home page's WebPage", () => {
-  // The same reasoning as the FAQPage: the DOM `id`s `speakable` points at are
-  // put there by ServerCard, and ServerCard is only rendered on the home
-  // page.
+test("a page declares a FAQPage exactly when it renders the notices", () => {
+  // This used to assert "home page and nowhere else", which was right while
+  // the folds only existed inside ServerCard. They render on each server's own
+  // card page too now — a reader who lands on /servers/gitlab/ from a search
+  // should not have to go to the home page to find out where their token ends
+  // up — so the rule is stated as what it always meant: a page may claim a
+  // FAQPage when, and only when, the questions are actually on it.
+  //
+  // Asserted against the DOM rather than against a list of paths, so the two
+  // cannot drift: whatever `#<server>-<kind>` ids the page carries are exactly
+  // the ones its FAQ and its `speakable` may name.
   for (const htmlPage of htmlPages()) {
-    const { page } = pageInfoFor(htmlPage);
+    const html = fs.readFileSync(new URL(htmlPage, DIST), "utf8");
+    // Built from `servers.ts` rather than matched by shape: `Notice.astro`
+    // also emits an inner `notice-<kind>` id, which a shape-matching regex
+    // picks up and double-counts.
+    const noticeIds = servers.flatMap((server) =>
+      server.notices
+        .map((notice) => `${server.id}-${notice.kind}`)
+        .filter((id) => html.includes(`id="${id}"`)),
+    );
     const graph = graphOf(htmlPage);
+    const faq = graph.find((n) => n["@type"] === "FAQPage");
     const webpage = graph.find((n) => n["@type"] === "WebPage");
-    if (page === "home") {
-      assert.ok(
-        webpage.speakable,
-        `${htmlPage}: the home page has no speakable`,
+
+    if (noticeIds.length === 0) {
+      assert.equal(
+        faq,
+        undefined,
+        `${htmlPage}: declares a FAQPage but renders no notices`,
       );
-    } else {
       assert.equal(
         webpage.speakable,
         undefined,
-        `${htmlPage}: speakable outside the home page`,
+        `${htmlPage}: declares speakable but renders no notices`,
+      );
+      assert.equal(
+        webpage.hasPart,
+        undefined,
+        `${htmlPage}: points at a FAQ it does not have`,
+      );
+      continue;
+    }
+
+    assert.ok(faq, `${htmlPage}: renders notices but declares no FAQPage`);
+    assert.equal(
+      faq.mainEntity.length,
+      noticeIds.length,
+      `${htmlPage}: the FAQ counts ${faq.mainEntity.length} questions against ${noticeIds.length} on the page`,
+    );
+    // Every id `speakable` nominates has to be one the page actually carries.
+    // A read-aloud pointed at a selector that matches nothing is the failure
+    // this guards, and it is silent.
+    for (const selector of webpage.speakable.cssSelector) {
+      assert.ok(
+        noticeIds.includes(selector.slice(1)),
+        `${htmlPage}: speakable names ${selector}, which is not on the page`,
       );
     }
+    assert.equal(
+      webpage.hasPart["@id"],
+      faq["@id"],
+      `${htmlPage}: the page does not point at its own FAQ`,
+    );
   }
 });
 
