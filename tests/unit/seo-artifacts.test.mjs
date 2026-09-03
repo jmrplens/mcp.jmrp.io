@@ -1064,3 +1064,34 @@ test("the pages carry the tokens nginx replaces with the live status", () => {
     }
   }
 });
+
+test("llms-full.txt and the site agree on which GitLab token scope works", () => {
+  // These two surfaces drifted apart once: llms-full.txt called a `read_api`
+  // token "the sane way to try the inspector" while the site said such a
+  // token is refused outright. llms-full.txt is the file an agent reads
+  // BEFORE connecting, so the stale copy handed every LLM-driven user a
+  // credential that fails at the door. src/data/servers.ts documents why it
+  // fails: the deployment checks the scope once against what its whole tool
+  // set could need, and gitlab.com answers -40300 even for `initialize`.
+  //
+  // Asserted on the BUILT artifacts rather than the source strings: what
+  // ships is what a client reads, and the two are generated from different
+  // modules (src/lib/llms.ts and src/data/servers.ts).
+  const full = read("llms-full.txt");
+  const home = read("index.html");
+
+  assert.ok(
+    /`read_api`[\s\S]{0,120}refused/.test(full),
+    "llms-full.txt does not say a read_api token is refused",
+  );
+  assert.ok(
+    !/read_api[\s\S]{0,120}sane way/.test(full),
+    "llms-full.txt still recommends a read_api token, which the server rejects",
+  );
+  // The home page is the other half of the contract; if it ever stops saying
+  // this, the assertion above is guarding a claim nothing else makes.
+  assert.ok(
+    /read_api token is refused/.test(home),
+    "the home page no longer states that a read_api token is refused",
+  );
+});

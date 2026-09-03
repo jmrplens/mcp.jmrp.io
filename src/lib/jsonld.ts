@@ -128,9 +128,10 @@ function buildArticleNode(context: {
   articleId: string;
   description: string;
   dates: Record<string, string>;
-  apiRefs: { "@id": string }[];
+  apiPartials: Record<string, unknown>[];
 }): Record<string, unknown> | null {
-  const { page, lang, url, articleId, description, dates, apiRefs } = context;
+  const { page, lang, url, articleId, description, dates, apiPartials } =
+    context;
   if (!PROSE_PAGES.has(page)) return null;
   return {
     "@type": "TechArticle",
@@ -151,7 +152,13 @@ function buildArticleNode(context: {
     ...dates,
     // The prose, like every other page's, is CC BY 4.0 — see /license/.
     license: CC_BY_4_0,
-    about: apiRefs,
+    // The partial nodes, not bare refs: these pages carry no `WebAPI` of their
+    // own, and an `@id` alone would name an entity that lives on another page
+    // and answers 401/405 when dereferenced — the very thing
+    // `selectMainEntity` refuses to do. Home and /servers/ can use bare refs
+    // for their FAQ because `mainEntity` already puts the partials in the
+    // same document.
+    about: apiPartials,
   };
 }
 
@@ -1091,7 +1098,7 @@ export async function buildSiteGraph(
     articleId,
     description,
     dates: webpageDates,
-    apiRefs,
+    apiPartials: servers.map((server) => partialApi(server)),
   });
 
   const graph = [

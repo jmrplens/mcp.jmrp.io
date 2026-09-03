@@ -496,11 +496,11 @@ access token sent the same way. An unauthenticated call answers \`401\` with a
 \`${SITE_ORIGIN}/.well-known/oauth-protected-resource/gitlab\`, the RFC 9728
 document that says which authorization server issues tokens for this endpoint.
 
-Treat any site that asks for a token with suspicion, this one included. The two
-paths differ in what they can ask for: a personal access token scoped to
-\`read_api\`, short-lived and revoked right after, is the sane way to try the
-inspector; the OAuth application asks for \`api\`, because the same server also
-writes, and that scope is fixed by the application rather than chosen per user.
+Treat any site that asks for a token with suspicion, this one included. Both
+paths ask for \`api\`, and neither can ask for less: this deployment checks the
+scope once, against what its full tool set could need, rather than per call, so
+a \`read_api\` token is refused outright — even for \`initialize\`. Use a personal
+access token you created for this, and revoke it when you are done.
 `;
 
   return `# ${SITE_NAME} — public MCP servers
