@@ -45,7 +45,7 @@ export const internals = {
      * kept calling the exit a "proxy" after it stopped being one.
      */
     pathBody: [
-      "A call to either server crosses the same six steps before it comes back — the figure draws them, and the numbered list under it walks through each one. The one thing the caller chooses is which server: pointing a client at /libgen or /gitlab happens before the request exists on the wire, and everything after that is the same pipeline.",
+      "A call to either server crosses the same six steps before it comes back. The list below walks through each one, in order, and the diagram on the page draws the same six. The one thing the caller chooses is which server: pointing a client at /libgen or /gitlab happens before the request exists on the wire, and everything after that is the same pipeline.",
     ],
 
     instancesEyebrow: "Three instances, one nginx",
@@ -327,7 +327,7 @@ export const internals = {
     pathEyebrow: "El camino de una petición",
     /** Ver `en.pathBody`: dos frases; los seis saltos los cuenta la línea temporal. */
     pathBody: [
-      "Una llamada a cualquiera de los dos servidores cruza los mismos seis pasos antes de volver — la figura los dibuja, y la lista numerada de debajo recorre cada uno. Lo único que elige quien llama es el servidor: apuntar el cliente a /libgen o a /gitlab pasa antes de que la petición exista en el cable, y a partir de ahí el recorrido es el mismo.",
+      "Una llamada a cualquiera de los dos servidores cruza los mismos seis pasos antes de volver. La lista de abajo recorre cada uno, en orden, y el diagrama de la página dibuja esos mismos seis. Lo único que elige quien llama es el servidor: apuntar el cliente a /libgen o a /gitlab pasa antes de que la petición exista en el cable, y a partir de ahí el recorrido es el mismo.",
     ],
 
     instancesEyebrow: "Tres instancias, un solo nginx",
