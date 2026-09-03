@@ -1203,33 +1203,48 @@ test("the pages carry the tokens nginx replaces with the live status", () => {
   }
 });
 
-test("llms-full.txt and the site agree on which GitLab token scope works", () => {
-  // These two surfaces drifted apart once: llms-full.txt called a `read_api`
-  // token "the sane way to try the inspector" while the site said such a
-  // token is refused outright. llms-full.txt is the file an agent reads
-  // BEFORE connecting, so the stale copy handed every LLM-driven user a
-  // credential that fails at the door. src/data/servers.ts documents why it
-  // fails: the deployment checks the scope once against what its whole tool
-  // set could need, and gitlab.com answers -40300 even for `initialize`.
+test("no surface claims a read_api token is refused", () => {
+  // This test used to assert the opposite, and asserting it is how a stale
+  // claim got locked in. The two surfaces really had drifted — llms-full.txt
+  // called a `read_api` token "the sane way to try the inspector" while the
+  // page said it was refused — but the resolution went the wrong way: the
+  // server had already stopped refusing them, so the file was right and the
+  // page was stale, and making them agree on the page's text propagated the
+  // error instead of fixing it.
   //
-  // Asserted on the BUILT artifacts rather than the source strings: what
-  // ships is what a client reads, and the two are generated from different
-  // modules (src/lib/llms.ts and src/data/servers.ts).
-  const full = read("llms-full.txt");
-  const home = read("index.html");
-
+  // What the deployment actually does, from the server's own source: the door
+  // admits any token carrying at least `read_api` (`MinimumScope`), and the
+  // tool surface is narrowed to the authority that token carries rather than
+  // the request being rejected — "a client that asks for less is served less,
+  // not refused". Landed upstream in #324, "admit read-only credentials".
+  //
+  // The live proof is the RFC 9728 document the 401 challenge names, which
+  // this deployment publishes with `scopes_supported: ["api", "read_api"]`.
+  // The server only advertises both when it admits both.
+  //
+  // So the assertion is the negative one, on every surface that discusses the
+  // credential: none of them may tell a reader that a read_api token is
+  // turned away, because it is not.
+  // cspell:ignore rechaza -- the Spanish surfaces have to be matched too, and
+  // the word only exists here as the thing they must NOT say.
+  const surfaces = {
+    "llms-full.txt": read("llms-full.txt"),
+    "llms.txt": read("llms.txt"),
+    "index.html": read("index.html"),
+    "es/index.html": read("es/index.html"),
+    "servers/gitlab/index.html": read("servers/gitlab/index.html"),
+    "servers/gitlab/index.md": read("servers/gitlab/index.md"),
+  };
+  for (const [name, body] of Object.entries(surfaces)) {
+    assert.ok(
+      !/read_api[\s\S]{0,140}(refused|rechaza)/.test(body),
+      `${name}: still says a read_api token is refused, which the deployment stopped doing`,
+    );
+  }
+  // And the positive half, so this does not pass by the subject disappearing:
+  // the page has to keep telling a reader which scope to ask for.
   assert.ok(
-    /`read_api`[\s\S]{0,120}refused/.test(full),
-    "llms-full.txt does not say a read_api token is refused",
-  );
-  assert.ok(
-    !/read_api[\s\S]{0,120}sane way/.test(full),
-    "llms-full.txt still recommends a read_api token, which the server rejects",
-  );
-  // The home page is the other half of the contract; if it ever stops saying
-  // this, the assertion above is guarding a claim nothing else makes.
-  assert.ok(
-    /read_api token is refused/.test(home),
-    "the home page no longer states that a read_api token is refused",
+    /read_api/.test(surfaces["index.html"]),
+    "the home page no longer mentions read_api at all",
   );
 });

@@ -514,11 +514,14 @@ access token sent the same way. An unauthenticated call answers \`401\` with a
 \`${SITE_ORIGIN}/.well-known/oauth-protected-resource/gitlab\`, the RFC 9728
 document that says which authorization server issues tokens for this endpoint.
 
-Treat any site that asks for a token with suspicion, this one included. Both
-paths ask for \`api\`, and neither can ask for less: this deployment checks the
-scope once, against what its full tool set could need, rather than per call, so
-a \`read_api\` token is refused outright — even for \`initialize\`. Use a personal
-access token you created for this, and revoke it when you are done.
+Treat any site that asks for a token with suspicion, this one included. Ask
+for the narrowest scope that does what you need: a token scoped to
+\`read_api\` is admitted and served the read-only part of the surface, which is
+the right one for trying the server out, while \`api\` is only needed to reach
+the actions that write. The decision is per action rather than once at the
+door, so a client that asks for less is served less rather than refused — both
+scopes are advertised in the RFC 9728 document named by the \`401\` challenge.
+Use a token you created for this, and revoke it when you are done.
 `;
 
   return `# ${SITE_NAME} — public MCP servers
