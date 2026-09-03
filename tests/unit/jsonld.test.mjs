@@ -679,16 +679,27 @@ test("each page's dates are its own, not the repository's", (t) => {
     modified.add(webpage.dateModified);
     if (webpage.datePublished) published.add(webpage.datePublished);
   }
-  // Two languages of a page share a date (same sources), so there are far
-  // fewer dates than pages — but more than one.
-  assert.ok(
-    modified.size > 1,
-    `all pages share one dateModified: the per-page resolver is not running`,
-  );
+  // `datePublished` and NOT `dateModified` is what proves the per-page
+  // resolver ran, and the difference is structural rather than a preference.
+  //
+  // This repository squash-merges, so a broad pull request lands as ONE commit
+  // that touches every content source at once. After it, every page's
+  // `dateModified` is legitimately that commit — and the whole-repo fallback
+  // is the same commit's date too, so the two are indistinguishable and no
+  // assertion about `dateModified` varying can tell a working resolver from a
+  // broken one. It asserted exactly that until #24 landed and turned the whole
+  // site one date, which is a true statement about the day, not a regression.
+  //
+  // `datePublished` cannot collapse that way: it reads when each route file
+  // was ADDED, and a squash on top does not move an older add. Four distinct
+  // values survive across the 72 pages, so it stays a real signal.
   assert.ok(
     published.size > 1,
-    `all pages share one datePublished: they cannot all have been published together`,
+    `all pages share one datePublished: the per-page resolver is not running`,
   );
+  // Two languages of a page share a date, so there are far fewer dates than
+  // pages either way; the count is reported rather than bounded.
+  assert.ok(modified.size > 0, `no page carries a dateModified at all`);
 
   // The assertion above is too weak on its own: it passed while 64 of 72
   // pages claimed 2026-08-06, the repository's first commit, because three

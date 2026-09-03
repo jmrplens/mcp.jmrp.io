@@ -697,16 +697,46 @@ test("pages carry their OWN lastmod, not one shared date for the whole site", (t
   }
 
   const sitemap = read("sitemap-0.xml");
-  const distinct = new Set(
-    [...sitemap.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map(([, v]) => v),
+  const lastmods = [...sitemap.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map(
+    ([, v]) => v,
   );
-  // The two languages of a page share a date (they are built from the same
-  // sources), so there are far fewer dates than URLs — but more than one.
-  assert.ok(
-    distinct.size > 1,
-    "every URL shares one lastmod: the per-page resolver in " +
-      "src/lib/sitemap-lastmod.ts is not running",
+  assert.ok(lastmods.length > 1, "the sitemap carries no lastmod values");
+
+  // Each URL's `lastmod` must be the one the graph publishes for that same
+  // page. That is the assertion worth making, and it is stronger than the
+  // count this used to check.
+  //
+  // It used to require more than one distinct value, on the reasoning that a
+  // single one meant the resolver was not running. That stopped being true:
+  // the repository squash-merges, so a broad pull request lands as ONE commit
+  // touching every content source, and afterwards every page legitimately
+  // shares that commit's date — which is also what the whole-repo fallback
+  // would produce, making the two indistinguishable from the count alone.
+  // #24 landed exactly that way. `datePublished` is the signal that cannot
+  // collapse under a squash, and `jsonld.test.mjs` asserts it there; here the
+  // useful property is that the two surfaces agree per URL.
+  const entries = [
+    ...sitemap.matchAll(/<loc>([^<]+)<\/loc>\s*<lastmod>([^<]+)<\/lastmod>/g),
+  ];
+  assert.equal(
+    entries.length,
+    lastmods.length,
+    "some sitemap entry has a lastmod that is not paired with its own loc",
   );
+  for (const [, loc, lastmod] of entries) {
+    const page = `${new URL(loc).pathname.slice(1)}index.html`;
+    const graph = JSON.parse(
+      /<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/.exec(
+        read(page),
+      )[1],
+    )["@graph"];
+    const webpage = graph.find((n) => n["@type"] === "WebPage");
+    assert.equal(
+      new Date(lastmod).toISOString(),
+      new Date(webpage.dateModified).toISOString(),
+      `${loc}: the sitemap's lastmod and the graph's dateModified disagree`,
+    );
+  }
 });
 
 test("every sitemap entry declares ITS OWN x-default, not the home page's", () => {
