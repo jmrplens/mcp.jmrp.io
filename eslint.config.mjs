@@ -20,6 +20,14 @@ export default [
       "**/dist_old/**",
       "**/builds/**",
       "plan/**",
+      // `ops/` is a SEPARATE repository that happens to live inside this tree
+      // and is gitignored here, so it never reaches CI — but `eslint .` walks
+      // the filesystem, not the index, and linted it anyway. The result was a
+      // local-only gate that could not pass: `pnpm lint` reported hundreds of
+      // errors in files this project does not own, so `pnpm check` could not
+      // finish locally while CI stayed green. Its conventions are not this
+      // project's, and it is not this config's business to enforce them.
+      "ops/**",
       "**/dist-reports/**",
       "design-audit/**",
       "**/node_modules/**",

@@ -29,6 +29,17 @@ import { servers } from "../../data/servers";
 export const GET: APIRoute = () => {
   const catalog = {
     specVersion: "1.0",
+    // `host` is what separates Level 1 from Level 2 ("Discoverable Catalog")
+    // in the AI Catalog spec, which asks for an object identifying the
+    // catalogue operator; only `displayName` is required of it. The optional
+    // members it also defines — logoUrl, trustManifest — are left out rather
+    // than filled with something approximate: this document is read by
+    // machines that cannot tell a placeholder from a fact.
+    host: {
+      displayName: "jmrp.io",
+      identifier: "jmrp.io",
+      documentationUrl: "https://mcp.jmrp.io/",
+    },
     entries: servers.map((server) => ({
       identifier: `urn:air:jmrp.io:mcp:${server.id}`,
       type: "application/mcp-server-card+json",

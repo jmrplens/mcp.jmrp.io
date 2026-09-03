@@ -1149,6 +1149,22 @@ test("the discovery catalog and the server cards agree", () => {
     assert.ok(card.name?.includes("/"), `${path}: name no es reverse-DNS`);
     assert.ok(card.version, `${path}: sin version`);
     assert.ok(card.description, `${path}: sin description`);
+    // `ServerDetail.description` in the registry schema caps at 100. Both
+    // cards were over it — 147 and 153 — because they reused the site's own
+    // blurb, and a truthy check could not see that. The cap is pinned here
+    // rather than fetched: a test that reaches the network fails for reasons
+    // that have nothing to do with the card.
+    assert.ok(
+      card.description.length <= 100,
+      `${path}: description is ${card.description.length} chars; the schema caps it at 100`,
+    );
+    // The card must not contradict what the running server calls itself; the
+    // discovery spec calls a mismatch here a downgrade vector. Before this,
+    // the card said "gitlab" while the server said "GitLab MCP Server".
+    assert.ok(
+      card.title && card.title !== card.name.split("/").pop(),
+      `${path}: title is the bare id, not the name the running server reports`,
+    );
 
     // The card's endpoint must be one of the real ones, not the card's own URL.
     const url = card.remotes?.[0]?.url;
