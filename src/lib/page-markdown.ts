@@ -14,6 +14,15 @@ import { internals } from "../i18n/ui/internals";
 import { license } from "../i18n/ui/license";
 import { policies } from "../i18n/ui/policies";
 import { serversPage } from "../i18n/ui/servers-page";
+import {
+  claudeCodeCommand,
+  claudeCodeOauthCommand,
+  cursorJson,
+  cursorOauthJson,
+  noscriptCurl,
+  vscodeJson,
+  vscodeOauthJson,
+} from "./client-config";
 import { pageUrl, serverPageUrl, SITE_ORIGIN, SITE_REPO } from "./seo";
 
 /**
@@ -89,6 +98,92 @@ function section(heading: string, paragraphs: readonly string[]): string {
   return `\n\n## ${heading}\n\n${prose(paragraphs)}`;
 }
 
+/** Renders one `### heading` followed by its paragraphs. */
+function subsection(heading: string, paragraphs: readonly string[]): string {
+  return `### ${heading}\n\n${prose(paragraphs)}`;
+}
+
+/**
+ * One labelled, fenced configuration snippet.
+ *
+ * @param label What the snippet configures, e.g. `Cursor — ~/.cursor/mcp.json`.
+ * @param code The snippet itself.
+ * @param fence Info string for the fence, `sh` or `json`.
+ * @returns The block.
+ */
+function codeBlock(label: string, code: string, fence: string): string {
+  return `**${label}**\n\n\`\`\`${fence}\n${code}\n\`\`\``;
+}
+
+/**
+ * The client configuration a reader came for, as markdown.
+ *
+ * Mirrors `ClientSetup.astro`, calling the SAME builders in
+ * `src/lib/client-config.ts` so the twin cannot drift from the page: the
+ * OAuth path first when the server has one, the pasted token after, because
+ * the second is what is left for a client that cannot open a browser. A
+ * server without `oauth` — libgen — shows only the token group, with no
+ * heading announcing a choice it does not offer.
+ *
+ * This section is why the fix matters at all. "How do I connect this to
+ * Claude Code" is the question this site exists to answer, and the twins,
+ * which are the surface llms.txt points every assistant at, carried none of
+ * it: the endpoint, the client id and all six snippets were on the HTML page
+ * and nowhere else a machine reads.
+ *
+ * @param server The server.
+ * @param lang Locale to render.
+ * @returns The section, opening with its own `##` heading.
+ */
+function connectSection(server: McpServer, lang: Lang): string {
+  const t = serversPage[lang];
+  const u = ui[lang];
+  const oauthBlocks = server.oauth
+    ? [
+        { label: "Claude Code", code: claudeCodeOauthCommand(server), fence: "sh" },
+        {
+          label: "Cursor — ~/.cursor/mcp.json",
+          code: cursorOauthJson(server),
+          fence: "json",
+        },
+        {
+          label: "VS Code — .vscode/mcp.json",
+          code: vscodeOauthJson(server),
+          fence: "json",
+        },
+      ].filter(
+        (block): block is { label: string; code: string; fence: string } =>
+          Boolean(block.code),
+      )
+    : [];
+  const tokenBlocks = [
+    { label: "Claude Code", code: claudeCodeCommand(server), fence: "sh" },
+    {
+      label: "Cursor — ~/.cursor/mcp.json",
+      code: cursorJson(server),
+      fence: "json",
+    },
+    {
+      label: "VS Code — .vscode/mcp.json",
+      code: vscodeJson(server, lang),
+      fence: "json",
+    },
+  ];
+  const render = (
+    blocks: readonly { label: string; code: string; fence: string }[],
+  ) => blocks.map((b) => codeBlock(b.label, b.code, b.fence));
+
+  // With no OAuth path there is only one way in, so the sub-headings would
+  // announce a choice that does not exist — the same call the component makes.
+  if (oauthBlocks.length === 0) {
+    return section(t.connectHead, render(tokenBlocks));
+  }
+  return section(t.connectHead, [
+    subsection(u.clientOauthHead, [u.clientOauthHint, ...render(oauthBlocks)]),
+    subsection(u.clientTokenHead, render(tokenBlocks)),
+  ]);
+}
+
 /**
  * The home page: what this host is, and the servers on it.
  *
@@ -108,9 +203,27 @@ export function homeMarkdown(lang: Lang): string {
       return `- **${server.name}** — \`${server.endpoint}\`\n  ${server.description[lang]}\n  ${t.mdCredentialsLabel}: ${credential}. ${t.mdPageLabel}: ${serverPageUrl(lang, server.id)}`;
     })
     .join("\n");
+  // The notices the home page folds under each server card: where libgen
+  // searches and its legal footing, where a GitLab token goes, and what each
+  // server's limits are. They are the four question-shaped headings on the
+  // page, the four entries in its FAQPage graph and the four `speakable`
+  // targets — and the twin carried none of them, which left it at 145 words
+  // against the page's 884 and dropped the best trust copy on the site from
+  // the one surface written for machines to read.
+  const noticeSections = servers.flatMap((server) =>
+    server.notices.map((notice) => {
+      const bullets = (notice.bullets ?? []).map(
+        (bullet) => `- ${bullet[lang]}`,
+      );
+      return subsection(notice.title[lang], [
+        ...notice.body.map((paragraph) => paragraph[lang]),
+        ...(bullets.length > 0 ? [bullets.join("\n")] : []),
+      ]);
+    }),
+  );
   return (
     head(t.title, t.subtitle, pageUrl(lang, "home"), lang) +
-    section(t.serversEyebrow, [t.serversIntro, list]) +
+    section(t.serversEyebrow, [t.serversIntro, list, ...noticeSections]) +
     section(t.mdMachineHead, [
       `- ${t.mdIndexLabel}: ${SITE_ORIGIN}/servers.json`,
       `- ${t.mdCorpusLabel}: ${SITE_ORIGIN}/llms.txt ${t.mdAndWord} ${SITE_ORIGIN}/llms-full.txt`,
@@ -130,6 +243,21 @@ export function homeMarkdown(lang: Lang): string {
  */
 export function inspectorMarkdown(lang: Lang): string {
   const t = ui[lang];
+  // The page's <noscript> block, which is the most useful thing on it for a
+  // reader who is not running a browser — a complete, working call that needs
+  // no client, no account and no install. The twin quoted none of it, which
+  // is the wrong way round: the audience that cannot run the island IS the
+  // audience reading the markdown. Same builder as the page, so the two
+  // cannot drift.
+  const noscript = servers.find((server) => server.id === "libgen");
+  const noscriptSection = noscript
+    ? section(t.noscript.title, [
+        t.noscript.lead,
+        `\`\`\`sh\n${noscriptCurl(noscript)}\n\`\`\``,
+        t.noscript.response,
+        `${t.noscript.more} ${t.noscript.moreLink}: ${serverPageUrl(lang, noscript.id)}`,
+      ])
+    : "";
   return (
     head(t.inspectorTitle, t.inspectorIntro, pageUrl(lang, "inspector"), lang) +
     section(t.inspectorEyebrow, [
@@ -140,6 +268,7 @@ export function inspectorMarkdown(lang: Lang): string {
       // the notice lives on the home page, so the twin links there too.
       `${t.noticePointer} ${t.noticePointerLink}: ${pageUrl(lang, "home")}#gitlab-security`,
     ]) +
+    noscriptSection +
     "\n"
   );
 }
@@ -391,6 +520,7 @@ export function serverMarkdown(server: McpServer, lang: Lang): string {
       lang,
     ) +
     section(t.overviewHead, [facts.join("\n")]) +
+    connectSection(server, lang) +
     section(t.contextHead, context) +
     (instructions
       ? section(t.instructionsHead, [t.instructionsIntro, instructions])

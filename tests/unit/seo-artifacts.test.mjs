@@ -209,6 +209,51 @@ test("every page announces its markdown twin, and the twin is really there", () 
   }
 });
 
+test("a server's twin carries the configuration its page carries", () => {
+  // The twins are the surface llms.txt points every assistant at, and the
+  // server ones used to drop the whole "Connect it to your client" block:
+  // 828 words against the page's 5244, with the endpoint, the OAuth client id
+  // and all six client snippets living only in the HTML. "How do I connect
+  // this to Claude Code" is the question this site answers, so the answer
+  // being absent from the machine-readable copy was the expensive kind of
+  // omission — silent, and exactly where it would be looked for.
+  //
+  // Asserted on the built twin so it covers the renderer and the data
+  // together, in both languages.
+  for (const dir of ["", "es/"]) {
+    for (const server of ["libgen", "gitlab"]) {
+      const name = `${dir}servers/${server}/index.md`;
+      const md = read(name);
+      // The server name and `--transport http` swap places between the OAuth
+      // form and the token one, so the name is matched anywhere on the line
+      // rather than pinned to a position.
+      assert.ok(
+        new RegExp(String.raw`claude mcp add[^\n]*\b${server}\b`).test(md),
+        `${name}: no Claude Code command — the twin dropped the connect block`,
+      );
+      // Inside a fence, not merely mentioned in prose: what makes it useful
+      // is that it can be copied out whole.
+      const fenced = [...md.matchAll(/```[a-z]*\n([\s\S]*?)```/g)].map(
+        (m) => m[1],
+      );
+      assert.ok(
+        fenced.some((block) => block.includes(`https://mcp.jmrp.io/${server}`)),
+        `${name}: the endpoint appears in no fenced block`,
+      );
+    }
+  }
+  // gitlab is the one with an OAuth path, and the client id is the part a
+  // client cannot guess: without it these clients fall back to dynamic
+  // registration, which gitlab.com answers with an unusable scope.
+  for (const dir of ["", "es/"]) {
+    const name = `${dir}servers/gitlab/index.md`;
+    assert.ok(
+      /--client-id [0-9a-f]{64}/.test(read(name)),
+      `${name}: the OAuth client id is missing from the twin`,
+    );
+  }
+});
+
 test("the pages with no twin do not claim one", () => {
   // The 404 and the OAuth landing step have no `index.md`, so a tag on them
   // would advertise a URL that 404s. They are also the only two pages that
