@@ -30,11 +30,6 @@ import { ui } from "../i18n/ui";
 import { internals } from "../i18n/ui/internals";
 import { serversPage } from "../i18n/ui/servers-page";
 import {
-  claudeCodeCommand,
-  cursorJson,
-  vscodeJson,
-} from "../lib/client-config";
-import {
   actionsDomainPageUrl,
   DEFAULT_LANG,
   LANGS,
@@ -476,26 +471,12 @@ Accept: application/json, text/event-stream${exampleHeaders(server)}
 {"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}
 \`\`\`
 
-Use it in a client — mind the top-level key: Cursor reads \`mcpServers\` with
-no \`type\` field, VS Code reads \`servers\` with \`type: "http"\`.
+Client configuration — Claude Code, Cursor and VS Code, for both the OAuth
+and the pasted-token paths — is on the server's page and in its markdown
+twin: ${serverPageUrl(DEFAULT_LANG, server.id)}index.md
 
-Claude Code:
-
-\`\`\`sh
-${claudeCodeCommand(server)}
-\`\`\`
-
-Cursor (\`~/.cursor/mcp.json\`):
-
-\`\`\`json
-${cursorJson(server)}
-\`\`\`
-
-VS Code (\`.vscode/mcp.json\`):
-
-\`\`\`json
-${vscodeJson(server, "en")}
-\`\`\`
+Mind the top-level key when you read them: Cursor reads \`mcpServers\` with no
+\`type\` field, VS Code reads \`servers\` with \`type: "http"\`.
 `;
 }
 
@@ -539,9 +520,16 @@ access token you created for this, and revoke it when you are done.
   return `# ${SITE_NAME} — public MCP servers
 
 > ${ui.en.lede}
+> This file is an index, not a corpus. Every entry links to the markdown twin
+> that carries the detail, which is what keeps the index small enough to fit
+> in an agent's context. Each page of this site is published as markdown at
+> its own URL with \`index.md\` appended.
 
-This file is the long form of ${SITE_ORIGIN}/llms.txt: one section per server
-with its endpoint, headers and an example call, plus the credential policy.
+This file is the protocol-level companion to ${SITE_ORIGIN}/llms.txt: one
+section per server with its endpoint, headers, surface and an example call,
+plus the credential policy that spans both. What a single page already says —
+its prose, and the client configuration — stays in that page's twin rather
+than being repeated here, so the two cannot come to disagree.
 Both language versions of the site (${LANGS.map((lang) => pageUrl(lang)).join(", ")}) describe exactly the same
 servers; only the prose is translated.
 
