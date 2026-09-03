@@ -1117,7 +1117,13 @@ export async function buildSiteGraph(
           // the home page's `mainEntity` already carries each endpoint's partial
           // description (see `selectMainEntity`), so these resolve to something
           // typed WITHIN this same document.
-          about: noticeServers.map((server) => partialApi(server)),
+          // Bare refs, not partial descriptions: every page that carries a FAQ
+          // also carries the entity it is about — the home page through
+          // `mainEntity`'s partials, a server's card through the full `WebAPI`
+          // node that lives there and nowhere else. Emitting a partial beside a
+          // definition of the same `@id` in the same document is the restating
+          // this file's header exists to avoid, even when the values agree.
+          about: noticeServers.map((server) => ref(apiId(server))),
           mainEntity: noticeServers.flatMap((server) =>
             server.notices.map((notice) => ({
               "@type": "Question",
