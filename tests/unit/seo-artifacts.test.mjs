@@ -28,6 +28,7 @@ import {
   PAGE_PATHS,
   pageUrl,
   serverPageUrl,
+  SITE_NAME,
 } from "../../src/lib/seo.ts";
 
 // `dist` is a SYMLINK to the active blue/green colour, so it points at what is
@@ -250,6 +251,34 @@ test("a server's twin carries the configuration its page carries", () => {
     assert.ok(
       /--client-id [0-9a-f]{64}/.test(read(name)),
       `${name}: the OAuth client id is missing from the twin`,
+    );
+  }
+});
+
+test("every title ends in the site's own name", () => {
+  // Eleven pages used to end in "· jmrp.io" and sixty-two in "· mcp.jmrp.io",
+  // split cleanly along trunk-pages versus catalogue-pages — which looks like
+  // a decision and was not one, just two sittings. The eleven were the
+  // problem: `SITE_NAME` is mcp.jmrp.io, the `WebSite` node is called
+  // mcp.jmrp.io, and every `WebPage` declares `isPartOf` that node, so those
+  // titles named a site their own graph does not describe.
+  //
+  // Nothing derives the suffix — each title is a whole string in its i18n
+  // module, which is what let the two forms coexist unnoticed. This is the
+  // cheap guard for that.
+  for (const { name, html } of pages()) {
+    const title = /<title>([^<]*)<\/title>/.exec(html)?.[1];
+    assert.ok(title, `${name}: no <title>`);
+    assert.ok(
+      title.endsWith(`· ${SITE_NAME}`),
+      `${name}: title ends "${title.slice(-24)}", not "· ${SITE_NAME}"`,
+    );
+    // The domain twice in one title reads like a mistake, and is how the
+    // internals pages came out of the first pass of this change.
+    assert.equal(
+      title.split(SITE_NAME).length - 1,
+      1,
+      `${name}: names ${SITE_NAME} twice — "${title}"`,
     );
   }
 });

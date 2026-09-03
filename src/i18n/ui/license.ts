@@ -33,7 +33,7 @@
 export const license = {
   en: {
     licenseMetaTitle:
-      "License — reusing this site, its code and the servers · jmrp.io",
+      "License — what you may reuse and how · mcp.jmrp.io",
     /** Kicker above the h1 (`.section-title`), like `policiesEyebrow`. */
     licenseEyebrow: "License",
     /** The page's `<h1>`, jmrp.io's own heading for the same page. */
@@ -99,7 +99,7 @@ export const license = {
   },
   es: {
     licenseMetaTitle:
-      "Licencia — reutilizar este sitio, código y servidores · jmrp.io",
+      "Licencia — qué puedes reutilizar y cómo · mcp.jmrp.io",
     /** Ver `en.licenseEyebrow`: kicker encima del h1. */
     licenseEyebrow: "Licencia",
     /** Ver `en.licenseTitle`: el `<h1>`, el mismo que usa jmrp.io. */

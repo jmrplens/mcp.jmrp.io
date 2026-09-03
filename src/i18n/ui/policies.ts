@@ -18,7 +18,7 @@
 export const policies = {
   en: {
     policiesMetaTitle:
-      "Policies — privacy, logging and legal position · jmrp.io",
+      "Policies — privacy, logging and legal position · mcp.jmrp.io",
     /**
      * The page's `<h1>`. Prefixed like the rest of this module: these keys are
      * flattened into the shared `ui` object, where a bare `title` would
@@ -225,7 +225,7 @@ export const policies = {
     legalLicenseLink: "License",
   },
   es: {
-    policiesMetaTitle: "Políticas — privacidad, logs y postura legal · jmrp.io",
+    policiesMetaTitle: "Políticas — privacidad, logs y postura legal · mcp.jmrp.io",
     /** Ver `en.policiesTitle`: el `<h1>` de la página. */
     policiesTitle: "Políticas",
     /** Ver `en.policiesEyebrow`: kicker encima del h1. */
