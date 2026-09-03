@@ -35,6 +35,7 @@ import {
   vscodeJson,
 } from "../lib/client-config";
 import {
+  actionsDomainPageUrl,
   DEFAULT_LANG,
   LANGS,
   pageUrl,
@@ -202,6 +203,34 @@ export function buildLlmsTxt(): string {
     })
     .join("");
 
+  // One line per action domain, for every server with a catalog. These are the
+  // largest thing this site publishes — 747 operations over 28 domains, each
+  // with its id, behaviour flag, description and required parameters — and
+  // until now an llms.txt reader could not reach a single one: the index named
+  // `actions.json` and stopped, so the only route in was a JSON envelope
+  // rather than the prose.
+  //
+  // This is also the shape llmstxt.org actually asks for. The spec defines no
+  // `llms-full.txt`; what it defines is a small curated index of links to
+  // markdown versions of the pages, which is what these are. Each one's twin
+  // is its URL plus `index.md`, a convention stated once at the top of this
+  // file rather than repeated on twenty-eight lines.
+  const reference = servers
+    .flatMap((server) => {
+      const catalog = actionCatalogs[server.id];
+      if (!catalog) return [];
+      return catalog.domains.map((domain) => {
+        const url = actionsDomainPageUrl(DEFAULT_LANG, server.id, domain.domain);
+        const noun = domain.count === 1 ? "action" : "actions";
+        // The two counts are the fact a caller most needs before choosing an
+        // action: how many of them only read, and how many can destroy
+        // something. Both come from the snapshot, so they cannot drift from
+        // the page they describe.
+        return `- [${server.id} ${domain.domain}](${url}): ${domain.count} ${noun}, ${domain.readOnlyCount} read-only, ${domain.destructiveCount} destructive.`;
+      });
+    })
+    .join("\n");
+
   return `# ${SITE_NAME} — public MCP servers
 
 > ${ui.en.lede}
@@ -227,13 +256,17 @@ ${list}
 
 ${pages}
 
+## Reference
+
+${reference}
+
 ## Machine-readable
 
 - [/servers.json](${SITE_ORIGIN}/servers.json): endpoint index as JSON.${catalogLines}
 - [/llms-full.txt](${SITE_ORIGIN}/llms-full.txt): required headers, example calls and the credential policy of every server.
 - [/sitemap-index.xml](${SITE_ORIGIN}/sitemap-index.xml): sitemap.
 
-## Optional
+## Author
 
 - [jmrp.io](https://jmrp.io/): the author's site, which publishes the canonical identity document that attributes these servers to him.
 `;
