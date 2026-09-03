@@ -885,3 +885,44 @@ test("an action-domain page says what it holds, and every anchor it names is rea
     }
   }
 });
+
+test("every page states what may be done with it, and mixed pages do not claim too much", () => {
+  // /license/ says "every page repeats those terms in its own structured
+  // data". Only the social card did: 66 of the 72 `WebPage` nodes said
+  // nothing, the 56 action pages among them — the ones an AI crawler is
+  // deciding whether it may quote.
+  //
+  // The distinction is the one /license/ itself draws, and getting it wrong
+  // in the other direction would be worse than silence: a server card and an
+  // action page render the server's own tool catalogue, which is that
+  // server's MIT text, so a blanket CC BY there would be this site claiming
+  // terms over someone else's work. Those pages point at the terms instead.
+  const CC_BY = "https://creativecommons.org/licenses/by/4.0/";
+  const mixed = /servers\/[^/]+\/(index|actions\/[^/]+\/index)\.html$/;
+
+  for (const htmlPage of htmlPages()) {
+    const webpage = graphOf(htmlPage).find((n) => n["@type"] === "WebPage");
+    assert.ok(
+      webpage.usageInfo,
+      `${htmlPage}: the WebPage says nothing about what may be done with it`,
+    );
+    if (mixed.test(htmlPage)) {
+      assert.equal(
+        webpage.license,
+        undefined,
+        `${htmlPage}: renders the server's own catalogue, so it must not assert this site's license`,
+      );
+      assert.match(
+        webpage.usageInfo,
+        /#servers-h$/,
+        `${htmlPage}: should point at the section that separates the two regimes`,
+      );
+    } else {
+      assert.equal(
+        webpage.license,
+        CC_BY,
+        `${htmlPage}: is wholly this site's prose and should say so`,
+      );
+    }
+  }
+});

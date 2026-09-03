@@ -927,36 +927,49 @@ export async function buildSiteGraph(
     // only through `<link rel="alternate">` and a `Link:` header, so a
     // consumer that reads JSON-LD and nothing else could not find them —
     // which is most of the audience they were written for.
+    // The two `llms` files carry this site's own sentences, so they are CC BY
+    // like the pages they summarize. The three machine-readable indexes are
+    // the other case /license/ draws: "no condition attaches to them". That is
+    // stated with `usageInfo` and NOT with a CC0 `license`, because CC0 is a
+    // license — a stronger claim than the prose makes — and this file does not
+    // assert more than the page it points at.
     subjectOf: [
       {
         "@type": "DataDownload",
         name: "llms.txt index",
         contentUrl: `${SITE_ORIGIN}/llms.txt`,
         encodingFormat: "text/plain",
+        license: CC_BY_4_0,
+        usageInfo: `${pageUrl(DEFAULT_LANG, "license")}#text-h`,
       },
       {
         "@type": "DataDownload",
         name: "llms.txt, long form",
         contentUrl: `${SITE_ORIGIN}/llms-full.txt`,
         encodingFormat: "text/plain",
+        license: CC_BY_4_0,
+        usageInfo: `${pageUrl(DEFAULT_LANG, "license")}#text-h`,
       },
       {
         "@type": "DataDownload",
         name: "MCP server index",
         contentUrl: `${SITE_ORIGIN}/servers.json`,
         encodingFormat: "application/json",
+        usageInfo: `${pageUrl(DEFAULT_LANG, "license")}#indexes-h`,
       },
       {
         "@type": "DataDownload",
         name: "AI catalog",
         contentUrl: `${SITE_ORIGIN}/.well-known/ai-catalog.json`,
         encodingFormat: "application/json",
+        usageInfo: `${pageUrl(DEFAULT_LANG, "license")}#indexes-h`,
       },
       {
         "@type": "DataDownload",
         name: "API catalog (RFC 9727)",
         contentUrl: `${SITE_ORIGIN}/.well-known/api-catalog`,
         encodingFormat: "application/linkset+json",
+        usageInfo: `${pageUrl(DEFAULT_LANG, "license")}#indexes-h`,
       },
     ],
   };
@@ -994,6 +1007,22 @@ export async function buildSiteGraph(
     ...(lang === "en"
       ? { workTranslation: ref(`${otherUrl}#webpage`) }
       : { translationOfWork: ref(`${otherUrl}#webpage`) }),
+    // What may be done with this page. /license/ says "every page repeats
+    // those terms in its own structured data", and until now only the social
+    // card did: 66 of the 72 `WebPage` nodes were silent, including the 56
+    // action pages, which are precisely the ones an AI crawler is deciding
+    // whether it may quote.
+    //
+    // The split is the one /license/ already draws. A page that is wholly
+    // this site's prose states CC BY 4.0 outright. A page that renders a
+    // server's own tool catalogue alongside it — the server cards and the
+    // action pages — carries two regimes at once, so it points at the terms
+    // instead of picking one; asserting a blanket license there would be
+    // claiming this site's terms over the servers' MIT text.
+    ...(targetServer || actionsDomain
+      ? { usageInfo: `${pageUrl(lang, "license")}#servers-h` }
+      : { license: CC_BY_4_0, usageInfo: pageUrl(lang, "license") }),
+    copyrightHolder: ref(PERSON_ID),
     // The OG cards exist and return 200, and the page node carried no image
     // at all.
     primaryImageOfPage: {
