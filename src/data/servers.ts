@@ -102,6 +102,22 @@ export type McpServer = {
    */
   registryName: string;
   /**
+   * What the Server Card says this server is called and does.
+   *
+   * Separate from `name`/`description` because the card answers to a schema
+   * the site does not: `ServerDetail.description` has `maxLength: 100`, and
+   * both cards were failing it (147 and 153 characters) while the site copy
+   * they borrowed is fine where it lives. Shortening the page to satisfy a
+   * JSON schema would have been the wrong trade.
+   *
+   * `title` is the running server's own `serverInfo.title`, read from a live
+   * `initialize`. The discovery spec asks that the card's descriptive fields
+   * "SHOULD NOT contradict" what the server reports, and calls a mismatch a
+   * downgrade vector; before this, the card said `gitlab` while the server
+   * said `GitLab MCP Server`.
+   */
+  card: { title: string; description: string };
+  /**
    * FALLBACK version for the Server Card.
    *
    * The card prefers whatever the running server reports on `/health` at build
@@ -289,6 +305,11 @@ export const servers: McpServer[] = [
     getStatus: 405,
     name: "libgen",
     registryName: "io.github.jmrplens/libgen-mcp",
+    card: {
+      title: "Books & Papers MCP Server",
+      description:
+        "Federated search of books and papers, BibTeX/RIS citations, open-access retrieval and reading.",
+    },
     // libgen-mcp 1.6.3 (2026-08-22) started serving its own SEP-1649 Server
     // Card at `<endpoint>/.well-known/mcp/server-card.json`, same as gitlab —
     // verified live then: 200, application/json, ~33 KB, serverInfo
@@ -473,6 +494,11 @@ export const servers: McpServer[] = [
     getStatus: 401,
     name: "gitlab",
     registryName: "io.github.jmrplens/gitlab-mcp-server",
+    card: {
+      title: "GitLab MCP Server",
+      description:
+        "Free hosted GitLab MCP: 700+ operations with your own gitlab.com token, never written to disk.",
+    },
     nativeCard: true,
     version: "2.7.5",
     endpoint: "https://mcp.jmrp.io/gitlab",

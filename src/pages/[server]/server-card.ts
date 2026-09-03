@@ -81,8 +81,11 @@ export const GET: APIRoute = async ({ props }) => {
       "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
     name: server.registryName,
     version,
-    description: server.description.en,
-    title: server.name,
+    // From `card`, not from the page copy: `ServerDetail.description` caps at
+    // 100 characters and the site's own blurbs are longer, while `title` has
+    // to match what the running server reports or the card contradicts it.
+    description: server.card.description,
+    title: server.card.title,
     websiteUrl: server.docsSite ?? server.docs,
     remotes: [
       {
