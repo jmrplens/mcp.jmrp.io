@@ -1,4 +1,9 @@
+import {
+  clientSetupHeading,
+  clientSetupMarkdown,
+} from "../components/ClientSetup.md.ts";
 import { failureLadderMarkdown } from "../components/FailureLadder.md.ts";
+import { noticeMarkdown } from "../components/Notice.md.ts";
 import { serverCards } from "../data/server-cards";
 import type { McpServer } from "../data/servers";
 import { servers } from "../data/servers";
@@ -14,15 +19,7 @@ import { internals } from "../i18n/ui/internals";
 import { license } from "../i18n/ui/license";
 import { policies } from "../i18n/ui/policies";
 import { serversPage } from "../i18n/ui/servers-page";
-import {
-  claudeCodeCommand,
-  claudeCodeOauthCommand,
-  cursorJson,
-  cursorOauthJson,
-  noscriptCurl,
-  vscodeJson,
-  vscodeOauthJson,
-} from "./client-config";
+import { noscriptCurl } from "./client-config";
 import { pageUrl, serverPageUrl, SITE_ORIGIN, SITE_REPO } from "./seo";
 
 /**
@@ -98,91 +95,6 @@ function section(heading: string, paragraphs: readonly string[]): string {
   return `\n\n## ${heading}\n\n${prose(paragraphs)}`;
 }
 
-/** Renders one `### heading` followed by its paragraphs. */
-function subsection(heading: string, paragraphs: readonly string[]): string {
-  return `### ${heading}\n\n${prose(paragraphs)}`;
-}
-
-/**
- * One labelled, fenced configuration snippet.
- *
- * @param label What the snippet configures, e.g. `Cursor — ~/.cursor/mcp.json`.
- * @param code The snippet itself.
- * @param fence Info string for the fence, `sh` or `json`.
- * @returns The block.
- */
-function codeBlock(label: string, code: string, fence: string): string {
-  return `**${label}**\n\n\`\`\`${fence}\n${code}\n\`\`\``;
-}
-
-/**
- * The client configuration a reader came for, as markdown.
- *
- * Mirrors `ClientSetup.astro`, calling the SAME builders in
- * `src/lib/client-config.ts` so the twin cannot drift from the page: the
- * OAuth path first when the server has one, the pasted token after, because
- * the second is what is left for a client that cannot open a browser. A
- * server without `oauth` — libgen — shows only the token group, with no
- * heading announcing a choice it does not offer.
- *
- * This section is why the fix matters at all. "How do I connect this to
- * Claude Code" is the question this site exists to answer, and the twins,
- * which are the surface llms.txt points every assistant at, carried none of
- * it: the endpoint, the client id and all six snippets were on the HTML page
- * and nowhere else a machine reads.
- *
- * @param server The server.
- * @param lang Locale to render.
- * @returns The section, opening with its own `##` heading.
- */
-function connectSection(server: McpServer, lang: Lang): string {
-  const t = serversPage[lang];
-  const u = ui[lang];
-  const oauthBlocks = server.oauth
-    ? [
-        { label: "Claude Code", code: claudeCodeOauthCommand(server), fence: "sh" },
-        {
-          label: "Cursor — ~/.cursor/mcp.json",
-          code: cursorOauthJson(server),
-          fence: "json",
-        },
-        {
-          label: "VS Code — .vscode/mcp.json",
-          code: vscodeOauthJson(server),
-          fence: "json",
-        },
-      ].filter(
-        (block): block is { label: string; code: string; fence: string } =>
-          Boolean(block.code),
-      )
-    : [];
-  const tokenBlocks = [
-    { label: "Claude Code", code: claudeCodeCommand(server), fence: "sh" },
-    {
-      label: "Cursor — ~/.cursor/mcp.json",
-      code: cursorJson(server),
-      fence: "json",
-    },
-    {
-      label: "VS Code — .vscode/mcp.json",
-      code: vscodeJson(server, lang),
-      fence: "json",
-    },
-  ];
-  const render = (
-    blocks: readonly { label: string; code: string; fence: string }[],
-  ) => blocks.map((b) => codeBlock(b.label, b.code, b.fence));
-
-  // With no OAuth path there is only one way in, so the sub-headings would
-  // announce a choice that does not exist — the same call the component makes.
-  if (oauthBlocks.length === 0) {
-    return section(t.connectHead, render(tokenBlocks));
-  }
-  return section(t.connectHead, [
-    subsection(u.clientOauthHead, [u.clientOauthHint, ...render(oauthBlocks)]),
-    subsection(u.clientTokenHead, render(tokenBlocks)),
-  ]);
-}
 
 /**
  * The home page: what this host is, and the servers on it.
@@ -211,15 +123,7 @@ export function homeMarkdown(lang: Lang): string {
   // against the page's 884 and dropped the best trust copy on the site from
   // the one surface written for machines to read.
   const noticeSections = servers.flatMap((server) =>
-    server.notices.map((notice) => {
-      const bullets = (notice.bullets ?? []).map(
-        (bullet) => `- ${bullet[lang]}`,
-      );
-      return subsection(notice.title[lang], [
-        ...notice.body.map((paragraph) => paragraph[lang]),
-        ...(bullets.length > 0 ? [bullets.join("\n")] : []),
-      ]);
-    }),
+    server.notices.map((notice) => noticeMarkdown(notice, lang)),
   );
   return (
     head(t.title, t.subtitle, pageUrl(lang, "home"), lang) +
@@ -520,7 +424,9 @@ export function serverMarkdown(server: McpServer, lang: Lang): string {
       lang,
     ) +
     section(t.overviewHead, [facts.join("\n")]) +
-    connectSection(server, lang) +
+    // The component's own twin, not a second composition of the same blocks:
+    // see `ClientSetup.md.ts` for why this section in particular earned one.
+    section(clientSetupHeading(lang), [clientSetupMarkdown(server, lang)]) +
     section(t.contextHead, context) +
     (instructions
       ? section(t.instructionsHead, [t.instructionsIntro, instructions])
