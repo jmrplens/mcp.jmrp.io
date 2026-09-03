@@ -292,6 +292,13 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
     "@id": apiId(server),
     name: server.name,
     url: server.endpoint,
+    // The `@id` is the endpoint's IRI, and the endpoint only speaks POST: a
+    // consumer that dereferences it gets 405 from libgen and 401 from gitlab,
+    // by design. So the node also names the document that DOES describe it
+    // and answers 200 — its own server card. The `@id` itself must not move:
+    // jmrp.io's canonical person.jsonld lists both of them in `owns`, and six
+    // external consumers read that file.
+    mainEntityOfPage: ref(`${serverPageUrl(DEFAULT_LANG, server.id)}#webpage`),
     description: localized(server.description),
     documentation: server.docsSite ?? server.docs,
     serviceType: "Model Context Protocol server",
@@ -414,10 +421,16 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
     },
     // What a caller has to bring. This is the "can I actually use this?" fact,
     // and until now only /servers.json answered it — the graph did not.
+    // The article is derived rather than hardcoded: the only required header
+    // today is `Authorization`, and "a Authorization header" is a sentence an
+    // assistant would quote verbatim.
     permissions:
       server.requiredHeaders.length > 0
         ? server.requiredHeaders
-            .map((h) => `Requires a ${h.name} header on every request.`)
+            .map(
+              (h) =>
+                `Requires ${/^[AEIOU]/i.test(h.name) ? "an" : "a"} ${h.name} header on every request.`,
+            )
             .join(" ")
         : "None. The server is public and takes no credentials.",
     softwareRequirements:
