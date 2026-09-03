@@ -42,7 +42,20 @@ export type Bilingual = { en: string; es: string };
  * `kind` decide el tono con que se pinta, no el contenido.
  */
 export type McpNotice = {
-  kind: "security" | "legal" | "limits";
+  /**
+   * What the notice is about, which picks the tone it is painted in.
+   *
+   * `access` was added last and is the only one that is not a caution. The
+   * three before it — token policy, legal footing, limits — are the whole of
+   * what the `FAQPage` graph and the `speakable` selectors nominate for
+   * quotation, so the only structured answers this site offered an assistant
+   * were disclaimers. A live search for the domain came back with the no-SLA
+   * paragraph quoted verbatim under the heading "Important Note", which is
+   * the investment working exactly as built and aimed entirely at talking a
+   * reader out of it. Nothing answered "is it free" or "do I need an
+   * account", which is what a reader arrives asking.
+   */
+  kind: "security" | "legal" | "limits" | "access";
   title: Bilingual;
   /** Párrafos. Se pintan en orden. */
   body: Bilingual[];
@@ -355,6 +368,23 @@ export const servers: McpServer[] = [
     ],
     notices: [
       {
+        kind: "access",
+        title: {
+          en: "Does libgen cost anything, and do I need an account?",
+          es: "¿libgen cuesta algo, y hace falta cuenta?",
+        },
+        body: [
+          {
+            en: "Neither. libgen takes no credential at all: no account here, no API key, no per-source registration. Every source it queries is open or public, and none of them asks you to sign up first, which is why the endpoint accepts a call from anyone who can reach it.",
+            es: "Ninguna de las dos. libgen no pide credencial alguna: ni cuenta aquí, ni clave de API, ni registro por fuente. Todas las que consulta son abiertas o públicas y ninguna exige alta previa, y por eso el endpoint acepta una llamada de cualquiera que pueda alcanzarlo.",
+          },
+          {
+            en: "The only ceiling is the rate limit described below, which is there to spend third-party capacity slowly rather than to ration yours.",
+            es: "El único techo es el límite de peticiones descrito abajo, que existe para gastar despacio la capacidad de terceros, no para ponerte un cupo.",
+          },
+        ],
+      },
+      {
         kind: "legal",
         // Títulos únicos y con las palabras que la gente busca: se pintan como
         // <h3> dentro del <summary>, así que son las anclas por las que un
@@ -460,6 +490,23 @@ export const servers: McpServer[] = [
       },
     ],
     notices: [
+      {
+        kind: "access",
+        title: {
+          en: "Does gitlab cost anything, and do I need an account?",
+          es: "¿gitlab cuesta algo, y hace falta cuenta?",
+        },
+        body: [
+          {
+            en: "The endpoint is free and there is nothing here to sign up for. What it needs is a gitlab.com account you already have, because the server acts as you: it holds no account of its own and issues no credential, so there is no key to request and no plan to pick.",
+            es: "El endpoint es gratuito y aquí no hay nada a lo que darse de alta. Lo que necesita es una cuenta de gitlab.com que ya tengas, porque el servidor actúa en tu nombre: no tiene cuenta propia ni emite credencial alguna, así que no hay clave que pedir ni plan que elegir.",
+          },
+          {
+            en: "Whatever quota you spend is your own on gitlab.com, and what you can reach is whatever that token can reach — this server adds no tier of its own.",
+            es: "La cuota que gastes es la tuya en gitlab.com, y lo que alcances es lo que alcance ese token: este servidor no añade ningún tier propio.",
+          },
+        ],
+      },
       {
         kind: "security",
         title: {
@@ -610,9 +657,19 @@ export const servers: McpServer[] = [
     // list of examples, releases being still named in `gitlab_execute_action`'s
     // `what`, so that EN and ES could carry the SAME four. Re-count the
     // characters on any rewrite: Spanish is the one that runs out of room.
+    // It leads with the price and the account because that is the question a
+    // reader arrives with and the one this string never answered. The single
+    // occurrence of "free" on this page used to be "Counted with a Free-tier
+    // GitLab token" — a fact about GitLab's pricing, which an extractor can
+    // read as "you need a GitLab Free tier". libgen's description opens with
+    // "No account required" and surfaces for the category query; this one
+    // opened with the operation count and did not. The example list is down
+    // to two abbreviated entries to pay for it, which is the trade: the count
+    // and the domains are on the page and in the catalog, the price and the
+    // signup are not stated anywhere else this string reaches.
     description: {
-      en: "Over 700 GitLab operations on gitlab.com — projects, merge requests, issues, pipelines. OAuth or a PAT as Bearer, never written to disk.",
-      es: "Más de 700 operaciones de GitLab en gitlab.com — proyectos, merge requests, incidencias, pipelines. OAuth o PAT como Bearer, nunca se escribe en disco.",
+      en: "Free hosted GitLab MCP endpoint, no account beyond your own gitlab.com token, never written to disk. Over 700 operations: projects, MRs, pipelines.",
+      es: "Endpoint MCP de GitLab alojado y gratuito, sin más cuenta que tu propio token de gitlab.com, que nunca se escribe en disco. Más de 700 operaciones.",
     },
   },
 ];
