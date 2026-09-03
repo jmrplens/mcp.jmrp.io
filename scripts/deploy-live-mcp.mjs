@@ -282,6 +282,40 @@ function deployStagedSnippets() {
   for (const name of staged)
     fs.rmSync(path.join(STAGING, name), { force: true });
   console.log(`✓ ${staged.length} generated snippet(s) deployed to ${target}`);
+
+  warnAboutUnincludedSnippets(staged);
+}
+
+/**
+ * Warns about a snippet that was delivered and is never included.
+ *
+ * `nginx -t` passes either way: an unreferenced file in the snippets
+ * directory is not an error, it is simply never read. So a generated snippet
+ * that nobody wired into the vhost does nothing at all, silently and for as
+ * long as it takes someone to notice — the same failure shape as a `dist/`
+ * file with no `location`, which this script already warns about.
+ *
+ * The vhost is edited by a human on purpose (see AGENTS.md), so this warns
+ * and prints the line to paste rather than editing anything.
+ *
+ * @param staged Names of the snippets that were just delivered.
+ */
+function warnAboutUnincludedSnippets(staged) {
+  let vhost;
+  try {
+    vhost = fs.readFileSync(VHOST, "utf8");
+  } catch {
+    return;
+  }
+  const missing = staged.filter((name) => !vhost.includes(name));
+  if (missing.length === 0) return;
+
+  console.warn(
+    `⚠ ${missing.length} delivered snippet(s) are not included by the vhost — ` +
+      "they are inert until someone adds the include:",
+  );
+  for (const name of missing)
+    console.warn(`    include /etc/nginx/snippets/mcp/${name};`);
 }
 
 deployStagedSnippets();

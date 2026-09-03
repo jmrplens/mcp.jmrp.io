@@ -46,6 +46,9 @@ const PREFIX = "mcp_";
 /** An escaped double quote, as Nginx needs it inside a quoted map value. */
 const Q = String.raw`\"`;
 
+/** `/servers/<id>/actions/<domain>/`, either language. */
+const ACTIONS_PAGE = /^\/(?:es\/)?servers\/[^/]+\/actions\/[^/]+\/$/;
+
 /**
  * Header every generated snippet carries.
  *
@@ -147,10 +150,21 @@ export function stageNginxSnippets(
   // One exact location per twin. `location =` outranks every prefix and regex
   // match, so these work wherever they are included and the nested
   // `location ~ \.md$` blocks the actions prefixes needed can go.
+  //
+  // The security headers are included HERE and not inherited. A location that
+  // declares any `add_header` of its own stops inheriting the server's set —
+  // the same nginx rule the vhost relies on to keep COEP and CORP off the MCP
+  // endpoints — and this block declares `add_header Link`. Without the
+  // include the twins were the one class of location on the site serving zero
+  // security headers from the origin, `X-Content-Type-Options` among them,
+  // which is the one that matters on `text/markdown`. The assets variant is
+  // the right snippet: it carries no nonce-bearing CSP, which markdown has no
+  // use for.
   const locations = pages
     .map(
       (page) =>
         `location = ${page}index.md { default_type "text/markdown; charset=utf-8"; ` +
+        `include /etc/nginx/snippets/security_headers_assets_mcp.conf; ` +
         `add_header Link $mcp_md_link_header always; try_files ${page}index.md =404; }`,
     )
     .join("\n");
@@ -177,10 +191,36 @@ export function stageNginxSnippets(
     "}",
   ].join("\n");
 
+  // Every other route on the site answers 308 to its slashless form, from a
+  // hand-written `location =` in the vhost. The action pages never got one:
+  // there are fifty-six of them, which is exactly why nobody wrote them by
+  // hand, and their prefix block does `try_files ${uri}index.html =404`, so
+  // `/servers/gitlab/actions/issue` resolved to `issueindex.html` and 404'd.
+  // A regex `location` could not rescue it either, because `^~` on the prefix
+  // block outranks every regex. That matters more here than it looks: these
+  // are the deep pages an assistant cites, and assistants routinely emit URLs
+  // without the trailing slash, so each such citation was a dead link.
+  //
+  // Scoped to the action pages ON PURPOSE. Emitting a redirect for every page
+  // would collide with the vhost's hand-written ones, and a duplicate
+  // `location =` is a configuration error — `nginx -t` would fail the deploy.
+  const redirects = pages
+    .filter((page) => ACTIONS_PAGE.test(page))
+    .map(
+      (page) =>
+        `location = ${page.slice(0, -1)} { return 308 ${page}; }`,
+    )
+    .join("\n");
+
   writeSnippet(`${PREFIX}md_twin_locations.conf`, `${locations}\n`);
   writeSnippet(`${PREFIX}md_twin_alternates.conf`, `${alternates}\n`);
+  writeSnippet(`${PREFIX}actions_slash_redirects.conf`, `${redirects}\n`);
   logger.info(
     `  ✓ Staged ${PREFIX}md_twin_locations.conf and ${PREFIX}md_twin_alternates.conf ` +
       `(${pages.length} twins) in ${STAGING_DIR}`,
+  );
+  logger.info(
+    `  ✓ Staged ${PREFIX}actions_slash_redirects.conf ` +
+      `(${redirects ? redirects.split("\n").length : 0} action pages)`,
   );
 }
