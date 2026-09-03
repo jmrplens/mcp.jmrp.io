@@ -254,6 +254,40 @@ test("a server's twin carries the configuration its page carries", () => {
   }
 });
 
+test("no markdown twin is an orphan", () => {
+  // The closure check jmrp.io runs at build time, in the direction the other
+  // tests do not cover. They walk pages and ask whether the twin exists; this
+  // walks twins and asks whether a page announces them. A twin nothing points
+  // at is served, indexed by nobody and quietly out of date — and since the
+  // announcement is now derived from the twin ROUTES rather than guessed from
+  // the page, the two sets should be exactly equal.
+  // Read the announcements out of the built HTML rather than from `pages()`,
+  // which deliberately omits the action-domain pages — and those are 56 of
+  // the 72 twins.
+  const all = fs.readdirSync(DIST, { recursive: true }).map(String);
+  const announced = new Set();
+  for (const file of all) {
+    if (!file.endsWith(".html")) continue;
+    const href = /<link[^>]*type="text\/markdown"[^>]*>/.exec(read(file));
+    if (!href) continue;
+    const url = /href="([^"]+)"/.exec(href[0])?.[1];
+    if (url) announced.add(new URL(url).pathname.slice(1));
+  }
+  const built = all.filter((file) => file.endsWith("index.md"));
+
+  for (const twin of built) {
+    assert.ok(
+      announced.has(twin),
+      `${twin}: built, but no page announces it — an orphan twin`,
+    );
+  }
+  assert.equal(
+    built.length,
+    72,
+    `expected 72 twins, found ${built.length} — a page gained or lost one`,
+  );
+});
+
 test("the pages with no twin do not claim one", () => {
   // The 404 and the OAuth landing step have no `index.md`, so a tag on them
   // would advertise a URL that 404s. They are also the only two pages that

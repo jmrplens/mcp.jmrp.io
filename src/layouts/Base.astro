@@ -36,6 +36,7 @@ import {
   serverPageUrl,
   SITE_NAME,
 } from "../lib/seo";
+import { hasMarkdownTwin } from "../lib/twin-routes";
 
 /**
  * `canonicalOverride` and `alternatesOverride` are required together: setting
@@ -415,13 +416,19 @@ const serverSubItems = servers.map((server) => ({
 
         The URL comes from `canonical` and not from a per-page prop, for the
         reason jmrp.io learned the hard way: it shipped this as an opt-in prop
-        first and 20 of its 96 twinned pages silently never passed it. The only
-        two pages here with no twin are the two that decline an identity
-        altogether — the 404 and /inspector/callback/ — so the guard is the one
-        the canonical itself already uses. */
+        first and 20 of its 96 twinned pages silently never passed it.
+
+        Two conditions, and they are not alternatives. `hasMarkdownTwin` asks
+        the twin ROUTES whether one exists, so a page shipped without its
+        `index.md.ts` cannot advertise a URL that answers 404 — the previous
+        guard described the pages that happen to have no twin today rather
+        than the condition itself. The errorPage/noindex guard stays because
+        those two pages have no canonical of their OWN: they decline an
+        identity, so `canonical` falls back to the home page's, whose twin is
+        real. Dropping it made all 75 pages announce `/index.md`. */
     }
     {
-      !errorPage && !noindex && (
+      !errorPage && !noindex && hasMarkdownTwin(new URL(canonical).pathname) && (
         <link
           rel="alternate"
           type="text/markdown"
