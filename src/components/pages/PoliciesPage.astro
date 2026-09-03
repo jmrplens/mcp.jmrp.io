@@ -100,6 +100,25 @@ const licenseHref = new URL(pageUrl(lang, "license")).pathname;
     {t.slaBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
   </section>
 
+  {
+    /* Immediately after "No SLA" on purpose: it is the counterweight to it,
+      and the two read as one argument — what is not promised, then why the
+      thing is nonetheless likely to be there. Placed anywhere else it would
+      look like the promise the section explicitly declines to make. */
+  }
+  <section
+    class="policies-section"
+    aria-labelledby="continuity-h"
+  >
+    <h2
+      class="subsection-title"
+      id="continuity-h"
+    >
+      {t.continuityEyebrow}
+    </h2>
+    {t.continuityBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+  </section>
+
   <section
     class="policies-section"
     aria-labelledby="egress-h"

@@ -320,6 +320,7 @@ export function policiesMarkdown(lang: Lang): string {
     ]) +
     section(t.logsEyebrow, t.logsBody) +
     section(t.slaEyebrow, t.slaBody) +
+    section(t.continuityEyebrow, t.continuityBody) +
     section(t.egressEyebrow, [
       ...t.egressBody,
       `${t.egressPointer} ${t.egressPointerLink}: ${pageUrl(lang, "internals")}#egress-h`,
