@@ -150,12 +150,61 @@ function gitAddedDate(pathspecs: string[]): string | undefined {
       ["log", "--diff-filter=A", "--format=%cI", "--", ...pathspecs],
       { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] },
     ).trim();
-    // A page built from several sources was "added" once per source; the
-    // earliest of those is when the page itself appeared.
+    // Normally one line. A file that was added, removed and added again has
+    // several, and the earliest is when the page first answered.
     return out ? out.split("\n").at(-1) : undefined;
   } catch {
     return undefined;
   }
+}
+
+/**
+ * The file whose existence IS the page's existence, per route.
+ *
+ * `datePublished` asks when THIS file was added; `dateModified` keeps asking
+ * the content sources. The two questions are different, and conflating them
+ * is what made 64 of 72 pages claim they were published on 2026-08-06:
+ * `serverSources()` and `actionsSources()` both list `src/data/servers.ts`,
+ * which shipped with the repository, so the earliest add across a page's
+ * sources was that data file's rather than the page's. The result was
+ * /servers/gitlab/actions/issue/ claiming it was published twenty days
+ * before its route existed, on a URL that answered 404 the whole time.
+ *
+ * Taking the LATEST add instead would only move the lie: `HomePage.astro`
+ * was split out of `index.astro` on 2026-08-23, so the home page would then
+ * claim a birthday two weeks after it started answering.
+ *
+ * Paths are relative to `src/pages/`; the Spanish page is the same path
+ * under `es/`. Every route so far shipped both languages in one commit, but
+ * the resolver asks for the language it was handed rather than assuming
+ * that, so a language added later would date itself honestly.
+ */
+const ROUTE_FILES: Record<string, string> = {
+  "/": "index.astro",
+  "/inspector/": "inspector.astro",
+  "/inspector/callback/": "inspector/callback.astro",
+  "/internals/": "internals.astro",
+  "/license/": "license.astro",
+  "/policies/": "policies.astro",
+  "/servers/": "servers/index.astro",
+};
+
+/** Route file behind every `/servers/<id>/`, relative to `src/pages/`. */
+const SERVER_ROUTE_FILE = "servers/[server].astro";
+
+/** Route file behind every `/servers/<id>/actions/<domain>/`. */
+const ACTIONS_ROUTE_FILE = "servers/[server]/actions/[domain].astro";
+
+/**
+ * Where a route file lives for one language.
+ *
+ * @param relative A path from {@link ROUTE_FILES} or one of the two dynamic
+ *   route files, relative to `src/pages/`.
+ * @param spanish Whether the page being dated is the Spanish one.
+ * @returns The repository-relative path.
+ */
+function routeFilePath(relative: string, spanish: boolean): string {
+  return `src/pages/${spanish ? "es/" : ""}${relative}`;
 }
 
 /** `/servers/<id>/actions/<domain>/`, language prefix already stripped. */
@@ -183,15 +232,22 @@ function isDirty(): boolean {
 /**
  * The route a URL path describes, with the language prefix removed.
  *
+ * The language comes back with it: the route decides which sources describe
+ * the page, and the language decides which of the two route files is the one
+ * whose add date is that page's publication.
+ *
  * @param pathname A path from the sitemap, e.g. `/es/servers/gitlab/`.
- * @returns The language-independent route, always with a trailing slash.
+ * @returns The language-independent route (always with a trailing slash) and
+ *   whether the path was the Spanish one.
  */
-function routeOf(pathname: string): string {
+function routeOf(pathname: string): { route: string; spanish: boolean } {
   const withSlash = pathname.endsWith("/") ? pathname : `${pathname}/`;
   // `/es/` is the Spanish HOME, so stripping the prefix has to leave "/" and
   // not the empty string, which would match no route at all.
-  if (withSlash === "/es/") return "/";
-  return withSlash.startsWith("/es/") ? withSlash.slice(3) : withSlash;
+  if (withSlash === "/es/") return { route: "/", spanish: true };
+  return withSlash.startsWith("/es/")
+    ? { route: withSlash.slice(3), spanish: true }
+    : { route: withSlash, spanish: false };
 }
 
 /**
@@ -224,13 +280,22 @@ export function createPageDatesResolver(): (pathname: string) => PageDates {
   };
   const cache = new Map<string, PageDates>();
 
-  const datesFor = (pathspecs: string[]): PageDates => {
-    const key = pathspecs.join(" ");
+  const datesFor = (
+    contentSources: string[],
+    routeFile: string,
+  ): PageDates => {
+    const key = `${routeFile} ${contentSources.join(" ")}`;
     let dates = cache.get(key);
     if (!dates) {
+      // A page that has a route file but whose language variant does not
+      // exist falls back to the language-independent one rather than to the
+      // whole repository's date.
+      const published =
+        gitAddedDate([routeFile]) ??
+        gitAddedDate([routeFile.replace("src/pages/es/", "src/pages/")]);
       dates = {
-        dateModified: gitDate(pathspecs) ?? fallbackModified,
-        datePublished: gitAddedDate(pathspecs) ?? fallbackPublished,
+        dateModified: gitDate(contentSources) ?? fallbackModified,
+        datePublished: published ?? fallbackPublished,
       };
       cache.set(key, dates);
     }
@@ -240,15 +305,28 @@ export function createPageDatesResolver(): (pathname: string) => PageDates {
   return (pathname: string) => {
     if (dirty) return fallback;
 
-    const route = routeOf(pathname);
+    const { route, spanish } = routeOf(pathname);
     const staticSources = STATIC_SOURCES[route];
-    if (staticSources) return datesFor(staticSources);
+    const staticRouteFile = ROUTE_FILES[route];
+    if (staticSources && staticRouteFile) {
+      return datesFor(staticSources, routeFilePath(staticRouteFile, spanish));
+    }
 
     const actions = ACTIONS_ROUTE.exec(route);
-    if (actions) return datesFor(actionsSources(actions[1]));
+    if (actions) {
+      return datesFor(
+        actionsSources(actions[1]),
+        routeFilePath(ACTIONS_ROUTE_FILE, spanish),
+      );
+    }
 
     const server = SERVER_ROUTE.exec(route);
-    if (server) return datesFor(serverSources(server[1]));
+    if (server) {
+      return datesFor(
+        serverSources(server[1]),
+        routeFilePath(SERVER_ROUTE_FILE, spanish),
+      );
+    }
 
     return fallback;
   };

@@ -70,6 +70,51 @@ function sourceIdOf(server) {
  */
 const SERVER_DETAIL_PAGE = /^(es\/)?servers\/[^/]+\/index\.html$/;
 
+/**
+ * The route file behind one built page.
+ *
+ * Derived from the URL rather than imported from `sitemap-lastmod.ts`: the
+ * point is to check that module's answer against something worked out
+ * independently, and a shared table would agree with itself.
+ *
+ * @param htmlPage A path from {@link htmlPages}, e.g. `es/policies/index.html`.
+ * @returns The repository-relative `.astro` file whose existence is the page's.
+ */
+function routeFileFor(htmlPage) {
+  const spanish = htmlPage.startsWith("es/");
+  const rest = spanish ? htmlPage.slice(3) : htmlPage;
+  const dir = rest.replace(/index\.html$/, "");
+  let relative;
+  if (dir === "") relative = "index.astro";
+  else if (dir === "servers/") relative = "servers/index.astro";
+  else if (/^servers\/[^/]+\/$/.test(dir)) relative = "servers/[server].astro";
+  else if (/^servers\/[^/]+\/actions\/[^/]+\/$/.test(dir))
+    relative = "servers/[server]/actions/[domain].astro";
+  // `/inspector/`, `/internals/`, `/license/`, `/policies/`: one .astro named
+  // after the single path segment.
+  else relative = `${dir.slice(0, -1)}.astro`;
+  return `src/pages/${spanish ? "es/" : ""}${relative}`;
+}
+
+/**
+ * When a file was first committed.
+ *
+ * @param file A repository-relative path.
+ * @returns An ISO date, or undefined when history says nothing about it.
+ */
+function addedDate(file) {
+  try {
+    const out = execFileSync(
+      "/usr/bin/git",
+      ["log", "--diff-filter=A", "--format=%cI", "--", file],
+      { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] },
+    ).trim();
+    return out ? out.split("\n").at(-1) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function htmlPages() {
   const pages = fs
     .readdirSync(DIST, { recursive: true })
@@ -644,6 +689,26 @@ test("each page's dates are its own, not the repository's", (t) => {
     published.size > 1,
     `all pages share one datePublished: they cannot all have been published together`,
   );
+
+  // The assertion above is too weak on its own: it passed while 64 of 72
+  // pages claimed 2026-08-06, the repository's first commit, because three
+  // distinct dates across the site were enough to satisfy it. A page cannot
+  // predate the route file that serves it — before that file existed the URL
+  // answered 404 — so each page is checked against its own route file.
+  for (const htmlPage of htmlPages()) {
+    const webpage = graphOf(htmlPage).find((n) => n["@type"] === "WebPage");
+    if (!webpage.datePublished) continue;
+    const routeFile = routeFileFor(htmlPage);
+    const added = addedDate(routeFile);
+    // No add date means the file is not in history (a rename this test does
+    // not follow); nothing to compare against, so it is not a failure.
+    if (!added) continue;
+    assert.ok(
+      Date.parse(webpage.datePublished) >= Date.parse(added),
+      `${htmlPage}: datePublished ${webpage.datePublished} precedes its ` +
+        `route file ${routeFile}, added ${added} — the URL answered 404 until then`,
+    );
+  }
 });
 
 test("each WebAPI states its terms and its limits, not just that it is free", () => {
