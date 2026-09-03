@@ -304,7 +304,19 @@ export const servers: McpServer[] = [
       "https://glama.ai/mcp/servers/jmrplens/libgen-mcp",
       // Checked, not assumed: its listing names mcp.jmrp.io 21 times, so it
       // describes THIS deployment and not only the software.
+      //
+      // RE-MEASURED 2026-09-03 and it no longer holds: the URL now redirects
+      // cross-host to market.lobehub.com, and that page — server-rendered, it
+      // names the repository — mentions mcp.jmrp.io zero times. By the bar
+      // this comment itself sets, the listing has become one about the
+      // software rather than about this endpoint. Left in place pending the
+      // author's call, since jmrp.io asserts the same URL on the `#software`
+      // node, where it is unambiguously right.
       "https://lobehub.com/mcp/jmrplens-libgen-mcp",
+      // Verified the same way, 2026-09-03: 30 mentions of mcp.jmrp.io, and
+      // its <title> is "Books & Papers MCP Server · mcp.jmrp.io". It audits
+      // the live endpoint rather than the repository.
+      "https://verifymcp.io/servers/jmrplens-libgen-mcp/libgen",
     ],
     tools: [
       {
@@ -470,8 +482,13 @@ export const servers: McpServer[] = [
     sameAs: [
       "https://glama.ai/mcp/servers/jmrplens/gitlab-mcp-server",
       "https://mcpservers.org/servers/jmrplens/gitlab-mcp-server",
-      // Same: 26 mentions of mcp.jmrp.io on its listing.
+      // Same: 26 mentions of mcp.jmrp.io on its listing. See libgen's entry —
+      // re-measured 2026-09-03, this one now names mcp.jmrp.io zero times too.
       "https://lobehub.com/mcp/jmrplens-gitlab-mcp-server",
+      // 35 mentions of mcp.jmrp.io, <title> "GitLab MCP Server ·
+      // mcp.jmrp.io", and it quotes this deployment's RFC 9728 document. It
+      // is the listing that describes the endpoint most directly of any here.
+      "https://verifymcp.io/servers/jmrplens-gitlab-mcp-server/gitlab",
     ],
     tools: [
       {

@@ -38,6 +38,7 @@ import { anchorSlug } from "../../lib/slug";
 import { schemaFields } from "../../lib/tool-schema";
 import ActionSearch from "../ActionSearch";
 import ClientSetup from "../ClientSetup.astro";
+import NoticeFolds from "../NoticeFolds.astro";
 import ServerEntryChips from "../ServerEntryChips.astro";
 import ServerMark from "../ServerMark.astro";
 import ServerToc from "../ServerToc.astro";
@@ -455,6 +456,23 @@ function toolAnnotationChips(
           {sp.contextPolicies}{" "}
           <a href={policiesHref}>{sp.contextPoliciesLink}</a>
         </p>
+        {
+          /* This server's own notices, immediately under the section that
+            introduces them. They rendered only on the home page until now, so
+            a reader who landed here from a search — on the page that describes
+            this server in the most detail — had to go to the home page to find
+            out where their token ends up, or what the limits are. Each card
+            shows only ITS server's, where the home page shows both.
+
+            They are also what makes the `FAQPage` on this page honest: the
+            graph nominates these exact DOM ids, so they have to be on the
+            document that claims them. */
+        }
+        <NoticeFolds
+          server={serverMeta}
+          lang={lang}
+          level={3}
+        />
       </section>
 
       <section

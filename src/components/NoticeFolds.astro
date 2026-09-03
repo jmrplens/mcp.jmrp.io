@@ -1,0 +1,173 @@
+---
+/**
+ * One server's notices, as the folds that carry them.
+ *
+ * The four question-shaped blocks — where libgen searches and its legal
+ * footing, where a GitLab token goes, what each server costs, what its limits
+ * are — used to render only inside `ServerCard.astro`, which only the home
+ * page uses. So a reader who arrived at `/servers/gitlab/` from a search, on
+ * the page that describes that server in the most detail, could not find out
+ * where their token ends up without going to the home page first.
+ *
+ * Extracting this is what lets the server's own page carry them, and it is
+ * also what makes a `FAQPage` on that page honest: the graph nominates these
+ * exact DOM ids, so they have to be on the document that claims them.
+ *
+ * The markup and its styles moved here whole rather than being copied — the
+ * notices were the only `.fold` consumer in `ServerCard.astro`.
+ */
+import type { McpServer } from "../data/servers";
+import type { Lang } from "../i18n/config";
+import { ui } from "../i18n/ui";
+import { pageUrl } from "../lib/seo";
+import Notice from "./Notice.astro";
+
+interface Props {
+  server: McpServer;
+  lang: Lang;
+  /**
+   * Heading level for the fold labels.
+   *
+   * The label is a real heading — it is the question, and retrievers chunk by
+   * heading — so its level has to follow the document it lands in rather than
+   * be fixed. On the home page the folds sit under the card's `<h3>` server
+   * name, so `4` is right. On a server's own card page the enclosing section
+   * title is an `<h2>`, and an `<h4>` there skips a level: invalid, and worse
+   * for the outline a screen reader builds.
+   */
+  level?: 3 | 4;
+}
+
+const { server, lang, level = 4 } = Astro.props;
+const Label = `h${level}` as "h3" | "h4";
+const t = ui[lang];
+// Site-relative, like every other in-site link in this codebase: an absolute
+// one would jump a dev or preview server straight to production.
+const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h`;
+---
+
+{
+  /* The id lives on the <details>, not on the notice body inside it, so that
+     it wraps the QUESTION and its ANSWER. Two things depend on that: an
+     `#gitlab-security` link lands on the question rather than mid-answer, and
+     `speakable` in the JSON-LD points at these same ids — with the id on the
+     inner div, a read-aloud got the answer with no question attached.
+
+     Every notice starts collapsed, security ones included: the author asked
+     for it closed. The content is unchanged and the anchor still opens it. */
+}
+{
+  server.notices.map((notice) => (
+    <details
+      class={`fold fold-${notice.kind}`}
+      id={`${server.id}-${notice.kind}`}
+    >
+      <summary>
+        <Label class="fold-label">{notice.title[lang]}</Label>
+      </summary>
+      <Notice
+        notice={notice}
+        lang={lang}
+      />
+      {
+        /* Only gitlab's security notice qualifies: it is the one that raises
+           the token question, and `/internals/#affinity-h` is where the
+           hashing it describes is shown in full, code included. libgen's
+           affinity key is the IP address — no token, nothing to point at. */
+        server.id === "gitlab" && notice.kind === "security" && (
+          <p class="notice-link">
+            <a href={affinityHref}>{t.affinityLink}</a>
+          </p>
+        )
+      }
+    </details>
+  ))
+}
+
+<style>
+  /* Folded because a card that shows everything at once shows nothing, and
+     LLMs read it just the same while closed. */
+  .fold {
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--color-hair);
+  }
+
+  .fold summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: baseline;
+
+    /* Touch target: without this the summary sits at ~19 px tall. */
+    padding-block: 0.35rem;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .fold summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Our own triangle: the native one cannot be coloured and disappears in some
+     browsers once list-style is removed. */
+  .fold summary::before {
+    display: inline-block;
+    font-family: var(--font-mono);
+    color: var(--color-accent);
+    content: "›";
+    transition: transform 0.15s ease;
+  }
+
+  .fold[open] summary::before {
+    transform: rotate(90deg);
+  }
+
+  .fold summary:hover .fold-label,
+  .fold summary:focus-visible .fold-label {
+    color: var(--color-accent);
+  }
+
+  .fold summary:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  /* The heading arrives with base.css's title margins and size, and here it is
+     given the look of a label. It is still a heading for the outline and for
+     extractors. */
+  .fold-label {
+    /* flex:1 with basis 0: the summary has flex-wrap, and the line break is
+       decided by the item's BASE (its max-content), not by the shrink — so a
+       long title jumped whole to the next line and left the chevron orphaned.
+       With basis 0 it never jumps: it grows alongside the chevron and wraps
+       inside itself. */
+    flex: 1 1 0;
+    min-width: 0;
+    margin: 0;
+    font-family: var(--font-mono);
+
+    /* Matched to the notice body it opens (--text-md), not one step below:
+       the heading of a passage cannot be the quietest thing in it. */
+    font-size: var(--text-md);
+    font-weight: 500;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .notice-link {
+    margin: 0.6rem 0 0;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .notice-link a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .notice-link a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>
