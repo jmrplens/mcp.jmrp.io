@@ -462,7 +462,7 @@ export const servers: McpServer[] = [
     name: "gitlab",
     registryName: "io.github.jmrplens/gitlab-mcp-server",
     nativeCard: true,
-    version: "branch:main",
+    version: "2.7.5",
     endpoint: "https://mcp.jmrp.io/gitlab",
     repo: "https://github.com/jmrplens/gitlab-mcp-server",
     docs: "https://github.com/jmrplens/gitlab-mcp-server#readme",
