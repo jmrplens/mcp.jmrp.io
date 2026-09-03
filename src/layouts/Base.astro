@@ -428,14 +428,16 @@ const serverSubItems = servers.map((server) => ({
         real. Dropping it made all 75 pages announce `/index.md`. */
     }
     {
-      !errorPage && !noindex && hasMarkdownTwin(new URL(canonical).pathname) && (
-        <link
-          rel="alternate"
-          type="text/markdown"
-          href={`${canonical}index.md`}
-          title="Markdown twin"
-        />
-      )
+      !errorPage &&
+        !noindex &&
+        hasMarkdownTwin(new URL(canonical).pathname) && (
+          <link
+            rel="alternate"
+            type="text/markdown"
+            href={`${canonical}index.md`}
+            title="Markdown twin"
+          />
+        )
     }
 
     <meta

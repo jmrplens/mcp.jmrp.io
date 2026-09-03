@@ -90,10 +90,10 @@ function head(title: string, summary: string, url: string, lang: Lang): string {
   // text is the only language signal it carries. Same reasoning jmrp.io
   // records for the identical header.
   const lines = [
-    // `Canonical`, not the localized "Canonical page"/"Página canónica" this
-    // line used to carry: the keys are the schema and stay English in both
-    // languages, or a consumer parsing the header has to know Spanish to find
-    // the URL. Only the values are localized, and the summary above them.
+    // `Canonical`, not the translated label this line used to carry: the keys
+    // are the schema and stay English in both languages, or a consumer
+    // parsing the header has to read Spanish to find the URL. Only the values
+    // are localized, and the summary above them.
     `Canonical: ${url}`,
     `Language: ${lang}`,
     `Alternate: ${otherLanguageTwin(url)}`,
@@ -140,7 +140,6 @@ function prose(paragraphs: readonly string[]): string {
 function section(heading: string, paragraphs: readonly string[]): string {
   return `\n\n## ${heading}\n\n${prose(paragraphs)}`;
 }
-
 
 /**
  * The home page: what this host is, and the servers on it.

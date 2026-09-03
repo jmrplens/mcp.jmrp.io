@@ -69,6 +69,15 @@ import { pageDatesOf } from "./sitemap-lastmod";
 /** `@id` of the `WebSite` node the pages hang off through `isPartOf`. */
 const WEBSITE_ID = `${SITE_ORIGIN}/#website`;
 
+/**
+ * Letters that take "an" rather than "a" before a header name.
+ *
+ * The only required header today is `Authorization`, and the article used to
+ * be hardcoded, so the graph published "Requires a Authorization header" —
+ * a sentence an assistant quotes verbatim.
+ */
+const VOWELS = new Set(["a", "e", "i", "o", "u"]);
+
 /** One literal per language, for nodes that share an `@id`. */
 type LocalizedValue = { "@value": string; "@language": Lang };
 
@@ -428,7 +437,7 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
         ? server.requiredHeaders
             .map(
               (h) =>
-                `Requires ${/^[AEIOU]/i.test(h.name) ? "an" : "a"} ${h.name} header on every request.`,
+                `Requires ${VOWELS.has(h.name[0]?.toLowerCase() ?? "") ? "an" : "a"} ${h.name} header on every request.`,
             )
             .join(" ")
         : "None. The server is public and takes no credentials.",

@@ -225,7 +225,8 @@ export const policies = {
     legalLicenseLink: "License",
   },
   es: {
-    policiesMetaTitle: "Políticas — privacidad, logs y postura legal · mcp.jmrp.io",
+    policiesMetaTitle:
+      "Políticas — privacidad, logs y postura legal · mcp.jmrp.io",
     /** Ver `en.policiesTitle`: el `<h1>` de la página. */
     policiesTitle: "Políticas",
     /** Ver `en.policiesEyebrow`: kicker encima del h1. */

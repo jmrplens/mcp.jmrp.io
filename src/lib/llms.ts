@@ -215,7 +215,11 @@ export function buildLlmsTxt(): string {
       const catalog = actionCatalogs[server.id];
       if (!catalog) return [];
       return catalog.domains.map((domain) => {
-        const url = actionsDomainPageUrl(DEFAULT_LANG, server.id, domain.domain);
+        const url = actionsDomainPageUrl(
+          DEFAULT_LANG,
+          server.id,
+          domain.domain,
+        );
         const noun = domain.count === 1 ? "action" : "actions";
         // The two counts are the fact a caller most needs before choosing an
         // action: how many of them only read, and how many can destroy

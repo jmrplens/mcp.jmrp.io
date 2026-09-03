@@ -302,10 +302,7 @@ export function createPageDatesResolver(): (pathname: string) => PageDates {
   };
   const cache = new Map<string, PageDates>();
 
-  const datesFor = (
-    contentSources: string[],
-    routeFile: string,
-  ): PageDates => {
+  const datesFor = (contentSources: string[], routeFile: string): PageDates => {
     const key = `${routeFile} ${contentSources.join(" ")}`;
     let dates = cache.get(key);
     if (!dates) {

@@ -191,11 +191,12 @@ export function stageNginxSnippets(
     "}",
   ].join("\n");
 
-  // Every other route on the site answers 308 to its slashless form, from a
-  // hand-written `location =` in the vhost. The action pages never got one:
-  // there are fifty-six of them, which is exactly why nobody wrote them by
-  // hand, and their prefix block does `try_files ${uri}index.html =404`, so
-  // `/servers/gitlab/actions/issue` resolved to `issueindex.html` and 404'd.
+  // Every other route on the site answers 308 when its trailing slash is
+  // dropped, from a hand-written `location =` in the vhost. The action pages
+  // never got one: there are fifty-six of them, which is exactly why nobody
+  // wrote them by hand, and their prefix block does
+  // `try_files ${uri}index.html =404`, so a path ending in `/issue` resolved
+  // to a file named `issue` with `index.html` glued to it, and missed.
   // A regex `location` could not rescue it either, because `^~` on the prefix
   // block outranks every regex. That matters more here than it looks: these
   // are the deep pages an assistant cites, and assistants routinely emit URLs
@@ -206,10 +207,7 @@ export function stageNginxSnippets(
   // `location =` is a configuration error — `nginx -t` would fail the deploy.
   const redirects = pages
     .filter((page) => ACTIONS_PAGE.test(page))
-    .map(
-      (page) =>
-        `location = ${page.slice(0, -1)} { return 308 ${page}; }`,
-    )
+    .map((page) => `location = ${page.slice(0, -1)} { return 308 ${page}; }`)
     .join("\n");
 
   writeSnippet(`${PREFIX}md_twin_locations.conf`, `${locations}\n`);
