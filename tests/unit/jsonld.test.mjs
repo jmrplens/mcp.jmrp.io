@@ -839,3 +839,49 @@ test("the 404 declares no identity and does not ask to be indexed", () => {
     "the 404 does not ask for noindex",
   );
 });
+
+test("an action-domain page says what it holds, and every anchor it names is real", () => {
+  // These 56 pages are the largest thing the site publishes — 747 operations
+  // with ids, titles, parameters and destructive flags — and their graph used
+  // to be four nodes of boilerplate. Diffing /issue/ against /pipeline/
+  // produced a difference of four strings: nothing said the pages held
+  // anything at all.
+  //
+  // The last assertion is the one that matters most. Emitting a `url` per
+  // action is only worth the bytes if the fragment exists; a list of anchors
+  // resolving nowhere is a worse claim than no list, and exactly the kind of
+  // thing that rots silently the next time the page's markup changes.
+  const domainPages = fs
+    .readdirSync(DIST, { recursive: true })
+    .map(String)
+    .filter((f) => /servers\/[^/]+\/actions\/[^/]+\/index\.html$/.test(f));
+  assert.ok(domainPages.length > 0, "no action-domain pages were built");
+
+  for (const page of domainPages) {
+    const graph = graphOf(page);
+    const reference = graph.find((n) => n["@type"] === "APIReference");
+    const list = graph.find((n) => n["@type"] === "ItemList");
+    assert.ok(reference, `${page}: no APIReference node`);
+    assert.ok(list, `${page}: no ItemList node`);
+    assert.equal(
+      reference.hasPart["@id"],
+      list["@id"],
+      `${page}: the reference does not point at its own list`,
+    );
+    assert.equal(
+      list.numberOfItems,
+      list.itemListElement.length,
+      `${page}: numberOfItems disagrees with the list it counts`,
+    );
+
+    const html = fs.readFileSync(new URL(page, DIST), "utf8");
+    const ids = new Set([...html.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+    for (const item of list.itemListElement) {
+      const fragment = item.url.split("#", 2)[1];
+      assert.ok(
+        ids.has(fragment),
+        `${page}: the list names #${fragment}, which is not on the page`,
+      );
+    }
+  }
+});
