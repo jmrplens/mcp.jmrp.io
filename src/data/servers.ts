@@ -555,8 +555,8 @@ export const servers: McpServer[] = [
             es: "Comprobarlo tú mismo: el código de esta página es público, y el del servidor también.",
           },
           {
-            en: "Use the narrowest credential the server accepts, which here is a personal access token scoped to api, sent as Bearer. A read_api token is refused: this deployment checks the scope once, against what its full tool set could need, not per call — so read-only credentials do not get a read-only subset, they get an error.",
-            es: "Usar la credencial más estrecha que el servidor acepte, que aquí es un personal access token con alcance api, enviado como Bearer. Un token read_api se rechaza: este despliegue comprueba el alcance una vez, contra lo que podría necesitar su conjunto entero de herramientas, y no llamada a llamada — así que una credencial de solo lectura no obtiene un subconjunto de solo lectura, obtiene un error.",
+            en: "Use the narrowest credential that does what you need. A token scoped to read_api is admitted and gets the read-only part of the surface: it cannot break anything, and it is the right one for trying the server out. api is only needed to reach the actions that write. The server decides per action, not once at the door, so asking for less is served less rather than refused.",
+            es: "Usar la credencial más estrecha que te sirva. Un token con alcance read_api se admite y obtiene la parte de sólo lectura de la superficie: no puede romper nada, y es el adecuado para probar el servidor. api sólo hace falta para llegar a las acciones que escriben. El servidor decide acción por acción, no una vez en la puerta, así que pedir menos te sirve menos en lugar de rechazarte.",
           },
           {
             en: "Revoke it when you are done testing.",
