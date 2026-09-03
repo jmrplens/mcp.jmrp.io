@@ -868,9 +868,7 @@ export async function buildSiteGraph(
   // page. They render on the server cards now, and the graph follows the DOM
   // rather than the other way round: `speakable` nominates these exact ids, so
   // a page may only nominate ids it actually carries.
-  const noticeServers = isHome
-    ? servers
-    : servers.filter((server) => server.id === targetServer?.id);
+  const noticeServers = serversWithNoticesOn(isHome, targetServer);
 
   // The full WebAPI+SoftwareApplication (and matching SoftwareSourceCode)
   // node: built ONLY when this page IS that server's own card — see
@@ -1159,6 +1157,28 @@ export async function buildSiteGraph(
     "@context": "https://schema.org",
     "@graph": graph,
   };
+}
+
+/**
+ * Whose notices a page renders, which is what lets it declare a `FAQPage`.
+ *
+ * The home page shows both servers'; a server's own card shows only its own;
+ * every other page shows none and therefore claims none. It used to be
+ * `isHome` alone, because the folds only existed on the home page — they
+ * render on the server cards now, and the graph follows the DOM rather than
+ * the other way round, since `speakable` nominates these exact ids and a page
+ * may only nominate ids it carries.
+ *
+ * @param isHome Whether this is one of the two home pages.
+ * @param targetServer The server whose card this page is, if it is one.
+ * @returns The servers whose notices are on this page, possibly none.
+ */
+function serversWithNoticesOn(
+  isHome: boolean,
+  targetServer: McpServer | undefined,
+): McpServer[] {
+  if (isHome) return servers;
+  return servers.filter((server) => server.id === targetServer?.id);
 }
 
 /**
