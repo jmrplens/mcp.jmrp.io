@@ -1970,7 +1970,7 @@
         ],
         "priority": 0.6
       },
-      "description": "Get details for a single commit by SHA. Returns short_id, title, message, author, committer, authored/committed dates, parent commits, web URL, and stats (additions/deletions).",
+      "description": "Get details for a single commit by SHA. Returns short_id, title, message, author, committer, authored/committed dates, parent commits, web URL, and stats (additions, deletions and their total).",
       "icons": [
         {
           "mimeType": "image/svg+xml",
@@ -3674,7 +3674,8 @@
             "type": "integer"
           },
           "query": {
-            "description": "Search terms combining a GitLab domain or resource with a verb, filter, or object name, such as project create, merge request approve, pipeline retry, issue delete, or ci variable.",
+            "description": "Search terms combining a GitLab domain or resource with a verb, filter, or object name, such as project create, merge request approve, pipeline retry, issue delete, or ci variable. At most 256 characters: a longer query is refused, not truncated.",
+            "maxLength": 256,
             "type": "string"
           }
         },
