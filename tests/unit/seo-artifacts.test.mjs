@@ -291,8 +291,8 @@ test("no markdown twin is an orphan", () => {
   // announcement is now derived from the twin ROUTES rather than guessed from
   // the page, the two sets should be exactly equal.
   // Read the announcements out of the built HTML rather than from `pages()`,
-  // which deliberately omits the action-domain pages — and those are 56 of
-  // the 72 twins.
+  // which deliberately omits the action-domain pages — and those are most of
+  // the twins.
   const all = fs.readdirSync(DIST, { recursive: true }).map(String);
   const announced = new Set();
   for (const file of all) {
@@ -310,10 +310,34 @@ test("no markdown twin is an orphan", () => {
       `${twin}: built, but no page announces it — an orphan twin`,
     );
   }
+  // The other direction: a page that announces a twin the build never wrote.
+  // A reader following that `<link>` gets a 404 from a document the page
+  // itself promised, which is worse than having no twin at all.
+  for (const twin of announced) {
+    assert.ok(
+      built.includes(twin),
+      `${twin}: announced by a page, but never built`,
+    );
+  }
+
+  // Equality of the two sets, and NOT a hard-coded total. There used to be a
+  // literal 72 here, and it was the wrong shape of check: the action-domain
+  // pages are generated from whatever the gitlab server currently exposes, so
+  // the number moves whenever that server gains a domain upstream. On
+  // 2026-09-07 it gained `achievement`, and a routine card refresh turned the
+  // gate red for a page that was correct and correctly announced.
+  //
+  // The floor stays, because set equality alone is satisfied by a build that
+  // emitted nothing at all: both sides would be empty and the test would pass
+  // on a catastrophe.
   assert.equal(
     built.length,
-    72,
-    `expected 72 twins, found ${built.length} — a page gained or lost one`,
+    announced.size,
+    `${built.length} twins built but ${announced.size} announced — the two sets have drifted`,
+  );
+  assert.ok(
+    built.length > 60,
+    `only ${built.length} twins — the build emitted far fewer pages than this site has`,
   );
 });
 
