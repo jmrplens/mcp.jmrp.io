@@ -4,9 +4,9 @@
     "resourceUri": "gitlab://tools",
     "surface": "dynamic",
     "uriTemplate": "gitlab://tools/{id}",
-    "sourceVersion": "branch:main",
-    "entryCount": 748,
-    "actionCount": 747,
+    "sourceVersion": "2.7.5",
+    "entryCount": 755,
+    "actionCount": 754,
     "visibleTools": [
       {
         "name": "gitlab_execute_action",
@@ -23,7 +23,7 @@
     ],
     "ttlMs": 300000,
     "cacheScope": "private",
-    "generatedAt": "2026-09-01T23:18:05Z"
+    "generatedAt": "2026-09-05T14:56:02Z"
   },
   "domains": [
     {
@@ -88,9 +88,9 @@
     },
     {
       "domain": "issue",
-      "count": 59,
-      "destructiveCount": 7,
-      "readOnlyCount": 31
+      "count": 66,
+      "destructiveCount": 8,
+      "readOnlyCount": 33
     },
     {
       "domain": "job",
@@ -120,7 +120,7 @@
       "domain": "package",
       "count": 29,
       "destructiveCount": 8,
-      "readOnlyCount": 12
+      "readOnlyCount": 11
     },
     {
       "domain": "pipeline",
@@ -4393,11 +4393,121 @@
       "domain": "issue",
       "destructive": false,
       "read_only": true,
-      "description": "List work items in a project or group namespace with filtering and cursor pagination. Returns: matching work items with type, state, title, author, labels, child work items, and timestamps. Experimental. See also: issue.work_item_get, issue.work_item_create, issue.work_item_type_list.",
+      "description": "List work items in a project or group namespace with filtering and cursor pagination. Returns: matching work items with type, state, title, author, assignees, labels, linked items, child work items, timestamps, and the next-page cursor. Experimental. See also: issue.work_item_get, issue.work_item_create, issue.work_item_type_list.",
       "required_params": [
         {
           "name": "full_path",
           "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "issue.work_item_saved_view_create",
+      "title": "Work Item Saved View Create",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false,
+      "description": "Create a work item saved view under a namespace. Returns: the created view with id, global id, name, private flag, subscription state, sort order, filters, and display settings. Experimental: the Work Item Saved Views API is a work in progress and may introduce breaking changes even between minor versions. See also: issue.work_item_saved_view_list, issue.work_item_saved_view_update, issue.work_item_saved_view_get.",
+      "required_params": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "namespace_path",
+          "type": "string"
+        },
+        {
+          "name": "sort",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "issue.work_item_saved_view_delete",
+      "title": "Work Item Saved View Delete",
+      "domain": "issue",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete a work item saved view permanently by numeric ID. Returns: a success confirmation naming the view. Experimental: the Work Item Saved Views API is a work in progress and may introduce breaking changes even between minor versions. See also: issue.work_item_saved_view_get, issue.work_item_saved_view_list.",
+      "required_params": [
+        {
+          "name": "saved_view_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "issue.work_item_saved_view_get",
+      "title": "Work Item Saved View Get",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a single work item saved view by namespace path and numeric ID. Returns: id, global id, name, description, private flag, subscription state, sort order, filters, and display settings. Experimental: the Work Item Saved Views API is a work in progress and may introduce breaking changes even between minor versions. See also: issue.work_item_saved_view_list, issue.work_item_saved_view_update, issue.work_item_saved_view_delete.",
+      "required_params": [
+        {
+          "name": "namespace_path",
+          "type": "string"
+        },
+        {
+          "name": "saved_view_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "issue.work_item_saved_view_list",
+      "title": "Work Item Saved View List",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true,
+      "description": "List work item saved views for a group or project namespace with cursor pagination. Returns: id, name, description, private flag, subscription state, and sort order per view, plus pagination cursors. Filters are omitted here, so read one view with gitlab_work_item_saved_view_get. Experimental: the Work Item Saved Views API is a work in progress and may introduce breaking changes even between minor versions. See also: issue.work_item_saved_view_get, issue.work_item_saved_view_create, issue.work_item_list.",
+      "required_params": [
+        {
+          "name": "namespace_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "issue.work_item_saved_view_subscribe",
+      "title": "Work Item Saved View Subscribe",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false,
+      "description": "Subscribe the authenticated user to a work item saved view. Returns: the view with the updated subscription state. Experimental: the Work Item Saved Views API is a work in progress and may introduce breaking changes even between minor versions. See also: issue.work_item_saved_view_unsubscribe, issue.work_item_saved_view_get, issue.work_item_saved_view_list.",
+      "required_params": [
+        {
+          "name": "saved_view_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "issue.work_item_saved_view_unsubscribe",
+      "title": "Work Item Saved View Unsubscribe",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false,
+      "description": "Unsubscribe the authenticated user from a work item saved view. Returns: the view with the updated subscription state. Experimental: the Work Item Saved Views API is a work in progress and may introduce breaking changes even between minor versions. See also: issue.work_item_saved_view_subscribe, issue.work_item_saved_view_get, issue.work_item_saved_view_list.",
+      "required_params": [
+        {
+          "name": "saved_view_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "issue.work_item_saved_view_update",
+      "title": "Work Item Saved View Update",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": false,
+      "description": "Update a work item saved view by numeric ID. Returns: the updated view with id, global id, name, private flag, subscription state, sort order, filters, and display settings. Experimental: the Work Item Saved Views API is a work in progress and may introduce breaking changes even between minor versions. See also: issue.work_item_saved_view_get, issue.work_item_saved_view_list, issue.work_item_saved_view_delete.",
+      "required_params": [
+        {
+          "name": "saved_view_id",
+          "type": "integer"
         }
       ]
     },
@@ -6304,7 +6414,7 @@
       "title": "Package Download",
       "domain": "package",
       "destructive": false,
-      "read_only": true,
+      "read_only": false,
       "description": "Download a single file from the Generic Package Registry to a local path. Returns: the local output path, byte size, and SHA256 checksum. See also: package.file_list, package.list.",
       "required_params": [
         {
