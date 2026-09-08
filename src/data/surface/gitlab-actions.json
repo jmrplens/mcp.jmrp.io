@@ -23,7 +23,7 @@
     ],
     "ttlMs": 300000,
     "cacheScope": "private",
-    "generatedAt": "2026-09-06T23:47:30Z"
+    "generatedAt": "2026-09-08T15:51:48Z"
   },
   "domains": [
     {
@@ -572,7 +572,7 @@
       "domain": "access",
       "destructive": false,
       "read_only": false,
-      "description": "Invite a user to a group by email or user ID with an access level. Returns: an invitation result with status and per-email messages. See also: access.invite_list_group, group.group_member_add, access.request_group.",
+      "description": "Invite a user to a group by email or user ID with an access level. Returns: an invitation result with status, per-email messages, and any users queued for administrator approval. See also: access.invite_list_group, group.group_member_add, access.request_group.",
       "required_params": [
         {
           "name": "access_level",
@@ -618,7 +618,7 @@
       "domain": "access",
       "destructive": false,
       "read_only": false,
-      "description": "Invite a user to a project by email or user ID with an access level. Returns: an invitation result with status and per-email messages. See also: access.invite_list_project, project.member_add, access.request_project.",
+      "description": "Invite a user to a project by email or user ID with an access level. Returns: an invitation result with status, per-email messages, and any users queued for administrator approval. See also: access.invite_list_project, project.member_add, access.request_project.",
       "required_params": [
         {
           "name": "access_level",
@@ -1280,7 +1280,7 @@
       "domain": "branch",
       "destructive": false,
       "read_only": true,
-      "description": "List a project's aggregated branch protection rules by full project path. Returns: each branch rule with its matched pattern, default and protected flags, matching branch count, branch protection settings (allow force push, code-owner approval required), approval rules, external status checks, and keyset pagination metadata. See also: branch.list_protected, branch.get_protected, project.get.",
+      "description": "List a project's aggregated branch protection rules by full project path. Returns: each branch rule with its matched pattern, default and protected flags, matching branch count, branch protection settings (allow force push, code-owner approval required), approval rules, external status checks, and keyset pagination metadata. Pages forward only: this GitLab connection takes first and after, and rejects last and before. See also: branch.list_protected, branch.get_protected, project.get.",
       "required_params": [
         {
           "name": "project_path",
@@ -4525,7 +4525,7 @@
       "domain": "issue",
       "destructive": false,
       "read_only": false,
-      "description": "Create a new work item under a namespace. Returns: the created work item with id, iid, type, state, title, description, assignees, labels, linked items, child work items, and web URL. Experimental. See also: issue.work_item_get, issue.work_item_list, issue.work_item_type_list.",
+      "description": "Create a new work item under a namespace. Returns: the created work item with id, iid, type, state, title, description, assignees, labels, linked items, parent and child work items, milestone, iteration, weight, health status, color, start and due dates, and web URL. Experimental. See also: issue.work_item_get, issue.work_item_list, issue.work_item_type_list.",
       "required_params": [
         {
           "name": "full_path",
@@ -4565,7 +4565,7 @@
       "domain": "issue",
       "destructive": false,
       "read_only": true,
-      "description": "Get a single work item by namespace path and IID. Returns: id, iid, type, state, status, title, description, author, assignees, labels, linked items, child work items, confidentiality, timestamps, and web URL. Experimental. See also: issue.work_item_list, issue.work_item_update, issue.work_item_delete.",
+      "description": "Get a single work item by namespace path and IID. Returns: id, iid, type, state, status, title, description, author, assignees, labels, linked items, parent and child work items, milestone, iteration, weight, health status, color, start and due dates, confidentiality, timestamps, and web URL. Experimental. See also: issue.work_item_list, issue.work_item_update, issue.work_item_delete.",
       "required_params": [
         {
           "name": "full_path",
@@ -4583,7 +4583,7 @@
       "domain": "issue",
       "destructive": false,
       "read_only": true,
-      "description": "List work items in a project or group namespace with filtering and cursor pagination. Returns: matching work items with type, state, title, author, assignees, labels, linked items, child work items, timestamps, and the next-page cursor. Experimental. See also: issue.work_item_get, issue.work_item_create, issue.work_item_type_list.",
+      "description": "List work items in a project or group namespace with filtering and cursor pagination. Returns: matching work items with type, state, title, author, assignees, labels, linked items, parent and child work items, milestone, start and due dates, timestamps, and the cursors for the next and previous pages. On Premium and Ultimate instances the status, weight, health status, iteration and color of each item come back too. returned_fields narrows that set to the fields named, which shrinks a large page without changing which work items match. Pages in both directions: first with after walks forward, last with before walks back. Experimental. See also: issue.work_item_get, issue.work_item_create, issue.work_item_type_list.",
       "required_params": [
         {
           "name": "full_path",
@@ -4721,7 +4721,7 @@
       "domain": "issue",
       "destructive": false,
       "read_only": false,
-      "description": "Update an existing work item by namespace path and IID. Returns: the updated work item with id, iid, type, state, status, title, description, assignees, labels, linked items, child work items, and web URL. Experimental. See also: issue.work_item_get, issue.work_item_delete, issue.work_item_list.",
+      "description": "Update an existing work item by namespace path and IID. Returns: the updated work item with id, iid, type, state, status, title, description, assignees, labels, linked items, parent and child work items, milestone, iteration, weight, health status, color, start and due dates, and web URL. Experimental. See also: issue.work_item_get, issue.work_item_delete, issue.work_item_list.",
       "required_params": [
         {
           "name": "full_path",
@@ -5177,7 +5177,7 @@
       "domain": "merge_request",
       "destructive": false,
       "read_only": true,
-      "description": "Get the approval configuration of a merge request. Returns: approvals required and left, approved-by users with timestamps, suggested approvers, approver groups, and the remaining approval rules. See also: merge_request.approve.",
+      "description": "Get the approvals of a merge request. Returns: whether it is approved, the approved-by users with timestamps, and whether the calling user has approved and may approve. For approvals required and left, use the approval state. See also: merge_request.approve.",
       "required_params": [
         {
           "name": "merge_request_iid",
@@ -8085,7 +8085,7 @@
       "domain": "project",
       "destructive": false,
       "read_only": false,
-      "description": "Create a fork relationship to an upstream project. Returns: a confirmation of the new relation. See also: project.delete_fork_relation, project.fork.",
+      "description": "Create a fork relationship to an upstream project. Returns: the downstream project as GitLab answers with it, including forked_from_project. See also: project.delete_fork_relation, project.fork.",
       "required_params": [
         {
           "name": "forked_from_id",
