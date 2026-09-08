@@ -3465,6 +3465,16 @@
     "websiteUrl": "https://jmrp.io/docs/gitlab-mcp-server"
   },
   "subscriptions": {
+    "end_reason_meta_key": "io.github.jmrplens/watch-end",
+    "end_reasons": [
+      "credential_evicted",
+      "credential_reset",
+      "credential_revoked",
+      "resource_gone",
+      "lifetime_reached",
+      "watcher_evicted",
+      "shutdown"
+    ],
     "methods": {
       "resources/subscribe": {
         "available": false,
