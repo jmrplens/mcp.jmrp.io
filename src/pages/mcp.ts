@@ -87,9 +87,13 @@ function respond(): Response {
       status: 404,
       headers: {
         "content-type": "application/json; charset=utf-8",
-        // Same as every other machine-readable document here: readable by a
-        // browser-based client from any origin, since it is public, static
-        // for every caller and carries no credential.
+        // Inert here, like the status: this route is prerendered, so nginx
+        // serves the file and none of these headers reach the wire. The
+        // vhost supplies the real ones on the location that serves this
+        // body, and it has to, because a browser-based MCP client that
+        // guessed /mcp was getting the document and then being refused it by
+        // its own origin check. Kept so `astro dev` behaves like the
+        // deployed site: public, static for every caller, no credential.
         "access-control-allow-origin": "*",
         "cache-control": "public, max-age=3600",
       },
