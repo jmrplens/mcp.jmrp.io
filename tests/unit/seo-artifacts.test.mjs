@@ -1172,7 +1172,7 @@ test("the discovery catalog and the server cards agree", () => {
     // the drift the discovery spec calls a downgrade vector.
     assert.ok(
       entry.displayName,
-      `${entry.identifier}: sin displayName (lo exige el esquema del catálogo)`,
+      `${entry.identifier}: no displayName, which the catalog schema requires`,
     );
 
     // The card's URL has to really exist in the build. The vhost serves it
@@ -1203,7 +1203,7 @@ test("the discovery catalog and the server cards agree", () => {
     assert.equal(
       entry.displayName,
       card.title,
-      `${path}: el catálogo lo llama "${entry.displayName}" y su card "${card.title}"`,
+      `${path}: the catalog calls it "${entry.displayName}", its card "${card.title}"`,
     );
 
     // The extension puts this on the remote so a client can pick a version
@@ -1215,24 +1215,24 @@ test("the discovery catalog and the server cards agree", () => {
     const versions = card.remotes?.[0]?.supportedProtocolVersions;
     assert.ok(
       Array.isArray(versions) && versions.length > 0,
-      `${path}: remotes[0] sin supportedProtocolVersions`,
+      `${path}: remotes[0] has no supportedProtocolVersions`,
     );
     for (const version of versions) {
       assert.match(
         version,
         /^\d{4}-\d{2}-\d{2}$/,
-        `${path}: "${version}" no tiene forma de versión de protocolo`,
+        `${path}: "${version}" is not shaped like a protocol version`,
       );
     }
     assert.equal(
       new Set(versions).size,
       versions.length,
-      `${path}: supportedProtocolVersions repite valores`,
+      `${path}: supportedProtocolVersions repeats a value`,
     );
     assert.deepEqual(
       versions,
       versions.toSorted((a, b) => b.localeCompare(a)),
-      `${path}: supportedProtocolVersions no va de más nueva a más vieja`,
+      `${path}: supportedProtocolVersions is not newest-first`,
     );
 
     // The card's endpoint must be one of the real ones, not the card's own URL.
