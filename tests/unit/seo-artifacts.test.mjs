@@ -1165,6 +1165,16 @@ test("the discovery catalog and the server cards agree", () => {
       `${entry.identifier}: wrong type`,
     );
 
+    // Required by the AI Catalog's own schema (ards-project/ard-spec,
+    // $defs.catalogEntry.required), which rejected this document while the
+    // entries carried only identifier/type/url. It must be the card's title,
+    // not the page copy: two documents naming the same server differently is
+    // the drift the discovery spec calls a downgrade vector.
+    assert.ok(
+      entry.displayName,
+      `${entry.identifier}: sin displayName (lo exige el esquema del catálogo)`,
+    );
+
     // The card's URL has to really exist in the build. The vhost serves it
     // with a `location =`, which beats the proxy's `^~ /libgen`.
     const path = new URL(entry.url).pathname.replace(/^\//, "");
@@ -1188,6 +1198,41 @@ test("the discovery catalog and the server cards agree", () => {
     assert.ok(
       card.title && card.title !== card.name.split("/").pop(),
       `${path}: title is the bare id, not the name the running server reports`,
+    );
+
+    assert.equal(
+      entry.displayName,
+      card.title,
+      `${path}: el catálogo lo llama "${entry.displayName}" y su card "${card.title}"`,
+    );
+
+    // The extension puts this on the remote so a client can pick a version
+    // BEFORE connecting. Shape only, deliberately: the values are measured
+    // against the running servers (see servers.ts) and pinning them here
+    // would just copy the data, so what is pinned is what cannot drift —
+    // every entry is a protocol date, none repeats, and the newest is first,
+    // which is the order a client reads to pick one.
+    const versions = card.remotes?.[0]?.supportedProtocolVersions;
+    assert.ok(
+      Array.isArray(versions) && versions.length > 0,
+      `${path}: remotes[0] sin supportedProtocolVersions`,
+    );
+    for (const version of versions) {
+      assert.match(
+        version,
+        /^\d{4}-\d{2}-\d{2}$/,
+        `${path}: "${version}" no tiene forma de versión de protocolo`,
+      );
+    }
+    assert.equal(
+      new Set(versions).size,
+      versions.length,
+      `${path}: supportedProtocolVersions repite valores`,
+    );
+    assert.deepEqual(
+      versions,
+      versions.toSorted((a, b) => b.localeCompare(a)),
+      `${path}: supportedProtocolVersions no va de más nueva a más vieja`,
     );
 
     // The card's endpoint must be one of the real ones, not the card's own URL.

@@ -14,8 +14,14 @@
  * on disk differs.
  *
  * Identifiers use the domain-anchored `urn:air:{publisher}:{namespace}:{name}`
- * form. Entries deliberately do NOT repeat the cards' title/description: the
- * spec says to read those from the card, so they cannot drift out of sync.
+ * form. Entries carry `displayName` and nothing else human-readable, which is
+ * the narrowest answer to two specs that disagree: the MCP server-card
+ * extension's discovery document says "an entry does not need to repeat the
+ * Server Card's human-readable fields", while the AI Catalog's own schema
+ * (`ards-project/ard-spec`, `spec/schemas/ai-catalog.schema.json`, `$defs`
+ * `.catalogEntry.required`) lists `displayName` as required and rejected this
+ * document without it. One field satisfies both. `description` stays out, so
+ * the prose that CAN drift is still read from the card.
  */
 import type { APIRoute } from "astro";
 
@@ -42,6 +48,10 @@ export const GET: APIRoute = () => {
     },
     entries: servers.map((server) => ({
       identifier: `urn:air:jmrp.io:mcp:${server.id}`,
+      // The card's own title, not the page copy: the two documents must not
+      // disagree about what the server is called, and the card is the one a
+      // client reads next.
+      displayName: server.card.title,
       type: "application/mcp-server-card+json",
       url: `${server.endpoint}/server-card`,
     })),
