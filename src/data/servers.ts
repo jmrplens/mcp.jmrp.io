@@ -500,7 +500,7 @@ export const servers: McpServer[] = [
         "Free hosted GitLab MCP: 700+ operations with your own gitlab.com token, never written to disk.",
     },
     nativeCard: true,
-    version: "2.7.5",
+    version: "3.0.0",
     endpoint: "https://mcp.jmrp.io/gitlab",
     repo: "https://github.com/jmrplens/gitlab-mcp-server",
     docs: "https://github.com/jmrplens/gitlab-mcp-server#readme",
