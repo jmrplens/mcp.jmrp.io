@@ -29,10 +29,18 @@ import { liveVersion } from "../../lib/live-version";
  * @returns The static paths, with the server passed through as a prop.
  */
 export const getStaticPaths: GetStaticPaths = () =>
-  servers.map((server) => ({
-    params: { server: server.id },
-    props: { server },
-  }));
+  // Only the servers whose card THIS SITE publishes. A server with
+  // `ownServerCard` serves the SEP-2127 document itself at the same URL, and
+  // emitting a second copy here would leave an unserved build artifact that
+  // the tests keep validating -- confidence in a file nobody fetches. See
+  // `ownServerCard` in src/data/servers.ts for what has to be measured before
+  // setting it.
+  servers
+    .filter((server) => !server.ownServerCard)
+    .map((server) => ({
+      params: { server: server.id },
+      props: { server },
+    }));
 
 /**
  * Builds the Server Card for one server.
