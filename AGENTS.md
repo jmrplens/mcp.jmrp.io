@@ -11,8 +11,10 @@ with one Preact island, bilingual (English at the root, Spanish under `/es/`).
 **This repo is NOT jmrp.io.** It serves a different domain, with its own
 deployment and its own nginx configuration.
 
-The MCP servers' infrastructure (Portainer stack, egress through the VPSs,
-updates) is documented separately, in `/root/mcp_server_info.md` on the server.
+The MCP servers' infrastructure (the compose stack, egress through the VPSs,
+updates) is documented separately, in `ops/mcp_server_info.md` — a gitignored
+subtree of this repository, not a file under `/root`. Portainer is view-only
+and is no longer in the deploy path.
 
 ## Constraints that cannot be broken
 
@@ -155,7 +157,7 @@ Refresh the snapshot with `pnpm run identity:sync`. CI watches it with
 1. One entry in `src/data/servers.ts`.
 2. In the vhost, an `upstream` and a `location ^~`, then `nginx -t` and a
    reload.
-3. One line in the `SERVICES` array of `/root/scripts/mcp_update.sh`.
+3. One line in the `SERVICES` array of `ops/scripts/mcp_update.sh`.
 
 Neither the markup nor the DNS needs touching. And the CSP's `connect-src
 'self'` still holds: **every MCP always hangs off `mcp.jmrp.io`**.

@@ -19,15 +19,20 @@ import { SITE_ORIGIN } from "../lib/seo";
  * spec has to "there is nothing at this address", and the same one a server
  * returns for a method it does not implement.
  *
- * THE STATUS IS 200, not the 404 the `Response` below asks for. This route is
- * prerendered: the build writes the body to `dist/mcp` and nginx serves that
- * file, so the status set here never reaches the wire. Left as it is rather
- * than papered over, because 200 is the right answer anyway — JSON-RPC carries
- * failures in the `error` member of a successful HTTP response, which is
- * exactly what every MCP client is built to read, and a hard 404 is what those
- * clients were already getting when this path returned the site's HTML page.
- * If it ever has to be a real 404, that is nginx's job (`return 404` with the
- * body inline), and the cost is duplicating this document in the vhost.
+ * THE STATUS SET HERE NEVER REACHES THE WIRE, and that is still true. This
+ * route is prerendered: the build writes the body to `dist/mcp` and nginx
+ * serves that file, so the `Response` status below is inert. What changed on
+ * 2026-09-10 is what nginx does with it. It used to serve the file with a
+ * plain 200 while the vhost comment claimed a 404, and a POST — the only case
+ * this document exists for — never got the body at all, because the static
+ * handler answers a non-GET with its HTML 405 page.
+ *
+ * The vhost now answers `/mcp` with `return 404` for every method and serves
+ * this body from an internal location, so the wire carries 404 with the
+ * JSON-RPC error, for GET, HEAD and POST alike. That is what the 2026-07-28
+ * transport asks for: an unimplemented method is "404 Not Found and a
+ * JSON-RPC error with code -32601". Keep the 404 below in step with it, so
+ * `astro dev` and the deployed site agree.
  *
  * `endpoints` is built from `servers.ts` rather than written out, so a third
  * MCP server appears here the moment it is registered — this file has no list
@@ -82,9 +87,13 @@ function respond(): Response {
       status: 404,
       headers: {
         "content-type": "application/json; charset=utf-8",
-        // Same as every other machine-readable document here: readable by a
-        // browser-based client from any origin, since it is public, static
-        // for every caller and carries no credential.
+        // Inert here, like the status: this route is prerendered, so nginx
+        // serves the file and none of these headers reach the wire. The
+        // vhost supplies the real ones on the location that serves this
+        // body, and it has to, because a browser-based MCP client that
+        // guessed /mcp was getting the document and then being refused it by
+        // its own origin check. Kept so `astro dev` behaves like the
+        // deployed site: public, static for every caller, no credential.
         "access-control-allow-origin": "*",
         "cache-control": "public, max-age=3600",
       },

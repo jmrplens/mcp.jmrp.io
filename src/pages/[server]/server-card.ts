@@ -91,6 +91,13 @@ export const GET: APIRoute = async ({ props }) => {
       {
         type: "streamable-http",
         url: server.endpoint,
+        // Optional in the extension's schema ($defs.Remote), but the
+        // discovery document asks a card not to contradict what a connected
+        // client observes, and a client that reads this can pick a version
+        // BEFORE connecting instead of negotiating by trial. The values are
+        // measured, not assumed — see `supportedProtocolVersions` in
+        // src/data/servers.ts.
+        supportedProtocolVersions: server.supportedProtocolVersions,
         ...(headers.length > 0 && { headers }),
       },
     ],

@@ -131,6 +131,20 @@ export type McpServer = {
    * `initialize` response where the two disagree.
    */
   version: string;
+  /**
+   * Protocol versions the running server accepts, newest first.
+   *
+   * The Server Card extension puts this on the remote and the discovery
+   * document says a card "SHOULD accurately reflect the server's runtime
+   * behavior", naming `supportedVersions` among the values that "SHOULD NOT
+   * contradict" what a connected client observes. Omitting it left a client
+   * with no way to pick a version before connecting.
+   *
+   * Per server, not shared: the two binaries can diverge on their next
+   * release, and a shared constant would hide that. Each entry carries the
+   * measurement that produced it.
+   */
+  supportedProtocolVersions: string[];
   endpoint: string;
   /**
    * What a plain GET to `endpoint` answers.
@@ -317,6 +331,17 @@ export const servers: McpServer[] = [
     // for what that flag actually does (announces it in the RFC 9727 catalog).
     nativeCard: true,
     version: "1.7.2",
+    // Measured 2026-09-10, anonymously: a POST carrying
+    // `MCP-Protocol-Version: 1999-01-01` is answered 400 "Unsupported
+    // protocol version (supported versions: ...)" with exactly this list.
+    // Re-measure rather than copy it if either binary is upgraded.
+    supportedProtocolVersions: [
+      "2026-07-28",
+      "2025-11-25",
+      "2025-06-18",
+      "2025-03-26",
+      "2024-11-05",
+    ],
     endpoint: "https://mcp.jmrp.io/libgen",
     repo: "https://github.com/jmrplens/libgen-mcp",
     docs: "https://github.com/jmrplens/libgen-mcp#readme",
@@ -504,6 +529,18 @@ export const servers: McpServer[] = [
     },
     nativeCard: true,
     version: "3.0.0",
+    // Measured 2026-09-10 against 3.0.0+4d73bc0. Same probe as libgen and,
+    // unlike what the audit assumed, no token is needed: the version check
+    // runs before authorization, so the bad-version POST comes back
+    // unauthenticated as a JSON-RPC -32022 whose `data.supported` is this
+    // list.
+    supportedProtocolVersions: [
+      "2026-07-28",
+      "2025-11-25",
+      "2025-06-18",
+      "2025-03-26",
+      "2024-11-05",
+    ],
     endpoint: "https://mcp.jmrp.io/gitlab",
     repo: "https://github.com/jmrplens/gitlab-mcp-server",
     docs: "https://github.com/jmrplens/gitlab-mcp-server#readme",
