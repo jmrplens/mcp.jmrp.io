@@ -143,6 +143,13 @@ export type McpServer = {
    * Per server, not shared: the two binaries can diverge on their next
    * release, and a shared constant would hide that. Each entry carries the
    * measurement that produced it.
+   *
+   * Only reaches the wire for servers WITHOUT {@link ownServerCard}, since
+   * that flag means the binary publishes the card itself and declares its own
+   * list. Kept for gitlab anyway: it is a measured fact about the running
+   * server, it is what the two values are compared against if they ever
+   * disagree, and deleting measurements because a consumer moved is how a
+   * repository forgets why a number was chosen.
    */
   supportedProtocolVersions: string[];
   endpoint: string;
@@ -293,6 +300,35 @@ export type McpServer = {
    * yet — it answers 405 there.
    */
   nativeCard?: boolean;
+  /**
+   * The server publishes its OWN SEP-2127 Server Card at
+   * `<endpoint>/server-card`, so THIS SITE must not publish one there.
+   *
+   * Different fact from {@link nativeCard}, which is about the SEP-1649
+   * document at the `.well-known` path. This one is about the small,
+   * primitive-free card at the reserved location, and it decides who serves
+   * that URL: the site emits a static card for every server without this
+   * flag, and the vhost has a `location =` that beats the proxy for it.
+   *
+   * gitlab carried a static card until 2026-09-10 because its binary served
+   * the SEP-1649 enumerating document at BOTH of its paths. `3.0.0+41b95a8`
+   * fixed that: `/server-card` is now the SEP-2127 shape (1376 bytes, no
+   * primitives) and the enumerating one stays at the `.well-known` path.
+   * Measured against all three replicas over loopback before the vhost block
+   * was removed.
+   *
+   * The trade is deliberate. The site loses local verification of that card
+   * — the unit tests read build artifacts, never the network — and in
+   * exchange the document is published by the only party that knows the
+   * server's real state, which is what SEP-2127 asks for when it calls cards
+   * advisory and tells clients to prefer the live `initialize`.
+   *
+   * Before setting this for another server, MEASURE its binary: ask the
+   * replica directly over loopback and check the keys. libgen still answers
+   * `/server-card` with the 34952-byte enumerating shape on 1.7.2, so its
+   * static card is still load-bearing.
+   */
+  ownServerCard?: boolean;
   /** Avisos propios de este servidor. */
   notices: McpNotice[];
   /**
@@ -522,6 +558,7 @@ export const servers: McpServer[] = [
     getStatus: 401,
     name: "gitlab",
     registryName: "io.github.jmrplens/gitlab-mcp-server",
+    ownServerCard: true,
     card: {
       title: "GitLab MCP Server",
       description:

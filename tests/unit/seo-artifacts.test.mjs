@@ -20,6 +20,7 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { serverCards } from "../../src/data/server-cards.ts";
+import { servers as serverData } from "../../src/data/servers.ts";
 import { actionsDomainPaths } from "../../src/data/surface.ts";
 import { policies } from "../../src/i18n/ui/policies.ts";
 import {
@@ -1178,6 +1179,25 @@ test("the discovery catalog and the server cards agree", () => {
     // The card's URL has to really exist in the build. The vhost serves it
     // with a `location =`, which beats the proxy's `^~ /libgen`.
     const path = new URL(entry.url).pathname.replace(/^\//, "");
+
+    // ...unless the SERVER publishes that card itself, in which case the URL
+    // is the same but the publisher is not, and the build must NOT emit a
+    // copy. Asserted rather than skipped: an unserved artifact left behind
+    // would otherwise pass every check below while nobody fetched it.
+    // From servers.ts, not from servers.json: the published index carries no
+    // `ownServerCard`, so reading it there would silently be undefined and
+    // this branch would never run.
+    const publisher = serverData.find(
+      (s) => `${s.endpoint}/server-card` === entry.url,
+    );
+    if (publisher?.ownServerCard) {
+      assert.throws(
+        () => read(path),
+        `${path}: the build still emits a card the server publishes itself`,
+      );
+      continue;
+    }
+
     const card = JSON.parse(read(path));
 
     assert.ok(card.name?.includes("/"), `${path}: name no es reverse-DNS`);
