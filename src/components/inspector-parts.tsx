@@ -1,7 +1,7 @@
 import type { Lang } from "../i18n/ui";
 import { ui } from "../i18n/ui";
 import { formatBytes, formatMs } from "../lib/format";
-import type { CatalogTab } from "../lib/inspector-deeplink";
+import { isCatalogTab, type Tab } from "../lib/inspector-deeplink";
 import type {
   McpPrompt,
   McpResource,
@@ -203,7 +203,8 @@ export function Catalog({
   onPickPrompt,
   onPickResource,
 }: Readonly<{
-  tab: CatalogTab;
+  /** Any tab: this panel renders nothing on a document tab. */
+  tab: Tab;
   tools: McpTool[];
   prompts: McpPrompt[];
   resources: McpResource[];
@@ -219,12 +220,17 @@ export function Catalog({
   busy: boolean;
   blocked: boolean;
   lang: Lang;
-  onLoad: () => void;
+  /** Asks for this catalog; receives the tab already narrowed to a catalog. */
+  onLoad: (tab: "tools" | "prompts" | "resources" | "templates") => void;
   onPickTool: (name: string) => void;
   onPickPrompt: (name: string) => void;
   onPickResource: (uri: string) => void;
 }>) {
   const t = ui[lang].insp;
+  // The two panels share the slot and each decides whether it applies, rather
+  // than the inspector choosing between them: that choice was one more branch
+  // in a component already at Sonar's cognitive-complexity limit (S3776).
+  if (!isCatalogTab(tab)) return null;
 
   // A map instead of three chained ternaries: registering another category is
   // one more entry, not another level of nesting.
@@ -260,7 +266,7 @@ export function Catalog({
         <button
           type="button"
           disabled={busy || blocked}
-          onClick={onLoad}
+          onClick={() => onLoad(tab)}
           data-testid={`load-${tab}`}
         >
           {loadLabel}
@@ -391,7 +397,8 @@ export function ServerDocPanel({
   renderMarkdown,
   onLoad,
 }: Readonly<{
-  tab: "instructions" | "server";
+  /** Any tab: this panel renders nothing on a catalog tab. */
+  tab: Tab;
   doc: ServerDoc | undefined;
   busy: boolean;
   blocked: boolean;
@@ -401,6 +408,7 @@ export function ServerDocPanel({
   onLoad: () => void;
 }>) {
   const t = ui[lang].insp;
+  if (isCatalogTab(tab)) return null;
   // Out of the JSX so the markup is not a ternary inside a ternary: a server
   // may answer `initialize` and still send no instructions, and that case
   // deserves its own sentence rather than an empty box.

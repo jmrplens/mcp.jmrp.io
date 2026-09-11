@@ -6,7 +6,6 @@ import type { McpServer } from "../data/servers";
 import { type Lang, ui } from "../i18n/ui";
 import {
   type CatalogTab,
-  isCatalogTab,
   parseDeepLink,
   type Tab,
   TABS,
@@ -209,6 +208,61 @@ function storageHref(lang: Lang): string {
 }
 
 /**
+ * Whether the tab ends in a call that takes arguments: run a tool, render a
+ * prompt. Resources are read with their own button and the other tabs call
+ * nothing, so they get no invocation form.
+ *
+ * Out of the JSX, like {@link docFor}, because the component sits right at
+ * Sonar's cognitive-complexity limit (S3776) and every operator in its body
+ * counts against it.
+ *
+ * @param tab The active tab.
+ * @returns True for tools and prompts.
+ */
+function isInvocable(tab: Tab): tab is "tools" | "prompts" {
+  return tab === "tools" || tab === "prompts";
+}
+
+/**
+ * The `initialize` document kept for the selected server, if it was read.
+ *
+ * @param docs The documents read so far, by server id.
+ * @param server The selected server.
+ * @returns Its document, or undefined.
+ */
+function docFor(
+  docs: Record<string, ServerDoc | undefined>,
+  server: McpServer | undefined,
+): ServerDoc | undefined {
+  return server ? docs[server.id] : undefined;
+}
+
+/**
+ * The visible name of a tab.
+ *
+ * A lookup, not one ternary per tab inside the tab list: each ternary there
+ * counted towards the component's cognitive complexity (S3776), with a
+ * nesting increment for sitting in the `.map` callback, and going from three
+ * tabs to six took the component past Sonar's limit of 15. Same reasoning as
+ * the label map in `Catalog`: another tab is another entry, not another
+ * branch.
+ *
+ * @param t Inspector strings in the page's language.
+ * @param name The tab.
+ * @returns Its label.
+ */
+function tabLabel(t: (typeof ui)[Lang]["insp"], name: Tab): string {
+  return {
+    tools: t.tabTools,
+    prompts: t.tabPrompts,
+    resources: t.tabResources,
+    templates: t.tabTemplates,
+    instructions: t.tabInstructions,
+    server: t.tabServer,
+  }[name];
+}
+
+/**
  * Whether the laid-out view is the one to show.
  *
  * Reader is the default, and since `readerMarkdown` lays out EVERY shape of
@@ -350,9 +404,9 @@ export default function Inspector({
    * Kept per server switch, and cleared by it: a category missing on libgen
    * says nothing about gitlab.
    */
-  const [notOffered, setNotOffered] = useState<
-    Partial<Record<CatalogTab, boolean>>
-  >({});
+  const [notOffered, setNotOffered] = useState<Partial<Record<Tab, boolean>>>(
+    {},
+  );
   /**
    * The `initialize` answer, keyed by server id, behind both document tabs.
    * Keyed rather than cleared on switch: it describes the server, not the
@@ -852,12 +906,7 @@ export default function Inspector({
                 className={tab === name ? "tab is-active" : "tab"}
                 onClick={() => setTab(name)}
               >
-                {name === "tools" ? t.tabTools : null}
-                {name === "prompts" ? t.tabPrompts : null}
-                {name === "resources" ? t.tabResources : null}
-                {name === "templates" ? t.tabTemplates : null}
-                {name === "instructions" ? t.tabInstructions : null}
-                {name === "server" ? t.tabServer : null}
+                {tabLabel(t, name)}
               </button>
             ))}
           </div>
@@ -889,40 +938,37 @@ export default function Inspector({
           id={`panel-${tab}`}
           aria-labelledby={`tab-${tab}`}
         >
-          {isCatalogTab(tab) ? (
-            <Catalog
-              tab={tab}
-              tools={tools}
-              prompts={prompts}
-              resources={resources}
-              templates={templates}
-              notOffered={notOffered[tab] === true}
-              toolName={toolName}
-              promptName={promptName}
-              resourceUri={resourceUri}
-              busy={frozen}
-              blocked={blocked}
-              lang={lang}
-              onLoad={() => {
-                void loadCatalog(tab);
-              }}
-              onPickTool={chooseTool}
-              onPickPrompt={choosePrompt}
-              onPickResource={setResourceUri}
-            />
-          ) : (
-            <ServerDocPanel
-              tab={tab}
-              doc={server ? serverDocs[server.id] : undefined}
-              busy={frozen}
-              blocked={blocked}
-              lang={lang}
-              renderMarkdown={(source) => <Markdown source={source} />}
-              onLoad={() => {
-                void loadServerDoc();
-              }}
-            />
-          )}
+          <Catalog
+            tab={tab}
+            tools={tools}
+            prompts={prompts}
+            resources={resources}
+            templates={templates}
+            notOffered={notOffered[tab] === true}
+            toolName={toolName}
+            promptName={promptName}
+            resourceUri={resourceUri}
+            busy={frozen}
+            blocked={blocked}
+            lang={lang}
+            onLoad={(kind) => {
+              void loadCatalog(kind);
+            }}
+            onPickTool={chooseTool}
+            onPickPrompt={choosePrompt}
+            onPickResource={setResourceUri}
+          />
+          <ServerDocPanel
+            tab={tab}
+            doc={docFor(serverDocs, server)}
+            busy={frozen}
+            blocked={blocked}
+            lang={lang}
+            renderMarkdown={(source) => <Markdown source={source} />}
+            onLoad={() => {
+              void loadServerDoc();
+            }}
+          />
 
           {showRead ? (
             <button
@@ -937,7 +983,7 @@ export default function Inspector({
             </button>
           ) : null}
 
-          {tab === "tools" || tab === "prompts" ? (
+          {isInvocable(tab) ? (
             <InvokePanel
               kind={tab}
               name={tab === "tools" ? toolName : promptName}
