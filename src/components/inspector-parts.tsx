@@ -1,7 +1,13 @@
 import type { Lang } from "../i18n/ui";
 import { ui } from "../i18n/ui";
 import { formatBytes, formatMs } from "../lib/format";
-import type { McpPrompt, McpResource } from "../lib/mcp-catalog";
+import type { CatalogTab } from "../lib/inspector-deeplink";
+import type {
+  McpPrompt,
+  McpResource,
+  McpResourceTemplate,
+  ServerDoc,
+} from "../lib/mcp-catalog";
 import {
   type FormField,
   type McpTool,
@@ -184,6 +190,8 @@ export function Catalog({
   tools,
   prompts,
   resources,
+  templates,
+  notOffered,
   toolName,
   promptName,
   resourceUri,
@@ -195,10 +203,16 @@ export function Catalog({
   onPickPrompt,
   onPickResource,
 }: Readonly<{
-  tab: "tools" | "prompts" | "resources";
+  tab: CatalogTab;
   tools: McpTool[];
   prompts: McpPrompt[];
   resources: McpResource[];
+  templates: McpResourceTemplate[];
+  /**
+   * The server answered this tab's list method with -32601: the category does
+   * not exist on it. Shown as a statement, not as the raw error it used to be.
+   */
+  notOffered: boolean;
   toolName: string;
   promptName: string;
   resourceUri: string;
@@ -230,6 +244,11 @@ export function Catalog({
       load: t.loadResources,
       empty: t.emptyResources,
     },
+    templates: {
+      count: templates.length,
+      load: t.loadTemplates,
+      empty: t.emptyTemplates,
+    },
   }[tab];
 
   return (
@@ -253,7 +272,9 @@ export function Catalog({
         ) : null}
       </div>
 
-      {count === 0 ? <p className="tool-hint">{emptyLabel}</p> : null}
+      {count === 0 ? (
+        <p className="tool-hint">{notOffered ? t.notOffered : emptyLabel}</p>
+      ) : null}
 
       {tab === "tools" && tools.length > 0 ? (
         <label className="field">
@@ -299,6 +320,27 @@ export function Catalog({
         </label>
       ) : null}
 
+      {/* A list, not a <select> like the other catalogs. Those end in an
+          action — run the tool, render the prompt, read the resource — so
+          one entry at a time is the point. A template has no action here: it
+          needs its {placeholders} filled before anything can be read, and
+          what someone wants from 37 of them is to look down the list. */}
+      {tab === "templates" && templates.length > 0 ? (
+        <ul className="template-list">
+          {templates.map((tpl) => (
+            <li key={tpl.uriTemplate || tpl.name}>
+              <code className="template-uri">{tpl.uriTemplate}</code>
+              {tpl.title || tpl.name ? (
+                <span className="template-name">{tpl.title ?? tpl.name}</span>
+              ) : null}
+              {tpl.description ? (
+                <span className="template-desc">{tpl.description}</span>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
       {tab === "resources" && resources.length > 0 ? (
         <label className="field">
           <span>{t.tabResources}</span>
@@ -321,6 +363,127 @@ export function Catalog({
             ))}
           </select>
         </label>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * The two documents an `initialize` result carries: the instructions, and the
+ * rest of what the server says about itself.
+ *
+ * Both come from one call, so the load button is the same for both tabs and
+ * the answer is kept per server: switching between the two does not ask
+ * again. The instructions render as Markdown because that is how servers
+ * write them — libgen's is a numbered WORKFLOW, gitlab's a set of headed
+ * sections — and read as a wall of escaped `\n` in the raw JSON, which until
+ * this tab existed was the only place they could be seen.
+ *
+ * @param props What to show, and the state of the one call behind it.
+ * @returns The active document.
+ */
+export function ServerDocPanel({
+  tab,
+  doc,
+  busy,
+  blocked,
+  lang,
+  renderMarkdown,
+  onLoad,
+}: Readonly<{
+  tab: "instructions" | "server";
+  doc: ServerDoc | undefined;
+  busy: boolean;
+  blocked: boolean;
+  lang: Lang;
+  /** The inspector's Markdown renderer, passed in to avoid a second copy. */
+  renderMarkdown: (source: string) => preact.JSX.Element;
+  onLoad: () => void;
+}>) {
+  const t = ui[lang].insp;
+  // Out of the JSX so the markup is not a ternary inside a ternary: a server
+  // may answer `initialize` and still send no instructions, and that case
+  // deserves its own sentence rather than an empty box.
+  const instructionsBody = doc?.instructions ? (
+    <div className="server-instructions">
+      {renderMarkdown(doc.instructions)}
+    </div>
+  ) : (
+    <p className="tool-hint">{t.noInstructions}</p>
+  );
+  const rows: [string, string | undefined][] = doc
+    ? [
+        [t.docName, doc.name],
+        [t.docTitle, doc.title],
+        [t.docVersion, doc.version],
+        [t.docDescription, doc.description],
+        [t.docProtocol, doc.protocolVersion],
+      ]
+    : [];
+
+  return (
+    <div
+      className="catalog server-doc"
+      data-testid={`catalog-${tab}`}
+    >
+      <div className="catalog-head">
+        <button
+          type="button"
+          disabled={busy || blocked}
+          onClick={onLoad}
+          data-testid={`load-${tab}`}
+        >
+          {t.loadServerDoc}
+        </button>
+      </div>
+
+      {doc === undefined ? (
+        <p className="tool-hint">{t.emptyServerDoc}</p>
+      ) : null}
+
+      {doc && tab === "instructions" ? instructionsBody : null}
+
+      {doc && tab === "server" ? (
+        <dl className="server-facts">
+          {rows
+            .filter(([, value]) => value)
+            .map(([label, value]) => (
+              <div key={label}>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
+          {doc.websiteUrl ? (
+            <div>
+              <dt>{t.docWebsite}</dt>
+              <dd>
+                <a
+                  href={doc.websiteUrl}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  {doc.websiteUrl}
+                </a>
+              </dd>
+            </div>
+          ) : null}
+          <div>
+            <dt>{t.docCapabilities}</dt>
+            <dd>
+              {doc.capabilities.length > 0 ? (
+                <ul className="server-caps">
+                  {doc.capabilities.map((cap) => (
+                    <li key={cap}>
+                      <code>{cap}</code>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                "—"
+              )}
+            </dd>
+          </div>
+        </dl>
       ) : null}
     </div>
   );

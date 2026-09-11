@@ -11,7 +11,11 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { servers } from "../../src/data/servers.ts";
-import { parseDeepLink } from "../../src/lib/inspector-deeplink.ts";
+import {
+  isCatalogTab,
+  parseDeepLink,
+  TABS,
+} from "../../src/lib/inspector-deeplink.ts";
 
 test("the three valid parameters are read as they are", () => {
   const link = parseDeepLink(
@@ -44,14 +48,44 @@ test("an empty server falls to undefined, not to an empty string", () => {
   assert.equal(link.serverId, undefined);
 });
 
-test("a tab that is not tools/prompts/resources falls to undefined", () => {
+test("a tab that is not one of TABS falls to undefined", () => {
   const link = parseDeepLink("?tab=nope", servers);
   assert.equal(link.tab, undefined);
 });
 
-test("the three valid tabs are accepted", () => {
-  for (const tab of ["tools", "prompts", "resources"]) {
+// Written out rather than read from TABS: a test that iterates the list it is
+// checking would accept whatever the list happens to contain, including a tab
+// that was dropped by accident.
+test("every tab, catalogs and documents alike, is accepted", () => {
+  for (const tab of [
+    "tools",
+    "prompts",
+    "resources",
+    "templates",
+    "instructions",
+    "server",
+  ]) {
     assert.equal(parseDeepLink(`?tab=${tab}`, servers).tab, tab);
+  }
+});
+
+test("TABS lists the catalogs before the documents", () => {
+  assert.deepEqual(TABS, [
+    "tools",
+    "prompts",
+    "resources",
+    "templates",
+    "instructions",
+    "server",
+  ]);
+});
+
+test("isCatalogTab separates the lists from the documents", () => {
+  for (const tab of ["tools", "prompts", "resources", "templates"]) {
+    assert.equal(isCatalogTab(tab), true, tab);
+  }
+  for (const tab of ["instructions", "server"]) {
+    assert.equal(isCatalogTab(tab), false, tab);
   }
 });
 

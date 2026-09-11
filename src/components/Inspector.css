@@ -262,18 +262,37 @@
 
 /* The status line: the only region that is announced, and the only one that
    tells a success from the THREE kinds of failure at a glance. */
+
+/* The status line and the Reader / JSON switch share one bar, right above
+   the answer: the bar carries the background and the rule, the status text
+   takes the room, and the switch sits at the far end (its own
+   `margin-inline-start: auto`). It wraps under the text on a narrow screen
+   rather than squeezing it. */
+.status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+  padding: 0.6rem 1.25rem;
+  background: var(--color-bg-subtle);
+  border-block-start: 1px solid var(--color-hair);
+}
+
+/* `flex-basis: 0`, not `auto`: with `auto` the status text claimed its whole
+   width first, and on a phone that pushed the switch onto a line of its own
+   below it. At 0 the text takes what is left and wraps its own facts, and the
+   switch keeps its place at the end of the same line, next to the answer. */
 .term-status {
   display: flex;
+  flex: 1 1 0;
   flex-wrap: wrap;
   gap: 0.5rem;
   align-items: baseline;
-  padding: 0.6rem 1.25rem;
+  min-width: 0;
   margin: 0;
   font-family: var(--font-mono);
   font-size: 0.75rem;
   color: var(--color-text-muted);
-  background: var(--color-bg-subtle);
-  border-block-start: 1px solid var(--color-hair);
 }
 
 .term-status code {
@@ -493,6 +512,107 @@
   font-family: var(--font-mono);
   font-size: 0.75rem;
   color: var(--color-text-muted);
+}
+
+/* Resource templates: a list to read down, not a picker (see Catalog). The
+   URI template leads, in mono, because it is what a client actually sends;
+   the name and description follow in the prose face. A capped height with its
+   own scroll keeps gitlab's 37 from pushing the response pane off screen. */
+.template-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 22rem;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  list-style: none;
+  border-block: 1px solid var(--color-hair);
+}
+
+.template-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding-block: 0.55rem;
+  border-block-start: 1px solid var(--color-hair);
+}
+
+.template-list li:first-child {
+  border-block-start: 0;
+}
+
+.template-uri {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-accent);
+  overflow-wrap: anywhere;
+}
+
+.template-name {
+  font-size: 0.85rem;
+}
+
+.template-desc {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+/* The server's own instructions. Rendered Markdown, in a bounded box: gitlab
+   sends 3386 characters, and the point of the tab is to read them, not to
+   have them bury the rest of the inspector. */
+.server-instructions {
+  max-height: 26rem;
+  padding: 0.25rem 0.9rem;
+  overflow-y: auto;
+  font-size: 0.9rem;
+  border: 1px solid var(--color-hair);
+  border-radius: 0.4rem;
+}
+
+/* Identity, protocol and capabilities, as label / value pairs. One column on
+   a phone, label beside value from a tablet up. */
+.server-facts {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.server-facts > div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+@media (width >= 40rem) {
+  .server-facts > div {
+    grid-template-columns: 9rem minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+.server-facts dt {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.server-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.server-caps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.server-caps code {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
 }
 
 .args-head {

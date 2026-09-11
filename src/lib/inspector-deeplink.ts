@@ -20,11 +20,41 @@ import type { McpServer } from "../data/servers";
  * CANNOT BE BROKEN" comment at the top of `Inspector.tsx`.
  */
 
-/** The three things a server can offer through the inspector. */
-export type Tab = "tools" | "prompts" | "resources";
+/**
+ * The inspector's tabs, in two families.
+ *
+ * The CATALOGS are lists the server offers, one entry of which can be picked:
+ * tools, prompts, resources, and the resource templates that parameterize
+ * them (`resources/templates/list`, gitlab's 37 `gitlab://group/{group_id}`
+ * and friends, which the inspector could not show before).
+ *
+ * The DOCUMENTS are not lists. `instructions` is the text the server hands a
+ * model in its `initialize` result — the closest thing an MCP server has to
+ * a system prompt — and `server` is the rest of that result: identity,
+ * negotiated protocol version and declared capabilities. Both come from the
+ * same one call. Until they had a tab, the only way to read the instructions
+ * was the raw `initialize` JSON, with every line break escaped as `\n`.
+ */
+export type CatalogTab = "tools" | "prompts" | "resources" | "templates";
+/** The documents: see {@link CatalogTab} for the difference. */
+export type DocTab = "instructions" | "server";
+/** Every tab. */
+export type Tab = CatalogTab | DocTab;
 
-/** All three tabs, in the order they're shown. */
-export const TABS: Tab[] = ["tools", "prompts", "resources"];
+/** All tabs, in the order they're shown: the catalogs, then the documents. */
+export const TABS: Tab[] = [
+  "tools",
+  "prompts",
+  "resources",
+  "templates",
+  "instructions",
+  "server",
+];
+
+/** `true` for a tab whose content is a list whose entries can be picked. */
+export function isCatalogTab(tab: Tab): tab is CatalogTab {
+  return tab !== "instructions" && tab !== "server";
+}
 
 /**
  * Deep-link state read from the URL's query string.
@@ -35,7 +65,7 @@ export const TABS: Tab[] = ["tools", "prompts", "resources"];
 export type DeepLink = {
   /** A server id from `servers`, or `undefined` if absent or unrecognised. */
   serverId: string | undefined;
-  /** One of `TABS`, or `undefined` if absent or not one of the three. */
+  /** One of `TABS`, or `undefined` if absent or not one of them. */
   tab: Tab | undefined;
   /**
    * The tool/prompt/resource name to preselect, or `undefined` if absent.
@@ -57,7 +87,7 @@ function isTab(value: string): value is Tab {
  * Reads and validates the inspector's deep-link query parameters.
  *
  * `server` is checked against the real server list; `tab` against the fixed
- * set of three; `name` is returned trimmed and as-is, since it can only be
+ * set in `TABS`; `name` is returned trimmed and as-is, since it can only be
  * validated once its target catalog has loaded.
  *
  * @param search `location.search`, with or without the leading `?`.

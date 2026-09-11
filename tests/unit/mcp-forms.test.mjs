@@ -2,9 +2,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  isMethodNotFound,
   promptSchema,
   promptsFrom,
   resourcesFrom,
+  serverDocFrom,
+  templatesFrom,
 } from "../../src/lib/mcp-catalog.ts";
 import { formFields, valuesToArgs } from "../../src/lib/tool-schema.ts";
 
@@ -170,4 +173,68 @@ test("a union type with null is read as the real type", () => {
   });
   assert.equal(field.type, "string[]", 'it used to render "nullarray"');
   assert.equal(field.control, "list");
+});
+
+test("resources/templates/list is normalized", () => {
+  const list = templatesFrom({
+    result: {
+      resourceTemplates: [
+        {
+          uriTemplate: "gitlab://group/{group_id}",
+          name: "group",
+          description: "One group",
+        },
+      ],
+    },
+  });
+  assert.equal(list[0].uriTemplate, "gitlab://group/{group_id}");
+  assert.equal(list[0].name, "group");
+  assert.deepEqual(templatesFrom(undefined), []);
+});
+
+// Shaped after the real `initialize` answers of both servers (2026-09-11):
+// libgen declares tools and prompts only, gitlab adds resources and
+// completions. The capability list is what the inspector shows, so it has to
+// survive as names, sorted, whatever the order the server sent them in.
+test("an initialize result becomes the server document", () => {
+  const doc = serverDocFrom({
+    result: {
+      protocolVersion: "2025-06-18",
+      serverInfo: {
+        name: "libgen-mcp",
+        title: "Books & Papers",
+        version: "1.7.2",
+      },
+      capabilities: { tools: { listChanged: true }, prompts: {} },
+      instructions: "WORKFLOW — search, then get_details.",
+    },
+  });
+  assert.equal(doc.name, "libgen-mcp");
+  assert.equal(doc.version, "1.7.2");
+  assert.equal(doc.protocolVersion, "2025-06-18");
+  assert.equal(doc.instructions, "WORKFLOW — search, then get_details.");
+  assert.deepEqual(doc.capabilities, ["prompts", "tools"]);
+});
+
+test("an initialize answer that failed yields no document", () => {
+  assert.equal(
+    serverDocFrom({ error: { code: -32_001, message: "nope" } }),
+    undefined,
+  );
+  assert.equal(serverDocFrom(undefined), undefined);
+});
+
+// The difference between "empty" and "does not exist": libgen answers
+// resources/list with -32601 because it declares no resources at all.
+test("-32601 is told apart from any other failure and from success", () => {
+  assert.equal(
+    isMethodNotFound({ error: { code: -32_601, message: "x" } }),
+    true,
+  );
+  assert.equal(
+    isMethodNotFound({ error: { code: -32_000, message: "x" } }),
+    false,
+  );
+  assert.equal(isMethodNotFound({ result: { resources: [] } }), false);
+  assert.equal(isMethodNotFound(undefined), false);
 });

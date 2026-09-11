@@ -6,7 +6,6 @@ import {
   classifyMcp,
   listedItems,
   parseSseJsonRpc,
-  readableText,
 } from "../../src/lib/mcp-client.ts";
 
 test("it extracts the JSON-RPC from an SSE response", () => {
@@ -230,32 +229,4 @@ test("listedItems tells an empty list apart from no list at all", () => {
     undefined,
   );
   assert.equal(listedItems(undefined), undefined);
-});
-
-test("readableText takes the text out of a tools/call", () => {
-  const body = {
-    result: { content: [{ type: "text", text: "| a | b |" }] },
-  };
-  assert.equal(readableText(body), "| a | b |");
-});
-
-test("readableText concatenates several text blocks", () => {
-  const body = {
-    result: {
-      content: [
-        { type: "text", text: "uno" },
-        { type: "image", data: "…" },
-        { type: "text", text: "dos" },
-      ],
-    },
-  };
-  assert.equal(readableText(body), "uno\n\ndos");
-});
-
-test("readableText returns undefined when the JSON IS the answer", () => {
-  // A tools/list or an error: there is nothing to lay out here, and offering
-  // an empty reader view would hide the only answer there is.
-  assert.equal(readableText({ result: { tools: [] } }), undefined);
-  assert.equal(readableText({ error: { code: -32_600 } }), undefined);
-  assert.equal(readableText(undefined), undefined);
 });
