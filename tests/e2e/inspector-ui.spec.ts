@@ -339,12 +339,88 @@ test("the response reads laid out, and the JSON is still one click away", async 
   await expect(out).toContainText("jsonrpc");
 });
 
-test("with nothing to lay out the switch does not appear: the JSON IS the answer", async ({
+// This test used to say the opposite — "with nothing to lay out the switch
+// does not appear: the JSON IS the answer" — because the reader handled one
+// shape only and an EMPTY reader would have hidden the answer. The reader
+// now lays out every shape and is never empty, so a list gets one too; what
+// this pins instead is that the raw body is still one click away.
+test("a list is laid out too, and its JSON is one click away", async ({
   page,
 }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
   await page.goto("/inspector/");
   await loadButton(page).click();
   await expect(status(page)).toContainText("2 tools");
-  await expect(page.locator(".view-switch")).toHaveCount(0);
+
+  const out = page.getByTestId("inspector-output");
+  await expect(out).toContainText("2 tools");
+  await expect(out).toContainText("Search Library Genesis");
+  await expect(out.locator("pre")).toHaveCount(0);
+
+  await page
+    .locator(".view-switch")
+    .getByRole("button", { name: "JSON" })
+    .click();
+  await expect(out.locator("pre")).toHaveCount(1);
+  await expect(out).toContainText("jsonrpc");
+});
+
+// The switch changes how the ANSWER reads, so it lives with the answer: on
+// the status line right above it, not in the window bar a whole form away.
+test("the reader/JSON switch sits on the status line, not in the window bar", async ({
+  page,
+}) => {
+  await stubMcp(page, () => ({ json: TOOLS_LIST }));
+  await page.goto("/inspector/");
+  await loadButton(page).click();
+  await expect(page.locator(".status-row .view-switch")).toBeVisible();
+  await expect(page.locator(".term-bar .view-switch")).toHaveCount(0);
+});
+
+test("the Instructions tab reads them from initialize and lays them out", async ({
+  page,
+}) => {
+  await stubMcp(page, (method) => ({
+    json:
+      method === "initialize"
+        ? {
+            jsonrpc: "2.0",
+            id: 1,
+            result: {
+              protocolVersion: "2025-11-25",
+              serverInfo: { name: "libgen-mcp", version: "1.7.2" },
+              capabilities: { tools: {} },
+              instructions: "WORKFLOW\n\n1. search\n2. read",
+            },
+          }
+        : TOOLS_LIST,
+  }));
+  await page.goto("/inspector/");
+  await page.getByRole("tab", { name: "Instructions" }).click();
+  await page.getByTestId("load-instructions").click();
+  const box = page.locator(".server-instructions");
+  await expect(box).toContainText("WORKFLOW");
+  // Laid out as a list, not left as one line with the breaks escaped.
+  await expect(box.locator("ol li")).toHaveCount(2);
+
+  await page.getByRole("tab", { name: "Server" }).click();
+  await expect(page.locator(".server-facts")).toContainText("1.7.2");
+});
+
+test("a category the server does not implement says so instead of erroring", async ({
+  page,
+}) => {
+  await stubMcp(page, () => ({
+    json: {
+      jsonrpc: "2.0",
+      id: 1,
+      error: { code: -32_601, message: 'method not found: "resources/list"' },
+    },
+  }));
+  await page.goto("/inspector/");
+  await page.getByRole("tab", { name: "Resources" }).click();
+  await page.getByTestId("load-resources").click();
+  await expect(page.getByTestId("catalog-resources")).toContainText(
+    "does not offer this",
+  );
 });

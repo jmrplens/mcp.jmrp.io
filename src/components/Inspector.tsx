@@ -4,15 +4,25 @@ import { useLayoutEffect, useRef, useState } from "preact/hooks";
 
 import type { McpServer } from "../data/servers";
 import { type Lang, ui } from "../i18n/ui";
-import { parseDeepLink, type Tab, TABS } from "../lib/inspector-deeplink";
 import {
+  type CatalogTab,
+  parseDeepLink,
+  type Tab,
+  TABS,
+} from "../lib/inspector-deeplink";
+import {
+  isMethodNotFound,
   type McpPrompt,
   type McpResource,
+  type McpResourceTemplate,
   promptSchema,
   promptsFrom,
   resourcesFrom,
+  type ServerDoc,
+  serverDocFrom,
+  templatesFrom,
 } from "../lib/mcp-catalog";
-import { readableText } from "../lib/mcp-client";
+import { readerMarkdown } from "../lib/mcp-reader";
 import { signInWithPopup } from "../lib/oauth-popup";
 import {
   formFields,
@@ -23,7 +33,12 @@ import {
   toolsFrom,
   valuesToArgs,
 } from "../lib/tool-schema";
-import { Catalog, InvokePanel, StatusLine } from "./inspector-parts";
+import {
+  Catalog,
+  InvokePanel,
+  ServerDocPanel,
+  StatusLine,
+} from "./inspector-parts";
 import Markdown from "./Markdown";
 import { useMcpCall } from "./use-mcp-call";
 
@@ -193,11 +208,69 @@ function storageHref(lang: Lang): string {
 }
 
 /**
+ * Whether the tab ends in a call that takes arguments: run a tool, render a
+ * prompt. Resources are read with their own button and the other tabs call
+ * nothing, so they get no invocation form.
+ *
+ * Out of the JSX, like {@link docFor}, because the component sits right at
+ * Sonar's cognitive-complexity limit (S3776) and every operator in its body
+ * counts against it.
+ *
+ * @param tab The active tab.
+ * @returns True for tools and prompts.
+ */
+function isInvocable(tab: Tab): tab is "tools" | "prompts" {
+  return tab === "tools" || tab === "prompts";
+}
+
+/**
+ * The `initialize` document kept for the selected server, if it was read.
+ *
+ * @param docs The documents read so far, by server id.
+ * @param server The selected server.
+ * @returns Its document, or undefined.
+ */
+function docFor(
+  docs: Record<string, ServerDoc | undefined>,
+  server: McpServer | undefined,
+): ServerDoc | undefined {
+  return server ? docs[server.id] : undefined;
+}
+
+/**
+ * The visible name of a tab.
+ *
+ * A lookup, not one ternary per tab inside the tab list: each ternary there
+ * counted towards the component's cognitive complexity (S3776), with a
+ * nesting increment for sitting in the `.map` callback, and going from three
+ * tabs to six took the component past Sonar's limit of 15. Same reasoning as
+ * the label map in `Catalog`: another tab is another entry, not another
+ * branch.
+ *
+ * @param t Inspector strings in the page's language.
+ * @param name The tab.
+ * @returns Its label.
+ */
+function tabLabel(t: (typeof ui)[Lang]["insp"], name: Tab): string {
+  return {
+    tools: t.tabTools,
+    prompts: t.tabPrompts,
+    resources: t.tabResources,
+    templates: t.tabTemplates,
+    instructions: t.tabInstructions,
+    server: t.tabServer,
+  }[name];
+}
+
+/**
  * Whether the laid-out view is the one to show.
  *
- * Reader is the default, but only where there is something to lay out: with
- * no readable text the JSON is the answer, and pretending otherwise would
- * hide it.
+ * Reader is the default, and since `readerMarkdown` lays out EVERY shape of
+ * answer — lists, errors, prompts, resources, `initialize` — it is available
+ * whenever there is an answer at all. Before, it existed only for a
+ * `tools/call` text result, and the rule was that the JSON had to stand alone
+ * elsewhere so an empty reader would not hide it. The reader is never empty
+ * now; `readable` is undefined only before anything has been sent.
  *
  * @param view The view the reader last picked.
  * @param readable The response's readable text, if any.
@@ -301,7 +374,7 @@ export default function Inspector({
    * out the view switch does not appear at all: there, the JSON is the
    * answer.
    */
-  const readable = readableText(lastBody as never);
+  const readable = readerMarkdown(lastBody);
   const [view, setView] = useState<"reader" | "json">("reader");
   const showReader = showsReaderView(view, readable);
 
@@ -325,6 +398,23 @@ export default function Inspector({
   const [tools, setTools] = useState<McpTool[]>([]);
   const [prompts, setPrompts] = useState<McpPrompt[]>([]);
   const [resources, setResources] = useState<McpResource[]>([]);
+  const [templates, setTemplates] = useState<McpResourceTemplate[]>([]);
+  /**
+   * The catalogs the server answered with -32601, i.e. does not implement.
+   * Kept per server switch, and cleared by it: a category missing on libgen
+   * says nothing about gitlab.
+   */
+  const [notOffered, setNotOffered] = useState<Partial<Record<Tab, boolean>>>(
+    {},
+  );
+  /**
+   * The `initialize` answer, keyed by server id, behind both document tabs.
+   * Keyed rather than cleared on switch: it describes the server, not the
+   * visitor's session, so going back to a server does not need to ask again.
+   */
+  const [serverDocs, setServerDocs] = useState<
+    Record<string, ServerDoc | undefined>
+  >({});
   const [toolName, setToolName] = useState("");
   const [promptName, setPromptName] = useState("");
   const [resourceUri, setResourceUri] = useState("");
@@ -467,6 +557,8 @@ export default function Inspector({
     setTools([]);
     setPrompts([]);
     setResources([]);
+    setTemplates([]);
+    setNotOffered({});
     setToolName("");
     setPromptName("");
     setResourceUri("");
@@ -532,9 +624,19 @@ export default function Inspector({
   }
 
   /** All three catalogs are requested the same way; only where they land differs. */
-  async function loadCatalog(kind: Tab) {
-    const method = `${kind}/list`;
+  async function loadCatalog(kind: CatalogTab) {
+    // Templates are the one catalog whose method is not `<tab>/list`.
+    const method =
+      kind === "templates" ? "resources/templates/list" : `${kind}/list`;
     const body = await sendRaw(method, {});
+    setNotOffered((current) => ({
+      ...current,
+      [kind]: isMethodNotFound(body),
+    }));
+    if (kind === "templates") {
+      setTemplates(templatesFrom(body));
+      return;
+    }
     if (kind === "tools") {
       const list = toolsFrom(body);
       setTools(list);
@@ -570,6 +672,22 @@ export default function Inspector({
         (resource) => setResourceUri(resource.uri),
       );
     }
+  }
+
+  /**
+   * Asks for `initialize` and keeps what it says, for both document tabs.
+   *
+   * The same call the loose `initialize` button makes, so the raw answer
+   * still lands in the response pane as it always did; the difference is
+   * that its instructions and capabilities are now also kept, and shown
+   * somewhere they can be read.
+   */
+  async function loadServerDoc() {
+    const id = server?.id;
+    if (!id) return;
+    const body = await sendRaw("initialize", INIT_PARAMS);
+    const doc = serverDocFrom(body);
+    if (doc) setServerDocs((current) => ({ ...current, [id]: doc }));
   }
 
   /**
@@ -675,13 +793,6 @@ export default function Inspector({
         >
           {t.copy}
         </button>
-        {readable !== undefined && (
-          <ViewSwitch
-            t={t}
-            reader={showReader}
-            onPick={setView}
-          />
-        )}
       </header>
 
       <div className="term-body">
@@ -795,9 +906,7 @@ export default function Inspector({
                 className={tab === name ? "tab is-active" : "tab"}
                 onClick={() => setTab(name)}
               >
-                {name === "tools" ? t.tabTools : null}
-                {name === "prompts" ? t.tabPrompts : null}
-                {name === "resources" ? t.tabResources : null}
+                {tabLabel(t, name)}
               </button>
             ))}
           </div>
@@ -834,18 +943,31 @@ export default function Inspector({
             tools={tools}
             prompts={prompts}
             resources={resources}
+            templates={templates}
+            notOffered={notOffered[tab] === true}
             toolName={toolName}
             promptName={promptName}
             resourceUri={resourceUri}
             busy={frozen}
             blocked={blocked}
             lang={lang}
-            onLoad={() => {
-              void loadCatalog(tab);
+            onLoad={(kind) => {
+              void loadCatalog(kind);
             }}
             onPickTool={chooseTool}
             onPickPrompt={choosePrompt}
             onPickResource={setResourceUri}
+          />
+          <ServerDocPanel
+            tab={tab}
+            doc={docFor(serverDocs, server)}
+            busy={frozen}
+            blocked={blocked}
+            lang={lang}
+            renderMarkdown={(source) => <Markdown source={source} />}
+            onLoad={() => {
+              void loadServerDoc();
+            }}
           />
 
           {showRead ? (
@@ -861,7 +983,7 @@ export default function Inspector({
             </button>
           ) : null}
 
-          {tab === "resources" ? null : (
+          {isInvocable(tab) ? (
             <InvokePanel
               kind={tab}
               name={tab === "tools" ? toolName : promptName}
@@ -885,15 +1007,31 @@ export default function Inspector({
                 void (tab === "tools" ? runTool() : runPrompt());
               }}
             />
-          )}
+          ) : null}
         </div>
       </div>
 
-      <StatusLine
-        status={status}
-        copyNote={copyNote}
-        lang={lang}
-      />
+      {/* The switch sits WITH the answer it changes, on the status line right
+          above it. It used to live in the window bar, a full form's height
+          away: on a phone, choosing how to read a response meant scrolling up
+          past every argument to find it, then back down to read. A sibling of
+          the <output>, not a child: that element announces its text as
+          status, and it would have read the two button labels out as if they
+          were part of the result. */}
+      <div className="status-row">
+        <StatusLine
+          status={status}
+          copyNote={copyNote}
+          lang={lang}
+        />
+        {readable !== undefined && (
+          <ViewSwitch
+            t={t}
+            reader={showReader}
+            onPick={setView}
+          />
+        )}
+      </div>
 
       {/* aria-live="off" on purpose: the status line above is what announces.
           tabindex + role + name so the panel, which has its own scroll, is

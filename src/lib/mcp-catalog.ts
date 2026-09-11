@@ -37,6 +37,40 @@ export type McpResource = {
   mimeType?: string;
 };
 
+/**
+ * One resource template: a URI with `{placeholders}` rather than a fixed
+ * address. gitlab publishes 37 (`gitlab://group/{group_id}`, …) next to its 8
+ * fixed resources, so the templates, not the resources, are most of what it
+ * actually exposes.
+ */
+export type McpResourceTemplate = {
+  uriTemplate: string;
+  name?: string;
+  title?: string;
+  description?: string;
+  mimeType?: string;
+};
+
+/**
+ * What an `initialize` result says about the server, flattened for display.
+ *
+ * `instructions` is the one field a model is meant to read: the server's
+ * usage guide, sent once at the start of a session (1139 characters for
+ * libgen, 3386 for gitlab). `capabilities` is kept as the list of names the
+ * server declared, since that list — not the tabs this page happens to show —
+ * is what decides which methods it will answer.
+ */
+export type ServerDoc = {
+  protocolVersion?: string;
+  name?: string;
+  title?: string;
+  version?: string;
+  description?: string;
+  websiteUrl?: string;
+  instructions?: string;
+  capabilities: string[];
+};
+
 /** The value when it is a string; otherwise the fallback. */
 function str(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value : fallback;
@@ -118,4 +152,70 @@ export function promptSchema(args: PromptArgument[]): JsonSchema {
     ),
     required: args.filter((a) => a.required).map((a) => a.name),
   };
+}
+
+/**
+ * Normalizes a `resources/templates/list` response.
+ *
+ * @param body The response's JSON-RPC body.
+ * @returns The templates; entries without a `uriTemplate` are kept with an
+ *   empty one rather than dropped, so a malformed server is visible as such.
+ */
+export function templatesFrom(body: unknown): McpResourceTemplate[] {
+  return listOf(body, "resourceTemplates").map((entry) => ({
+    uriTemplate: str(entry.uriTemplate),
+    name: typeof entry.name === "string" ? entry.name : undefined,
+    title: typeof entry.title === "string" ? entry.title : undefined,
+    description:
+      typeof entry.description === "string" ? entry.description : undefined,
+    mimeType: typeof entry.mimeType === "string" ? entry.mimeType : undefined,
+  }));
+}
+
+/** An optional string field, or undefined. */
+function opt(record: Record<string, unknown>, key: string): string | undefined {
+  const value = record[key];
+  return typeof value === "string" && value !== "" ? value : undefined;
+}
+
+/**
+ * Reads an `initialize` result into a {@link ServerDoc}.
+ *
+ * @param body The response's JSON-RPC body.
+ * @returns The document, or `undefined` when the body carries no result
+ *   (an error, or a 401 before a credential was given).
+ */
+export function serverDocFrom(body: unknown): ServerDoc | undefined {
+  if (!isRecord(body) || !isRecord(body.result)) return undefined;
+  const result = body.result;
+  const info = isRecord(result.serverInfo) ? result.serverInfo : {};
+  const caps = isRecord(result.capabilities) ? result.capabilities : {};
+  return {
+    protocolVersion: opt(result, "protocolVersion"),
+    name: opt(info, "name"),
+    title: opt(info, "title"),
+    version: opt(info, "version"),
+    description: opt(info, "description"),
+    websiteUrl: opt(info, "websiteUrl"),
+    instructions: opt(result, "instructions"),
+    capabilities: Object.keys(caps).toSorted((x, y) => x.localeCompare(y)),
+  };
+}
+
+/**
+ * `true` when a list call was answered "method not found" (-32601).
+ *
+ * That is the server saying it does not implement the category at all, which
+ * is different from an empty list: libgen declares no `resources` capability
+ * and answers `resources/list` with -32601. The inspector used to show that
+ * as a raw error, as if something had broken; it now says what it means.
+ *
+ * @param body The response's JSON-RPC body.
+ * @returns Whether the method is not implemented.
+ */
+export function isMethodNotFound(body: unknown): boolean {
+  if (!isRecord(body) || !isRecord(body.error)) return false;
+  // A JSON-RPC spec code, not a quantity.
+  // eslint-disable-next-line unicorn/numeric-separators-style
+  return body.error.code === -32601;
 }

@@ -235,37 +235,3 @@ export function listedItems(
   }
   return undefined;
 }
-
-/**
- * Pulls the readable text out of a response, when it carries any.
- *
- * A `tools/call` answers `result.content[]`, and in practice what sits inside
- * is Markdown: libgen's `search` returns a table of download links. Serialized
- * as JSON that arrives with its newlines escaped and on a single line —
- * readable to a machine and to nobody else. This function is what lets the
- * inspector offer the response laid out and keep the JSON as the other view,
- * rather than as the only one.
- *
- * Returns `undefined` when there is nothing to lay out (a `tools/list`, a
- * JSON-RPC error): there, the JSON IS the answer, and pretending otherwise
- * would hide it.
- *
- * @param body The body `callMcp` returned.
- * @returns The blocks' concatenated text, or `undefined`.
- */
-export function readableText(
-  body: JsonRpcBody | undefined,
-): string | undefined {
-  const content = body?.result?.content;
-  if (!Array.isArray(content)) return undefined;
-  const parts = content
-    .filter(
-      (block): block is { type: string; text: string } =>
-        typeof block === "object" &&
-        block !== null &&
-        (block as { type?: unknown }).type === "text" &&
-        typeof (block as { text?: unknown }).text === "string",
-    )
-    .map((block) => block.text);
-  return parts.length > 0 ? parts.join("\n\n") : undefined;
-}
