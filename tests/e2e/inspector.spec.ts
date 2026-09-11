@@ -27,10 +27,18 @@ test("initialize against libgen returns the protocol", async ({ page }) => {
   const mcp = inspector(page);
   await serverSelect(page).selectOption("libgen");
   await mcp.getByRole("button", { name: "initialize" }).click();
-  await expect(page.getByTestId("inspector-output")).toContainText(
-    "protocolVersion",
-    { timeout: 30_000 },
-  );
+  const out = page.getByTestId("inspector-output");
+  // The reader lays `initialize` out now, so the negotiated version reads as
+  // "Protocol 2025-11-25" rather than as the raw `protocolVersion` key...
+  await expect(out).toContainText(/Protocol \d{4}-\d{2}-\d{2}/, {
+    timeout: 30_000,
+  });
+  // ...and the key the server actually sent is one click away, unchanged.
+  await mcp
+    .locator(".view-switch")
+    .getByRole("button", { name: "JSON" })
+    .click();
+  await expect(out).toContainText("protocolVersion");
 });
 
 // This exercises the island, not its markup: the server renders the <select>
