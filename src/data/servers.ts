@@ -703,36 +703,41 @@ export const servers: McpServer[] = [
       metadataUrl:
         "https://mcp.jmrp.io/.well-known/oauth-protected-resource/gitlab",
       callbackPort: 8090,
-      // DISABLED, not removed. The read-only application exists and is
-      // registered correctly — the sign-in flow itself works end to end, and
-      // GitLab issues the token — but this deployment refuses it at the door:
+      // The read-only application behind the inspector's sign-in button.
+      //
+      // It was DISABLED from 2026-08-28 to 2026-09-11, and the history is
+      // worth keeping because it explains why a test now pins this block. On
+      // v2.7.5 the server demanded the DEPLOYMENT's scope at the door, so a
+      // `read_api` token completed the whole OAuth flow and was then refused
+      // on `initialize`, before any tool was listed:
       //
       //   -40300  "This token does not carry the api scope that this
-      //            deployment requires. Reauthorize the application
-      //            requesting it."
+      //            deployment requires."
       //
-      // The scope the server demands is a property of the DEPLOYMENT, not of
-      // the call. Its own guide says so: it asks for `read_api` "whenever
-      // --read-only or --safe-mode is set", and this one is neither, because
-      // MCP clients need to write. So a read-only token is refused even for
-      // `initialize`, let alone `tools/list`.
+      // The way out was for the server to admit the minimum scope and gate
+      // writes per action, and that is exactly what ADR-0018 decided the same
+      // day (jmrplens/gitlab-mcp-server, "Authorization admits at the
+      // minimum scope; writes are gated per action"). A `read_api` token now
+      // gets in and is handed a read-only tool surface, per token.
       //
-      // The three ways out, none of them ours alone:
-      //   1. The server accepts `read_api` and gates per action — it already
-      //      knows which ones are destructive, it publishes that flag for all
-      //      747. Requested in the handoff to that repo.
-      //   2. Give this application `api`, which is exactly the read/write
-      //      token in a web page that the second application existed to avoid.
-      //   3. A second, read-only deployment on its own path, just for the
-      //      inspector. More moving parts than the feature is worth today.
+      // Nobody uncommented this afterwards, so for two weeks the button was
+      // simply absent and nothing said so. Re-enabled after measuring the
+      // running binary, 3.0.0+f3bad2f: the bearer guard admits through
+      // `oauth.SatisfiesMinimum(info.Scopes, g.minimumScope)`, and the
+      // RFC 9728 document advertises `scopes_supported: ["api","read_api"]`,
+      // the shape ADR-0018 specifies for a deployment that can write. The
+      // challenge still says `scope="api"`; under ADR-0018 that is what it
+      // RECOMMENDS, not what it requires.
       //
-      // Uncommenting this line is all it takes once (1) ships.
-      //
-      // inspector: {
-      //   clientId: "94649066fed1c053ad503a1addd3a86150e8f5eeb917965e713bcd2d662ace47",
-      //   redirectUri: "https://mcp.jmrp.io/inspector/callback/",
-      //   scopes: ["read_api"],
-      // },
+      // `tests/unit/inspector-oauth.test.mjs` fails if this block disappears
+      // again, or if its scope ever widens past `read_api` — a token that can
+      // write to someone's whole GitLab, sitting in a web page, is what this
+      // second application was registered to avoid.
+      inspector: {
+        clientId: "94649066fed1c053ad503a1addd3a86150e8f5eeb917965e713bcd2d662ace47",
+        redirectUri: "https://mcp.jmrp.io/inspector/callback/",
+        scopes: ["read_api"],
+      },
     },
     requiredHeaders: [
       {
