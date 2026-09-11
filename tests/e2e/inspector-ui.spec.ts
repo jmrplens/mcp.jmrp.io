@@ -365,16 +365,51 @@ test("a list is laid out too, and its JSON is one click away", async ({
   await expect(out).toContainText("jsonrpc");
 });
 
-// The switch changes how the ANSWER reads, so it lives with the answer: on
-// the status line right above it, not in the window bar a whole form away.
-test("the reader/JSON switch sits on the status line, not in the window bar", async ({
+// The author's rule: whatever acts on the answer goes with the answer. The
+// switch, Copy and Cancel all share the status line right above it; the window
+// bar keeps only the title, and the tab row only what STARTS a call. Cancel
+// matters most: pressing "Run tool" at the bottom of a long form used to make
+// the only way to stop the call appear at the top, off a phone's screen.
+test("everything that acts on the answer sits with the answer", async ({
   page,
 }) => {
   await stubMcp(page, () => ({ json: TOOLS_LIST }));
   await page.goto("/inspector/");
   await loadButton(page).click();
-  await expect(page.locator(".status-row .view-switch")).toBeVisible();
-  await expect(page.locator(".term-bar .view-switch")).toHaveCount(0);
+  const row = page.locator(".response-head");
+  await expect(row.locator(".view-switch")).toBeVisible();
+  await expect(row.getByRole("button", { name: "Copy" })).toBeVisible();
+  await expect(page.locator(".term-bar button")).toHaveCount(0);
+
+  // One bar where there is room, two on a narrow screen with the buttons on
+  // top — the author's layout. Checked by where they actually land, since the
+  // placement is CSS and the source order is the same in both.
+  const tops = async () =>
+    row.evaluate((head) => {
+      const top = (sel: string) =>
+        Math.round(head.querySelector(sel)!.getBoundingClientRect().top);
+      return { actions: top(".status-actions"), status: top(".term-status") };
+    });
+  await page.setViewportSize({ width: 1280, height: 800 });
+  const wide = await tops();
+  expect(Math.abs(wide.actions - wide.status)).toBeLessThan(12);
+  await page.setViewportSize({ width: 440, height: 800 });
+  const narrow = await tops();
+  expect(narrow.actions).toBeLessThan(narrow.status);
+});
+
+test("Cancel appears beside the running call, not up in the tab row", async ({
+  page,
+}) => {
+  await stubMcp(page, () => ({ hang: true }));
+  await page.goto("/inspector/");
+  await loadButton(page).click();
+  await expect(
+    page.locator(".response-head").getByTestId("inspector-cancel"),
+  ).toBeVisible();
+  await expect(
+    page.locator(".tabs-row").getByTestId("inspector-cancel"),
+  ).toHaveCount(0);
 });
 
 test("the Instructions tab reads them from initialize and lays them out", async ({
