@@ -734,7 +734,8 @@ export const servers: McpServer[] = [
       // write to someone's whole GitLab, sitting in a web page, is what this
       // second application was registered to avoid.
       inspector: {
-        clientId: "94649066fed1c053ad503a1addd3a86150e8f5eeb917965e713bcd2d662ace47",
+        clientId:
+          "94649066fed1c053ad503a1addd3a86150e8f5eeb917965e713bcd2d662ace47",
         redirectUri: "https://mcp.jmrp.io/inspector/callback/",
         scopes: ["read_api"],
       },

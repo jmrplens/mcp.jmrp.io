@@ -59,7 +59,9 @@ test("the inspector redirects to the site's own callback page", () => {
   // Spanish callback page and why a 404 there is expected.
   assert.equal(inspector.redirectUri, `${SITE_ORIGIN}/inspector/callback/`);
   assert.ok(
-    fs.existsSync(new URL("../../src/pages/inspector/callback.astro", import.meta.url)),
+    fs.existsSync(
+      new URL("../../src/pages/inspector/callback.astro", import.meta.url),
+    ),
     "the callback page the redirect lands on is gone",
   );
 });
