@@ -281,6 +281,90 @@ function showsReaderView(view: string, readable: string | undefined): boolean {
 }
 
 /**
+ * Everything that acts on the answer, gathered where the answer is.
+ *
+ * The rule, from the author: whatever belongs to the response goes with the
+ * response. Before, it was scattered: Copy sat in the window bar and Cancel
+ * in the tab row, both a whole form away from the answer they act on. On a
+ * phone that was the worst case — you press "Run tool" at the bottom of the
+ * form, and the only way to stop the call appeared at the top, off screen.
+ * Now the three sit with the status facts directly above the answer: on the
+ * same bar where there is room, on a bar of their own above the facts on a
+ * narrow screen (the layout is CSS: see `.response-head`). Cancel while a
+ * call is running, Copy, and the Reader / JSON switch.
+ *
+ * `initialize` stays in the tab row: it STARTS a call, it does not act on an
+ * answer.
+ *
+ * A component of its own for the reason `ViewSwitch` is: its two conditions
+ * would otherwise count against the inspector's cognitive complexity (S3776),
+ * which already sits at Sonar's limit.
+ *
+ * @param props.t Inspector strings in the page's language.
+ * @param props.busy Whether a call is in flight.
+ * @param props.elapsed Seconds the call has been running.
+ * @param props.onCancel Aborts the call.
+ * @param props.canCopy Whether there is an answer to copy.
+ * @param props.onCopy Copies the answer.
+ * @param props.readable Whether the answer has a laid-out view.
+ * @param props.reader Whether the laid-out view is the one showing.
+ * @param props.onPick Reports the view the reader chose.
+ * @returns The controls.
+ */
+function ResponseActions({
+  t,
+  busy,
+  elapsed,
+  onCancel,
+  canCopy,
+  onCopy,
+  readable,
+  reader,
+  onPick,
+}: Readonly<{
+  t: (typeof ui)[Lang]["insp"];
+  busy: boolean;
+  elapsed: number;
+  onCancel: () => void;
+  canCopy: boolean;
+  onCopy: () => void;
+  readable: boolean;
+  reader: boolean;
+  onPick: (view: "reader" | "json") => void;
+}>) {
+  return (
+    <div className="status-actions">
+      {busy ? (
+        <button
+          type="button"
+          className="danger"
+          data-testid="inspector-cancel"
+          onClick={onCancel}
+        >
+          {t.cancel} · {elapsed} s
+        </button>
+      ) : null}
+      <span className="copy-pill">
+        <button
+          type="button"
+          disabled={!canCopy}
+          onClick={onCopy}
+        >
+          {t.copy}
+        </button>
+      </span>
+      {readable ? (
+        <ViewSwitch
+          t={t}
+          reader={reader}
+          onPick={onPick}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+/**
  * Picks how the answer is shown: laid out, or as the body that arrived.
  *
  * A component of its own for the reason `SignInBlock` is (S3776) — its
@@ -783,16 +867,6 @@ export default function Inspector({
           <i></i>
         </span>
         <span className="term-title">~/mcp — {server?.name ?? "—"}</span>
-        <button
-          type="button"
-          className="term-copy"
-          disabled={!output}
-          onClick={() => {
-            void copyOutput();
-          }}
-        >
-          {t.copy}
-        </button>
       </header>
 
       <div className="term-body">
@@ -920,16 +994,6 @@ export default function Inspector({
           >
             initialize
           </button>
-          {busy ? (
-            <button
-              type="button"
-              className="danger"
-              data-testid="inspector-cancel"
-              onClick={() => call.cancel()}
-            >
-              {t.cancel} · {elapsed} s
-            </button>
-          ) : null}
         </div>
 
         <div
@@ -1011,26 +1075,31 @@ export default function Inspector({
         </div>
       </div>
 
-      {/* The switch sits WITH the answer it changes, on the status line right
-          above it. It used to live in the window bar, a full form's height
-          away: on a phone, choosing how to read a response meant scrolling up
-          past every argument to find it, then back down to read. A sibling of
-          the <output>, not a child: that element announces its text as
-          status, and it would have read the two button labels out as if they
-          were part of the result. */}
-      <div className="status-row">
+      {/* The head of the answer: two bars, buttons first and facts second.
+          Everything that acts on the answer lives here, next to it — Copy and
+          Cancel used to be a whole form away, and on a phone that meant off
+          screen. The buttons are siblings of the <output>, never children:
+          that element announces its text as status, and it would read their
+          labels out as if they were part of the result. */}
+      <div className="response-head">
+        <ResponseActions
+          t={t}
+          busy={busy}
+          elapsed={elapsed}
+          onCancel={() => call.cancel()}
+          canCopy={output !== ""}
+          onCopy={() => {
+            void copyOutput();
+          }}
+          readable={readable !== undefined}
+          reader={showReader}
+          onPick={setView}
+        />
         <StatusLine
           status={status}
           copyNote={copyNote}
           lang={lang}
         />
-        {readable !== undefined && (
-          <ViewSwitch
-            t={t}
-            reader={showReader}
-            onPick={setView}
-          />
-        )}
       </div>
 
       {/* aria-live="off" on purpose: the status line above is what announces.

@@ -55,14 +55,6 @@
   color: var(--color-text-muted);
 }
 
-/* The copy button lives in the window bar, not among the controls: it belongs
-   to the output, not to the request. */
-.term .term-copy {
-  padding: 0.25rem 0.6rem;
-  margin-inline-start: auto;
-  font-size: 0.75rem;
-}
-
 .term-body {
   display: flex;
   flex-direction: column;
@@ -263,36 +255,68 @@
 /* The status line: the only region that is announced, and the only one that
    tells a success from the THREE kinds of failure at a glance. */
 
-/* The status line and the Reader / JSON switch share one bar, right above
-   the answer: the bar carries the background and the rule, the status text
-   takes the room, and the switch sits at the far end (its own
-   `margin-inline-start: auto`). It wraps under the text on a narrow screen
-   rather than squeezing it. */
-.status-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 0.75rem;
+/* The head of the answer, right above it: the facts about the answer (chip,
+   method, code, time, size) and the buttons that act on it (Cancel while a
+   call runs, Copy, Reader / JSON).
+
+   ONE bar where there is room — facts on the left, buttons on the right —
+   and TWO on a narrow screen, buttons first. Author's layout, 2026-09-11,
+   after trying both: one bar on a phone squeezed the facts into a column
+   broken over three lines, and two bars on a desktop spent a whole row on
+   three small buttons. Grid areas decide the placement, so the source order
+   (buttons, then facts) stays the one that reads right when stacked. */
+.response-head {
+  display: grid;
+  grid-template-areas: "status actions";
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  padding: 0.6rem 1.25rem;
   background: var(--color-bg-subtle);
   border-block-start: 1px solid var(--color-hair);
 }
 
-/* `flex-basis: 0`, not `auto`: with `auto` the status text claimed its whole
-   width first, and on a phone that pushed the switch onto a line of its own
-   below it. At 0 the text takes what is left and wraps its own facts, and the
-   switch keeps its place at the end of the same line, next to the answer. */
+.status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  grid-area: actions;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-end;
+  padding-block: 0.5rem;
+  padding-inline: 0 1.25rem;
+}
+
+/* Cancel only: Copy sits inside its own pill (see `.copy-pill`), and the
+   switch's two buttons keep their segmented sizing. */
+.term .status-actions > button {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+}
+
 .term-status {
   display: flex;
-  flex: 1 1 0;
   flex-wrap: wrap;
+  grid-area: status;
   gap: 0.5rem;
   align-items: baseline;
-  min-width: 0;
+  padding: 0.6rem 1.25rem;
   margin: 0;
   font-family: var(--font-mono);
   font-size: 0.75rem;
   color: var(--color-text-muted);
+}
+
+@media (width < 40rem) {
+  .response-head {
+    grid-template-areas:
+      "actions"
+      "status";
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .status-actions {
+    padding-inline: 1.25rem;
+    border-block-end: 1px solid var(--color-hair);
+  }
 }
 
 .term-status code {
@@ -783,18 +807,25 @@
 
 /* Segmented, the same shape as the drawer's language pill: it is the same
    gesture — two mutually exclusive states of one thing — and deserves the
-   same look. It only appears when there is something to lay out. */
-.view-switch {
+   same look. It only appears when there is something to lay out.
+
+   Copy wears the same pill (`.copy-pill`, one segment), at the author's
+   request: the two sit side by side acting on the same answer, and a plain
+   bordered button next to a segmented control read as two different kinds
+   of thing. Copy is never "pressed", so it only takes the shape, not the
+   selected coloring below. */
+.view-switch,
+.copy-pill {
   display: inline-flex;
   gap: 2px;
   padding: 2px;
-  margin-inline-start: auto;
   background: var(--color-surface-2);
   border: 1px solid var(--color-hair);
   border-radius: var(--radius-sm);
 }
 
-.view-switch button {
+.view-switch button,
+.copy-pill button {
   padding: 2px 8px;
   font-family: var(--font-mono);
   font-size: var(--text-label);
@@ -808,7 +839,8 @@
     background-color var(--dur-2) var(--ease-out);
 }
 
-.view-switch button:hover {
+.view-switch button:hover,
+.copy-pill button:hover {
   color: var(--color-text-heading);
 }
 
@@ -823,7 +855,8 @@
   background: var(--color-accent);
 }
 
-.view-switch button:focus-visible {
+.view-switch button:focus-visible,
+.copy-pill button:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
