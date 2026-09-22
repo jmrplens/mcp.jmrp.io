@@ -20,6 +20,7 @@ import { ui } from "../../i18n/ui";
 import { getLangFromUrl } from "../../i18n/utils";
 import { pageUrl } from "../../lib/seo";
 import ServerCard from "../ServerCard.astro";
+import ServerComparison from "../ServerComparison.astro";
 import UpdatedLine from "../UpdatedLine.astro";
 
 const lang = getLangFromUrl(Astro.url);
@@ -100,6 +101,12 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
     {t.serversEyebrow}
   </h2>
   <p class="section-intro">{t.serversIntro}</p>
+  {
+    /* One table before the two cards: the answer to "which one, and what
+      does it need from me" in the shape the AI surfaces extract first. Same
+      data as the cards (see ServerComparison.md.ts). */
+  }
+  <ServerComparison lang={lang} />
   <div class="grid">
     {
       servers.map((s) => (

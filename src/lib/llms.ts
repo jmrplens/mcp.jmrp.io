@@ -451,12 +451,30 @@ function serverSection(server: McpServer): string {
     templates,
   );
 
+  // The notices the server's page folds under "Before you rely on this": its
+  // FAQPage entries (where libgen searches and on what legal footing, where a
+  // GitLab token goes, what each server's limits are). They were on the page
+  // and in the home twin and nowhere in this corpus, which is the one file an
+  // agent reads before connecting (GEO audit #4, 2026-09-22).
+  const noticeBlock = server.notices
+    .map((notice) => {
+      const bullets = (notice.bullets ?? []).map((b) => `- ${b.en}`);
+      return [
+        `### ${notice.title.en}`,
+        ...notice.body.map((paragraph) => paragraph.en),
+        ...(bullets.length > 0 ? [bullets.join("\n")] : []),
+      ].join("\n\n");
+    })
+    .join("\n\n");
+
   return `## ${server.name}
 
 ${server.description.en}
 
+${noticeBlock}
+
 - Endpoint: \`${server.endpoint}\` (POST only; GET answers ${server.getStatus})
-- Transport: streamable HTTP, stateless JSON-RPC 2.0
+- Transport: streamable HTTP, stateless JSON-RPC 2.0${card ? `\n- Version: ${card.serverInfo.version}` : ""}
 - Repository: ${server.repo}
 - Documentation: ${server.docsSite ?? server.docs}
 - Health: \`${server.endpoint}/health\` (GET, no credentials)${auth}${headerBlock(server.requiredHeaders, "Required")}${headerBlock(server.optionalHeaders, "Optional")}
@@ -491,6 +509,18 @@ Mind the top-level key when you read them: Cursor reads \`mcpServers\` with no
  */
 export function buildLlmsFullTxt(): string {
   const sections = servers.map((server) => serverSection(server)).join("\n");
+  // The scope the RFC 9728 document advertises, from the data the deploy
+  // script checks against the live document, never typed into the prose: the
+  // sentence it feeds said "both scopes" for eleven days after the server
+  // went back to advertising one (GEO audit #4, 2026-09-22).
+  const advertised = servers.find((server) => server.oauth)?.oauth
+    ?.advertisedScopes;
+  if (!advertised || advertised.length !== 1) {
+    throw new Error(
+      "[llms] the credential policy is written for exactly one advertised scope",
+    );
+  }
+  const advertisedScope = `\`${advertised[0]}\``;
   const secretHeaders = servers
     .flatMap((server) => server.requiredHeaders)
     .filter((header) => header.secret);
@@ -519,8 +549,15 @@ for the narrowest scope that does what you need: a token scoped to
 \`read_api\` is admitted and served the read-only part of the surface, which is
 the right one for trying the server out, while \`api\` is only needed to reach
 the actions that write. The decision is per action rather than once at the
-door, so a client that asks for less is served less rather than refused — both
-scopes are advertised in the RFC 9728 document named by the \`401\` challenge.
+door, so a client that asks for less is served less rather than refused.
+
+The RFC 9728 document named by the \`401\` challenge advertises exactly one
+scope, ${advertisedScope}: the one that buys the full surface, and the one a
+client that discovers scopes will ask GitLab for. It never lists both, because
+such a client asks for everything listed and GitLab refuses an authorization
+request naming any scope the OAuth application lacks (\`invalid_scope\`). A
+client that wants a read-only credential names \`read_api\` itself, from an
+application that has that scope checked.
 Use a token you created for this, and revoke it when you are done.
 `;
 

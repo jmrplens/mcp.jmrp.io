@@ -1082,9 +1082,15 @@ export async function buildSiteGraph(
     ...(noticeServers.length > 0 && {
       speakable: {
         "@type": "SpeakableSpecification",
-        cssSelector: noticeServers.flatMap((server) =>
-          server.notices.map((notice) => `#${server.id}-${notice.kind}`),
-        ),
+        cssSelector: [
+          // A server's own page also nominates its connect block: the
+          // endpoint and the per-client snippets are the passage that answers
+          // "how do I connect this", which is what a reader arrives asking.
+          ...(targetServer && !isHome ? ["#connect-h"] : []),
+          ...noticeServers.flatMap((server) =>
+            server.notices.map((notice) => `#${server.id}-${notice.kind}`),
+          ),
+        ],
       },
     }),
   };
@@ -1321,7 +1327,10 @@ function buildActionsNodes(
  * @returns The answer's text, in one piece.
  */
 function noticeAnswer(notice: McpNotice, lang: Lang): string {
-  const parts = [...notice.body, ...(notice.bullets ?? [])];
+  const parts =
+    notice.answerParagraph === undefined
+      ? [...notice.body, ...(notice.bullets ?? [])]
+      : [notice.body[notice.answerParagraph]];
   return parts
     .map((part) => part[lang])
     .join(" ")

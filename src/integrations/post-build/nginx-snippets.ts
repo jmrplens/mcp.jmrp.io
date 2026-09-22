@@ -165,6 +165,10 @@ export function stageNginxSnippets(
       (page) =>
         `location = ${page}index.md { default_type "text/markdown; charset=utf-8"; ` +
         `include /etc/nginx/snippets/security_headers_assets_mcp.conf; ` +
+        // Regenerated on every deploy, which purges the CDN: five minutes of
+        // client-side freshness is honest. They carried only ETag +
+        // Last-Modified, i.e. heuristic freshness (GEO audit #4, 2026-09-22).
+        `add_header Cache-Control "public, max-age=300, must-revalidate" always; ` +
         `add_header Link $mcp_md_link_header always; try_files ${page}index.md =404; }`,
     )
     .join("\n");

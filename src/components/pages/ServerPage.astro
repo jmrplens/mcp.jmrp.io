@@ -404,6 +404,7 @@ function toolAnnotationChips(
       class="toc-toggle-cb sr-only"
       aria-controls="toc-panel"
       aria-expanded="false"
+      aria-label={sp.tocLabel}
     />
 
     <div class="server-content">
@@ -779,7 +780,11 @@ function toolAnnotationChips(
             <p class="fold-intro">{sp.catalogIntro}</p>
             {/* Always visible, never folded: every count below is only true
                 for the token tier that asked (`cacheScope: "private"`). */}
-            <p class="catalog-token-note">{sp.catalogTokenNote}</p>
+            <p class="catalog-token-note">
+              {sp.catalogTokenNote.replace("{count}", () =>
+                String(actions.meta.actionCount),
+              )}
+            </p>
             <div class="table-scroll">
               <table class="catalog-table">
                 <caption class="sr-only">{sp.catalogTableCaption}</caption>

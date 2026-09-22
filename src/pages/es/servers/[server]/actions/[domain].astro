@@ -16,7 +16,10 @@ import type { GetStaticPaths } from "astro";
 
 import ActionsDomainPage from "../../../../../components/pages/ActionsDomainPage.astro";
 import { servers } from "../../../../../data/servers";
-import { actionsDomainPaths } from "../../../../../data/surface";
+import {
+  actionCatalogs,
+  actionsDomainPaths,
+} from "../../../../../data/surface";
 import { serversPage } from "../../../../../i18n/ui/servers-page";
 import { getLangFromUrl } from "../../../../../i18n/utils";
 import Base from "../../../../../layouts/Base.astro";
@@ -40,6 +43,17 @@ if (!serverMeta) {
   );
 }
 
+// The note names the size of the whole catalog, not of this domain, and
+// takes it from the same registry the card, `/servers.json` and the llms
+// files read: a figure typed into the string outlived the catalog once.
+const catalog = actionCatalogs()[server];
+if (!catalog) {
+  throw new Error(`[actions] "${server}" has domain pages but no catalog`);
+}
+const tokenNote = sp.catalogTokenNote.replace("{count}", () =>
+  String(catalog.meta.actionCount),
+);
+
 const title = `${domain} — ${serverMeta.name} ${sp.domainPageTitleSuffix}`;
 // `() =>` and not the value directly: unicorn/no-unsafe-string-replacement —
 // a string replacement would interpret `$&` and friends.
@@ -61,7 +75,7 @@ const description = sp.domainMetaDescription
     serverId={server}
     domain={domain}
     actions={actions}
-    tokenNote={sp.catalogTokenNote}
+    tokenNote={tokenNote}
     domainOf={domainOf}
   />
 </Base>

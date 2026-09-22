@@ -36,6 +36,7 @@ import {
   serverPageUrl,
   SITE_NAME,
 } from "../lib/seo";
+import { pageDatesOf } from "../lib/sitemap-lastmod";
 import { hasMarkdownTwin } from "../lib/twin-routes";
 
 /**
@@ -124,12 +125,14 @@ const lang = getLangFromUrl(Astro.url);
 // it was just write-as-you-go.
 const otherLang: Lang = lang === "en" ? "es" : "en";
 
-// The same date as dateModified and the sitemap's lastmod: one single truth.
-// Shared, memoized build timestamp — the same value the JSON-LD and
-// <UpdatedLine> use. Calling `contentDate() ?? new Date()` here again
-// re-read the clock on a dirty tree, so the footer could disagree with
-// the date printed inside <main> by a few milliseconds.
-const updated = buildDate();
+// The same date as dateModified, the sitemap's lastmod and <UpdatedLine>:
+// one single truth, PER PAGE. It read `buildDate()` until GEO audit #4
+// (2026-09-22): from the moment the dates became per-page (#24) the footer
+// said "Updated <the day the site was last deployed>" under the same label
+// <UpdatedLine> uses for the page's own date, so `/policies/` showed two
+// dates on one screen. `buildDate()` stays as the fallback a dirty tree
+// resolves to, exactly as in UpdatedLine.astro.
+const updated = pageDatesOf(Astro.url.pathname).dateModified ?? buildDate();
 const updatedHuman = humanDate(updated, lang);
 // hreflang cluster for THIS page: `alternatesOverride` for a per-server
 // detail page (see the prop doc above), `alternates(page)` for everything

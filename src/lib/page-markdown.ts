@@ -5,6 +5,7 @@ import {
 } from "../components/ClientSetup.md.ts";
 import { failureLadderMarkdown } from "../components/FailureLadder.md.ts";
 import { noticeMarkdown } from "../components/Notice.md.ts";
+import { serverComparisonMarkdown } from "../components/ServerComparison.md.ts";
 import { serverCards } from "../data/server-cards";
 import type { McpServer } from "../data/servers";
 import { servers } from "../data/servers";
@@ -48,7 +49,12 @@ import { pageDatesOf } from "./sitemap-lastmod";
  * can submit from a text file would be noise. The server cards do not
  * repeat their whole tool catalog either — `llms-full.txt` already carries
  * it, in one place, and the twin links there rather than shipping a second
- * copy that can disagree with the first.
+ * copy that can disagree with the first. What a server twin DOES carry is
+ * every passage its page nominates for quotation: the notices under "Before
+ * you rely on this" (the page's FAQPage entries), and the name and one-line
+ * description of each tool and prompt — GEO audit #4 (2026-09-22) found the
+ * twins answering "what can it do?" with "2 tools" and carrying none of the
+ * three FAQ answers, while `llms.txt` promised the same prose as the page.
  *
  * @module
  */
@@ -173,7 +179,12 @@ export function homeMarkdown(lang: Lang): string {
   );
   return (
     head(t.title, t.subtitle, pageUrl(lang, "home"), lang) +
-    section(t.serversEyebrow, [t.serversIntro, list, ...noticeSections]) +
+    section(t.serversEyebrow, [
+      t.serversIntro,
+      serverComparisonMarkdown(lang),
+      list,
+      ...noticeSections,
+    ]) +
     section(t.mdMachineHead, [
       `- ${t.mdIndexLabel}: ${SITE_ORIGIN}/servers.json`,
       `- ${t.mdCorpusLabel}: ${SITE_ORIGIN}/llms.txt ${t.mdAndWord} ${SITE_ORIGIN}/llms-full.txt`,
@@ -438,6 +449,20 @@ export function serverMarkdown(server: McpServer, lang: Lang): string {
         `- ${card.resourceTemplates.length} ${t.countTemplates}`,
       ]
     : [];
+  // The counts say how much; these say what. Names and one-line descriptions
+  // only — schemas, resources and templates stay in `llms-full.txt` (see the
+  // module doc). `servers.ts` wins where it has copy of its own (libgen's
+  // prompts are translated by hand); the card covers the rest, in English.
+  const toolLines = server.tools.map(
+    (tool) => `- \`${tool.name}\` — ${tool.what[lang]}`,
+  );
+  const promptLines = server.prompts?.length
+    ? server.prompts.map(
+        (prompt) => `- \`${prompt.name}\` — ${prompt.what[lang]}`,
+      )
+    : (card?.prompts ?? []).map(
+        (prompt) => `- \`${prompt.name}\` — ${prompt.description}`,
+      );
   // The service context the page prints under "Before you rely on this".
   // Its own module doc calls these four non-negotiable for a reader who lands
   // on a server's page without going through the home page — which is every
@@ -475,13 +500,25 @@ export function serverMarkdown(server: McpServer, lang: Lang): string {
     // The component's own twin, not a second composition of the same blocks:
     // see `ClientSetup.md.ts` for why this section in particular earned one.
     section(clientSetupHeading(lang), [clientSetupMarkdown(server, lang)]) +
-    section(t.contextHead, context) +
+    // The page folds this server's notices right under the same heading:
+    // they are its FAQPage entries and `speakable` targets, so they belong in
+    // the copy written for machines exactly as the home twin carries its own.
+    section(t.contextHead, [
+      ...context,
+      ...server.notices.map((notice) => noticeMarkdown(notice, lang)),
+    ]) +
     (instructions
       ? section(t.instructionsHead, [t.instructionsIntro, instructions])
       : "") +
     // `toolsHead` lives in `common` (through `ui`), not in `serversPage`.
-    (surface.length > 0
-      ? section(ui[lang].toolsHead, [surface.join("\n")])
+    (surface.length > 0 || toolLines.length > 0
+      ? section(
+          ui[lang].toolsHead,
+          [surface.join("\n"), toolLines.join("\n")].filter(Boolean),
+        )
+      : "") +
+    (promptLines.length > 0
+      ? section(ui[lang].promptsHead, [promptLines.join("\n")])
       : "") +
     (catalog
       ? section(t.catalogHead, [
@@ -599,12 +636,18 @@ export function domainMarkdown(
   // singular. Both forms come from i18n rather than an inline ternary: a
   // Spanish string in a lib file is one no translator would ever find.
   const countLabel = actions.length === 1 ? t.mdActionOne : t.mdActionMany;
+  // Whole-catalog size, from the shared registry (see the page route).
+  const total = actionCatalogs()[server]?.meta.actionCount;
+  if (total === undefined) {
+    throw new Error(`[twins] "${server}" has domain twins but no catalog`);
+  }
+  const tokenNote = t.catalogTokenNote.replace("{count}", () => String(total));
   return (
     head(
       `${domain} — ${server}`,
       `${actions.length} ${countLabel}`,
       url,
       lang,
-    ) + `\n${t.catalogTokenNote}\n\n## ${t.mdActionsHead}\n\n${body}\n`
+    ) + `\n${tokenNote}\n\n## ${t.mdActionsHead}\n\n${body}\n`
   );
 }
