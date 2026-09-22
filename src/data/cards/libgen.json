@@ -4,12 +4,8 @@
     "schemes": []
   },
   "capabilities": {
-    "prompts": {
-      "listChanged": true
-    },
-    "tools": {
-      "listChanged": true
-    }
+    "prompts": {},
+    "tools": {}
   },
   "prompts": [
     {
@@ -327,7 +323,7 @@
             "type": "string"
           },
           "path": {
-            "description": "destination directory (default LIBGEN_MCP_DOWNLOAD_DIR or ~/Downloads); ignored when resolve_only is true",
+            "description": "destination directory (default LIBGEN_MCP_DOWNLOAD_DIR or ~/Downloads); ignored when resolve_only is true. Confined to the working directory, the OS temp directory, the download directory, and anything in LIBGEN_MCP_ALLOWED_DOWNLOAD_DIRS",
             "type": "string"
           },
           "resolve_only": {
