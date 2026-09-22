@@ -809,10 +809,13 @@ test("a page declares a FAQPage exactly when it renders the notices", () => {
     );
     // Every id `speakable` nominates has to be one the page actually carries.
     // A read-aloud pointed at a selector that matches nothing is the failure
-    // this guards, and it is silent.
+    // this guards, and it is silent. The notices are the usual targets; a
+    // server's page also nominates its connect block (`#connect-h`), so the
+    // check is against the page's ids, not the notice list alone.
     for (const selector of webpage.speakable.cssSelector) {
+      const id = selector.slice(1);
       assert.ok(
-        noticeIds.includes(selector.slice(1)),
+        noticeIds.includes(id) || html.includes(`id="${id}"`),
         `${htmlPage}: speakable names ${selector}, which is not on the page`,
       );
     }

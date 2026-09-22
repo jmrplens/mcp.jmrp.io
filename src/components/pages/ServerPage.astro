@@ -404,7 +404,6 @@ function toolAnnotationChips(
       class="toc-toggle-cb sr-only"
       aria-controls="toc-panel"
       aria-expanded="false"
-      aria-label={sp.tocLabel}
     />
 
     <div class="server-content">
@@ -1689,6 +1688,15 @@ function toolAnnotationChips(
   .toc-scrim,
   .toc-panel {
     display: none;
+  }
+
+  /* The checkbox only means something below 64rem, where its labels show.
+     On desktop they are display:none, which left a focusable control with
+     no name in the accessibility tree (Lighthouse "label", GEO audit #4). */
+  @media (width >= 64rem) {
+    .toc-toggle-cb {
+      display: none;
+    }
   }
 
   @media (width < 64rem) {
