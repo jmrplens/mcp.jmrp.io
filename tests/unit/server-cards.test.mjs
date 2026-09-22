@@ -542,10 +542,23 @@ test("gitlab: the subscribable _meta flag propagates curated and matches the dec
 test("libgen: capabilities with no subscriptions, and zero templates", () => {
   const card = getServerCard("libgen");
   assert.ok(card, "libgen should have a committed card");
-  assert.equal(
+  // It declares tools and prompts, and promises no list_changed notification
+  // on either. This asserted `listChanged: true` until libgen-mcp 2.0.0, which
+  // pins both to false on purpose -- its own comment: "a promise this server
+  // cannot keep: the catalog is fixed at registration and only changes with a
+  // release". The live `initialize` says the same, so the two agree; what is
+  // pinned here is that the capability is DECLARED and the promise is not.
+  assert.ok(card.capabilities?.tools, "tools capability is declared");
+  assert.ok(card.capabilities?.prompts, "prompts capability is declared");
+  assert.notEqual(
     card.capabilities?.tools?.listChanged,
     true,
-    "capabilities.tools.listChanged",
+    "a stateless server must not promise tools/list_changed",
+  );
+  assert.notEqual(
+    card.capabilities?.prompts?.listChanged,
+    true,
+    "a stateless server must not promise prompts/list_changed",
   );
   assert.equal(
     card.subscriptions,

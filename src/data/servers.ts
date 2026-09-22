@@ -366,7 +366,13 @@ export const servers: McpServer[] = [
     // {"name":"libgen-mcp","version":"1.6.3"}. See `nativeCard` on `McpServer`
     // for what that flag actually does (announces it in the RFC 9727 catalog).
     nativeCard: true,
-    version: "1.7.2",
+    // Since 2.0.0 (2026-09-22) libgen serves the SEP-2127 card itself, the way
+    // gitlab has since 3.0.0: 729 bytes, no primitives, `remotes` pointing at
+    // https://mcp.jmrp.io/libgen because the deployment passes --public-url.
+    // Measured against all three replicas before the site stopped emitting
+    // one: same body, same strong ETag, its own Cache-Control and CORS.
+    ownServerCard: true,
+    version: "2.0.0",
     // Measured 2026-09-10, anonymously: a POST carrying
     // `MCP-Protocol-Version: 1999-01-01` is answered 400 "Unsupported
     // protocol version (supported versions: ...)" with exactly this list.
@@ -565,7 +571,7 @@ export const servers: McpServer[] = [
         "Free hosted GitLab MCP: 700+ operations with your own gitlab.com token, never written to disk.",
     },
     nativeCard: true,
-    version: "3.0.0",
+    version: "3.1.0",
     // Measured 2026-09-10 against 3.0.0+4d73bc0. Same probe as libgen and,
     // unlike what the audit assumed, no token is needed: the version check
     // runs before authorization, so the bad-version POST comes back
