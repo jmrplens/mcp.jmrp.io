@@ -65,3 +65,40 @@ test("the inspector redirects to the site's own callback page", () => {
     "the callback page the redirect lands on is gone",
   );
 });
+
+// GEO audit #4 (2026-09-22): the button came back in #41, but four sentences
+// in the prose kept saying it was disabled ("currently disabled", "disabled
+// right now", "so today there is exactly one destination"), on the two pages
+// whose job is to let a user decide whether to trust this site with a token.
+// Nothing tied the prose to the data, so nothing noticed. This does: while
+// `oauth.inspector` exists, no user-facing string may describe the sign-in
+// button as disabled, in either language.
+test("no prose calls the sign-in button disabled while it is offered", () => {
+  assert.ok(gitlab?.oauth?.inspector, "no oauth.inspector to check");
+  const files = [
+    "../../src/data/servers.ts",
+    ...fs
+      .readdirSync(new URL("../../src/i18n/ui/", import.meta.url))
+      .filter((f) => f.endsWith(".ts"))
+      .map((f) => `../../src/i18n/ui/${f}`),
+  ];
+  // Two directions, two regexes (one was past the complexity budget). The
+  // Spanish stems are there because the ES strings are checked too.
+  const hedges = [
+    // cspell:disable-next-line
+    /(sign-in|sign in|button|botón|acceso)[^"]{0,90}(disabled|desactivad|inactiv|not yet enabled)/i,
+    // cspell:disable-next-line
+    /(disabled|desactivad)[^"]{0,90}(sign-in|sign in|button|botón)/i,
+  ];
+  for (const file of files) {
+    const text = fs.readFileSync(new URL(file, import.meta.url), "utf8");
+    // Only string literals count: comments may narrate the history.
+    const literals = text.match(/"(?:[^"\\]|\\.)*"/g) ?? [];
+    for (const literal of literals) {
+      assert.ok(
+        hedges.every((hedge) => !hedge.test(literal)),
+        `${file} describes the sign-in button as disabled while oauth.inspector offers it: ${literal.slice(0, 120)}`,
+      );
+    }
+  }
+});

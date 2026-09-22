@@ -1353,3 +1353,41 @@ test("no surface claims a read_api token is refused", () => {
     "the home page no longer mentions read_api at all",
   );
 });
+
+// GEO audit #4 (2026-09-22): the server twins carried the connect block (the
+// test above) but none of the three notices the page folds under "Before you
+// rely on this" — its FAQPage entries — and answered "what can it do?" with
+// "2 tools", while `llms.txt` promised "the same prose as its page". The
+// notices were also absent from `llms-full.txt`, the one file an agent reads
+// before connecting. Asserted on the build, both languages, from the same
+// data the page renders.
+test("a server's twin and llms-full.txt carry the page's notices and tool names", () => {
+  const full = read("llms-full.txt");
+  for (const server of serverData) {
+    for (const [dir, lang] of [
+      ["", "en"],
+      ["es/", "es"],
+    ]) {
+      const name = `${dir}servers/${server.id}/index.md`;
+      const md = read(name);
+      for (const notice of server.notices) {
+        assert.ok(
+          md.includes(`### ${notice.title[lang]}`),
+          `${name}: the notice "${notice.title[lang]}" is not in the twin`,
+        );
+      }
+      for (const tool of server.tools) {
+        assert.ok(
+          md.includes(`\`${tool.name}\` — ${tool.what[lang]}`),
+          `${name}: tool ${tool.name} has no description in the twin`,
+        );
+      }
+    }
+    for (const notice of server.notices) {
+      assert.ok(
+        full.includes(`### ${notice.title.en}`),
+        `llms-full.txt: the notice "${notice.title.en}" of ${server.id} is missing`,
+      );
+    }
+  }
+});

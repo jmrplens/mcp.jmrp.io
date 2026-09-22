@@ -60,6 +60,11 @@ export const GET: APIRoute = () =>
             id: s.id,
             endpoint: s.endpoint,
             transport: "streamable-http",
+            // The running binary's version, from the committed card (refreshed
+            // on every release). Every other surface carried it and this index
+            // did not (GEO audit #4). Omitted, like the families below, until a
+            // card exists.
+            ...(card && { version: card.serverInfo.version }),
             description: s.description.en,
             tools: s.tools.map((tool) => tool.name),
             // Each family is omitted entirely when empty, so a server that

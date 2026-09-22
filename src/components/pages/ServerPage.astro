@@ -779,7 +779,11 @@ function toolAnnotationChips(
             <p class="fold-intro">{sp.catalogIntro}</p>
             {/* Always visible, never folded: every count below is only true
                 for the token tier that asked (`cacheScope: "private"`). */}
-            <p class="catalog-token-note">{sp.catalogTokenNote}</p>
+            <p class="catalog-token-note">
+              {sp.catalogTokenNote.replace("{count}", () =>
+                String(actions.meta.actionCount),
+              )}
+            </p>
             <div class="table-scroll">
               <table class="catalog-table">
                 <caption class="sr-only">{sp.catalogTableCaption}</caption>
@@ -1684,6 +1688,15 @@ function toolAnnotationChips(
   .toc-scrim,
   .toc-panel {
     display: none;
+  }
+
+  /* The checkbox only means something below 64rem, where its labels show.
+     On desktop they are display:none, which left a focusable control with
+     no name in the accessibility tree (Lighthouse "label", GEO audit #4). */
+  @media (width >= 64rem) {
+    .toc-toggle-cb {
+      display: none;
+    }
   }
 
   @media (width < 64rem) {

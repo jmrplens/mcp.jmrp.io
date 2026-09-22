@@ -14,6 +14,9 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
+// The site's own description of the servers: node runs the .ts directly, as
+// the unit tests do. Read for the RFC 9728 check at the end of this file.
+import { servers } from "../src/data/servers.ts";
 import {
   parseSitemapEntries,
   selectChangedUrls,
@@ -634,4 +637,47 @@ if (bingKey && SUBMIT_URLS.length === 0) {
   console.warn(
     "⚠ no BING_WEBMASTER_API_KEY: the URLs are not sent to Bing Webmaster.",
   );
+}
+
+// ── RFC 9728 metadata vs the prose that describes it ────────────────────────
+//
+// `llms-full.txt` tells agents what `scopes_supported` says BEFORE they fetch
+// it, from `oauth.advertisedScopes` in servers.ts. The document itself comes
+// from the running binary, so a new release can change it under the prose —
+// it did, on 2026-09-11, and the text said "both scopes" for eleven days
+// (GEO audit #4). This names the line to change. Never fatal: the deploy is
+// done by now, and a wrong sentence beats a site that will not deploy.
+for (const server of servers) {
+  const oauth = server.oauth;
+  if (!oauth) continue;
+  try {
+    const response = await fetch(oauth.metadataUrl, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!response.ok) {
+      console.warn(
+        `⚠ ${oauth.metadataUrl} answered HTTP ${response.status}: scopes_supported not checked`,
+      );
+      continue;
+    }
+    const body = await response.json();
+    const byName = (a, b) => a.localeCompare(b);
+    const live = [...(body.scopes_supported ?? [])].sort(byName);
+    const declared = [...oauth.advertisedScopes].sort(byName);
+    if (JSON.stringify(live) === JSON.stringify(declared)) {
+      console.log(
+        `✓ ${server.id}: the RFC 9728 document advertises ${live.join(", ")}, as servers.ts declares`,
+      );
+    } else {
+      console.warn(
+        `⚠ ${server.id}: the RFC 9728 document advertises [${live.join(", ")}] but servers.ts declares [${declared.join(", ")}].\n` +
+          "    Update `advertisedScopes` in src/data/servers.ts: llms-full.txt describes the document from it.",
+      );
+    }
+  } catch (error) {
+    console.warn(
+      `⚠ could not read ${oauth.metadataUrl}: ${oneLine(error.message)}`,
+    );
+  }
 }

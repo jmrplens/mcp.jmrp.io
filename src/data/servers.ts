@@ -61,6 +61,16 @@ export type McpNotice = {
   body: Bilingual[];
   /** Puntos de una lista, si el aviso los necesita. */
   bullets?: Bilingual[];
+  /**
+   * Index into `body` of the paragraph that IS the answer, for `acceptedAnswer`
+   * and a read-aloud, when the rest of the body argues rather than answers.
+   * The token notice answers its question in its first paragraph and then
+   * makes the case for three more plus a list; the graph said all 290 words
+   * were the answer, against 56-110 for every other question (GEO audit #4).
+   * An index rather than a copy so the answer cannot drift from the page.
+   * Absent = paragraphs and bullets, in order, as before.
+   */
+  answerParagraph?: number;
 };
 
 /** Una herramienta que el servidor expone. */
@@ -227,6 +237,16 @@ export type McpServer = {
     scopes: string[];
     /** El documento RFC 9728 del recurso, para quien quiera comprobarlo. */
     metadataUrl: string;
+    /**
+     * Lo que ese documento anuncia en `scopes_supported`, copiado aquí para
+     * que la prosa que lo describe (`llms-full.txt`) salga del dato y no de
+     * memoria. Desde gitlab-mcp-server 3.1.0 es UN alcance, nunca los dos:
+     * un cliente que descubre alcances pide a GitLab todos los listados, y
+     * GitLab rechaza con `invalid_scope` cualquier petición que nombre uno
+     * que la aplicación no tenga marcado. `deploy-live-mcp.mjs` coteja esta
+     * lista con el documento vivo tras cada despliegue.
+     */
+    advertisedScopes: string[];
     /**
      * Puerto de callback que hay que fijar en los clientes que lo permiten.
      * No es libre: tiene que coincidir con un redirect URI registrado en la
@@ -635,6 +655,9 @@ export const servers: McpServer[] = [
       },
       {
         kind: "security",
+        // The first paragraph answers the question; the rest argues (see
+        // the type). Index, not a copy, so it cannot drift from the body.
+        answerParagraph: 0,
         title: {
           en: "Where does your GitLab token go?",
           es: "¿A dónde va tu token de GitLab?",
@@ -650,8 +673,8 @@ export const servers: McpServer[] = [
           // único verificable. La versión anterior presentaba las dos cosas
           // bajo el mismo "no hace falta que te fíes", y eso sobre-vendía.
           {
-            en: "The destination is not a matter of trust: this page's Content-Security-Policy declares connect-src 'self' https://gitlab.com and form-action 'self', so the browser itself refuses to send the token anywhere but this domain and the one that issues it. gitlab.com is on that list for exactly one reason — a sign-in button exchanging an authorization code for a token, currently disabled — and for nothing else. What the server then does with it — keep it in memory while you use it, re-check it with gitlab.com every fifteen minutes, and drop it — you can verify in its source code, which is public.",
-            es: "El destino no es cuestión de confianza: la Content-Security-Policy de esta página declara connect-src 'self' https://gitlab.com y form-action 'self', así que es el propio navegador el que impide enviar el token a ningún sitio que no sea este dominio y el que lo emite. gitlab.com está en esa lista por una única razón —un botón de acceso canjeando un código de autorización por un token, ahora mismo desactivado— y por ninguna otra. Lo que el servidor haga después con él —conservarlo en memoria mientras lo uses, volver a comprobarlo con gitlab.com cada quince minutos y descartarlo—, puedes comprobarlo en su código fuente, que es público.",
+            en: "The destination is not a matter of trust: this page's Content-Security-Policy declares connect-src 'self' https://gitlab.com and form-action 'self', so the browser itself refuses to send the token anywhere but this domain and the one that issues it. gitlab.com is on that list for exactly one reason — the sign-in button, which exchanges an authorization code for a token issued to the inspector's own OAuth application, scoped to read_api and nothing wider — and for nothing else. What the server then does with it — keep it in memory while you use it, re-check it with gitlab.com every fifteen minutes, and drop it — you can verify in its source code, which is public.",
+            es: "El destino no es cuestión de confianza: la Content-Security-Policy de esta página declara connect-src 'self' https://gitlab.com y form-action 'self', así que es el propio navegador el que impide enviar el token a ningún sitio que no sea este dominio y el que lo emite. gitlab.com está en esa lista por una única razón —el botón de acceso, que canjea un código de autorización por un token emitido a la aplicación OAuth propia del inspector, con alcance read_api y nada más— y por ninguna otra. Lo que el servidor haga después con él —conservarlo en memoria mientras lo uses, volver a comprobarlo con gitlab.com cada quince minutos y descartarlo—, puedes comprobarlo en su código fuente, que es público.",
           },
           {
             en: "Even so, be suspicious of any site asking for a token — this one included. The sensible habits are:",
@@ -708,6 +731,8 @@ export const servers: McpServer[] = [
       scopes: ["api"],
       metadataUrl:
         "https://mcp.jmrp.io/.well-known/oauth-protected-resource/gitlab",
+      // Measured on 3.1.0+17f13ba (2026-09-22): `["api"]`. See the type.
+      advertisedScopes: ["api"],
       callbackPort: 8090,
       // The read-only application behind the inspector's sign-in button.
       //
@@ -729,10 +754,13 @@ export const servers: McpServer[] = [
       // Nobody uncommented this afterwards, so for two weeks the button was
       // simply absent and nothing said so. Re-enabled after measuring the
       // running binary, 3.0.0+f3bad2f: the bearer guard admits through
-      // `oauth.SatisfiesMinimum(info.Scopes, g.minimumScope)`, and the
-      // RFC 9728 document advertises `scopes_supported: ["api","read_api"]`,
-      // the shape ADR-0018 specifies for a deployment that can write. The
-      // challenge still says `scope="api"`; under ADR-0018 that is what it
+      // `oauth.SatisfiesMinimum(info.Scopes, g.minimumScope)`. On that build
+      // the RFC 9728 document advertised `scopes_supported: ["api","read_api"]`;
+      // 3.1.0 went back to ONE scope (`api`, see `advertisedScopes` above),
+      // because a client that reads the list asks GitLab for all of it and
+      // GitLab refuses a request naming a scope the application lacks. The
+      // admission rule did not change: `read_api` still gets in. The
+      // challenge says `scope="api"`; under ADR-0018 that is what it
       // RECOMMENDS, not what it requires.
       //
       // `tests/unit/inspector-oauth.test.mjs` fails if this block disappears
@@ -774,12 +802,13 @@ export const servers: McpServer[] = [
     // not that the server lost anything: the catalog is scoped to the token
     // that asks, and this deployment now publishes what a gitlab.com token
     // sees. Measured on the day of the switch, the manifest went from 851
-    // actions to 747 — the 104 that vanished are the administration domains a
+    // actions to 747 that day (765 by 2026-09-22: the live figure is
+    // `meta.actionCount`) — the 104 that vanished are the administration domains a
     // gitlab.com account without admin rights simply cannot call.
     //
     // So 700 is a FLOOR that holds for every reader, where "over 1,000" was
     // only true on Ultimate and was contradicted by this site's own published
-    // manifest (`/servers/gitlab/`, 747). A citable figure that the same site
+    // manifest (`/servers/gitlab/`, 747 at the time). A citable figure that the same site
     // refutes two clicks away is worse than a smaller one that never does —
     // and it is precisely the figure assistants repeat.
     //

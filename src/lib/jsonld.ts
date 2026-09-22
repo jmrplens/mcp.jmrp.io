@@ -1082,9 +1082,7 @@ export async function buildSiteGraph(
     ...(noticeServers.length > 0 && {
       speakable: {
         "@type": "SpeakableSpecification",
-        cssSelector: noticeServers.flatMap((server) =>
-          server.notices.map((notice) => `#${server.id}-${notice.kind}`),
-        ),
+        cssSelector: speakableSelectors(noticeServers, targetServer, isHome),
       },
     }),
   };
@@ -1179,6 +1177,35 @@ export async function buildSiteGraph(
  * @param targetServer The server whose card this page is, if it is one.
  * @returns The servers whose notices are on this page, possibly none.
  */
+/**
+ * The passages `speakable` nominates on a page.
+ *
+ * The notices, always: they are the page's FAQPage entries and their ids sit
+ * on the `<details>` the cards render. On a server's own page, its connect
+ * block too: the endpoint and the per-client snippets are the passage that
+ * answers "how do I connect this", which is what a reader arrives asking
+ * (GEO audit #4). The home page lists both servers' notices and no connect
+ * block, since it has none.
+ *
+ * @param noticeServers The servers whose notices the page renders.
+ * @param targetServer The server whose card this page is, if it is one.
+ * @param isHome Whether this is one of the two home pages.
+ * @returns CSS selectors, every one of them an id the page carries.
+ */
+function speakableSelectors(
+  noticeServers: McpServer[],
+  targetServer: McpServer | undefined,
+  isHome: boolean,
+): string[] {
+  const onServerPage = targetServer !== undefined && !isHome;
+  return [
+    ...(onServerPage ? ["#connect-h"] : []),
+    ...noticeServers.flatMap((server) =>
+      server.notices.map((notice) => `#${server.id}-${notice.kind}`),
+    ),
+  ];
+}
+
 function serversWithNoticesOn(
   isHome: boolean,
   targetServer: McpServer | undefined,
@@ -1321,7 +1348,10 @@ function buildActionsNodes(
  * @returns The answer's text, in one piece.
  */
 function noticeAnswer(notice: McpNotice, lang: Lang): string {
-  const parts = [...notice.body, ...(notice.bullets ?? [])];
+  const parts =
+    notice.answerParagraph === undefined
+      ? [...notice.body, ...(notice.bullets ?? [])]
+      : [notice.body[notice.answerParagraph]];
   return parts
     .map((part) => part[lang])
     .join(" ")

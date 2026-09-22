@@ -67,6 +67,23 @@ export const home = {
     machineIndex: "Machine-readable index",
     /** Same idea as `machineIndex`, for the `/llms.txt` pointer below it. */
     machineLlms: "Context index for AI assistants",
+    /**
+     * The comparison table under the servers intro (`ServerComparison`).
+     * Column labels and the three fixed cell values; the figures come from
+     * the cards and the catalog registry, never from here.
+     */
+    compareCaption: "The two servers side by side",
+    compareServer: "Server",
+    compareCredential: "Credential",
+    compareTools: "Tools",
+    comparePrompts: "Prompts",
+    compareResources: "Resources",
+    compareTemplates: "Templates",
+    compareVersion: "Version",
+    comparePrice: "Price",
+    compareFree: "Free",
+    compareNone: "None",
+    compareActions: "actions",
 
     repository: "Repository",
     documentation: "Documentation",
@@ -158,6 +175,19 @@ export const home = {
     machineIndex: "Índice para máquinas",
     /** Ver `en.machineLlms`: mismo patrón para el puntero a `/llms.txt`. */
     machineLlms: "Índice de contexto para asistentes de IA",
+    /** Ver `en.compareCaption` y siguientes: la tabla comparativa de la portada. */
+    compareCaption: "Los dos servidores, lado a lado",
+    compareServer: "Servidor",
+    compareCredential: "Credencial",
+    compareTools: "Tools",
+    comparePrompts: "Prompts",
+    compareResources: "Recursos",
+    compareTemplates: "Plantillas",
+    compareVersion: "Versión",
+    comparePrice: "Precio",
+    compareFree: "Gratis",
+    compareNone: "Ninguna",
+    compareActions: "acciones",
     repository: "Repositorio",
     documentation: "Documentación",
     credentialsRequired: "Requiere credenciales",
