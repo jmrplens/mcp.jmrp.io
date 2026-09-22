@@ -515,7 +515,7 @@ export function buildLlmsFullTxt(): string {
   // went back to advertising one (GEO audit #4, 2026-09-22).
   const advertised = servers.find((server) => server.oauth)?.oauth
     ?.advertisedScopes;
-  if (!advertised || advertised.length !== 1) {
+  if (advertised?.length !== 1) {
     throw new Error(
       "[llms] the credential policy is written for exactly one advertised scope",
     );
