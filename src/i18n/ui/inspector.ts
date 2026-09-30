@@ -127,6 +127,8 @@ export const inspector = {
       argsJson: "Arguments as JSON",
       formMode: "Form",
       jsonMode: "JSON",
+      fillExample: "Fill in the example",
+      fillExampleN: "Example {n}",
       handshake: "Connection",
 
       tool: "Tool",
@@ -261,6 +263,8 @@ export const inspector = {
       argsJson: "Argumentos en JSON",
       formMode: "Formulario",
       jsonMode: "JSON",
+      fillExample: "Rellenar con el ejemplo",
+      fillExampleN: "Ejemplo {n}",
       handshake: "Conexión",
 
       tool: "Tool",

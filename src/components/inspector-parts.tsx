@@ -524,6 +524,8 @@ export function InvokePanel({
   lang,
   onRun,
   requirementNote,
+  examples = [],
+  onExample,
 }: Readonly<{
   kind: "tools" | "prompts";
   name: string;
@@ -534,6 +536,9 @@ export function InvokePanel({
    * field required when the requirement is a GROUP.
    */
   requirementNote?: string;
+  /** Whole calls the schema offers (JSON Schema `examples`), one button each. */
+  examples?: Record<string, unknown>[];
+  onExample?: (example: Record<string, unknown>) => void;
   fields: FormField[];
   values: Record<string, string>;
   onChange: (name: string, value: string) => void;
@@ -562,6 +567,24 @@ export function InvokePanel({
         </p>
         {requirementNote ? (
           <p className="schema-groups">{requirementNote}</p>
+        ) : null}
+        {examples.length > 0 && onExample ? (
+          <div className="mode examples">
+            {examples.map((example, i) => (
+              <button
+                key={JSON.stringify(example)}
+                type="button"
+                className="mode-btn"
+                disabled={busy}
+                title={JSON.stringify(example)}
+                onClick={() => onExample(example)}
+              >
+                {examples.length === 1
+                  ? t.fillExample
+                  : t.fillExampleN.replace("{n}", () => String(i + 1))}
+              </button>
+            ))}
+          </div>
         ) : null}
         {showRaw ? (
           <div className="mode">

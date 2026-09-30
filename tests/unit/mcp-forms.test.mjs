@@ -9,7 +9,12 @@ import {
   serverDocFrom,
   templatesFrom,
 } from "../../src/lib/mcp-catalog.ts";
-import { formFields, valuesToArgs } from "../../src/lib/tool-schema.ts";
+import {
+  argsToValues,
+  formFields,
+  schemaExamples,
+  valuesToArgs,
+} from "../../src/lib/tool-schema.ts";
 
 /**
  * The messages the caller supplies. They used to be hardcoded Spanish inside
@@ -237,4 +242,58 @@ test("-32601 is told apart from any other failure and from success", () => {
   );
   assert.equal(isMethodNotFound({ result: { resources: [] } }), false);
   assert.equal(isMethodNotFound(undefined), false);
+});
+
+/**
+ * libgen 2.0.1 declares JSON Schema `examples` on every tool's inputSchema,
+ * and the inspector offers them as a one-click fill. What these pin is the
+ * round trip: an example put into the form comes back out of it as the very
+ * arguments the server published, so "fill, then run" sends what was shown.
+ */
+test("only object examples are offered", () => {
+  assert.deepEqual(
+    schemaExamples({
+      type: "object",
+      examples: [{ doi: "10.1038/nature12373" }, "text", null, [1], {}],
+    }),
+    [{ doi: "10.1038/nature12373" }],
+  );
+  assert.deepEqual(schemaExamples({ type: "object" }), []);
+  assert.deepEqual(schemaExamples(undefined), []);
+});
+
+test("an example fills the form and comes back out unchanged", () => {
+  const fields = formFields({
+    type: "object",
+    properties: {
+      query: { type: "string" },
+      limit: { type: "integer" },
+      enrich: { type: "boolean" },
+      topics: { type: "array", items: { type: "string" } },
+      filter: { type: "object" },
+      format: { type: "string", enum: ["pdf", "epub"] },
+    },
+  });
+  const example = {
+    query: "organic chemistry",
+    limit: 5,
+    enrich: true,
+    topics: ["a", "b"],
+    filter: { year: 2020 },
+    format: "pdf",
+  };
+  const values = argsToValues(fields, example);
+  assert.equal(values.topics, "a\nb");
+  assert.equal(values.enrich, "true");
+  assert.deepEqual(valuesToArgs(fields, values, ERRORS), example);
+});
+
+test("an example key the form does not know is left out of it", () => {
+  const fields = formFields({
+    type: "object",
+    properties: { query: { type: "string" } },
+  });
+  assert.deepEqual(argsToValues(fields, { query: "x", stray: 1 }), {
+    query: "x",
+  });
 });

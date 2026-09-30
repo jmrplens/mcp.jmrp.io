@@ -29,6 +29,11 @@ export type JsonSchema = {
   /** Composition: libgen 1.7.1 declares its identifier groups this way. */
   anyOf?: JsonSchema[];
   oneOf?: JsonSchema[];
+  /**
+   * JSON Schema's own `examples`: on an `inputSchema`, whole argument objects
+   * the server offers as valid calls. libgen 2.0.1 declares one per tool.
+   */
+  examples?: unknown[];
 };
 
 /** A tool exactly as `tools/list` declares it. */
@@ -419,4 +424,60 @@ export function valuesToArgs(
   }
 
   return args;
+}
+
+/**
+ * The argument objects a tool's `inputSchema` offers as examples.
+ *
+ * Only plain, non-empty objects are kept: an `inputSchema` describes an
+ * object, so anything else in `examples` cannot be a call, and an empty one
+ * would fill nothing.
+ *
+ * @param schema The tool's `inputSchema`.
+ * @returns The usable examples, in the order the server gave them.
+ */
+export function schemaExamples(
+  schema: JsonSchema | undefined,
+): Record<string, unknown>[] {
+  if (!Array.isArray(schema?.examples)) return [];
+  return schema.examples.filter(
+    (example): example is Record<string, unknown> =>
+      isRecord(example) && Object.keys(example).length > 0,
+  );
+}
+
+/**
+ * Turns call arguments into what the form holds: the inverse of
+ * `valuesToArgs`, so an example filled in and then run sends exactly the
+ * example.
+ *
+ * Keys the form has no field for are dropped rather than smuggled into it:
+ * the form can only send what it shows.
+ *
+ * @param fields The form's fields.
+ * @param args The arguments, e.g. one of `schemaExamples`.
+ * @returns The typed values, by property name.
+ */
+export function argsToValues(
+  fields: FormField[],
+  args: Record<string, unknown>,
+): Record<string, string> {
+  const values: Record<string, string> = {};
+  for (const field of fields) {
+    const value = args[field.name];
+    if (value === undefined) continue;
+    if (field.control === "list" && Array.isArray(value)) {
+      values[field.name] = value.map(String).join("\n");
+    } else if (field.control === "json") {
+      // Parsed back with JSON.parse, so even a string goes in as JSON.
+      values[field.name] = JSON.stringify(value);
+    } else if (typeof value === "string") {
+      values[field.name] = value;
+    } else if (typeof value === "number" || typeof value === "boolean") {
+      values[field.name] = String(value);
+    } else {
+      values[field.name] = JSON.stringify(value);
+    }
+  }
+  return values;
 }

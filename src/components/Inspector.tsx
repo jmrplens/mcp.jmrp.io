@@ -25,10 +25,12 @@ import {
 import { readerMarkdown } from "../lib/mcp-reader";
 import { signInWithPopup } from "../lib/oauth-popup";
 import {
+  argsToValues,
   formFields,
   type JsonSchema,
   type McpTool,
   requirementGroups,
+  schemaExamples,
   skeletonFor,
   toolsFrom,
   valuesToArgs,
@@ -582,6 +584,9 @@ export default function Inspector({
       : formFields(selectedTool?.inputSchema);
 
   const requirementNote = requirementNoteFor(tab, selectedTool?.inputSchema, t);
+  /** Whole calls the tool's schema offers as examples; prompts have none. */
+  const toolExamples =
+    tab === "tools" ? schemaExamples(selectedTool?.inputSchema) : [];
 
   /**
    * Runs the OAuth popup and puts the resulting token where a pasted one goes.
@@ -665,6 +670,15 @@ export default function Inspector({
 
   function setArg(name: string, value: string) {
     setArgValues((prev) => ({ ...prev, [name]: value }));
+  }
+
+  /**
+   * Fills both the form and the JSON with one of the schema's examples, so
+   * the call reads the same whichever mode the visitor runs it from.
+   */
+  function fillExample(example: Record<string, unknown>) {
+    setArgValues(argsToValues(argFields, example));
+    setToolArgs(JSON.stringify(example, null, 2));
   }
 
   /**
@@ -1058,6 +1072,8 @@ export default function Inspector({
               }
               fields={argFields}
               requirementNote={requirementNote}
+              examples={toolExamples}
+              onExample={fillExample}
               values={argValues}
               onChange={setArg}
               rawMode={rawMode}
