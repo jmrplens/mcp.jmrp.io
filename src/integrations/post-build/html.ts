@@ -18,6 +18,7 @@ import type { CspData } from "./types.js";
 import {
   getExtensionFromMime,
   getFileHash,
+  mapWithConcurrency,
   resolveFile,
   writeHtml,
 } from "./utils.js";
@@ -178,26 +179,24 @@ export async function processHtmlFiles(
   let updatedSriTags = 0;
   let extractedImages = 0;
 
-  for (let i = 0; i < htmlFiles.length; i += HTML_PROCESSING_CONCURRENCY) {
-    const batch = htmlFiles.slice(i, i + HTML_PROCESSING_CONCURRENCY);
-    const results = await Promise.all(
-      batch.map((file) =>
-        processSingleHtmlFile(
-          file,
-          distDir,
-          targetDir,
-          cspData,
-          hashCache,
-          enableCsp,
-          logger,
-        ),
+  const results = await mapWithConcurrency(
+    htmlFiles,
+    HTML_PROCESSING_CONCURRENCY,
+    (file) =>
+      processSingleHtmlFile(
+        file,
+        distDir,
+        targetDir,
+        cspData,
+        hashCache,
+        enableCsp,
+        logger,
       ),
-    );
-    for (const result of results) {
-      if (result.modified) modifiedFilesCount++;
-      updatedSriTags += result.updatedSriTags;
-      extractedImages += result.extractedImages;
-    }
+  );
+  for (const result of results) {
+    if (result.modified) modifiedFilesCount++;
+    updatedSriTags += result.updatedSriTags;
+    extractedImages += result.extractedImages;
   }
 
   logger.info(`  ✓ Updated ${updatedSriTags} tags with SRI.`);

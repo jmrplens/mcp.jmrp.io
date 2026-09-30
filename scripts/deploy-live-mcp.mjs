@@ -647,37 +647,55 @@ if (bingKey && SUBMIT_URLS.length === 0) {
 // it did, on 2026-09-11, and the text said "both scopes" for eleven days
 // (GEO audit #4). This names the line to change. Never fatal: the deploy is
 // done by now, and a wrong sentence beats a site that will not deploy.
-for (const server of servers) {
+
+/**
+ * Compares one server's live `scopes_supported` with what servers.ts declares.
+ *
+ * @param {object} server An entry of servers.ts that has `oauth`.
+ * @returns {Promise<{ok: boolean, text: string}>} The line to print.
+ */
+async function checkAdvertisedScopes(server) {
   const oauth = server.oauth;
-  if (!oauth) continue;
   try {
     const response = await fetch(oauth.metadataUrl, {
       headers: { Accept: "application/json" },
       signal: AbortSignal.timeout(15_000),
     });
     if (!response.ok) {
-      console.warn(
-        `⚠ ${oauth.metadataUrl} answered HTTP ${response.status}: scopes_supported not checked`,
-      );
-      continue;
+      return {
+        ok: false,
+        text: `⚠ ${oauth.metadataUrl} answered HTTP ${response.status}: scopes_supported not checked`,
+      };
     }
     const body = await response.json();
     const byName = (a, b) => a.localeCompare(b);
     const live = [...(body.scopes_supported ?? [])].sort(byName);
     const declared = [...oauth.advertisedScopes].sort(byName);
     if (JSON.stringify(live) === JSON.stringify(declared)) {
-      console.log(
-        `✓ ${server.id}: the RFC 9728 document advertises ${live.join(", ")}, as servers.ts declares`,
-      );
-    } else {
-      console.warn(
-        `⚠ ${server.id}: the RFC 9728 document advertises [${live.join(", ")}] but servers.ts declares [${declared.join(", ")}].\n` +
-          "    Update `advertisedScopes` in src/data/servers.ts: llms-full.txt describes the document from it.",
-      );
+      return {
+        ok: true,
+        text: `✓ ${server.id}: the RFC 9728 document advertises ${live.join(", ")}, as servers.ts declares`,
+      };
     }
+    return {
+      ok: false,
+      text:
+        `⚠ ${server.id}: the RFC 9728 document advertises [${live.join(", ")}] but servers.ts declares [${declared.join(", ")}].\n` +
+        "    Update `advertisedScopes` in src/data/servers.ts: llms-full.txt describes the document from it.",
+    };
   } catch (error) {
-    console.warn(
-      `⚠ could not read ${oauth.metadataUrl}: ${oneLine(error.message)}`,
-    );
+    return {
+      ok: false,
+      text: `⚠ could not read ${oauth.metadataUrl}: ${oneLine(error.message)}`,
+    };
   }
+}
+
+// Fetched in parallel, printed in servers.ts order.
+const scopeChecks = await Promise.all(
+  servers.filter((server) => server.oauth).map(checkAdvertisedScopes),
+);
+for (const { ok, text } of scopeChecks) {
+  if (ok) console.log(text);
+  else console.warn(text);
 }

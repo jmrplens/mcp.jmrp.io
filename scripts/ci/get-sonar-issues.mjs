@@ -52,36 +52,47 @@ if (!PROJECT_KEY) {
   process.exit(1);
 }
 
+const PAGE_SIZE = 100;
+
 /**
- * Fetches data from SonarCloud API with pagination support.
+ * Fetches one page of a SonarCloud search endpoint.
+ *
+ * @param {string} baseUrl The endpoint, with its query.
+ * @param {number} page The 1-based page.
+ * @returns {Promise<object>} The parsed body.
+ */
+async function fetchPage(baseUrl, page) {
+  const separator = baseUrl.includes("?") ? "&" : "?";
+  const res = await fetch(`${baseUrl}${separator}ps=${PAGE_SIZE}&p=${page}`, {
+    headers: { Authorization: `Bearer ${SONAR_TOKEN}` },
+    signal: AbortSignal.timeout(30_000),
+  });
+  if (!res.ok) {
+    throw new Error(`Sonar API failed: ${res.status} ${res.statusText}`);
+  }
+  return res.json();
+}
+
+/**
+ * Fetches every page of a SonarCloud search endpoint.
+ *
+ * The first page carries `paging.total`, so the rest are requested at once
+ * rather than one after another.
+ *
+ * @param {string} baseUrl The endpoint, with its query.
+ * @param {string} dataKey The array to collect (`issues`, `hotspots`).
+ * @returns {Promise<object[]>} Every item, in page order.
  */
 async function fetchWithPagination(baseUrl, dataKey) {
-  const allItems = [];
-  let page = 1;
-  let hasMore = true;
-
-  while (hasMore) {
-    const separator = baseUrl.includes("?") ? "&" : "?";
-    const url = `${baseUrl}${separator}ps=100&p=${page}`;
-
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${SONAR_TOKEN}` },
-      signal: AbortSignal.timeout(30_000),
-    });
-
-    if (!res.ok) {
-      throw new Error(`Sonar API failed: ${res.status} ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    const items = data[dataKey] || [];
-    allItems.push(...items);
-
-    hasMore = items.length === 100;
-    page++;
-  }
-
-  return allItems;
+  const first = await fetchPage(baseUrl, 1);
+  const total = first.paging?.total ?? first.total ?? 0;
+  const pages = Math.ceil(total / PAGE_SIZE);
+  const rest = await Promise.all(
+    Array.from({ length: Math.max(0, pages - 1) }, (_, i) =>
+      fetchPage(baseUrl, i + 2),
+    ),
+  );
+  return [first, ...rest].flatMap((data) => data[dataKey] || []);
 }
 
 /**

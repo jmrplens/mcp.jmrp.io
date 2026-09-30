@@ -148,3 +148,35 @@ export function resolveFile(
 
   return fs.existsSync(filePath) ? filePath : null;
 }
+
+/**
+ * Maps `items` through `fn` with at most `limit` calls in flight, keeping the
+ * results in input order.
+ *
+ * A sliding window rather than fixed batches: a batch waits for its slowest
+ * file before the next one starts, a window starts the next file as soon as
+ * any slot frees up. Each worker chains itself instead of looping, so no
+ * `await` sits inside a loop (Sonar's no-await-in-loop).
+ *
+ * @param items What to process.
+ * @param limit The most calls running at once; values below 1 count as 1.
+ * @param fn The async work for one item.
+ * @returns The results, in the order of `items`.
+ */
+export async function mapWithConcurrency<T, R>(
+  items: readonly T[],
+  limit: number,
+  fn: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = Array.from({ length: items.length });
+  let next = 0;
+  const worker = async (): Promise<void> => {
+    const index = next++;
+    if (index >= items.length) return;
+    results[index] = await fn(items[index]);
+    return worker();
+  };
+  const workers = Math.min(Math.max(1, limit), items.length);
+  await Promise.all(Array.from({ length: workers }, () => worker()));
+  return results;
+}
