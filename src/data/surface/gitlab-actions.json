@@ -5,8 +5,8 @@
     "surface": "dynamic",
     "uriTemplate": "gitlab://tools/{id}",
     "sourceVersion": "3.1.0",
-    "entryCount": 766,
-    "actionCount": 765,
+    "entryCount": 769,
+    "actionCount": 768,
     "visibleTools": [
       {
         "name": "gitlab_execute_action",
@@ -23,7 +23,7 @@
     ],
     "ttlMs": 300000,
     "cacheScope": "private",
-    "generatedAt": "2026-09-22T14:59:33Z"
+    "generatedAt": "2026-09-30T20:22:42Z"
   },
   "domains": [
     {
@@ -82,9 +82,9 @@
     },
     {
       "domain": "group",
-      "count": 74,
+      "count": 75,
       "destructiveCount": 12,
-      "readOnlyCount": 32
+      "readOnlyCount": 33
     },
     {
       "domain": "interactive",
@@ -124,9 +124,9 @@
     },
     {
       "domain": "package",
-      "count": 29,
+      "count": 30,
       "destructiveCount": 8,
-      "readOnlyCount": 11
+      "readOnlyCount": 12
     },
     {
       "domain": "pipeline",
@@ -136,9 +136,9 @@
     },
     {
       "domain": "project",
-      "count": 123,
+      "count": 124,
       "destructiveCount": 25,
-      "readOnlyCount": 50
+      "readOnlyCount": 51
     },
     {
       "domain": "release",
@@ -374,7 +374,7 @@
       "domain": "access",
       "destructive": false,
       "read_only": true,
-      "description": "List ALL instance-level SSH deploy keys in one call (admin only). Use this instead of gitlab_deploy_key_list_project when you need every key on the instance. Returns: instance deploy keys with id, title, fingerprint, expiry, projects_with_write_access, projects_with_readonly_access, and pagination metadata. See also: access.deploy_key_add_instance, access.deploy_key_enable, access.deploy_key_list_project."
+      "description": "List ALL instance-level SSH deploy keys in one call (admin only). Use this instead of access.deploy_key_list_project when you need every key on the instance. Returns: instance deploy keys with id, title, fingerprint, expiry, projects_with_write_access, projects_with_readonly_access, and pagination metadata. See also: access.deploy_key_add_instance, access.deploy_key_enable, access.deploy_key_list_project."
     },
     {
       "id": "access.deploy_key_list_project",
@@ -536,7 +536,7 @@
       "domain": "access",
       "destructive": false,
       "read_only": true,
-      "description": "List ALL deploy tokens across the GitLab instance in one call (admin only). Use this instead of gitlab_deploy_token_list_project or gitlab_deploy_token_list_group when you need every instance-wide token. Returns: deploy tokens with id, name, username, scopes, revoked/expired state, and pagination metadata. See also: access.deploy_token_list_project, access.deploy_token_list_group, access.deploy_token_create_project."
+      "description": "List ALL deploy tokens across the GitLab instance in one call (admin only). Use this instead of access.deploy_token_list_project or access.deploy_token_list_group when you need every instance-wide token. Returns: deploy tokens with id, name, username, scopes, revoked/expired state, and pagination metadata. See also: access.deploy_token_list_project, access.deploy_token_list_group, access.deploy_token_create_project."
     },
     {
       "id": "access.deploy_token_list_group",
@@ -1280,7 +1280,7 @@
       "domain": "branch",
       "destructive": false,
       "read_only": true,
-      "description": "List a project's aggregated branch protection rules by full project path. Returns: each branch rule with its matched pattern, default and protected flags, matching branch count, branch protection settings (allow force push, code-owner approval required), approval rules, external status checks, and keyset pagination metadata. Pages forward only: this GitLab connection takes first and after, and rejects last and before. See also: branch.list_protected, branch.get_protected, project.get.",
+      "description": "List a project's aggregated branch protection rules by full project path. Returns: each branch rule with its id, matched pattern, default and protected flags, matching branch count, branch protection settings (who may push, merge and unprotect, allow force push, code-owner approval required, security-policy flags), approval rules with eligible approvers, external status checks, and keyset pagination metadata. Pages forward only: this GitLab connection takes first and after, and rejects last and before. See also: branch.list_protected, branch.get_protected, project.get.",
       "required_params": [
         {
           "name": "project_path",
@@ -1330,7 +1330,7 @@
       "domain": "ci_catalog",
       "destructive": false,
       "read_only": true,
-      "description": "Get a single CI/CD Catalog resource by GID or full path. Returns: the resource with description, README HTML, latest-version components and their typed inputs, version history, star and fork counts, and web URL. See also: ci_catalog.list, template.lint, project.get."
+      "description": "Get a single CI/CD Catalog resource by GID or full path. Returns: the resource with description, the latest version's README as Markdown and as HTML, latest-version components with their 30-day usage and their typed inputs (default, options, regex and conditional rules), the last ten versions with author and commit, star count, starrers path, and web path. See also: ci_catalog.list, template.lint, project.get."
     },
     {
       "id": "ci_catalog.list",
@@ -1338,7 +1338,7 @@
       "domain": "ci_catalog",
       "destructive": false,
       "read_only": true,
-      "description": "List published CI/CD Catalog resources (component projects) with optional search, scope, and sort. Returns: catalog resources with name, full path, description, latest version, star and fork counts, open issue and MR counts, web URL, and keyset pagination metadata. See also: ci_catalog.get, template.lint, pipeline.create."
+      "description": "List published CI/CD Catalog resources (component projects) with optional search, scope, and sort. Returns: catalog resources with id, name, full path, description, icon, latest version and release date, star count, starrers path, 30-day usage count, archived flag, topics, verification and visibility levels, web path, and keyset pagination metadata. See also: ci_catalog.get, template.lint, pipeline.create."
     },
     {
       "id": "ci_variable.create",
@@ -2752,7 +2752,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": false,
-      "description": "Share a group with another group at a chosen access level. Returns: the shared group's id, name, path, and web URL. See also: group.group_member_unshare, group.get, group.members.",
+      "description": "Share a group with another group at a chosen access level, optionally granting a custom member role. Returns: the shared group's id, names, paths, visibility and web URL, and every group it is now shared with, the new share among them with its access level, expiry and custom role. See also: group.group_member_unshare, group.get, group.members.",
       "required_params": [
         {
           "name": "group_id",
@@ -2842,7 +2842,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": true,
-      "description": "List issues assigned to a group milestone. Returns: assigned issues with state, web URL, and pagination metadata. See also: group.group_milestone_get, group.group_milestone_merge_requests, issue.list_group.",
+      "description": "List issues assigned to a group milestone. Returns: assigned issues with IID, project, title, state, labels, author, assignees, confidentiality, weight, due date, web URL, timestamps, and pagination metadata. See also: group.group_milestone_get, group.group_milestone_merge_requests, issue.list_group.",
       "required_params": [
         {
           "name": "group_id",
@@ -2874,7 +2874,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": true,
-      "description": "List merge requests assigned to a group milestone. Returns: assigned merge requests with state, source and target branches, and pagination metadata. See also: group.group_milestone_get, group.group_milestone_issues.",
+      "description": "List merge requests assigned to a group milestone. Returns: assigned merge requests with IID, project, title, state, draft flag, merge status, source and target branches, labels, author, assignees, reviewers, web URL, timestamps, and pagination metadata. See also: group.group_milestone_get, group.group_milestone_issues.",
       "required_params": [
         {
           "name": "group_id",
@@ -3042,7 +3042,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": true,
-      "description": "List the projects in a GitLab group. Returns: projects with path, visibility, and archived status. See also: group.get, group.subgroups, group.transfer_project.",
+      "description": "List the projects in a GitLab group. Returns: compact project rows with names and paths, web and clone URLs, visibility, default branch, topics, star and fork counts, archived status, and created and last-activity times. See also: group.get, group.subgroups, group.transfer_project.",
       "required_params": [
         {
           "name": "group_id",
@@ -3113,6 +3113,24 @@
       "destructive": true,
       "read_only": false,
       "description": "Delete a group service account user, optionally hard-deleting owned resources. Use for GitLab group service accounts and their personal access tokens. Do not use group members, SCIM identities, enterprise users, or generic group access tokens for service account CRUD. Available on all tiers (Free, Premium, Ultimate). Requires Owner permissions.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string"
+        },
+        {
+          "name": "service_account_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "group.service_account_get",
+      "title": "Group Service Account Get",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get one service account of a GitLab group by its user ID (GitLab 19.4 or later).\n\nReturns: the service account with ID, name, username, email, public email, and the unconfirmed email when a change is pending. See also: group.service_account_list, group.service_account_update, group.service_account_pat_list.",
       "required_params": [
         {
           "name": "group_id",
@@ -3272,7 +3290,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": true,
-      "description": "List projects shared with a GitLab group. Returns: shared projects with path, visibility, and archived status. See also: group.projects, group.shared_with, group.get.",
+      "description": "List projects shared with a GitLab group. Returns: compact project rows with names and paths, web and clone URLs, visibility, default branch, topics, star and fork counts, archived status, and created and last-activity times. See also: group.projects, group.shared_with, group.get.",
       "required_params": [
         {
           "name": "group_id",
@@ -3314,7 +3332,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": false,
-      "description": "Transfer a GitLab group under a new parent (or to top level). Returns: the updated group metadata. See also: group.transfer_locations, group.get, group.subgroups.",
+      "description": "Transfer a GitLab group under a new parent (or to top level), waiting up to 45 seconds for GitLab to apply the move. Returns: the group under its new parent, or with transfer_queued set and its current parent when GitLab has not applied the move yet, or an error when GitLab reports the move failed. See also: group.transfer_locations, group.get, group.subgroups.",
       "required_params": [
         {
           "name": "group_id",
@@ -3342,7 +3360,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": false,
-      "description": "Transfer a project into a GitLab group namespace. Returns: the updated project metadata. See also: group.transfer_locations, group.get, group.projects.",
+      "description": "Transfer a project into a GitLab group namespace (administrators only). Returns: the destination group's metadata, not the project's. See also: group.transfer_locations, group.get, group.projects.",
       "required_params": [
         {
           "name": "group_id",
@@ -3424,7 +3442,7 @@
       "domain": "interactive",
       "destructive": false,
       "read_only": false,
-      "description": "Create a GitLab issue through step-by-step prompts, with explicit confirmation before calling the GitLab API. Canceling at any prompt aborts without creating the issue.\n\nInput: project_id (numeric ID or URL-encoded path) selects the target project. Prompted fields are title, description, labels, confidential, and confirm. Requires permission to create issues in that project.\n\nAfter invocation, the tool elicits in order:\n- title (string, required): issue title.\n- description (string, optional, multi-line, Markdown): leave empty to skip.\n- labels (string, optional): comma-separated. Trimmed and deduped server-side.\n- confidential (boolean, optional): yes/no confirmation. Defaults to public when declined.\n- confirm (boolean, required): final yes/no review of the assembled summary.\n\nBehavior: canceling at any prompt aborts with no GitLab API call and no side effects. Declining an optional prompt continues with that field unset. Each confirmed invocation creates ONE new issue. NON-idempotent: re-running with the same title/fields creates another issue. Side effects on success: GitLab fires issue-created webhooks and may notify issue subscribers.\n\nWhen to use: human-in-the-loop issue creation. NOT for: scripted/programmatic creation. Use gitlab_issue (action='create') with all fields pre-supplied.\n\nRequires the MCP client to support the elicitation capability. If unsupported, returns a structured error naming gitlab_issue (action='create') as the alternative.\n\nReturns: JSON with the created issue (id, issue_iid, web_url, title, state). issue_iid corresponds to GitLab's iid field.\n\nSee also: issue.create, issue.get."
+      "description": "Create a GitLab issue through step-by-step prompts, with explicit confirmation before calling the GitLab API. Canceling at any prompt aborts without creating the issue.\n\nInput: project_id (numeric ID or URL-encoded path) selects the target project. Prompted fields are title, description, labels, confidential, and confirm. Requires permission to create issues in that project.\n\nAfter invocation, the tool elicits in order:\n- title (string, required): issue title.\n- description (string, optional, multi-line, Markdown): leave empty to skip.\n- labels (string, optional): comma-separated. Trimmed and deduped server-side.\n- confidential (boolean, optional): yes/no confirmation. Defaults to public when declined.\n- confirm (boolean, required): final yes/no review of the assembled summary.\n\nBehavior: canceling at any prompt aborts with no GitLab API call and no side effects. Declining an optional prompt continues with that field unset. Each confirmed invocation creates ONE new issue. NON-idempotent: re-running with the same title/fields creates another issue. Side effects on success: GitLab fires issue-created webhooks and may notify issue subscribers.\n\nWhen to use: human-in-the-loop issue creation. NOT for: scripted/programmatic creation. Use issue.create with all fields pre-supplied.\n\nRequires the MCP client to support the elicitation capability. If unsupported, returns a structured error naming issue.create as the alternative.\n\nReturns: JSON with the created issue (id, issue_iid, web_url, title, state). issue_iid corresponds to GitLab's iid field.\n\nSee also: issue.create, issue.get."
     },
     {
       "id": "interactive.mr_create",
@@ -3432,7 +3450,7 @@
       "domain": "interactive",
       "destructive": false,
       "read_only": false,
-      "description": "Create a GitLab merge request through step-by-step prompts, with explicit confirmation before calling the GitLab API. Canceling at any prompt aborts without creating the MR.\n\nInput: project_id (numeric ID or URL-encoded path) selects the target project. Prompted fields are source_branch, target_branch, title, description, labels, remove_source_branch, squash, and confirm. Requires permission to create merge requests in that project.\n\nAfter invocation, the tool elicits in order:\n- source_branch (string, required): branch with the changes to merge.\n- target_branch (string, required): branch to merge into (e.g. main, develop).\n- title (string, required): MR title.\n- description (string, optional, multi-line, Markdown): leave empty to skip.\n- labels (string, optional): comma-separated. Trimmed and deduped server-side.\n- remove_source_branch (boolean, optional): yes/no confirmation, default unset.\n- squash (boolean, optional): yes/no confirmation, default unset.\n- confirm (boolean, required): final yes/no review of the assembled summary.\n\nBehavior: canceling at any prompt aborts with no GitLab API call and no side effects. Declining an optional prompt continues with that field unset. Each confirmed invocation creates ONE new merge request. NON-idempotent: GitLab rejects an already-open MR for the same source_branch to target_branch in the same project as a validation failure (HTTP 422). Retries may fail with 422 instead of returning the existing MR. Confirm branch/MR state before re-running. For scripted idempotent workflows, use gitlab_merge_request (action='create') with all fields pre-supplied and handle 422 as the expected duplicate case.\n\nWhen to use: human-in-the-loop MR creation. NOT for: scripted/programmatic creation. Use gitlab_merge_request (action='create') with all fields pre-supplied.\n\nRequires the MCP client to support the elicitation capability. If unsupported, returns a structured error naming gitlab_merge_request (action='create') as the alternative.\n\nReturns: JSON with the created MR (id, merge_request_iid, web_url, title, source_branch, target_branch, state). merge_request_iid corresponds to GitLab's iid field.\n\nSee also: merge_request.create, branch.create."
+      "description": "Create a GitLab merge request through step-by-step prompts, with explicit confirmation before calling the GitLab API. Canceling at any prompt aborts without creating the MR.\n\nInput: project_id (numeric ID or URL-encoded path) selects the target project. Prompted fields are source_branch, target_branch, title, description, labels, remove_source_branch, squash, and confirm. Requires permission to create merge requests in that project.\n\nAfter invocation, the tool elicits in order:\n- source_branch (string, required): branch with the changes to merge.\n- target_branch (string, required): branch to merge into (e.g. main, develop).\n- title (string, required): MR title.\n- description (string, optional, multi-line, Markdown): leave empty to skip.\n- labels (string, optional): comma-separated. Trimmed and deduped server-side.\n- remove_source_branch (boolean, optional): yes/no confirmation, default unset.\n- squash (boolean, optional): yes/no confirmation, default unset.\n- confirm (boolean, required): final yes/no review of the assembled summary.\n\nBehavior: canceling at any prompt aborts with no GitLab API call and no side effects. Declining an optional prompt continues with that field unset. Each confirmed invocation creates ONE new merge request. NON-idempotent: GitLab rejects an already-open MR for the same source_branch to target_branch in the same project as a validation failure (HTTP 422). Retries may fail with 422 instead of returning the existing MR. Confirm branch/MR state before re-running. For scripted idempotent workflows, use merge_request.create with all fields pre-supplied and handle 422 as the expected duplicate case.\n\nWhen to use: human-in-the-loop MR creation. NOT for: scripted/programmatic creation. Use merge_request.create with all fields pre-supplied.\n\nRequires the MCP client to support the elicitation capability. If unsupported, returns a structured error naming merge_request.create as the alternative.\n\nReturns: JSON with the created MR (id, merge_request_iid, web_url, title, source_branch, target_branch, state). merge_request_iid corresponds to GitLab's iid field.\n\nSee also: merge_request.create, branch.create."
     },
     {
       "id": "interactive.project_create",
@@ -3440,7 +3458,7 @@
       "domain": "interactive",
       "destructive": false,
       "read_only": false,
-      "description": "Create a GitLab project through step-by-step prompts, with explicit confirmation before calling the GitLab API. Canceling at any prompt aborts without creating the project. Declining an optional prompt continues with that field unset, except initialize_with_readme, where a decline continues with false.\n\nInput: no fields. Every project detail is elicited. Requires permission to create projects for the authenticated user.\n\nAfter invocation, the tool elicits in order:\n- name (string, required): project display name and (when path is omitted) URL slug.\n- description (string, optional): leave empty to skip.\n- visibility (enum, required): one of private, internal, public.\n- initialize_with_readme (boolean, optional): yes/no confirmation. An explicit no or a decline continues with false. Canceling aborts the flow.\n- default_branch (string, optional): leave empty to use the GitLab default ('main').\n- confirm (boolean, required): final yes/no review of the assembled summary.\n\nWhen to use: human-in-the-loop project creation. NOT for: scripted/programmatic creation. Use gitlab_project (action='create') with all fields pre-supplied.\n\nBehavior: each successful invocation creates ONE new project after explicit user confirmation. NON-idempotent: re-running with the same project path/name can fail with 400/409. Canceling at any prompt aborts with no GitLab API call and no side effects. Declining an optional prompt continues, with initialize_with_readme taking a decline as false. Side effects on success: GitLab may initialize a repository and notify project members.\n\nRequires the MCP client to support the elicitation capability. If unsupported, returns a structured error naming gitlab_project (action='create') as the alternative.\n\nReturns: JSON with the created project (id, path_with_namespace, web_url, visibility, default_branch).\n\nSee also: project.get, group.get."
+      "description": "Create a GitLab project through step-by-step prompts, with explicit confirmation before calling the GitLab API. Canceling at any prompt aborts without creating the project. Declining an optional prompt continues with that field unset, except initialize_with_readme, where a decline continues with false.\n\nInput: no fields. Every project detail is elicited. Requires permission to create projects for the authenticated user.\n\nAfter invocation, the tool elicits in order:\n- name (string, required): project display name and (when path is omitted) URL slug.\n- description (string, optional): leave empty to skip.\n- visibility (enum, required): one of private, internal, public.\n- initialize_with_readme (boolean, optional): yes/no confirmation. An explicit no or a decline continues with false. Canceling aborts the flow.\n- default_branch (string, optional): leave empty to use the GitLab default ('main').\n- confirm (boolean, required): final yes/no review of the assembled summary.\n\nWhen to use: human-in-the-loop project creation. NOT for: scripted/programmatic creation. Use project.create with all fields pre-supplied.\n\nBehavior: each successful invocation creates ONE new project after explicit user confirmation. NON-idempotent: re-running with the same project path/name can fail with 400/409. Canceling at any prompt aborts with no GitLab API call and no side effects. Declining an optional prompt continues, with initialize_with_readme taking a decline as false. Side effects on success: GitLab may initialize a repository and notify project members.\n\nRequires the MCP client to support the elicitation capability. If unsupported, returns a structured error naming project.create as the alternative.\n\nReturns: JSON with the created project (id, path_with_namespace, web_url, visibility, default_branch).\n\nSee also: project.get, group.get."
     },
     {
       "id": "interactive.release_create",
@@ -3448,7 +3466,7 @@
       "domain": "interactive",
       "destructive": false,
       "read_only": false,
-      "description": "Create a GitLab release through step-by-step prompts, with explicit confirmation before calling the GitLab API. Canceling or declining any prompt aborts without creating the release.\n\nInput: project_id (numeric ID or URL-encoded path) selects the target project. Prompted fields are tag_name, name, description, and confirm. Requires permission to create releases in that project.\n\nAfter invocation, the tool elicits in order:\n- tag_name (string, required): must reference an existing tag in the project. Create it first via gitlab_tag (action='create').\n- name (string, optional): release title. Answer with an empty value to let GitLab name the release after the tag. Declining the prompt aborts.\n- description (string, optional, multi-line, Markdown): release notes. Leave empty to skip.\n- confirm (boolean, required): final yes/no review of the assembled summary.\n\nWhen to use: human-in-the-loop release publishing. NOT for: CI/automated release creation. Use gitlab_release (action='create') with all fields pre-supplied.\n\nRequires the MCP client to support the elicitation capability. If unsupported, returns a structured error naming gitlab_release (action='create') as the alternative.\n\nBehavior: each successful invocation publishes ONE new release after explicit user confirmation. NON-idempotent: re-running with the same tag returns 409 (release already exists). Canceling or declining any prompt aborts with no GitLab API call and no side effects. This flow's optional fields take an empty answer rather than a decline. Side effects on success: GitLab fires release-created webhooks and may notify release subscribers.\n\nReturns: JSON with the created release (tag_name, name, description, web_url).\n\nSee also: release.create, tag.create."
+      "description": "Create a GitLab release through step-by-step prompts, with explicit confirmation before calling the GitLab API. Canceling or declining any prompt aborts without creating the release.\n\nInput: project_id (numeric ID or URL-encoded path) selects the target project. Prompted fields are tag_name, name, description, and confirm. Requires permission to create releases in that project.\n\nAfter invocation, the tool elicits in order:\n- tag_name (string, required): must reference an existing tag in the project. Create it first via tag.create.\n- name (string, optional): release title. Answer with an empty value to let GitLab name the release after the tag. Declining the prompt aborts.\n- description (string, optional, multi-line, Markdown): release notes. Leave empty to skip.\n- confirm (boolean, required): final yes/no review of the assembled summary.\n\nWhen to use: human-in-the-loop release publishing. NOT for: CI/automated release creation. Use release.create with all fields pre-supplied.\n\nRequires the MCP client to support the elicitation capability. If unsupported, returns a structured error naming release.create as the alternative.\n\nBehavior: each successful invocation publishes ONE new release after explicit user confirmation. NON-idempotent: re-running with the same tag returns 409 (release already exists). Canceling or declining any prompt aborts with no GitLab API call and no side effects. This flow's optional fields take an empty answer rather than a decline. Side effects on success: GitLab fires release-created webhooks and may notify release subscribers.\n\nReturns: JSON with the created release (tag_name, name, description, web_url).\n\nSee also: release.create, tag.create."
     },
     {
       "id": "issue.create",
@@ -3474,7 +3492,7 @@
       "domain": "issue",
       "destructive": false,
       "read_only": false,
-      "description": "Create a to-do for an issue. Returns: the created to-do item with action, target, and state. See also: issue.get.",
+      "description": "Create a to-do for an issue. Returns: the created to-do item with action, target title and URL, author, body, state and created and updated times. See also: issue.get.",
       "required_params": [
         {
           "name": "issue_iid",
@@ -4283,7 +4301,7 @@
       "domain": "issue",
       "destructive": false,
       "read_only": true,
-      "description": "List an issue's participants. Returns: participating users with username and name. See also: issue.get, issue.note_list.",
+      "description": "List an issue's participants. Returns: participating users with ID, username, name, state, locked flag, public email, avatar and profile URL, with pagination metadata. See also: issue.get, issue.note_list.",
       "required_params": [
         {
           "name": "issue_iid",
@@ -4633,7 +4651,7 @@
       "domain": "issue",
       "destructive": false,
       "read_only": true,
-      "description": "List work item saved views for a group or project namespace with cursor pagination. Returns: id, name, description, private flag, subscription state, and sort order per view, plus pagination cursors. Filters are omitted here, so read one view with gitlab_work_item_saved_view_get. Experimental: the Work Item Saved Views API is a work in progress and may introduce breaking changes even between minor versions. See also: issue.work_item_saved_view_get, issue.work_item_saved_view_create, issue.work_item_list.",
+      "description": "List work item saved views for a group or project namespace with cursor pagination. Returns: id, name, description, private flag, subscription state, and sort order per view, plus pagination cursors. Filters are omitted here, so read one view with issue.work_item_saved_view_get. Experimental: the Work Item Saved Views API is a work in progress and may introduce breaking changes even between minor versions. See also: issue.work_item_saved_view_get, issue.work_item_saved_view_create, issue.work_item_list.",
       "required_params": [
         {
           "name": "namespace_path",
@@ -4721,7 +4739,7 @@
       "domain": "job",
       "destructive": false,
       "read_only": true,
-      "description": "Download the full artifact archive for a CI job (base64-encoded, truncated at 1MB). Returns: archive size, content, and truncation flag. See also: job.download_single_artifact, job.keep_artifacts, job.get.",
+      "description": "Download the full artifact archive for a CI job, or one report named by file_type (GitLab 19.4 or later), base64-encoded and truncated at 1MB. Returns: size, content, and truncation flag. See also: job.download_single_artifact, job.keep_artifacts, job.get.",
       "required_params": [
         {
           "name": "job_id",
@@ -5027,7 +5045,7 @@
       "domain": "job",
       "destructive": false,
       "read_only": true,
-      "description": "Get a project's CI/CD job token access settings. Returns: whether inbound job token access is limited to the allowlist. See also: job.token_scope_patch, job.token_scope_list_inbound, job.token_scope_list_groups.",
+      "description": "Get a project's CI/CD job token access settings. Returns: whether inbound job token access is limited to the allowlist, and the deprecated outbound scope flag. See also: job.token_scope_patch, job.token_scope_list_inbound, job.token_scope_list_groups.",
       "required_params": [
         {
           "name": "project_id",
@@ -5041,7 +5059,7 @@
       "domain": "job",
       "destructive": false,
       "read_only": true,
-      "description": "List groups on a project's CI/CD job token allowlist. Returns: allowlisted groups with id, name, full path, and web URL plus pagination metadata. See also: job.token_scope_add_group, job.token_scope_remove_group, job.token_scope_get.",
+      "description": "List groups on a project's CI/CD job token allowlist. Returns: allowlisted groups with id, name and web URL plus pagination metadata. See also: job.token_scope_add_group, job.token_scope_remove_group, job.token_scope_get.",
       "required_params": [
         {
           "name": "project_id",
@@ -5055,7 +5073,7 @@
       "domain": "job",
       "destructive": false,
       "read_only": true,
-      "description": "List projects on a project's CI/CD job token inbound allowlist. Returns: allowlisted projects with id, name, path, and web URL plus pagination metadata. See also: job.token_scope_add_project, job.token_scope_remove_project, job.token_scope_get.",
+      "description": "List projects on a project's CI/CD job token inbound allowlist. Returns: allowlisted projects with their names, paths, description, visibility, web and clone URLs, topics, counts and namespace, plus pagination metadata. See also: job.token_scope_add_project, job.token_scope_remove_project, job.token_scope_get.",
       "required_params": [
         {
           "name": "project_id",
@@ -5195,7 +5213,7 @@
       "domain": "merge_request",
       "destructive": false,
       "read_only": false,
-      "description": "Approve a merge request on behalf of the caller. Returns: the approval state with required-approvals count, approved-by count, and overall approved flag. See also: merge_request.unapprove, merge_request.merge, merge_request.get.",
+      "description": "Approve a merge request on behalf of the caller. Returns: the approval state with required-approvals count, approved-by count, overall approved flag, the approvers with when each approved, and whether the caller has approved and may approve. See also: merge_request.unapprove, merge_request.merge, merge_request.get.",
       "required_params": [
         {
           "name": "merge_request_iid",
@@ -5249,7 +5267,7 @@
       "domain": "merge_request",
       "destructive": false,
       "read_only": false,
-      "description": "Attach existing repository commit SHAs to a merge request as context commits. Returns: the resulting context commit summaries (full SHA, short SHA, title, author name/email, created date). See also: merge_request.context_commits_list, merge_request.context_commits_delete, repository.commit_get.",
+      "description": "Attach existing repository commit SHAs to a merge request as context commits. Returns: each pinned commit's full and short SHA, title and message, author and committer with their dates, parents, trailers and web URL. See also: merge_request.context_commits_list, merge_request.context_commits_delete, repository.commit_get.",
       "required_params": [
         {
           "name": "commits",
@@ -5293,7 +5311,7 @@
       "domain": "merge_request",
       "destructive": false,
       "read_only": true,
-      "description": "List the context commits pinned to a merge request for review. Returns: commit summaries (full SHA, short SHA, title, author name/email, created date). See also: merge_request.get, merge_request.context_commits_create, merge_request.context_commits_delete.",
+      "description": "List the context commits pinned to a merge request for review. Returns: each commit's full and short SHA, title and message, the title and description rendered to HTML, author and committer with their dates, the GitLab account the author email belongs to and the author's Gravatar image, trailers and web URL, with pagination metadata. See also: merge_request.get, merge_request.context_commits_create, merge_request.context_commits_delete.",
       "required_params": [
         {
           "name": "merge_request_iid",
@@ -5355,7 +5373,7 @@
       "domain": "merge_request",
       "destructive": false,
       "read_only": false,
-      "description": "Create a to-do for a merge request for the caller. Returns: the created to-do item with action, target, and state. See also: merge_request.get, merge_request.subscribe.",
+      "description": "Create a to-do for a merge request for the caller. Returns: the created to-do item with action, target title and URL, project name, author, body, state and created and updated times. See also: merge_request.get, merge_request.subscribe.",
       "required_params": [
         {
           "name": "merge_request_iid",
@@ -5785,7 +5803,7 @@
       "domain": "merge_request",
       "destructive": false,
       "read_only": true,
-      "description": "List the participants of a merge request. Returns: participating users with username, name, and state. See also: merge_request.reviewers, merge_request.get.",
+      "description": "List the participants of a merge request. Returns: participating users with username, name, state, locked flag and public email, with pagination metadata. See also: merge_request.reviewers, merge_request.get.",
       "required_params": [
         {
           "name": "merge_request_iid",
@@ -5803,7 +5821,7 @@
       "domain": "merge_request",
       "destructive": false,
       "read_only": true,
-      "description": "List the CI/CD pipelines attached to a merge request. Returns: pipelines with id, status, ref, sha, and web URL. See also: merge_request.create_pipeline, merge_request.merge, pipeline.get.",
+      "description": "List the CI/CD pipelines attached to a merge request. Returns: pipelines with id, status, ref, sha, and web URL, with pagination metadata. See also: merge_request.create_pipeline, merge_request.merge, pipeline.get.",
       "required_params": [
         {
           "name": "merge_request_iid",
@@ -5857,7 +5875,7 @@
       "domain": "merge_request",
       "destructive": false,
       "read_only": true,
-      "description": "List the reviewers of a merge request. Returns: reviewer users with username, name, and review state. See also: merge_request.participants, merge_request.update.",
+      "description": "List the reviewers of a merge request. Returns: reviewer users with username, name, state, locked flag, public email, review state and assignment time, with pagination metadata. See also: merge_request.participants, merge_request.update.",
       "required_params": [
         {
           "name": "merge_request_iid",
@@ -6401,7 +6419,7 @@
       "domain": "mr_review",
       "destructive": false,
       "read_only": false,
-      "description": "Publish all of the user's pending draft notes on a merge request. Returns: a success confirmation naming the merge request and project. See also: mr_review.draft_note_list, mr_review.draft_note_publish.",
+      "description": "Publish all of the user's pending draft notes on a merge request, optionally with a summary note and a reviewer state. Returns: a success confirmation naming the merge request and project. See also: mr_review.draft_note_list, mr_review.draft_note_publish.",
       "required_params": [
         {
           "name": "merge_request_iid",
@@ -6639,7 +6657,25 @@
       "domain": "package",
       "destructive": false,
       "read_only": true,
-      "description": "List the files within a single package. Returns: package files with name, size, checksums, creation time, and pagination metadata. See also: package.download, package.file_delete, package.list.",
+      "description": "List the files within a single package. Returns: package files with name, size, checksums, creation time, the pipelines that built each, and pagination metadata. See also: package.download, package.file_delete, package.list.",
+      "required_params": [
+        {
+          "name": "package_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "package.get",
+      "title": "Package Get",
+      "domain": "package",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get one package of a project with its other versions. Returns: the package's type, status, creator, pipeline metadata, tags, _links, and its other versions with their tags and the pipeline that built each. See also: package.list, package.file_list, package.delete.",
       "required_params": [
         {
           "name": "package_id",
@@ -6657,7 +6693,7 @@
       "domain": "package",
       "destructive": false,
       "read_only": true,
-      "description": "List packages across a group and its descendant projects with optional filters and ordering. Returns: matching packages with type, status, owning project id/path, pipeline metadata, tags, _links, and pagination metadata. See also: package.list, package.file_list, package.delete.",
+      "description": "List packages across a group and its descendant projects with optional filters and ordering. Returns: matching packages with type, status, owning project id/path, pipeline metadata, tags, _links, and pagination metadata. See also: package.list, package.get, package.file_list, package.delete.",
       "required_params": [
         {
           "name": "group_id",
@@ -6671,7 +6707,7 @@
       "domain": "package",
       "destructive": false,
       "read_only": true,
-      "description": "List packages in a project with optional filters and ordering. Returns: matching packages with type, status, pipeline metadata, tags, _links, and pagination metadata. See also: package.file_list, package.publish, package.delete.",
+      "description": "List packages in a project with optional filters and ordering. Returns: matching packages with type, status, pipeline metadata, tags, _links, and pagination metadata. See also: package.get, package.file_list, package.publish, package.delete.",
       "required_params": [
         {
           "name": "project_id",
@@ -6725,7 +6761,7 @@
       "domain": "package",
       "destructive": false,
       "read_only": true,
-      "description": "List package protection rules for a project. Returns: each rule's id, project id, package name pattern, package type, and minimum push/delete access levels, with pagination metadata. For container image protection use gitlab_registry_protection_list. See also: package.protection_rule_create, package.protection_rule_update.",
+      "description": "List package protection rules for a project. Returns: each rule's id, project id, package name pattern, package type, and minimum push/delete access levels, with pagination metadata. For container image protection use package.registry_rule_list. See also: package.protection_rule_create, package.protection_rule_update.",
       "required_params": [
         {
           "name": "project_id",
@@ -6935,7 +6971,7 @@
       "domain": "package",
       "destructive": false,
       "read_only": true,
-      "description": "List container registry repository-path protection rules for a project. Returns: each rule's path pattern and minimum push/delete access levels. For tag-level protection use gitlab_registry_tag_protection_list. See also: package.registry_rule_create, package.registry_tag_rule_list.",
+      "description": "List container registry repository-path protection rules for a project. Returns: each rule's path pattern and minimum push/delete access levels. For tag-level protection use package.registry_tag_rule_list. See also: package.registry_rule_create, package.registry_tag_rule_list.",
       "required_params": [
         {
           "name": "project_id",
@@ -7083,7 +7119,7 @@
       "domain": "package",
       "destructive": false,
       "read_only": true,
-      "description": "List container registry tag protection rules for a project. Returns: each rule's tag name pattern and minimum push/delete access levels (empty = immutable). For repository-path protection use gitlab_registry_protection_list. See also: package.registry_tag_rule_create, package.registry_tag_list.",
+      "description": "List container registry tag protection rules for a project. Returns: each rule's tag name pattern and minimum push/delete access levels (empty = immutable). For repository-path protection use package.registry_rule_list. See also: package.registry_tag_rule_create, package.registry_tag_list.",
       "required_params": [
         {
           "name": "project_id",
@@ -7215,7 +7251,7 @@
       "domain": "pipeline",
       "destructive": false,
       "read_only": false,
-      "description": "Update the process mode of one CI resource group by key. Returns: the updated resource group ID, key, and new process mode that controls how queued jobs sharing the resource group are serialized. See also: pipeline.resource_group_get, pipeline.resource_group_list, pipeline.resource_group_upcoming_jobs.",
+      "description": "Update the process mode of one CI resource group by key. Returns: the updated resource group ID, key, new process mode that controls how queued jobs sharing the resource group are serialized, and created and updated times. See also: pipeline.resource_group_get, pipeline.resource_group_list, pipeline.resource_group_upcoming_jobs.",
       "required_params": [
         {
           "name": "key",
@@ -7237,7 +7273,7 @@
       "domain": "pipeline",
       "destructive": false,
       "read_only": true,
-      "description": "Get one CI resource group in a project by key. Returns: the resource group ID, key, and process mode (the concurrency mode that controls how jobs sharing the resource group are serialized). See also: pipeline.resource_group_list, pipeline.resource_group_edit, pipeline.resource_group_upcoming_jobs.",
+      "description": "Get one CI resource group in a project by key. Returns: the resource group ID, key, process mode (the concurrency mode that controls how jobs sharing the resource group are serialized), and created and updated times. See also: pipeline.resource_group_list, pipeline.resource_group_edit, pipeline.resource_group_upcoming_jobs.",
       "required_params": [
         {
           "name": "key",
@@ -7255,7 +7291,7 @@
       "domain": "pipeline",
       "destructive": false,
       "read_only": true,
-      "description": "List the CI resource groups configured for a project. Returns: each resource group's ID, key, and process mode that controls how jobs sharing the group are serialized to limit pipeline concurrency. See also: pipeline.resource_group_get, pipeline.resource_group_edit, pipeline.resource_group_upcoming_jobs.",
+      "description": "List the CI resource groups configured for a project. Returns: each resource group's ID, key, process mode that controls how jobs sharing the group are serialized to limit pipeline concurrency, and created and updated times, with pagination metadata. See also: pipeline.resource_group_get, pipeline.resource_group_edit, pipeline.resource_group_upcoming_jobs.",
       "required_params": [
         {
           "name": "project_id",
@@ -7269,7 +7305,7 @@
       "domain": "pipeline",
       "destructive": false,
       "read_only": true,
-      "description": "List the upcoming CI jobs queued for one resource group by key. Returns: each pending job's ID, name, status, and stage, ordered as they will run under the resource group's process mode. See also: pipeline.resource_group_get, pipeline.resource_group_list, job.list.",
+      "description": "List the upcoming CI jobs queued for one resource group by key. Returns: each pending job's ID, name, status, stage, ref, tag and allow-failure flags, pipeline, web URL, and creation time, ordered as they will run under the resource group's process mode, with pagination metadata. See also: pipeline.resource_group_get, pipeline.resource_group_list, job.list.",
       "required_params": [
         {
           "name": "key",
@@ -7331,7 +7367,7 @@
       "domain": "pipeline",
       "destructive": false,
       "read_only": false,
-      "description": "Create a pipeline schedule variable. Returns: the created variable with key, value, and variable_type. See also: pipeline.schedule_edit_variable, pipeline.schedule_delete_variable.",
+      "description": "Create a pipeline schedule variable. Returns: the created variable with key, value, variable_type, and raw. See also: pipeline.schedule_edit_variable, pipeline.schedule_delete_variable.",
       "required_params": [
         {
           "name": "key",
@@ -7397,7 +7433,7 @@
       "domain": "pipeline",
       "destructive": false,
       "read_only": false,
-      "description": "Edit a pipeline schedule variable. Returns: the updated variable with key, value, and variable_type. See also: pipeline.schedule_create_variable, pipeline.schedule_delete_variable.",
+      "description": "Edit a pipeline schedule variable. Returns: the updated variable with key, value, variable_type, and raw. See also: pipeline.schedule_create_variable, pipeline.schedule_delete_variable.",
       "required_params": [
         {
           "name": "key",
@@ -7681,7 +7717,7 @@
       "domain": "pipeline",
       "destructive": false,
       "read_only": true,
-      "description": "List a pipeline's runtime variables. Returns: variable keys, values, and types. See also: pipeline.get, pipeline.create, job.list_project.",
+      "description": "List a pipeline's runtime variables. Returns: variable keys, values, types, and whether each value is raw (not expanded). See also: pipeline.get, pipeline.create, job.list_project.",
       "required_params": [
         {
           "name": "pipeline_id",
@@ -8419,7 +8455,7 @@
       "domain": "project",
       "destructive": false,
       "read_only": false,
-      "description": "Import a project from an export archive. Returns: the new project's import status, type, correlation id, and any import error. See also: project.import_status, project.export_download."
+      "description": "Import a project from an export archive. Returns: the new project's import status, type, correlation id, any import error, and the relations that failed to import. See also: project.import_status, project.export_download."
     },
     {
       "id": "project.import_status",
@@ -8427,7 +8463,7 @@
       "domain": "project",
       "destructive": false,
       "read_only": true,
-      "description": "Get the import status of a project. Returns: import id, name, path, status, type, correlation id, and import error. See also: project.import_from_file.",
+      "description": "Get the import status of a project. Returns: import id, name, path, status, type, correlation id, import error, the relations that failed to import, and a GitHub import's fetched and imported counts. See also: project.import_from_file.",
       "required_params": [
         {
           "name": "project_id",
@@ -9073,7 +9109,7 @@
       "domain": "project",
       "destructive": false,
       "read_only": true,
-      "description": "List issues assigned to a single milestone with ordering and pagination. Returns: assigned issues with IID, title, state, web URL, creation time, and pagination metadata. See also: project.milestone_get, project.milestone_merge_requests, issue.list.",
+      "description": "List issues assigned to a single milestone with ordering and pagination. Returns: assigned issues with IID, project, title, state, labels, author, assignees, confidentiality, weight, due date, web URL, timestamps, and pagination metadata. See also: project.milestone_get, project.milestone_merge_requests, issue.list.",
       "required_params": [
         {
           "name": "milestone_iid",
@@ -9105,7 +9141,7 @@
       "domain": "project",
       "destructive": false,
       "read_only": true,
-      "description": "List merge requests assigned to a single milestone with ordering and pagination. Returns: assigned merge requests with IID, title, state, source/target branches, web URL, creation time, and pagination metadata. See also: project.milestone_get, project.milestone_issues, merge_request.list.",
+      "description": "List merge requests assigned to a single milestone with ordering and pagination. Returns: assigned merge requests with IID, project, title, state, draft flag, merge status, source/target branches, labels, author, assignees, reviewers, web URL, timestamps, and pagination metadata. See also: project.milestone_get, project.milestone_issues, merge_request.list.",
       "required_params": [
         {
           "name": "milestone_iid",
@@ -9331,7 +9367,7 @@
       "domain": "project",
       "destructive": false,
       "read_only": true,
-      "description": "List ALL GitLab Pages custom domains across the whole instance in one call (admin only). Use this instead of gitlab_pages_domain_list when you need every domain on the instance, not just those attached to a single project. Returns: all domains with verification status, auto-SSL flag, project ID, and certificate subject. See also: project.pages_domain_list, project.pages_domain_get, project.pages_domain_create."
+      "description": "List the GitLab Pages custom domains across the whole instance (admin only), one page at a time. Use this instead of project.pages_domain_list when you need every domain on the instance, not just those attached to a single project. Returns: the page of domains with verification status, auto-SSL flag, project ID, and certificate subject, and pagination metadata. See also: project.pages_domain_list, project.pages_domain_get, project.pages_domain_create."
     },
     {
       "id": "project.pages_domain_update",
@@ -9442,6 +9478,24 @@
       "destructive": true,
       "read_only": false,
       "description": "Delete a GitLab project service account. Returns: a success status confirming deletion. See also: project.service_account_list, project.service_account_update.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "service_account_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "project.service_account_get",
+      "title": "Project Service Account Get",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get one GitLab project service account by its user ID (GitLab 19.4 or later). Returns: the project service account object. See also: project.service_account_list, project.service_account_update, project.service_account_pat_list.",
       "required_params": [
         {
           "name": "project_id",
@@ -9643,7 +9697,7 @@
       "domain": "project",
       "destructive": true,
       "read_only": false,
-      "description": "Transfer a project to another namespace. Returns: the project in its new namespace. See also: project.get, group.get.",
+      "description": "Transfer a project to another namespace, waiting up to 45 seconds for GitLab to apply the move. Returns: the project in its new namespace, or with transfer_queued set and its current namespace when GitLab has not applied the move yet, or an error when GitLab reports the move failed. See also: project.get, group.get.",
       "required_params": [
         {
           "name": "namespace",
@@ -10371,7 +10425,7 @@
       "domain": "repository",
       "destructive": false,
       "read_only": true,
-      "description": "List merge requests associated with a commit. Returns: basic MR entries with IID, title, state, source/target branches, web URL, and author. See also: repository.commit_get, merge_request.get, mr_review.changes_get.",
+      "description": "List merge requests associated with a commit. Returns: compact MR rows with IID, project, title, state, draft flag, source/target branches, merge commit SHA, labels, author, web URL, and created, updated, merged and closed times, with pagination metadata. See also: repository.commit_get, merge_request.get, mr_review.changes_get.",
       "required_params": [
         {
           "name": "project_id",
@@ -10796,7 +10850,7 @@
       "domain": "repository",
       "destructive": false,
       "read_only": true,
-      "description": "List repository tree items. Returns: paths, object IDs, entry types (blob/tree), and pagination metadata. See also: repository.blob, repository.raw_blob, branch.list.",
+      "description": "List repository tree items. Returns: paths, object IDs, entry types (blob/tree/commit), modes, each entry's last commit when with_last_commit is set, and pagination metadata. See also: repository.blob, repository.raw_blob, branch.list.",
       "required_params": [
         {
           "name": "project_id",
@@ -10810,7 +10864,7 @@
       "domain": "repository",
       "destructive": false,
       "read_only": false,
-      "description": "Update a submodule pointer to a new commit SHA on a branch. Returns: the created commit with id, short_id, title, author and committer details, dates, parent_ids, message, and web_url. See also: repository.list_submodules, repository.read_submodule_file, repository.commit_get.",
+      "description": "Update a submodule pointer to a new commit SHA on a branch. Returns: the created commit with id, short_id, title, author and committer details, dates, parent_ids, message, status, project_id, trailers, last_pipeline, and web_url. See also: repository.list_submodules, repository.read_submodule_file, repository.commit_get.",
       "required_params": [
         {
           "name": "branch",
@@ -11244,7 +11298,7 @@
       "domain": "server",
       "destructive": false,
       "read_only": true,
-      "description": "Check MCP server connectivity, GitLab reachability, and authenticated identity details. Returns: the current server and GitLab health diagnostics object. See also: user.me."
+      "description": "Check MCP server connectivity, GitLab reachability, and authenticated identity details. Returns: the server and GitLab health diagnostics, with the GitLab version, revision, edition and agent server, and the authenticated user. See also: user.me."
     },
     {
       "id": "snippet.content",
@@ -12432,7 +12486,7 @@
       "domain": "user",
       "destructive": true,
       "read_only": false,
-      "description": "Ban a user. Returns: confirmation with the user ID and action. Reversible via gitlab_unban_user. See also: user.unban, user.block, user.get.",
+      "description": "Ban a user. Returns: confirmation with the user ID and action. Reversible via user.unban. See also: user.unban, user.block, user.get.",
       "required_params": [
         {
           "name": "user_id",
@@ -12446,7 +12500,7 @@
       "domain": "user",
       "destructive": true,
       "read_only": false,
-      "description": "Block a user from signing in. Returns: confirmation with the user ID and action. Reversible via gitlab_unblock_user. See also: user.unblock, user.ban, user.get.",
+      "description": "Block a user from signing in. Returns: confirmation with the user ID and action. Reversible via user.unblock. See also: user.unblock, user.ban, user.get.",
       "required_params": [
         {
           "name": "user_id",
@@ -12460,7 +12514,7 @@
       "domain": "user",
       "destructive": false,
       "read_only": true,
-      "description": "List a user's contribution events. Returns: event entries with action, target type/title, project, and timestamp. See also: user.get, user.activities, user.associations_count.",
+      "description": "List a user's contribution events. Returns: event entries with action, target type/title and link, project, author, timestamp, the push, note or wiki page the event concerns, and its import origin. See also: user.get, user.activities, user.associations_count.",
       "required_params": [
         {
           "name": "user_id",
@@ -12596,7 +12650,7 @@
       "domain": "user",
       "destructive": true,
       "read_only": false,
-      "description": "Deactivate an active user. Returns: confirmation with the user ID and action. Reversible via gitlab_activate_user. See also: user.activate, user.block, user.get.",
+      "description": "Deactivate an active user. Returns: confirmation with the user ID and action. Reversible via user.activate. See also: user.activate, user.block, user.get.",
       "required_params": [
         {
           "name": "user_id",
@@ -12752,7 +12806,7 @@
       "domain": "user",
       "destructive": false,
       "read_only": true,
-      "description": "List the current user's email addresses. Returns: email entries with ID, address, and confirmation time. See also: user.me, user.modify."
+      "description": "List the current user's email addresses. Returns: email entries with ID, address, and confirmation time, with pagination metadata. See also: user.me, user.modify."
     },
     {
       "id": "user.emails_for_user",
@@ -12760,7 +12814,7 @@
       "domain": "user",
       "destructive": false,
       "read_only": true,
-      "description": "List all email addresses registered to a specific user account. Returns: each email's ID, address, and confirmation timestamp, with offset/keyset pagination support. See also: user.get_email, user.add_email_for_user, user.delete_email_for_user, user.get."
+      "description": "List the email addresses registered to a specific user account. Returns: each email's ID, address, and confirmation timestamp, with pagination metadata. See also: user.get_email, user.add_email_for_user, user.delete_email_for_user, user.get."
     },
     {
       "id": "user.event_list_contributions",
@@ -12908,7 +12962,7 @@
       "domain": "user",
       "destructive": false,
       "read_only": true,
-      "description": "List the authenticated user's GPG keys. Returns: each key's ID, armored public key, and creation timestamp. See also: user.get_gpg_key, user.add_gpg_key, user.delete_gpg_key, user.gpg_keys_for_user."
+      "description": "List the authenticated user's GPG keys. Returns: each key's ID, armored public key, and creation timestamp, with pagination metadata. See also: user.get_gpg_key, user.add_gpg_key, user.delete_gpg_key, user.gpg_keys_for_user."
     },
     {
       "id": "user.gpg_keys_for_user",
@@ -12916,7 +12970,7 @@
       "domain": "user",
       "destructive": false,
       "read_only": true,
-      "description": "List a specific user's GPG keys. Returns: each key's ID, armored public key, and creation timestamp. See also: user.get_gpg_key_for_user, user.add_gpg_key_for_user, user.delete_gpg_key_for_user, user.get.",
+      "description": "List a specific user's GPG keys. Returns: each key's ID, armored public key, and creation timestamp, with pagination metadata. See also: user.get_gpg_key_for_user, user.add_gpg_key_for_user, user.delete_gpg_key_for_user, user.get.",
       "required_params": [
         {
           "name": "user_id",
@@ -12966,7 +13020,7 @@
       "domain": "user",
       "destructive": false,
       "read_only": true,
-      "description": "List all impersonation tokens for a user. Returns: each token's id, name, active flag, scopes, revoked flag, created_at, expires_at, and last_used_at. See also: user.get_impersonation_token, user.create_impersonation_token, user.revoke_impersonation_token.",
+      "description": "List the impersonation tokens of a user. Returns: each token's id, name, active flag, scopes, revoked flag, created_at, expires_at, and last_used_at, with pagination metadata. See also: user.get_impersonation_token, user.create_impersonation_token, user.revoke_impersonation_token.",
       "required_params": [
         {
           "name": "user_id",
@@ -12980,7 +13034,7 @@
       "domain": "user",
       "destructive": false,
       "read_only": true,
-      "description": "List instance-level service accounts. Returns: service account summaries with ID, username, name, and email. Requires admin token. See also: user.create_service_account, user.update_service_account."
+      "description": "List instance-level service accounts. Returns: service account summaries with ID, username, name, and email, with pagination metadata. Requires admin token. See also: user.create_service_account, user.update_service_account."
     },
     {
       "id": "user.me",
@@ -13281,7 +13335,7 @@
       "domain": "user",
       "destructive": false,
       "read_only": false,
-      "description": "Upload the current user's avatar. Returns: the updated user profile including the new avatar URL. GitLab 19 responds with only avatar_url, so other profile fields (including id) may be empty. Use gitlab_user_current for the full profile. Provide filename and exactly one of file_path or content_base64. See also: user.me, user.modify.",
+      "description": "Upload the current user's avatar. Returns: the updated user profile including the new avatar URL. GitLab 19 responds with only avatar_url, so other profile fields (including id) may be empty. Use user.current for the full profile. Provide filename and exactly one of file_path or content_base64. See also: user.me, user.modify.",
       "required_params": [
         {
           "name": "filename",

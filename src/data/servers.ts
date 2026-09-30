@@ -335,7 +335,10 @@ export type McpServer = {
    * fixed that: `/server-card` is now the SEP-2127 shape (1376 bytes, no
    * primitives) and the enumerating one stays at the `.well-known` path.
    * Measured against all three replicas over loopback before the vhost block
-   * was removed.
+   * was removed. Since 3.1.0 (#1061) the binary also answers the same card at
+   * `<endpoint>/mcp/server-card`, for a client that was given the `/mcp` form
+   * of the endpoint; the site announces only the `<endpoint>/server-card`
+   * spelling, which is the one its `endpoint` field makes canonical.
    *
    * The trade is deliberate. The site loses local verification of that card
    * — the unit tests read build artifacts, never the network — and in
@@ -392,7 +395,7 @@ export const servers: McpServer[] = [
     // Measured against all three replicas before the site stopped emitting
     // one: same body, same strong ETag, its own Cache-Control and CORS.
     ownServerCard: true,
-    version: "2.0.0",
+    version: "2.0.1",
     // Measured 2026-09-10, anonymously: a POST carrying
     // `MCP-Protocol-Version: 1999-01-01` is answered 400 "Unsupported
     // protocol version (supported versions: ...)" with exactly this list.
@@ -712,17 +715,28 @@ export const servers: McpServer[] = [
             es: "El endpoint gitlab de mcp.jmrp.io es igualmente personal, sin SLA ni garantía de continuidad. Para algo crítico, levanta tu propia instancia — el servidor es open source y un único binario estático.",
           },
           {
-            en: "Whatever quota applies is gitlab.com's, spent with your own token: this server adds no limit of its own beyond the site-wide one.",
-            es: "La cuota que rige es la de gitlab.com, gastada con tu propio token: este servidor no añade más límite que el general del sitio.",
+            en: "Each credential has its own budget on each of the three instances: 60 calls a second that reach GitLab, in bursts of up to 40, with listing the catalogue on a separate bucket that refills a tenth as fast. Past that, what you spend is gitlab.com's quota, under your own token.",
+            es: "Cada credencial tiene su propio presupuesto en cada una de las tres instancias: 60 llamadas por segundo que lleguen a GitLab, en ráfagas de hasta 40, y el listado del catálogo en un cubo aparte que se rellena diez veces más despacio. Por encima de eso, lo que gastas es la cuota de gitlab.com, con tu propio token.",
+          },
+          // gitlab-mcp-server 3.1.0 (#897) made these budgets configurable and
+          // added the distinct-token one; the figures are its defaults, which
+          // ops/stack/flags/gitlab.flags does not override. The window counts
+          // from the first failure (AuthRateLimiter.BlockedFor), and the
+          // ladder repeats its last step (`escalationLadder` in the pool).
+          {
+            en: "Failed sign-ins are counted per address. Ten in a minute block that address until the minute is out; fifty different rejected tokens in ten minutes block it for a minute, then ten, then an hour at a time. A client retrying one expired token recovers on its own; one trying token after token does not.",
+            es: "Los accesos fallidos se cuentan por dirección. Diez en un minuto bloquean esa dirección hasta que pasa el minuto; cincuenta tokens rechazados distintos en diez minutos la bloquean un minuto, luego diez, y después una hora cada vez. Un cliente que reintenta con un token caducado se recupera solo; uno que prueba token tras token, no.",
           },
         ],
       },
     ],
-    // Concuerda con el aviso `limits` de arriba: el techo que aplica es el de
-    // gitlab.com, que desde --auth-mode=oauth es la única instancia posible.
+    // Agrees with the `limits` notice above. It used to say the server added
+    // no quota of its own, which was never true of this deployment: the flags
+    // pass --rate-limit-rps=60, charged per credential on every call that
+    // reaches GitLab, with the default burst of 40 (tenancy.ToolCallBurst).
     rateLimit: {
-      en: "It adds no quota of its own beyond the site-wide one: every call is spent against gitlab.com's limits, under your own token.",
-      es: "No añade cuota propia más allá de la general del sitio: cada llamada se descuenta de los límites de gitlab.com, con tu propio token.",
+      en: "Each credential gets 60 calls a second to GitLab per instance, in bursts of up to 40, and repeated failed sign-ins block the address for a while. Beyond that, every call is spent against gitlab.com's limits, under your own token.",
+      es: "Cada credencial tiene 60 llamadas por segundo a GitLab por instancia, en ráfagas de hasta 40, y los accesos fallidos repetidos bloquean la dirección durante un tiempo. Por encima de eso, cada llamada se descuenta de los límites de gitlab.com, con tu propio token.",
     },
     oauth: {
       clientId:
@@ -731,7 +745,8 @@ export const servers: McpServer[] = [
       scopes: ["api"],
       metadataUrl:
         "https://mcp.jmrp.io/.well-known/oauth-protected-resource/gitlab",
-      // Measured on 3.1.0+17f13ba (2026-09-22): `["api"]`. See the type.
+      // Measured on 3.1.0+17f13ba (2026-09-22) and again on the 3.1.0
+      // release, 3.1.0+6cf683b (2026-09-30): `["api"]`. See the type.
       advertisedScopes: ["api"],
       callbackPort: 8090,
       // The read-only application behind the inspector's sign-in button.
@@ -802,7 +817,7 @@ export const servers: McpServer[] = [
     // not that the server lost anything: the catalog is scoped to the token
     // that asks, and this deployment now publishes what a gitlab.com token
     // sees. Measured on the day of the switch, the manifest went from 851
-    // actions to 747 that day (765 by 2026-09-22: the live figure is
+    // actions to 747 that day (768 by 2026-09-30: the live figure is
     // `meta.actionCount`) — the 104 that vanished are the administration domains a
     // gitlab.com account without admin rights simply cannot call.
     //

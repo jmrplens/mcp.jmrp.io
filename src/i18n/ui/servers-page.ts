@@ -238,11 +238,13 @@ export const serversPage = {
      * author publishes.
      *
      * Five surfaces named five different counts — "over 700" in this site's
-     * descriptions, `{count}` here (the live `meta.actionCount`, 765 as of
-     * 2026-09-22; it was 747 when this was written, and the hand-typed figure
+     * descriptions, `{count}` here (the live `meta.actionCount`, 768 as of
+     * 2026-09-30; it was 747 when this was written, and the hand-typed figure
      * outlived the catalog by three weeks), 851 in the upstream README's Free/CE surface,
      * "850+ (1,000+ Enterprise)" in the repository description and 1,006 in
-     * the documentation site and the awesome-list. Each is right about its
+     * the documentation site and the awesome-list. As of the 3.1.0 release
+     * (2026-09-30) the documentation site says 868 on Community Edition and
+     * up to 1,094 on GitLab.com, and the note below quotes those two. Each is right about its
      * own vantage point, and this site never named the other two, so a model
      * reconciling them had this one as the outlier and the README as the
      * consensus. Naming all three here turns a contradiction into something
@@ -254,7 +256,7 @@ export const serversPage = {
      * catalog.
      */
     catalogTokenNote:
-      "Counted with a Free-tier token against gitlab.com, which is the only host this endpoint talks to: to use it against a self-managed instance, run the server yourself — its documentation covers that. The catalog is scoped to the token that asks, so the count moves with both its tier and its permissions: higher tiers expose more actions, and administration domains only appear to tokens allowed to use them. That is why the figures differ elsewhere: the upstream project catalogues 1,006 actions across 162 domains, and 851 on the Free/CE surface, while this deployment publishes {count} because it is OAuth-only and acts with your token, so the administration domains a non-admin account cannot call never appear. All three describe the same catalog, counted from three vantage points.",
+      "Counted with a Free-tier token against gitlab.com, which is the only host this endpoint talks to: to use it against a self-managed instance, run the server yourself — its documentation covers that. The catalog is scoped to the token that asks, so the count moves with both its tier and its permissions: higher tiers expose more actions, and administration domains only appear to tokens allowed to use them. That is why the figures differ elsewhere: the upstream project counts 868 operations on Community Edition and up to 1,094 on GitLab.com's top tier, while this deployment publishes {count} because it is OAuth-only and acts with your token, so the administration domains a non-admin account cannot call never appear. All three describe the same catalog, counted from three vantage points.",
     catalogTableCaption: "Actions by domain",
     catalogColDomain: "Domain",
     catalogColTotal: "Actions",
@@ -457,7 +459,7 @@ export const serversPage = {
       "Detrás de las tools de arriba hay un catálogo de acciones de grano fino, invocadas vía gitlab_execute_action y publicadas como el resource gitlab://tools. Esta tabla solo lo cuenta, por dominio — la lista completa es el propio resource.",
     /** Ver `en.catalogTokenNote`: la cifra, su alcance, y por qué las otras difieren. */
     catalogTokenNote:
-      "Contado con un token Free contra gitlab.com, que es el único host con el que habla este endpoint: para usarlo contra una instancia self-managed, levanta tú el servidor — su documentación lo cubre. El catálogo depende del token que pregunta, así que el recuento se mueve con su tier y con sus permisos: los tiers superiores exponen más acciones, y los dominios de administración solo aparecen a tokens autorizados a usarlos. Por eso las cifras difieren en otros sitios: el proyecto upstream cataloga 1.006 acciones en 162 dominios, y 851 en la superficie Free/CE, mientras que este despliegue publica {count} porque es solo-OAuth y actúa con tu token, así que los dominios de administración que una cuenta sin admin no puede llamar no aparecen nunca. Las tres describen el mismo catálogo, contado desde tres sitios distintos.",
+      "Contado con un token Free contra gitlab.com, que es el único host con el que habla este endpoint: para usarlo contra una instancia self-managed, levanta tú el servidor — su documentación lo cubre. El catálogo depende del token que pregunta, así que el recuento se mueve con su tier y con sus permisos: los tiers superiores exponen más acciones, y los dominios de administración solo aparecen a tokens autorizados a usarlos. Por eso las cifras difieren en otros sitios: el proyecto upstream cuenta 868 operaciones en Community Edition y hasta 1.094 en el tier más alto de GitLab.com, mientras que este despliegue publica {count} porque es solo-OAuth y actúa con tu token, así que los dominios de administración que una cuenta sin admin no puede llamar no aparecen nunca. Las tres describen el mismo catálogo, contado desde tres sitios distintos.",
     /** Ver `en.catalogTableCaption`. */
     catalogTableCaption: "Acciones por dominio",
     /** Ver `en.catalogColDomain`. */

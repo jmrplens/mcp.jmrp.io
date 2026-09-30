@@ -230,7 +230,7 @@
     ],
     "name": "libgen-mcp",
     "title": "Books & Papers MCP Server",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "websiteUrl": "https://jmrp.io/docs/libgen-mcp"
   },
   "tools": [
@@ -269,6 +269,11 @@
       ],
       "inputSchema": {
         "additionalProperties": false,
+        "examples": [
+          {
+            "doi": "10.1038/nature12373"
+          }
+        ],
         "properties": {
           "annas_member": {
             "description": "Anna's Archive member (fast) downloads, which need a paid membership. With no server key the client is asked for one, used once, never stored. False: keyless IPFS",
@@ -485,6 +490,12 @@
       ],
       "inputSchema": {
         "additionalProperties": false,
+        "examples": [
+          {
+            "enrich": true,
+            "md5": "da9009e8bd25e2c5206475d289feec90"
+          }
+        ],
         "properties": {
           "doi": {
             "description": "article DOI, e.g. 10.1016/j.cell.2011.02.013. Use exactly one of md5, id or doi. The record returned carries the md5 for download",
@@ -708,6 +719,12 @@
       ],
       "inputSchema": {
         "additionalProperties": false,
+        "examples": [
+          {
+            "doi": "10.1038/nature12373",
+            "find": "methods"
+          }
+        ],
         "properties": {
           "cursor": {
             "description": "from a previous read, for the next chunk or the next matches. Overrides start_page and offset",
@@ -966,6 +983,12 @@
       ],
       "inputSchema": {
         "additionalProperties": false,
+        "examples": [
+          {
+            "extra_sources": "always",
+            "query": "organic chemistry Hoffmann"
+          }
+        ],
         "properties": {
           "extra_sources": {
             "description": "a single value, not an array: always also queries Anna's Archive, arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed and ERIC. auto (default) reaches them only when the catalog finds nothing or fails, and never stays on the catalog. Set always for open-access, public-domain, preprint or grey-literature requests. A server set to never ignores this argument",
@@ -1216,6 +1239,10 @@
                 },
                 "file_id": {
                   "description": "get_details object=file",
+                  "type": "string"
+                },
+                "filename": {
+                  "description": "original file name. Often names the revision or year when the catalog leaves year empty",
                   "type": "string"
                 },
                 "isbns": {
