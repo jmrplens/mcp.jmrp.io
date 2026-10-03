@@ -32,5 +32,9 @@
     // artifacts of the last run, not documents this repo maintains.
     "test-results",
     "playwright-report",
+    // The Sonar scanner unpacks a bundle with its own README.md into a
+    // temporary folder under .scannerwork and deletes it on exit; a run that
+    // is stopped half-way leaves it behind, and that README is not ours.
+    ".scannerwork",
   ],
 }
