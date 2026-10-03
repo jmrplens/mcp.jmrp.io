@@ -56,49 +56,47 @@ const rows: ServerRow[] = servers.flatMap((server) => {
   </header>
 
   <ul class="server-list">
-    {
-      rows.map(({ server, card, doc }) => {
-        const href = new URL(serverPageUrl(lang, server.id)).pathname;
-        const templatesCount = doc.resourceTemplates.length;
-        return (
-          <li>
-            <article class="server-row">
-              <h2 class="server-row-title">
-                <a href={href}>{server.name}</a>
-              </h2>
-              <p class="server-row-desc">{server.description[lang]}</p>
-              <dl class="server-row-stats">
+    {rows.map(({ server, card, doc }) => {
+      const href = new URL(serverPageUrl(lang, server.id)).pathname;
+      const templatesCount = doc.resourceTemplates.length;
+      return (
+        <li>
+          <article class="server-row">
+            <h2 class="server-row-title">
+              <a href={href}>{server.name}</a>
+            </h2>
+            <p class="server-row-desc">{server.description[lang]}</p>
+            <dl class="server-row-stats">
+              <div>
+                <dt>{t.toolsHead}</dt>
+                <dd>{card.tools.length}</dd>
+              </div>
+              {card.prompts.length > 0 && (
                 <div>
-                  <dt>{t.toolsHead}</dt>
-                  <dd>{card.tools.length}</dd>
+                  <dt>{t.promptsHead}</dt>
+                  <dd>{card.prompts.length}</dd>
                 </div>
-                {card.prompts.length > 0 && (
-                  <div>
-                    <dt>{t.promptsHead}</dt>
-                    <dd>{card.prompts.length}</dd>
-                  </div>
-                )}
-                {card.resources.length > 0 && (
-                  <div>
-                    <dt>{sp.resourcesHead}</dt>
-                    <dd>{card.resources.length}</dd>
-                  </div>
-                )}
-                {templatesCount > 0 && (
-                  <div>
-                    <dt>{sp.templatesHead}</dt>
-                    <dd>{templatesCount}</dd>
-                  </div>
-                )}
-              </dl>
-              <p class="server-row-cta">
-                <a href={href}>{sp.indexEntryCta}</a>
-              </p>
-            </article>
-          </li>
-        );
-      })
-    }
+              )}
+              {card.resources.length > 0 && (
+                <div>
+                  <dt>{sp.resourcesHead}</dt>
+                  <dd>{card.resources.length}</dd>
+                </div>
+              )}
+              {templatesCount > 0 && (
+                <div>
+                  <dt>{sp.templatesHead}</dt>
+                  <dd>{templatesCount}</dd>
+                </div>
+              )}
+            </dl>
+            <p class="server-row-cta">
+              <a href={href}>{sp.indexEntryCta}</a>
+            </p>
+          </article>
+        </li>
+      );
+    })}
   </ul>
 
   <UpdatedLine lang={lang} />

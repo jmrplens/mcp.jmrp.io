@@ -36,6 +36,13 @@ export default defineConfig({
     command: process.env.DIST_DIR
       ? `astro preview --outDir "${process.env.DIST_DIR}" --port 4321`
       : 'DIST_DIR=$(node scripts/deploy-swap.mjs prepare) && astro build --outDir "$DIST_DIR" && astro preview --outDir "$DIST_DIR" --port 4321',
+    // Since Astro 7.2, `astro preview` detects a coding agent and starts as a
+    // detached background process: the command exits at once, Playwright
+    // reports the web server as gone, and the detached server is left
+    // holding port 4321 for the next run. This is the opt-out Astro
+    // documents (guides/build-with-ai, "Background mode"). Playwright merges
+    // it over process.env, so nothing else is lost.
+    env: { ASTRO_PREVIEW_BACKGROUND: "0" },
     url: "http://localhost:4321",
     reuseExistingServer: false,
     // Playwright's default is 60s and this command BUILDS before it serves:

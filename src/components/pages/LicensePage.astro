@@ -39,7 +39,9 @@ const legalHref = `${new URL(pageUrl(lang, "policies")).pathname}#legal-h`;
     <p class="subpage-intro">{t.licenseIntro}</p>
   </header>
 
-  {t.licenseOpening.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+  {t.licenseOpening.map((paragraph) => (
+    <p class="prose-text">{paragraph}</p>
+  ))}
 
   <section
     class="license-section"
@@ -51,17 +53,16 @@ const legalHref = `${new URL(pageUrl(lang, "policies")).pathname}#legal-h`;
     >
       {t.licenseTextEyebrow}
     </h2>
-    {
-      t.licenseTextBody.map((paragraph) => (
-        <p class="prose-text">{paragraph}</p>
-      ))
-    }
+    {t.licenseTextBody.map((paragraph) => (
+      <p class="prose-text">{paragraph}</p>
+    ))}
     <p class="prose-text">
       <a
         href={t.licenseTextHref}
         rel="license"
-        >{t.licenseTextLink}</a
       >
+        {t.licenseTextLink}
+      </a>
     </p>
   </section>
 
@@ -75,11 +76,9 @@ const legalHref = `${new URL(pageUrl(lang, "policies")).pathname}#legal-h`;
     >
       {t.licenseImagesEyebrow}
     </h2>
-    {
-      t.licenseImagesBody.map((paragraph) => (
-        <p class="prose-text">{paragraph}</p>
-      ))
-    }
+    {t.licenseImagesBody.map((paragraph) => (
+      <p class="prose-text">{paragraph}</p>
+    ))}
   </section>
 
   <section
@@ -92,11 +91,9 @@ const legalHref = `${new URL(pageUrl(lang, "policies")).pathname}#legal-h`;
     >
       {t.licenseSiteEyebrow}
     </h2>
-    {
-      t.licenseSiteBody.map((paragraph) => (
-        <p class="prose-text">{paragraph}</p>
-      ))
-    }
+    {t.licenseSiteBody.map((paragraph) => (
+      <p class="prose-text">{paragraph}</p>
+    ))}
     <p class="prose-text">
       <a href={SITE_REPO}>{t.licenseSiteLink}</a>
     </p>
@@ -112,23 +109,17 @@ const legalHref = `${new URL(pageUrl(lang, "policies")).pathname}#legal-h`;
     >
       {t.licenseServersEyebrow}
     </h2>
-    {
-      t.licenseServersBody.map((paragraph) => (
-        <p class="prose-text">{paragraph}</p>
-      ))
-    }
-    {
-      /* One link per server, from the same data the cards use: a hand-written
-        pair here would be the third copy of each repository URL. */
-    }
+    {t.licenseServersBody.map((paragraph) => (
+      <p class="prose-text">{paragraph}</p>
+    ))}
+    {/* One link per server, from the same data the cards use: a hand-written
+        pair here would be the third copy of each repository URL. */}
     <ul class="license-repos">
-      {
-        servers.map((server) => (
-          <li>
-            <a href={server.repo}>{server.name}</a>
-          </li>
-        ))
-      }
+      {servers.map((server) => (
+        <li>
+          <a href={server.repo}>{server.name}</a>
+        </li>
+      ))}
     </ul>
   </section>
 
@@ -142,11 +133,9 @@ const legalHref = `${new URL(pageUrl(lang, "policies")).pathname}#legal-h`;
     >
       {t.licenseIndexesEyebrow}
     </h2>
-    {
-      t.licenseIndexesBody.map((paragraph) => (
-        <p class="prose-text">{paragraph}</p>
-      ))
-    }
+    {t.licenseIndexesBody.map((paragraph) => (
+      <p class="prose-text">{paragraph}</p>
+    ))}
   </section>
 
   <section
@@ -159,11 +148,9 @@ const legalHref = `${new URL(pageUrl(lang, "policies")).pathname}#legal-h`;
     >
       {t.licenseReturnedEyebrow}
     </h2>
-    {
-      t.licenseReturnedBody.map((paragraph) => (
-        <p class="prose-text">{paragraph}</p>
-      ))
-    }
+    {t.licenseReturnedBody.map((paragraph) => (
+      <p class="prose-text">{paragraph}</p>
+    ))}
     <p class="prose-text">
       <a href={legalHref}>{t.licenseReturnedLink}</a>
     </p>
@@ -179,11 +166,9 @@ const legalHref = `${new URL(pageUrl(lang, "policies")).pathname}#legal-h`;
     >
       {t.licenseMarksEyebrow}
     </h2>
-    {
-      t.licenseMarksBody.map((paragraph) => (
-        <p class="prose-text">{paragraph}</p>
-      ))
-    }
+    {t.licenseMarksBody.map((paragraph) => (
+      <p class="prose-text">{paragraph}</p>
+    ))}
   </section>
 
   <section
@@ -196,11 +181,9 @@ const legalHref = `${new URL(pageUrl(lang, "policies")).pathname}#legal-h`;
     >
       {t.licensePermissionEyebrow}
     </h2>
-    {
-      /* A plain mailto, not an obfuscated one like jmrp.io's: this site already
+    {/* A plain mailto, not an obfuscated one like jmrp.io's: this site already
         prints the same address in clear in every footer and in the JSON-LD
-        #person node, so hiding it here would protect nothing. */
-    }
+        #person node, so hiding it here would protect nothing. */}
     <p class="prose-text">
       {t.licensePermissionLead}{" "}
       <a href="mailto:mail@jmrp.io">{t.licenseContact}</a>

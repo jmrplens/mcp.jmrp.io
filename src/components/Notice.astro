@@ -30,16 +30,16 @@ const { notice, lang, id } = Astro.props;
   id={id}
   data-testid={`notice-${notice.kind}`}
 >
-  {notice.body.map((p) => <p>{p[lang]}</p>)}
-  {
-    notice.bullets && notice.bullets.length > 0 && (
-      <ul>
-        {notice.bullets.map((b) => (
-          <li>{b[lang]}</li>
-        ))}
-      </ul>
-    )
-  }
+  {notice.body.map((p) => (
+    <p>{p[lang]}</p>
+  ))}
+  {notice.bullets && notice.bullets.length > 0 && (
+    <ul>
+      {notice.bullets.map((b) => (
+        <li>{b[lang]}</li>
+      ))}
+    </ul>
+  )}
 </div>
 
 <style>

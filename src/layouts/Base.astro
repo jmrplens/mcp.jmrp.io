@@ -264,8 +264,7 @@ const serverSubItems = servers.map((server) => ({
       content="width=device-width, initial-scale=1"
     />
 
-    {
-      /* Applies the forced theme override BEFORE first paint, so a visitor who
+    {/* Applies the forced theme override BEFORE first paint, so a visitor who
         picked "light" never sees a flash of the dark-first default while the
         rest of the document loads. `is:inline` is required, not stylistic:
         without it Vite pulls the block into a bundled module chunk, and the
@@ -277,8 +276,7 @@ const serverSubItems = servers.map((server) => ({
         multi-instance class-based wiring jmrp.io's version carries for its
         header+drawer pair. No `astro:after-swap` handling either: this site
         has no ClientRouter, so every navigation is a fresh document load and
-        this script simply runs again from scratch. */
-    }
+        this script simply runs again from scratch. */}
     <script is:inline>
       (function () {
         var KEY = "theme";
@@ -311,22 +309,18 @@ const serverSubItems = servers.map((server) => ({
         };
       })();
     </script>
-
     <title>{title}</title>
     <meta
       name="description"
       content={description}
     />
-    {
-      !errorPage && (
-        <link
-          rel="canonical"
-          href={canonical}
-        />
-      )
-    }
-    {
-      /* HTML link types `privacy-policy` and `terms-of-service`: how a user
+    {!errorPage && (
+      <link
+        rel="canonical"
+        href={canonical}
+      />
+    )}
+    {/* HTML link types `privacy-policy` and `terms-of-service`: how a user
         agent, a crawler or a directory finds the policy without guessing its
         path — the reason /policies/ did not need renaming to /privacy/. Both
         point at the same page because it carries privacy (data, logs) AND
@@ -334,8 +328,7 @@ const serverSubItems = servers.map((server) => ({
         <head>. `license` is the same idea for the terms of reuse, as
         jmrp.io's BaseHead emits it; all three site-relative like `canonical`
         is not, for the same reason as `alternate` above. Outside the
-        `errorPage` guard: a 404 pointing at the policy is correct. */
-    }
+        `errorPage` guard: a 404 pointing at the policy is correct. */}
     <link
       rel="privacy-policy"
       href={policiesHref}
@@ -349,47 +342,41 @@ const serverSubItems = servers.map((server) => ({
       href={licenseHref}
     />
 
-    {
-      /* `max-snippet:-1` lifts the cap on how much text Google may quote, and
+    {/* `max-snippet:-1` lifts the cap on how much text Google may quote, and
         it is the directive the whole play of this site rests on: its answers
         are marked up as FAQPage and speakable precisely so they get quoted in
         full. AI bots (GPTBot, ClaudeBot, PerplexityBot) do NOT read this —
         robots.txt is what governs them — but AI Overviews and Gemini
         grounding are served from Googlebot's index, which does honour it.
         Same value as jmrp.io's 126 pages: one policy for domain and
-        subdomain. */
-    }
+        subdomain. */}
     <meta
       name="robots"
-      content={errorPage || noindex
-        ? "noindex, follow"
-        : "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"}
+      content={
+        errorPage || noindex
+          ? "noindex, follow"
+          : "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
+      }
     />
 
-    {
-      /* The hreflang annotations are emitted IN FULL on both pages, each one
+    {/* The hreflang annotations are emitted IN FULL on both pages, each one
         including itself. Google requires every version to list every version —
         itself included — and discards the whole cluster when the self-reference
         is missing: EN and ES would then compete with each other instead of
         being grouped. They come from `alternates()` and not from a ternary so
-        that adding a new language cannot leave the list short again. */
-    }
-    {
-      !errorPage &&
-        hreflangCluster.map((alt) => (
-          <link
-            rel="alternate"
-            hreflang={alt.hreflang}
-            href={alt.href}
-          />
-        ))
-    }
+        that adding a new language cannot leave the list short again. */}
+    {!errorPage &&
+      hreflangCluster.map((alt) => (
+        <link
+          rel="alternate"
+          hreflang={alt.hreflang}
+          href={alt.href}
+        />
+      ))}
 
-    {
-      /* The endpoint index in JSON, declared as an alternate representation of
+    {/* The endpoint index in JSON, declared as an alternate representation of
         the document. It was only linked from the body, so an agent reading the
-        `<head>` — which is what they do — never saw it. */
-    }
+        `<head>` — which is what they do — never saw it. */}
     <link
       rel="alternate"
       type="application/json"
@@ -397,11 +384,9 @@ const serverSubItems = servers.map((server) => ({
       title="MCP server index"
     />
 
-    {
-      /* Same reason as the `<link>` above, for `/llms.txt`: the design already
+    {/* Same reason as the `<link>` above, for `/llms.txt`: the design already
         assumed the home page pointed at both, but this one had never actually
-        been added. */
-    }
+        been added. */}
     <link
       rel="alternate"
       type="text/plain"
@@ -409,8 +394,7 @@ const serverSubItems = servers.map((server) => ({
       title="llms.txt index"
     />
 
-    {
-      /* The page's markdown twin, which the build writes at `<page>index.md`.
+    {/* The page's markdown twin, which the build writes at `<page>index.md`.
         It was reachable and correctly served all along — right content type,
         and a `Link:` header canonicalizing it back here — but nothing on this
         side said it existed: no head tag, no `.md` in the sitemap, and
@@ -428,31 +412,24 @@ const serverSubItems = servers.map((server) => ({
         than the condition itself. The errorPage/noindex guard stays because
         those two pages have no canonical of their OWN: they decline an
         identity, so `canonical` falls back to the home page's, whose twin is
-        real. Dropping it made all 75 pages announce `/index.md`. */
-    }
-    {
-      !errorPage &&
-        !noindex &&
-        hasMarkdownTwin(new URL(canonical).pathname) && (
-          <link
-            rel="alternate"
-            type="text/markdown"
-            href={`${canonical}index.md`}
-            title="Markdown twin"
-          />
-        )
-    }
+        real. Dropping it made all 75 pages announce `/index.md`. */}
+    {!errorPage && !noindex && hasMarkdownTwin(new URL(canonical).pathname) && (
+      <link
+        rel="alternate"
+        type="text/markdown"
+        href={`${canonical}index.md`}
+        title="Markdown twin"
+      />
+    )}
 
     <meta
       name="color-scheme"
       content="light dark"
     />
 
-    {
-      /* An SVG icon, not .ico: the vhost answers 204 to /favicon.ico (it comes
+    {/* An SVG icon, not .ico: the vhost answers 204 to /favicon.ico (it comes
         from the `empty_apple_icons.conf` include and its siblings) and that 204
-        cannot be changed from here. An explicitly declared SVG is served. */
-    }
+        cannot be changed from here. An explicitly declared SVG is served. */}
     <link
       rel="icon"
       href="/favicon.svg"
@@ -464,12 +441,10 @@ const serverSubItems = servers.map((server) => ({
       sizes="180x180"
     />
 
-    {
-      /* The social card. Without this block, a link shared on Bluesky,
+    {/* The social card. Without this block, a link shared on Bluesky,
         Mastodon, Slack or WhatsApp comes out as a bare URL: no title, no
         description, no image. `og:image` is ABSOLUTE because none of those
-        clients resolves relative paths. */
-    }
+        clients resolves relative paths. */}
     {
       /* Not on the error body: `og:url` and `twitter:url` are the canonical,
          so a shared 404 link would have previewed as the home page. */
@@ -561,31 +536,25 @@ const serverSubItems = servers.map((server) => ({
       )
     }
 
-    {
-      /* Structured data. `is:inline` is mandatory: without it Astro treats the
+    {/* Structured data. `is:inline` is mandatory: without it Astro treats the
         block as a script of its own and moves it into a bundle module, which
         would make the JSON-LD disappear from the HTML.
         There is nothing to change in the CSP: `script-src` does not apply to an
         `ld+json` data block, and even so the post-build gives it the
-        `nonce="NGINX_CSP_NONCE"` placeholder like any `script:not([src])`. */
-    }
-    {
-      jsonLd && (
-        <script
-          is:inline
-          type="application/ld+json"
-          set:html={jsonLd}
-        />
-      )
-    }
+        `nonce="NGINX_CSP_NONCE"` placeholder like any `script:not([src])`. */}
+    {jsonLd && (
+      <script
+        is:inline
+        type="application/ld+json"
+        set:html={jsonLd}
+      />
+    )}
 
-    {
-      /* Without these <Font> tags Astro does NOT emit the --font-* variables,
+    {/* Without these <Font> tags Astro does NOT emit the --font-* variables,
         and since tokens.css defines --font-body as `var(--font-ibm-plex-sans),
         ...`, a non-existent var() invalidates the whole declaration: the
         browser ignores the entire fallback chain and drops to Times New Roman.
-        Configuring `fonts:` in astro.config is not enough on its own. */
-    }
+        Configuring `fonts:` in astro.config is not enough on its own. */}
     <Font
       cssVariable="--font-ibm-plex-sans"
       preload={[{ weight: "400", style: "normal" }]}
@@ -600,36 +569,32 @@ const serverSubItems = servers.map((server) => ({
     />
   </head>
   <body>
-    {
-      /* jmrp.io's ambient hairline grid (utilities.css, imported here already
+    {/* jmrp.io's ambient hairline grid (utilities.css, imported here already
         but never rendered until now), full-page: `position:absolute; inset:0`
         inside body's `position:relative`, sitting behind everything via
         `z-index:-1` in body's own stacking context (`isolation:isolate`,
         base.css). Same markup and placement as jmrp.io's BaseLayout.astro —
-        first child of <body>, aria-hidden since it is purely decorative. */
-    }
+        first child of <body>, aria-hidden since it is purely decorative. */}
     <div
       class="lab-grid lab-grid--page"
       aria-hidden="true"
-    >
-    </div>
+    ></div>
 
     <a
       class="skip"
       href="#main"
-      >{t.skip}</a
     >
+      {t.skip}
+    </a>
 
     <header class="site-header">
-      {
-        /* Checkbox-hack drawer toggle: the ONLY thing that opens/closes the
+      {/* Checkbox-hack drawer toggle: the ONLY thing that opens/closes the
           mobile drawer is this checkbox's `:checked` state via `html:has()`
           in the `style` block below. Both the burger (`.menu-toggle`) and
           the scrim (`.menu-backdrop`) are plain `<label for="nav-open">`
           elements, so the drawer works with JavaScript fully disabled — the
           inline script at the end of <body> only layers on Escape-to-close,
-          moving focus, and `inert` on the background. */
-      }
+          moving focus, and `inert` on the background. */}
       <input
         type="checkbox"
         id="nav-open"
@@ -639,14 +604,12 @@ const serverSubItems = servers.map((server) => ({
       />
 
       <div class="header-bar">
-        {
-          /* Terminal-prompt mark, same anatomy as jmrp.io's Logo.astro:
+        {/* Terminal-prompt mark, same anatomy as jmrp.io's Logo.astro:
             breadcrumb path + teal chevron + command + blinking cursor. It
             links to THIS site's home in the current language — it used to
             point at https://jmrp.io, which sent visitors off the site from
             every page. The visible wordmark is the accessible name, so no
-            aria-label (it would not contain the visible breadcrumb text). */
-        }
+            aria-label (it would not contain the visible breadcrumb text). */}
         <a
           class="brand"
           href={homeHref}
@@ -666,57 +629,54 @@ const serverSubItems = servers.map((server) => ({
           aria-label={t.mainNavLabel}
         >
           <ul class="nav-links">
-            {
-              navItems.map((item) => (
-                <li>
-                  <a
-                    href={item.href}
-                    aria-current={item.current ? "page" : undefined}
-                  >
-                    {/* jmrp.io's breadcrumb cue on the active section: a
+            {navItems.map((item) => (
+              <li>
+                <a
+                  href={item.href}
+                  aria-current={item.current ? "page" : undefined}
+                >
+                  {/* jmrp.io's breadcrumb cue on the active section: a
                         decorative "/" ahead of the label, hidden from AT
                         since aria-current already announces the state. */}
-                    {item.current && (
-                      <span
-                        class="nav-prefix"
-                        aria-hidden="true"
-                      >
-                        /
-                      </span>
-                    )}
-                    {item.label}
-                  </a>
-                  {/* The servers hang off "Servers" without taking away its
+                  {item.current && (
+                    <span
+                      class="nav-prefix"
+                      aria-hidden="true"
+                    >
+                      /
+                    </span>
+                  )}
+                  {item.label}
+                </a>
+                {/* The servers hang off "Servers" without taking away its
                       link: the `<a>` above still leads to the index, and this
                       list only appears on hover or on keyboard entry
                       (`:focus-within`, which is what makes it reachable
                       without a mouse). Zero JavaScript. */}
-                  {item.id === "servers" && serverSubItems.length > 0 && (
-                    <ul class="nav-sub">
-                      {serverSubItems.map((sub) => (
-                        <li>
-                          <a href={sub.href}>
-                            {sub.icon && (
-                              <ServerMark
-                                src={sub.icon}
-                                class="nav-sub-icon"
-                              />
-                            )}
-                            {sub.name}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              ))
-            }
+                {item.id === "servers" && serverSubItems.length > 0 && (
+                  <ul class="nav-sub">
+                    {serverSubItems.map((sub) => (
+                      <li>
+                        <a href={sub.href}>
+                          {sub.icon && (
+                            <ServerMark
+                              src={sub.icon}
+                              class="nav-sub-icon"
+                            />
+                          )}
+                          {sub.name}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
           </ul>
         </nav>
 
         <div class="header-controls">
-          {
-            /* Two-segment `EN | ES` pill, jmrp.io's LanguageSwitcher.astro
+          {/* Two-segment `EN | ES` pill, jmrp.io's LanguageSwitcher.astro
               design (`.lang-pill`/`.lang-seg`): the current locale is a
               non-interactive active segment, the other is a link. Rendered
               in FIXED `LANGS` order like the original — each label keeps
@@ -732,34 +692,31 @@ const serverSubItems = servers.map((server) => ({
               `alternates()`), which is already correct and complete. A
               second, body-level `hreflang=` would also leak onto the 404
               body — the one page that must emit no identity signals at all,
-              since its `<head>` block is suppressed by `errorPage`. */
-          }
+              since its `<head>` block is suppressed by `errorPage`. */}
           <div
             class="lang-switch"
             role="group"
             aria-label={t.langSwitchLabel}
           >
-            {
-              LANGS.map((code) =>
-                code === lang ? (
-                  <span
-                    class="lang-seg lang-seg--active"
-                    aria-current="true"
-                  >
-                    {code.toUpperCase()}
-                  </span>
-                ) : (
-                  <a
-                    class="lang-seg"
-                    href={alternate}
-                    lang={otherLang}
-                    aria-label={`${t.switchTo} ${t.other}`}
-                  >
-                    {code.toUpperCase()}
-                  </a>
-                ),
-              )
-            }
+            {LANGS.map((code) =>
+              code === lang ? (
+                <span
+                  class="lang-seg lang-seg--active"
+                  aria-current="true"
+                >
+                  {code.toUpperCase()}
+                </span>
+              ) : (
+                <a
+                  class="lang-seg"
+                  href={alternate}
+                  lang={otherLang}
+                  aria-label={`${t.switchTo} ${t.other}`}
+                >
+                  {code.toUpperCase()}
+                </a>
+              ),
+            )}
           </div>
 
           <button
@@ -827,15 +784,13 @@ const serverSubItems = servers.map((server) => ({
         tabindex="-1"
       >
         <div class="drawer-head">
-          {
-            /* A `<label>` cannot take keyboard focus on its own, so it gets
+          {/* A `<label>` cannot take keyboard focus on its own, so it gets
               `tabindex` and a `button` role, and the script below makes Enter
               and Space activate it. Without a reachable close control inside
               an `aria-modal` dialog, a screen reader user on a phone — where
               there is no Escape key — has no announced way out. Clicking it
               still works with JavaScript disabled: it is a label, and the
-              scrim behind it is another one. */
-          }
+              scrim behind it is another one. */}
           <label
             for="nav-open"
             class="drawer-close"
@@ -851,8 +806,7 @@ const serverSubItems = servers.map((server) => ({
         </div>
 
         <div class="drawer-body">
-          {
-            /* The two servers lead, and they are not a sub-list any more.
+          {/* The two servers lead, and they are not a sub-list any more.
               They were nested under "Servers", indented and set smaller —
               which put the only two things on this site with a visual
               identity of their own at the bottom of the hierarchy, drawn at
@@ -862,61 +816,54 @@ const serverSubItems = servers.map((server) => ({
 
               The pages below still list "Servers" in its nav order, so this
               is a shortcut rather than a reordering — nothing is only
-              reachable from here. */
-          }
-          {
-            serverSubItems.length > 0 && (
-              <div class="drawer-servers">
-                <p class="drawer-kicker">{NAV_LABELS.servers}</p>
-                <div class="server-tiles">
-                  {serverSubItems.map((sub) => (
-                    <a
-                      class="server-tile"
-                      href={sub.href}
-                      aria-current={
-                        sub.href === Astro.url.pathname ? "page" : undefined
-                      }
-                    >
-                      {sub.icon && (
-                        <ServerMark
-                          src={sub.icon}
-                          class="server-tile-mark"
-                        />
-                      )}
-                      <span class="server-tile-name">{sub.name}</span>
-                    </a>
-                  ))}
-                </div>
+              reachable from here. */}
+          {serverSubItems.length > 0 && (
+            <div class="drawer-servers">
+              <p class="drawer-kicker">{NAV_LABELS.servers}</p>
+              <div class="server-tiles">
+                {serverSubItems.map((sub) => (
+                  <a
+                    class="server-tile"
+                    href={sub.href}
+                    aria-current={
+                      sub.href === Astro.url.pathname ? "page" : undefined
+                    }
+                  >
+                    {sub.icon && (
+                      <ServerMark
+                        src={sub.icon}
+                        class="server-tile-mark"
+                      />
+                    )}
+                    <span class="server-tile-name">{sub.name}</span>
+                  </a>
+                ))}
               </div>
-            )
-          }
+            </div>
+          )}
 
           <ul class="drawer-links">
-            {
-              navItems.map((item) => (
-                <li>
-                  <a
-                    href={item.href}
-                    aria-current={item.current ? "page" : undefined}
-                  >
-                    <span class="drawer-link-word">{item.label}</span>
-                  </a>
-                </li>
-              ))
-            }
+            {navItems.map((item) => (
+              <li>
+                <a
+                  href={item.href}
+                  aria-current={item.current ? "page" : undefined}
+                >
+                  <span class="drawer-link-word">{item.label}</span>
+                </a>
+              </li>
+            ))}
           </ul>
         </div>
 
-        {
-          /* The language pill also lives in the drawer panel, like jmrp.io's
+        {/* The language pill also lives in the drawer panel, like jmrp.io's
             `.drawer__foot` (NavDrawer.astro) — requested explicitly: the
             header-bar pill stays visible on mobile too (same call jmrp.io
             makes for its own header + drawer pair), so this is a deliberate
             duplicate, not a replacement. Only the language pill is
             duplicated here, not the theme toggle: that one only asked for
             the language switcher, and the theme button already works fine
-            from the bar behind the drawer. */
-        }
+            from the bar behind the drawer. */}
         <div class="drawer-foot">
           <a
             class="drawer-away"
@@ -933,36 +880,32 @@ const serverSubItems = servers.map((server) => ({
             role="group"
             aria-label={t.langSwitchLabel}
           >
-            {
-              LANGS.map((code) =>
-                code === lang ? (
-                  <span
-                    class="lang-seg lang-seg--active"
-                    aria-current="true"
-                  >
-                    {code.toUpperCase()}
-                  </span>
-                ) : (
-                  <a
-                    class="lang-seg"
-                    href={alternate}
-                    lang={otherLang}
-                    aria-label={`${t.switchTo} ${t.other}`}
-                  >
-                    {code.toUpperCase()}
-                  </a>
-                ),
-              )
-            }
+            {LANGS.map((code) =>
+              code === lang ? (
+                <span
+                  class="lang-seg lang-seg--active"
+                  aria-current="true"
+                >
+                  {code.toUpperCase()}
+                </span>
+              ) : (
+                <a
+                  class="lang-seg"
+                  href={alternate}
+                  lang={otherLang}
+                  aria-label={`${t.switchTo} ${t.other}`}
+                >
+                  {code.toUpperCase()}
+                </a>
+              ),
+            )}
           </div>
 
-          {
-            /* The theme toggle, duplicated here like the language pill and for
+          {/* The theme toggle, duplicated here like the language pill and for
               the same reason: opening the drawer puts the bar's buttons behind
               the panel, so on mobile there was no way to change theme with the
               menu open. The bar's own stays where it is; this is a second
-              control for the same state, not a replacement. */
-          }
+              control for the same state, not a replacement. */}
           <button
             type="button"
             class="theme-toggle"
@@ -984,26 +927,26 @@ const serverSubItems = servers.map((server) => ({
       </div>
     </header>
 
-    <main id="main"><slot /></main>
+    <main id="main">
+      <slot />
+    </main>
 
-    {
-      /* Identity and freshness, VISIBLE. They were complete in the JSON-LD and
+    {/* Identity and freshness, VISIBLE. They were complete in the JSON-LD and
         absent to a person: the audit called it "authority given away", and AI
         answers that quote visible text had nobody to attribute it to. The
         mailto also resolves security.txt existing without being linked from
         anywhere — the same reason `/policies/` goes here and not only on the
-        home page: every page has to be able to reach it. */
-    }
+        home page: every page has to be able to reach it. */}
     <footer class="site-footer">
       <p class="footer-id">
         {t.footerBy}
         <a
           href="https://jmrp.io/about/"
           rel="author"
-          >José Manuel Requena Plens</a
         >
-        ·
-        {t.footerUpdated}
+          José Manuel Requena Plens
+        </a>
+        ·{t.footerUpdated}
         <time datetime={updated}>{updatedHuman}</time>
       </p>
       <p class="footer-links">
@@ -1012,23 +955,23 @@ const serverSubItems = servers.map((server) => ({
         <a
           href={policiesHref}
           rel="privacy-policy terms-of-service"
-          >{t.footerPolicies}</a
         >
+          {t.footerPolicies}
+        </a>
         <a
           href={licenseHref}
           rel="license"
-          >{t.footerLicense}</a
         >
+          {t.footerLicense}
+        </a>
         <a href="/.well-known/security.txt">security.txt</a>
       </p>
     </footer>
 
-    {
-      /* Progressive enhancement only — see the two comments in the <header>
+    {/* Progressive enhancement only — see the two comments in the <header>
         above. `is:inline` for the same nonce reason as the theme-detection
         script in <head>: without it Vite would bundle this into an external
-        module and the post-build's nonce patch would not apply to it. */
-    }
+        module and the post-build's nonce patch would not apply to it. */}
     <script is:inline>
       (function () {
         // Theme button: reflect the live theme in aria-label and dispatch

@@ -113,18 +113,18 @@ function lineSegments(line: string, selfId: string): Segment[] {
 
 <div class="domain-page">
   <p class="eyebrow">{sp.domainPageKicker}</p>
-  <h1 class="domain-title"><code>{domain}</code></h1>
+  <h1 class="domain-title">
+    <code>{domain}</code>
+  </h1>
   <p class="domain-intro">{sp.domainPageIntro}</p>
-  {
-    /* Data and LEGEND at once: each figure's dot is the same one the cards
+  {/* Data and LEGEND at once: each figure's dot is the same one the cards
       below carry — on mobile the chips with text did not fit and broke onto
       another line, so each action carries only its dot and the word lives here
-      (and in sr-only inside each card: colour is never the only signal). */
-  }
+      (and in sr-only inside each card: colour is never the only signal). */}
   <p class="domain-facts">
-    <span class="fact"
-      >{actions.length} · {sp.catalogColTotal.toLowerCase()}</span
-    >
+    <span class="fact">
+      {actions.length} · {sp.catalogColTotal.toLowerCase()}
+    </span>
     <span class="fact fact--destructive">
       <span
         class="action-dot action-dot--destructive"
@@ -141,7 +141,9 @@ function lineSegments(line: string, selfId: string): Segment[] {
     </span>
   </p>
   <p class="domain-note">{tokenNote}</p>
-  <p class="domain-back"><a href={cardHref}>{sp.domainBackToCard}</a></p>
+  <p class="domain-back">
+    <a href={cardHref}>{sp.domainBackToCard}</a>
+  </p>
 
   <DomainActionsFilter
     client:idle
@@ -154,19 +156,18 @@ function lineSegments(line: string, selfId: string): Segment[] {
     class="actions-list"
     id="actions-list"
   >
-    {
-      actions.map((action) => (
-        <li>
-          <details
-            class="action-item"
-            id={action.id}
-            data-action-id={action.id}
-            data-action-title={action.title}
-            data-destructive={String(action.destructive)}
-            data-read-only={String(action.read_only)}
-          >
-            <summary class="action-summary">
-              {/* A heading, not a bare <code>: these pages are a reference
+    {actions.map((action) => (
+      <li>
+        <details
+          class="action-item"
+          id={action.id}
+          data-action-id={action.id}
+          data-action-title={action.title}
+          data-destructive={String(action.destructive)}
+          data-read-only={String(action.read_only)}
+        >
+          <summary class="action-summary">
+            {/* A heading, not a bare <code>: these pages are a reference
                   list and had exactly ONE heading each — /issue/ is 111 KB
                   with a single <h1> — so a retrieval system, which chunks on
                   headings, saw the whole domain as one low-signal block. The
@@ -174,106 +175,105 @@ function lineSegments(line: string, selfId: string): Segment[] {
                   for. `<summary>` takes heading content, so this is valid
                   where it sits; `.action-heading` strips the default margins
                   and size so the row looks exactly as it did. */}
-              <h2 class="action-heading">
-                <code class="action-id">{action.id}</code>
-              </h2>
-              {/* The title and the description below are the catalog's own
+            <h2 class="action-heading">
+              <code class="action-id">{action.id}</code>
+            </h2>
+            {/* The title and the description below are the catalog's own
                   English, rendered verbatim on both editions (see this file's
                   header). On the Spanish page they sit inside `lang="es"`, so
                   a screen reader voiced English with Spanish phonetics until
                   these two markers existed. */}
-              <span
-                class="action-title"
-                lang={lang === "es" ? "en" : undefined}
-              >
-                {action.title}
+            <span
+              class="action-title"
+              lang={lang === "es" ? "en" : undefined}
+            >
+              {action.title}
+            </span>
+            {action.alias_of && (
+              <span class="action-alias">
+                {sp.domainAliasOf}{" "}
+                <a
+                  href={`${
+                    domainOf[action.alias_of] === domain
+                      ? ""
+                      : domainHref(domainOf[action.alias_of] ?? domain)
+                  }#${action.alias_of}`}
+                >
+                  <code>{action.alias_of}</code>
+                </a>
               </span>
-              {action.alias_of && (
-                <span class="action-alias">
-                  {sp.domainAliasOf}{" "}
-                  <a
-                    href={`${
-                      domainOf[action.alias_of] === domain
-                        ? ""
-                        : domainHref(domainOf[action.alias_of] ?? domain)
-                    }#${action.alias_of}`}
-                  >
-                    <code>{action.alias_of}</code>
-                  </a>
+            )}
+            <span class="action-chips">
+              {action.destructive && (
+                <span class="action-dot action-dot--destructive">
+                  <span class="sr-only">{sp.domainChipDestructive}</span>
                 </span>
               )}
-              <span class="action-chips">
-                {action.destructive && (
-                  <span class="action-dot action-dot--destructive">
-                    <span class="sr-only">{sp.domainChipDestructive}</span>
-                  </span>
-                )}
-                {action.read_only && (
-                  <span class="action-dot action-dot--readonly">
-                    <span class="sr-only">{sp.domainChipReadOnly}</span>
-                  </span>
-                )}
-              </span>
-            </summary>
-            <div class="action-body">
-              <div
-                class="action-desc"
-                lang={lang === "es" ? "en" : undefined}
-              >
-                {descriptionParagraphs(action.description).map((paragraph) => (
-                  <p>
-                    {paragraphLines(paragraph).map((line, i) => (
-                      <>
-                        {i > 0 && <br />}
-                        {lineSegments(line, action.id).map((segment) =>
-                          typeof segment === "string" ? (
-                            segment
-                          ) : (
-                            <a href={segment.href}>
-                              <code>{segment.id}</code>
-                            </a>
-                          ),
-                        )}
-                      </>
-                    ))}
-                  </p>
-                ))}
-              </div>
-              <p class="action-params">
-                <strong>{sp.domainParamsLabel}:</strong>{" "}
-                {action.required_params?.length ? (
-                  action.required_params.map((param, i) => (
+              {action.read_only && (
+                <span class="action-dot action-dot--readonly">
+                  <span class="sr-only">{sp.domainChipReadOnly}</span>
+                </span>
+              )}
+            </span>
+          </summary>
+          <div class="action-body">
+            <div
+              class="action-desc"
+              lang={lang === "es" ? "en" : undefined}
+            >
+              {descriptionParagraphs(action.description).map((paragraph) => (
+                <p>
+                  {paragraphLines(paragraph).map((line, i) => (
                     <>
-                      {i > 0 && ", "}
-                      <code>{paramLabel(param)}</code>
+                      {i > 0 && <br />}
+                      {lineSegments(line, action.id).map((segment) =>
+                        typeof segment === "string" ? (
+                          segment
+                        ) : (
+                          <a href={segment.href}>
+                            <code>{segment.id}</code>
+                          </a>
+                        ),
+                      )}
                     </>
-                  ))
-                ) : (
-                  <span>{sp.domainNoParams}</span>
-                )}
-              </p>
-              {action.required_params_any_of &&
-                action.required_params_any_of.length > 0 && (
-                  <p class="action-params">
-                    <strong>{sp.domainAnyOfLabel}:</strong>{" "}
-                    {action.required_params_any_of.map((group, gi) => (
-                      <>
-                        {gi > 0 && ` ${sp.domainAnyOfJoiner} `}
-                        {group.map((param, pi) => (
-                          <>
-                            {pi > 0 && " + "}
-                            <code>{paramLabel(param)}</code>
-                          </>
-                        ))}
-                      </>
-                    ))}
-                  </p>
-                )}
+                  ))}
+                </p>
+              ))}
             </div>
-          </details>
-        </li>
-      ))
-    }
+            <p class="action-params">
+              <strong>{sp.domainParamsLabel}:</strong>{" "}
+              {action.required_params?.length ? (
+                action.required_params.map((param, i) => (
+                  <>
+                    {i > 0 && ", "}
+                    <code>{paramLabel(param)}</code>
+                  </>
+                ))
+              ) : (
+                <span>{sp.domainNoParams}</span>
+              )}
+            </p>
+            {action.required_params_any_of &&
+              action.required_params_any_of.length > 0 && (
+                <p class="action-params">
+                  <strong>{sp.domainAnyOfLabel}:</strong>{" "}
+                  {action.required_params_any_of.map((group, gi) => (
+                    <>
+                      {gi > 0 && ` ${sp.domainAnyOfJoiner} `}
+                      {group.map((param, pi) => (
+                        <>
+                          {pi > 0 && " + "}
+                          <code>{paramLabel(param)}</code>
+                        </>
+                      ))}
+                    </>
+                  ))}
+                </p>
+              )}
+          </div>
+        </details>
+      </li>
+    ))}
   </ol>
 </div>
 

@@ -28,16 +28,14 @@ const { entries, ariaLabel } = Astro.props;
   class="chip-index"
   aria-label={ariaLabel}
 >
-  {
-    entries.map((entry) => (
-      <a
-        class="chip"
-        href={`#${entry.id}`}
-      >
-        {entry.label}
-      </a>
-    ))
-  }
+  {entries.map((entry) => (
+    <a
+      class="chip"
+      href={`#${entry.id}`}
+    >
+      {entry.label}
+    </a>
+  ))}
 </nav>
 
 <style>

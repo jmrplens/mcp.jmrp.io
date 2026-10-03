@@ -43,8 +43,7 @@ const updated = pageDate ?? buildDate();
 ---
 
 <p class="updated-line">
-  {t.updatedIn}{" "}
-  <time datetime={updated}>{humanDate(updated, lang)}</time>
+  {t.updatedIn} <time datetime={updated}>{humanDate(updated, lang)}</time>
 </p>
 
 <style>

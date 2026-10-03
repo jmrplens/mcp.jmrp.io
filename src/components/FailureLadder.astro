@@ -55,43 +55,39 @@ if (tones.length !== ladder.steps.length) {
 
 <figure class="ladder">
   <figcaption class="ladder-title">{ladder.title}</figcaption>
-  {
-    /* `role="list"` on a list that hides its markers: WebKit drops list
+  {/* `role="list"` on a list that hides its markers: WebKit drops list
       semantics from a `list-style: none` <ol>, so VoiceOver would read the
       rungs as loose text with no count. The explicit spaces between the
       three cells are for the same reader — adjacent spans with no whitespace
-      run together ("0 sNo answer"); the grid ignores the text nodes. */
-  }
+      run together ("0 sNo answer"); the grid ignores the text nodes. */}
   <ol
     class="ladder-steps"
     role="list"
   >
-    {
-      ladder.steps.map((step, i) => (
-        <li
-          class:list={[
-            "ladder-step",
-            `ladder-step--${tones[i]}`,
-            {
-              "ladder-step--gap": gapBefore === i + 1,
-              "ladder-step--before-gap": gapBefore === i + 2,
-            },
-          ]}
+    {ladder.steps.map((step, i) => (
+      <li
+        class:list={[
+          "ladder-step",
+          `ladder-step--${tones[i]}`,
+          {
+            "ladder-step--gap": gapBefore === i + 1,
+            "ladder-step--before-gap": gapBefore === i + 2,
+          },
+        ]}
+      >
+        <span class="ladder-at">{step.at}</span>{" "}
+        <span
+          class="ladder-rail"
+          aria-hidden="true"
         >
-          <span class="ladder-at">{step.at}</span>{" "}
-          <span
-            class="ladder-rail"
-            aria-hidden="true"
-          >
-            <span class="ladder-bead" />
-          </span>{" "}
-          <span class="ladder-body">
-            <strong class="ladder-state">{step.state}</strong>{" "}
-            <span class="ladder-note">{step.note}</span>
-          </span>
-        </li>
-      ))
-    }
+          <span class="ladder-bead" />
+        </span>{" "}
+        <span class="ladder-body">
+          <strong class="ladder-state">{step.state}</strong>{" "}
+          <span class="ladder-note">{step.note}</span>
+        </span>
+      </li>
+    ))}
   </ol>
 </figure>
 
