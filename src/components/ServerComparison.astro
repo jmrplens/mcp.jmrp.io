@@ -36,32 +36,30 @@ const rows = comparisonRows(lang);
       </tr>
     </thead>
     <tbody>
-      {
-        rows.map((row) => (
-          <tr>
-            <th scope="row">
-              <a href={row.href}>
-                <code>{row.name}</code>
-              </a>
-            </th>
-            {/* The credential cell carries the header name as code, the
+      {rows.map((row) => (
+        <tr>
+          <th scope="row">
+            <a href={row.href}>
+              <code>{row.name}</code>
+            </a>
+          </th>
+          {/* The credential cell carries the header name as code, the
                 markdown twin the same in backticks; strip those here. */}
-            <td class="text">
-              {row.credential.includes("`") ? (
-                <code>{row.credential.replaceAll("`", "")}</code>
-              ) : (
-                row.credential
-              )}
-            </td>
-            <td>{row.tools}</td>
-            <td>{row.prompts}</td>
-            <td>{row.resources}</td>
-            <td>{row.templates}</td>
-            <td>{row.version}</td>
-            <td>{row.price}</td>
-          </tr>
-        ))
-      }
+          <td class="text">
+            {row.credential.includes("`") ? (
+              <code>{row.credential.replaceAll("`", "")}</code>
+            ) : (
+              row.credential
+            )}
+          </td>
+          <td>{row.tools}</td>
+          <td>{row.prompts}</td>
+          <td>{row.resources}</td>
+          <td>{row.templates}</td>
+          <td>{row.version}</td>
+          <td>{row.price}</td>
+        </tr>
+      ))}
     </tbody>
   </table>
 </div>

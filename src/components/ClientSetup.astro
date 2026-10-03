@@ -57,64 +57,59 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
 ---
 
 <div class="client-setup">
-  {
-    oauthBlocks.length > 0 && (
-      <>
-        <h3 class="setup-head">{t.clientOauthHead}</h3>
-        <p class="hint hint--lead">{t.clientOauthHint}</p>
-        {oauthBlocks.map((block) => (
-          <details class="snippet disclosure">
-            <summary>{block.label}</summary>
-            <div class="snippet-body">
-              <button
-                type="button"
-                class="snippet-copy"
-                data-copy
-                data-copied={t.clientCopied}
-              >
-                {t.clientCopy}
-              </button>
-              {/* The tags stay on ONE line and Prettier is told to leave
+  {oauthBlocks.length > 0 && (
+    <>
+      <h3 class="setup-head">{t.clientOauthHead}</h3>
+      <p class="hint hint--lead">{t.clientOauthHint}</p>
+      {oauthBlocks.map((block) => (
+        <details class="snippet disclosure">
+          <summary>{block.label}</summary>
+          <div class="snippet-body">
+            <button
+              type="button"
+              class="snippet-copy"
+              data-copy
+              data-copied={t.clientCopied}
+            >
+              {t.clientCopy}
+            </button>
+            {/* The tags stay on ONE line and Prettier is told to leave
                 them there: everything between `<pre>` and `<code>` is
                 CONTENT. The HTML parser drops a single newline right after
                 `<pre>`, but not the indentation behind it, so the formatted
                 version rendered every snippet with a sixteen-space first
                 line and a blank last one. */}
-              {/* prettier-ignore */}
-              <pre><code>{block.code}</code></pre>
-            </div>
-          </details>
-        ))}
-        <h3 class="setup-head">{t.clientTokenHead}</h3>
-        <p class="hint hint--lead">{t.clientTokenHint}</p>
-      </>
-    )
-  }
-  {
-    tokenBlocks.map((block) => (
-      <details class="snippet disclosure">
-        <summary>{block.label}</summary>
-        <div class="snippet-body">
-          <button
-            type="button"
-            class="snippet-copy"
-            data-copy
-            data-copied={t.clientCopied}
-          >
-            {t.clientCopy}
-          </button>
-          {/* One line and unformatted, for the reason above. */}
-          {/* prettier-ignore */}
-          <pre><code>{block.code}</code></pre>
-        </div>
-      </details>
-    ))
-  }
+            {/* prettier-ignore */}
+            <pre><code>{block.code}</code></pre>
+          </div>
+        </details>
+      ))}
+      <h3 class="setup-head">{t.clientTokenHead}</h3>
+      <p class="hint hint--lead">{t.clientTokenHint}</p>
+    </>
+  )}
+  {tokenBlocks.map((block) => (
+    <details class="snippet disclosure">
+      <summary>{block.label}</summary>
+      <div class="snippet-body">
+        <button
+          type="button"
+          class="snippet-copy"
+          data-copy
+          data-copied={t.clientCopied}
+        >
+          {t.clientCopy}
+        </button>
+        {/* One line and unformatted, for the reason above. */}
+        {/* prettier-ignore */}
+        <pre><code>{block.code}</code></pre>
+      </div>
+    </details>
+  ))}
   {hasSecret && <p class="hint">{t.clientEnvHint}</p>}
 </div>
 
-{
-  /* Copy to clipboard. Delegated on `document` rather than a listener per
+{/* Copy to clipboard. Delegated on `document` rather than a listener per
     button: the page renders six, and with delegation the cost is one.
 
     The page ALREADY ships JavaScript (the theme bootstrap, its toggle and
@@ -124,8 +119,7 @@ const hasSecret = server.requiredHeaders.some((header) => header.secret);
     If the browser does not expose `navigator.clipboard` (an insecure context,
     or permission denied) the button neither disappears nor lies: it simply has
     no effect, and the text is still selectable by hand, which is how it was
-    copied before this button existed. */
-}
+    copied before this button existed. */}
 <script>
   document.addEventListener("click", (event) => {
     const target = event.target;

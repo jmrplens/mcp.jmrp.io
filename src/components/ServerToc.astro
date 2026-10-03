@@ -39,18 +39,16 @@ const { families, ariaLabel } = Astro.props;
   aria-label={ariaLabel}
 >
   <ul class="toc-list">
-    {
-      families.map((family) => (
-        <li>
-          <a href={`#${family.id}`}>
-            {family.label}
-            {family.count !== undefined && (
-              <span class="toc-count"> ({family.count})</span>
-            )}
-          </a>
-        </li>
-      ))
-    }
+    {families.map((family) => (
+      <li>
+        <a href={`#${family.id}`}>
+          {family.label}
+          {family.count !== undefined && (
+            <span class="toc-count"> ({family.count})</span>
+          )}
+        </a>
+      </li>
+    ))}
   </ul>
 </nav>
 

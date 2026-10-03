@@ -53,10 +53,8 @@ const noscriptCommand = noscriptServer ? noscriptCurl(noscriptServer) : "";
     <a href={homeHref}>{t.backToHome}</a>
   </p>
 
-  {
-    /* Kicker + h1 + intro + hairline, matching jmrp.io's PrivacyPage.astro
-      `.privacy-header` — see the `.subpage-header` comment in base.css. */
-  }
+  {/* Kicker + h1 + intro + hairline, matching jmrp.io's PrivacyPage.astro
+      `.privacy-header` — see the `.subpage-header` comment in base.css. */}
   <header class="subpage-header">
     <p class="section-title">{t.inspectorEyebrow}</p>
     <h1
@@ -78,50 +76,43 @@ const noscriptCommand = noscriptServer ? noscriptCurl(noscriptServer) : "";
       lang={lang}
     />
 
-    {
-      /* The only thing a crawler that runs no JavaScript can read on this page:
+    {/* The only thing a crawler that runs no JavaScript can read on this page:
         the island above arrives as an empty shell. It sits inside the section
         it stands in for. Note for whoever styles it — Astro puts
         `data-astro-cid-*` on the CHILDREN of <noscript> but not on <noscript>
         itself, so a scoped `noscript { … }` rule matches nothing at all.
-        Style the classes instead. */
-    }
-    {
-      noscriptServer && (
-        <noscript>
-          <div class="ns-fallback">
-            <h2 class="ns-title">{t.noscript.title}</h2>
-            <p class="ns-body">{t.noscript.lead}</p>
-            <figure class="ns-figure">
-              <figcaption class="ns-caption">
-                {t.noscript.requestLabel}
-              </figcaption>
-              {/* One line and unformatted: whitespace between `<pre>`
+        Style the classes instead. */}
+    {noscriptServer && (
+      <noscript>
+        <div class="ns-fallback">
+          <h2 class="ns-title">{t.noscript.title}</h2>
+          <p class="ns-body">{t.noscript.lead}</p>
+          <figure class="ns-figure">
+            <figcaption class="ns-caption">
+              {t.noscript.requestLabel}
+            </figcaption>
+            {/* One line and unformatted: whitespace between `<pre>`
                 and `<code>` is content, and it rendered as an indented
                 first line. See ClientSetup.astro for the full note. */}
-              {/* prettier-ignore */}
-              <pre class="ns-pre"><code>{noscriptCommand}</code></pre>
-            </figure>
-            <p class="ns-body">{t.noscript.response}</p>
-            <p class="ns-body">
-              {t.noscript.more}{" "}
-              <a href={noscriptServerHref}>{t.noscript.moreLink}</a>.
-            </p>
-          </div>
-        </noscript>
-      )
-    }
+            {/* prettier-ignore */}
+            <pre class="ns-pre"><code>{noscriptCommand}</code></pre>
+          </figure>
+          <p class="ns-body">{t.noscript.response}</p>
+          <p class="ns-body">
+            {t.noscript.more}{" "}
+            <a href={noscriptServerHref}>{t.noscript.moreLink}</a>.
+          </p>
+        </div>
+      </noscript>
+    )}
 
     <p class="notice-pointer">
-      {t.noticePointer}{" "}
-      <a href={gitlabNoticeHref}>{t.noticePointerLink}</a>
+      {t.noticePointer} <a href={gitlabNoticeHref}>{t.noticePointerLink}</a>
     </p>
   </section>
 
-  {
-    /* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
-      cannot just live in the footer. */
-  }
+  {/* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
+      cannot just live in the footer. */}
   <UpdatedLine lang={lang} />
 </div>
 

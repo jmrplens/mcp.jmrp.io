@@ -38,11 +38,9 @@ const licenseHref = new URL(pageUrl(lang, "license")).pathname;
     <a href={homeHref}>{t.backToHome}</a>
   </p>
 
-  {
-    /* Kicker + h1 + intro + hairline, matching jmrp.io's PrivacyPage.astro
+  {/* Kicker + h1 + intro + hairline, matching jmrp.io's PrivacyPage.astro
       `.privacy-header` — see the `.subpage-header` comment in base.css for
-      why this page had none of it before. */
-  }
+      why this page had none of it before. */}
   <header class="subpage-header">
     <p class="section-title">{t.policiesEyebrow}</p>
     <h1 class="subpage-title">{t.policiesTitle}</h1>
@@ -59,15 +57,15 @@ const licenseHref = new URL(pageUrl(lang, "license")).pathname;
     >
       {t.privacyEyebrow}
     </h2>
-    {t.privacyBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
-    {
-      /* The pointer the last `privacyBody` paragraph stops short of. It is NOT
+    {t.privacyBody.map((paragraph) => (
+      <p class="prose-text">{paragraph}</p>
+    ))}
+    {/* The pointer the last `privacyBody` paragraph stops short of. It is NOT
         part of that array on purpose: the array is printed as plain text, so
         an `<a>` cannot live inside one of its strings — the reason the copy
         is split across two keys (see `policies.credentialNotice`). Same
         shape as `InspectorPage.astro`'s `noticePointer`, deliberately: two
-        pages asking the same question have to land on the same answer. */
-    }
+        pages asking the same question have to land on the same answer. */}
     <p class="prose-text">
       {t.credentialNotice}{" "}
       <a href={gitlabNoticeHref}>{t.credentialNoticeLink}</a>
@@ -84,7 +82,9 @@ const licenseHref = new URL(pageUrl(lang, "license")).pathname;
     >
       {t.logsEyebrow}
     </h2>
-    {t.logsBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+    {t.logsBody.map((paragraph) => (
+      <p class="prose-text">{paragraph}</p>
+    ))}
   </section>
 
   <section
@@ -97,15 +97,15 @@ const licenseHref = new URL(pageUrl(lang, "license")).pathname;
     >
       {t.slaEyebrow}
     </h2>
-    {t.slaBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+    {t.slaBody.map((paragraph) => (
+      <p class="prose-text">{paragraph}</p>
+    ))}
   </section>
 
-  {
-    /* Immediately after "No SLA" on purpose: it is the counterweight to it,
+  {/* Immediately after "No SLA" on purpose: it is the counterweight to it,
       and the two read as one argument — what is not promised, then why the
       thing is nonetheless likely to be there. Placed anywhere else it would
-      look like the promise the section explicitly declines to make. */
-  }
+      look like the promise the section explicitly declines to make. */}
   <section
     class="policies-section"
     aria-labelledby="continuity-h"
@@ -116,7 +116,9 @@ const licenseHref = new URL(pageUrl(lang, "license")).pathname;
     >
       {t.continuityEyebrow}
     </h2>
-    {t.continuityBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+    {t.continuityBody.map((paragraph) => (
+      <p class="prose-text">{paragraph}</p>
+    ))}
   </section>
 
   <section
@@ -129,14 +131,13 @@ const licenseHref = new URL(pageUrl(lang, "license")).pathname;
     >
       {t.egressEyebrow}
     </h2>
-    {t.egressBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
-    {
-      /* Same two-key shape as `credentialNotice` above: the prose used to end
-        "are described under Internals" with nothing to click. */
-    }
+    {t.egressBody.map((paragraph) => (
+      <p class="prose-text">{paragraph}</p>
+    ))}
+    {/* Same two-key shape as `credentialNotice` above: the prose used to end
+        "are described under Internals" with nothing to click. */}
     <p class="prose-text">
-      {t.egressPointer}{" "}
-      <a href={egressHref}>{t.egressPointerLink}</a>
+      {t.egressPointer} <a href={egressHref}>{t.egressPointerLink}</a>
     </p>
   </section>
 
@@ -150,54 +151,48 @@ const licenseHref = new URL(pageUrl(lang, "license")).pathname;
     >
       {t.legalEyebrow}
     </h2>
-    {t.legalBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
-    {
-      /* The resolution order, one labelled block per identifier. It used to
+    {t.legalBody.map((paragraph) => (
+      <p class="prose-text">{paragraph}</p>
+    ))}
+    {/* The resolution order, one labelled block per identifier. It used to
         be a single 115-word sentence inside the prose above — the least
         readable passage on the site, on the page that most needs to be
         clear. The facts and the order are unchanged; this is the shape
         /internals/ already gives its failure sequences, because a reader
         checking "where does an ISBN go?" is looking up a case, not reading
-        a paragraph. */
-    }
+        a paragraph. */}
     <dl class="legal-order">
-      {
-        t.legalResolution.map((entry) => (
-          <>
-            <dt>{entry.label}</dt>
-            <dd>
-              <ol>
-                {entry.steps.map((step) => (
-                  <li>{step}</li>
-                ))}
-              </ol>
-            </dd>
-          </>
-        ))
-      }
+      {t.legalResolution.map((entry) => (
+        <>
+          <dt>{entry.label}</dt>
+          <dd>
+            <ol>
+              {entry.steps.map((step) => (
+                <li>{step}</li>
+              ))}
+            </ol>
+          </dd>
+        </>
+      ))}
     </dl>
     <p class="prose-text">{t.legalResolutionTail}</p>
-    {t.legalBodyTail.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
-    {
-      /* Where to write: the footer address, named here as the channel for
+    {t.legalBodyTail.map((paragraph) => (
+      <p class="prose-text">{paragraph}</p>
+    ))}
+    {/* Where to write: the footer address, named here as the channel for
         takedown requests and questions, because `slaBody` says "no support
         channel" and a reader could take the footer's mailto for that. Then
-        the cross-link to /license/, which links back to this section. */
-    }
+        the cross-link to /license/, which links back to this section. */}
     <p class="prose-text">
-      {t.legalContact}{" "}
-      <a href="mailto:mail@jmrp.io">{t.legalContactLink}</a>
+      {t.legalContact} <a href="mailto:mail@jmrp.io">{t.legalContactLink}</a>
     </p>
     <p class="prose-text">
-      {t.legalLicenseNote}{" "}
-      <a href={licenseHref}>{t.legalLicenseLink}</a>
+      {t.legalLicenseNote} <a href={licenseHref}>{t.legalLicenseLink}</a>
     </p>
   </section>
 
-  {
-    /* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
-      cannot just live in the footer. */
-  }
+  {/* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
+      cannot just live in the footer. */}
   <UpdatedLine lang={lang} />
 </div>
 

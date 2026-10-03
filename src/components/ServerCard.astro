@@ -39,29 +39,25 @@ const serverPageHref = new URL(serverPageUrl(lang, server.id)).pathname;
 const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
 ---
 
-{
-  /* The `id` is the ONLY per-server linkable destination the site has: without
+{/* The `id` is the ONLY per-server linkable destination the site has: without
     it there is no way to point at "gitlab's MCP" from outside, and the
     `#gitlab` people would write by hand led nowhere. It comes from
     `server.id`, the same stable identifier `/servers.json` and the inspector
-    use. */
-}
+    use. */}
 <article
   class="card"
   id={server.id}
 >
   <header class="card-head">
     <h3>
-      {
-        serverIcon && (
-          <img
-            src={serverIcon.src}
-            alt=""
-            aria-hidden="true"
-            class="card-icon"
-          />
-        )
-      }
+      {serverIcon && (
+        <img
+          src={serverIcon.src}
+          alt=""
+          aria-hidden="true"
+          class="card-icon"
+        />
+      )}
       {server.name}
     </h3>
     <span class={needsAuth ? "badge badge-auth" : "badge"}>
@@ -71,23 +67,19 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
 
   <p class="card-desc">{server.description[lang]}</p>
 
-  {
-    /* The `{" "}` here and in the two blocks below are separators for
+  {/* The `{" "}` here and in the two blocks below are separators for
       EXTRACTORS, not decoration. Without them `textContent` — what readability
       and RAG pipelines read — ran words together:
       "POSThttps://mcp.jmrp.io/libgen", "searchget_detailsreaddownload",
       "RepositoryDocumentation". An assistant quoting the tool list emitted a
       garbage token.
       They are invisible: all three containers are flex, and per the flexbox
-      spec an anonymous item containing only white space is not rendered. */
-  }
+      spec an anonymous item containing only white space is not rendered. */}
   <p class="endpoint">
-    <span class="verb">POST</span>{" "}
-    <code>{server.endpoint}</code>
+    <span class="verb">POST</span> <code>{server.endpoint}</code>
   </p>
 
-  {
-    /* Live status, injected at the ORIGIN by /etc/nginx/lua/mcp_ssr_status.lua:
+  {/* Live status, injected at the ORIGIN by /etc/nginx/lua/mcp_ssr_status.lua:
       nginx swaps this token for the running version and how many of the three
       instances answered, polled from their /health and cached 5 minutes.
 
@@ -97,8 +89,7 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
 
       If the token reaches a browser unsubstituted, nginx is not applying the
       filter — in local `astro preview` that is expected, since the Lua hooks
-      only exist in the production vhost. */
-  }
+      only exist in the production vhost. */}
   <p
     class="live-status"
     data-ssr={`mcp-${server.id}`}
@@ -110,26 +101,24 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
     {server.id === "libgen" ? "MCPSSR_LIBGEN_STATUS" : "MCPSSR_GITLAB_STATUS"}
   </p>
 
-  {
-    needsAuth && (
-      <dl class="headers">
-        {server.requiredHeaders.map((h) => (
-          <>
-            <dt>{h.name}</dt>
-            <dd>{h.description[lang]}</dd>
-          </>
-        ))}
-        {server.optionalHeaders.map((h) => (
-          <>
-            <dt class="optional">
-              {h.name} <span>· {t.optionalHeaders}</span>
-            </dt>
-            <dd>{h.description[lang]}</dd>
-          </>
-        ))}
-      </dl>
-    )
-  }
+  {needsAuth && (
+    <dl class="headers">
+      {server.requiredHeaders.map((h) => (
+        <>
+          <dt>{h.name}</dt>
+          <dd>{h.description[lang]}</dd>
+        </>
+      ))}
+      {server.optionalHeaders.map((h) => (
+        <>
+          <dt class="optional">
+            {h.name} <span>· {t.optionalHeaders}</span>
+          </dt>
+          <dd>{h.description[lang]}</dd>
+        </>
+      ))}
+    </dl>
+  )}
 
   {
     /* Replaces the old tools/prompts `<details>` folds: that content moved to
@@ -152,14 +141,12 @@ const serverIcon = card ? safeIcon(card.serverInfo.icons) : undefined;
     )
   }
 
-  {
-    /* The per-client configuration USED TO LIVE HERE, folded. It moved to the
+  {/* The per-client configuration USED TO LIVE HERE, folded. It moved to the
       server's page (`ServerPage.astro`, the "Connect" section) once it grew two
       paths — OAuth and token — and tripled in size: inside a home-page card it
       hid the longest thing on the page behind a click, and with a third MCP in
       sight the home page stopped scaling. The card already carries a button to
-      the detail page, which is where that question is answered in full. */
-  }
+      the detail page, which is where that question is answered in full. */}
 
   <NoticeFolds
     server={server}

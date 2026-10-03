@@ -36,13 +36,13 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
     <span
       class="dot"
       aria-hidden="true"
-    ></span>{servers.length}
+    ></span>
+    {servers.length}
     {t.pill}
   </p>
   <h1 class="hero-title">{t.title}</h1>
   <p class="lede">{t.lede}</p>
-  {
-    /* The MCP definition with the brand in it: the only self-contained block
+  {/* The MCP definition with the brand in it: the only self-contained block
       for someone who does not know what this is, and the entity anchor that
       generic headlines do not provide. See `whatIsMcp` in ui.ts.
 
@@ -53,31 +53,26 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
       external citation not written by the author himself, and marking it
       untrusted would contradict the reason it is here; none of this page's
       other outbound links carries a `rel` either. See `specLink` in ui.ts for
-      why the href is the UNDATED `/specification`. */
-  }
+      why the href is the UNDATED `/specification`. */}
   <p class="what-is">
     {t.whatIsMcp}{" "}
     <a href="https://modelcontextprotocol.io/specification">{t.specLink}</a>.
   </p>
-  {
-    /* The old lede promised trying the servers "right here"; now that the
+  {/* The old lede promised trying the servers "right here"; now that the
       inspector lives on its own page, that promise is a real link instead
-      (Ruling R6 — see the comment on `home.tryInBrowser`). */
-  }
+      (Ruling R6 — see the comment on `home.tryInBrowser`). */}
   <p class="try-inspector">
     <a href={inspectorHref}>{t.tryInBrowser}</a>
   </p>
 </section>
 
-{
-  /* The `/internals/` invitation, between the hero and the servers. It sat
+{/* The `/internals/` invitation, between the hero and the servers. It sat
     after the two server cards until the comparison table was removed and the
     measurement was taken again: even then it landed 2.46 screens down on a
     390px phone, which is past where most visitors stop. The question it
     answers — what happens to my request, and to my token — is one a reader
     has BEFORE pasting a credential into anything, so it now precedes the
-    cards rather than following them. */
-}
+    cards rather than following them. */}
 <aside class="internals-callout">
   <p class="internals-callout-eyebrow">{t.internalsEyebrow}</p>
   <p class="internals-callout-title">{t.internalsTitle}</p>
@@ -88,12 +83,10 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
 </aside>
 
 <section aria-labelledby="servers-h">
-  {
-    /* h2 and not p: they were decorative labels and the page hung 734 words
+  {/* h2 and not p: they were decorative labels and the page hung 734 words
       off just two H2s (the cards' names). As h2 they give a real outline
       without changing the look — .eyebrow already sets size, weight and
-      margins. */
-  }
+      margins. */}
   <h2
     class="eyebrow"
     id="servers-h"
@@ -101,44 +94,40 @@ const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
     {t.serversEyebrow}
   </h2>
   <p class="section-intro">{t.serversIntro}</p>
-  {
-    /* One table before the two cards: the answer to "which one, and what
+  {/* One table before the two cards: the answer to "which one, and what
       does it need from me" in the shape the AI surfaces extract first. Same
-      data as the cards (see ServerComparison.md.ts). */
-  }
+      data as the cards (see ServerComparison.md.ts). */}
   <ServerComparison lang={lang} />
   <div class="grid">
-    {
-      servers.map((s) => (
-        <ServerCard
-          server={s}
-          lang={lang}
-        />
-      ))
-    }
+    {servers.map((s) => (
+      <ServerCard
+        server={s}
+        lang={lang}
+      />
+    ))}
   </div>
 
   <p class="machine">
-    <a href="/servers.json"><code>/servers.json</code></a>
+    <a href="/servers.json">
+      <code>/servers.json</code>
+    </a>
     <span>— {t.machineIndex}</span>
   </p>
-  {
-    /* Same pointer pattern as `/servers.json` above, for the llmstxt.org
-      index — see the `<link>` of the same name in Base.astro's <head>. */
-  }
+  {/* Same pointer pattern as `/servers.json` above, for the llmstxt.org
+      index — see the `<link>` of the same name in Base.astro's <head>. */}
   <p class="machine">
-    <a href="/llms.txt"><code>/llms.txt</code></a>
+    <a href="/llms.txt">
+      <code>/llms.txt</code>
+    </a>
     <span>— {t.machineLlms}</span>
   </p>
 </section>
 
-{
-  /* Visible freshness INSIDE <main>. It used to close the "Privacy & data"
+{/* Visible freshness INSIDE <main>. It used to close the "Privacy & data"
     section that lived here; that section moved to its own page
     (`PoliciesPage.astro`), but the home page still needs its own dated line —
     see `UpdatedLine.astro` for why an undated page is a real problem, not a
-    cosmetic one. */
-}
+    cosmetic one. */}
 <UpdatedLine lang={lang} />
 
 <style>

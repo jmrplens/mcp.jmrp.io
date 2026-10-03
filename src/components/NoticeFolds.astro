@@ -46,43 +46,39 @@ const t = ui[lang];
 const affinityHref = `${new URL(pageUrl(lang, "internals")).pathname}#affinity-h`;
 ---
 
-{
-  /* The id lives on the <details>, not on the notice body inside it, so that
+{/* The id lives on the <details>, not on the notice body inside it, so that
      it wraps the QUESTION and its ANSWER. Two things depend on that: an
      `#gitlab-security` link lands on the question rather than mid-answer, and
      `speakable` in the JSON-LD points at these same ids — with the id on the
      inner div, a read-aloud got the answer with no question attached.
 
      Every notice starts collapsed, security ones included: the author asked
-     for it closed. The content is unchanged and the anchor still opens it. */
-}
-{
-  server.notices.map((notice) => (
-    <details
-      class={`fold fold-${notice.kind}`}
-      id={`${server.id}-${notice.kind}`}
-    >
-      <summary>
-        <Label class="fold-label">{notice.title[lang]}</Label>
-      </summary>
-      <Notice
-        notice={notice}
-        lang={lang}
-      />
-      {
-        /* Only gitlab's security notice qualifies: it is the one that raises
+     for it closed. The content is unchanged and the anchor still opens it. */}
+{server.notices.map((notice) => (
+  <details
+    class={`fold fold-${notice.kind}`}
+    id={`${server.id}-${notice.kind}`}
+  >
+    <summary>
+      <Label class="fold-label">{notice.title[lang]}</Label>
+    </summary>
+    <Notice
+      notice={notice}
+      lang={lang}
+    />
+    {
+      /* Only gitlab's security notice qualifies: it is the one that raises
            the token question, and `/internals/#affinity-h` is where the
            hashing it describes is shown in full, code included. libgen's
            affinity key is the IP address — no token, nothing to point at. */
-        server.id === "gitlab" && notice.kind === "security" && (
-          <p class="notice-link">
-            <a href={affinityHref}>{t.affinityLink}</a>
-          </p>
-        )
-      }
-    </details>
-  ))
-}
+      server.id === "gitlab" && notice.kind === "security" && (
+        <p class="notice-link">
+          <a href={affinityHref}>{t.affinityLink}</a>
+        </p>
+      )
+    }
+  </details>
+))}
 
 <style>
   /* Folded because a card that shows everything at once shows nothing, and

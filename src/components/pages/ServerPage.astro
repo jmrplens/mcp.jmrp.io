@@ -373,14 +373,12 @@ function toolAnnotationChips(
   >
     <p class="section-title">{sp.eyebrowServer}</p>
     <h1 class="subpage-title">
-      {
-        serverIcon && (
-          <ServerMark
-            src={serverIcon.src}
-            class="server-icon"
-          />
-        )
-      }
+      {serverIcon && (
+        <ServerMark
+          src={serverIcon.src}
+          class="server-icon"
+        />
+      )}
       {serverMeta.name}
     </h1>
     {cardTitle && <p class="server-card-title">{cardTitle}</p>}
@@ -388,16 +386,14 @@ function toolAnnotationChips(
   </header>
 
   <div class="server-layout">
-    {
-      /* Checkbox-hack toggle for the mobile TOC panel — same mechanism as the
+    {/* Checkbox-hack toggle for the mobile TOC panel — same mechanism as the
         header's `#nav-open` in Base.astro (hidden checkbox + `:has()` +
         `<label>` scrim/FAB), scoped to this page instead of the whole site.
         Zero JavaScript: opening/closing works from mouse, touch AND
         keyboard (Tab lands on this checkbox since it is not `tabindex="-1"`,
         Space toggles it — the native behaviour every checkbox already has).
         No inline script layers anything on top here, unlike the nav drawer:
-        the spec calls for these pages to ship no JS at all. */
-    }
+        the spec calls for these pages to ship no JS at all. */}
     <input
       type="checkbox"
       id="toc-open"
@@ -407,13 +403,11 @@ function toolAnnotationChips(
     />
 
     <div class="server-content">
-      {
-        /* OUR content first, the binary's after: the page starts by answering
+      {/* OUR content first, the binary's after: the page starts by answering
           "how do I connect this" and only then goes on to describe what the
           server declares about itself. The order used to be the reverse, and
           the answer was not even here — it lived folded inside a card on the
-          home page. */
-      }
+          home page. */}
       <section
         class="server-family"
         aria-labelledby="connect-title"
@@ -443,10 +437,8 @@ function toolAnnotationChips(
           {sp.contextHead}
         </h2>
         <p class="prose-text">{sp.contextService}</p>
-        {
-          /* The one sentence here that differs per server, so it comes from
-            `servers.ts` and not from the i18n module. */
-        }
+        {/* The one sentence here that differs per server, so it comes from
+            `servers.ts` and not from the i18n module. */}
         <p class="prose-text">{serverMeta.rateLimit[lang]}</p>
         <p class="prose-text">
           {sp.contextRouting}{" "}
@@ -456,8 +448,7 @@ function toolAnnotationChips(
           {sp.contextPolicies}{" "}
           <a href={policiesHref}>{sp.contextPoliciesLink}</a>
         </p>
-        {
-          /* This server's own notices, immediately under the section that
+        {/* This server's own notices, immediately under the section that
             introduces them. They rendered only on the home page until now, so
             a reader who landed here from a search — on the page that describes
             this server in the most detail — had to go to the home page to find
@@ -466,8 +457,7 @@ function toolAnnotationChips(
 
             They are also what makes the `FAQPage` on this page honest: the
             graph nominates these exact DOM ids, so they have to be on the
-            document that claims them. */
-        }
+            document that claims them. */}
         <NoticeFolds
           server={serverMeta}
           lang={lang}
@@ -489,15 +479,21 @@ function toolAnnotationChips(
         <dl class="meta-grid">
           <div>
             <dt>{sp.serverInfoLabel}</dt>
-            <dd><code>{card.serverInfo.name}</code></dd>
+            <dd>
+              <code>{card.serverInfo.name}</code>
+            </dd>
           </div>
           <div>
             <dt>{sp.versionLabel}</dt>
-            <dd><code>{card.serverInfo.version}</code></dd>
+            <dd>
+              <code>{card.serverInfo.version}</code>
+            </dd>
           </div>
           <div>
             <dt>{sp.endpointLabel}</dt>
-            <dd><code>{serverMeta.endpoint}</code></dd>
+            <dd>
+              <code>{serverMeta.endpoint}</code>
+            </dd>
           </div>
           <div>
             <dt>{sp.authLabel}</dt>
@@ -507,16 +503,14 @@ function toolAnnotationChips(
             </dd>
           </div>
         </dl>
-        {
-          cardDescription && (
-            <p class="card-own-description">
-              <span class="card-own-description-label">
-                {sp.cardDescriptionLabel}:
-              </span>{" "}
-              {cardDescription}
-            </p>
-          )
-        }
+        {cardDescription && (
+          <p class="card-own-description">
+            <span class="card-own-description-label">
+              {sp.cardDescriptionLabel}:
+            </span>{" "}
+            {cardDescription}
+          </p>
+        )}
         <p class="server-meta-links">
           <a href={inspectorOverviewHref}>
             <span
@@ -539,72 +533,64 @@ function toolAnnotationChips(
             ></span>
             {t.documentation}
           </a>
-          {
-            websiteUrl && (
-              <>
-                {" "}
-                <a href={websiteUrl}>
-                  <span
-                    class="link-icon i-mdi:web"
-                    aria-hidden="true"
-                  />
-                  {sp.websiteLabel}
-                </a>
-              </>
-            )
-          }
+          {websiteUrl && (
+            <>
+              {" "}
+              <a href={websiteUrl}>
+                <span
+                  class="link-icon i-mdi:web"
+                  aria-hidden="true"
+                />
+                {sp.websiteLabel}
+              </a>
+            </>
+          )}
         </p>
       </section>
 
-      {
-        /* Service context, between the overview and the schemas — the four
+      {/* Service context, between the overview and the schemas — the four
           things the home page treats as non-negotiable about these endpoints
           (rate limit, no SLA, how many nodes, the legal position) and that
           this page carried none of. It goes HERE and not at the foot of the
           page because a card runs to 1,300 words of tools and prompts: after
           them, the caveats are read by nobody who did not already go looking.
           See `serversPage.contextHead` for why it links out instead of
-          repeating `/policies/`. */
-      }
+          repeating `/policies/`. */}
 
-      {
-        /* The server's own connect-time instructions (`server/discover`),
+      {/* The server's own connect-time instructions (`server/discover`),
           quoted verbatim from the committed surface snapshot — data, not
           chrome, so it is never translated (the Spanish intro flags it as English,
           same convention as `cardDescriptionLabel`). Placed after the
           service context — whose own comment defends its spot right behind
           the overview — and before the 1,300 words of tools, where whoever
-          is configuring a client actually needs it. */
-      }
-      {
-        instructions && (
-          <section
-            class="server-family"
-            aria-labelledby="instructions-title"
-            id="instructions-h"
+          is configuring a client actually needs it. */}
+      {instructions && (
+        <section
+          class="server-family"
+          aria-labelledby="instructions-title"
+          id="instructions-h"
+        >
+          <h2
+            class="subsection-title"
+            id="instructions-title"
           >
-            <h2
-              class="subsection-title"
-              id="instructions-title"
-            >
-              {sp.instructionsHead}
-            </h2>
-            <p class="fold-intro">{sp.instructionsIntro}</p>
-            <div class="card-own-description server-instructions">
-              {descriptionParagraphs(instructions).map((paragraph) => (
-                <p>
-                  {paragraphLines(paragraph).map((line, i) => (
-                    <>
-                      {i > 0 && <br />}
-                      {line}
-                    </>
-                  ))}
-                </p>
-              ))}
-            </div>
-          </section>
-        )
-      }
+            {sp.instructionsHead}
+          </h2>
+          <p class="fold-intro">{sp.instructionsIntro}</p>
+          <div class="card-own-description server-instructions">
+            {descriptionParagraphs(instructions).map((paragraph) => (
+              <p>
+                {paragraphLines(paragraph).map((line, i) => (
+                  <>
+                    {i > 0 && <br />}
+                    {line}
+                  </>
+                ))}
+              </p>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section
         class="server-family"
@@ -618,19 +604,223 @@ function toolAnnotationChips(
           {t.toolsHead}
           <span class="count">({toolEntries.length})</span>
         </h2>
-        {
-          toolEntries.length > CHIP_THRESHOLD && (
-            <ServerEntryChips
-              entries={toolEntries}
-              ariaLabel={`${sp.chipIndexLabel} — ${t.toolsHead}`}
-            />
-          )
-        }
+        {toolEntries.length > CHIP_THRESHOLD && (
+          <ServerEntryChips
+            entries={toolEntries}
+            ariaLabel={`${sp.chipIndexLabel} — ${t.toolsHead}`}
+          />
+        )}
         <div class="entry-list">
-          {
-            toolEntries.map((entry) => {
+          {toolEntries.map((entry) => {
+            const icon = safeIcon(entry.data.icons);
+            const chips = toolAnnotationChips(entry.data.annotations);
+            return (
+              <article
+                class="entry"
+                id={entry.id}
+              >
+                <h3 class="entry-title">
+                  {icon && (
+                    <img
+                      src={icon.src}
+                      alt=""
+                      aria-hidden="true"
+                      class="entry-icon"
+                    />
+                  )}
+                  {entry.data.title}
+                </h3>
+                <p class="entry-name">
+                  <code>{entry.data.name}</code>
+                </p>
+                {chips.length > 0 && (
+                  <ul
+                    class="annotation-chips"
+                    aria-label={sp.toolBehaviorLabel}
+                  >
+                    {chips.map((chip) => (
+                      <li class={`chip a-chip--${chip.variant}`}>
+                        {chip.label}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {descriptionParagraphs(entry.data.description).map(
+                  (paragraph) => (
+                    <p class="entry-desc">
+                      {paragraphLines(paragraph).map((line, i) => (
+                        <>
+                          {i > 0 && <br />}
+                          {line}
+                        </>
+                      ))}
+                    </p>
+                  ),
+                )}
+                {/* What to send. The same `schemaFields` the inspector uses
+                      on the LIVE `tools/list`, run here over the card's
+                      committed copy — one reader, so a field is described the
+                      same way whichever page you meet it on. Collapsed, like
+                      the return below it: a tool carries two lists where a
+                      prompt carries one, and both open at once buried the
+                      description they belong to. */}
+                {(() => {
+                  const args = schemaFields(entry.data.inputSchema);
+                  return args.length > 0 ? (
+                    <details class="returns disclosure">
+                      <summary>
+                        {sp.toolArgsHead}{" "}
+                        <span class="count">
+                          ({args.length} {sp.toolFieldsToggle})
+                        </span>
+                      </summary>
+                      <dl class="args">
+                        {args.map((field) => (
+                          <>
+                            <dt>
+                              <code>{field.name}</code>
+                              {field.type && (
+                                <span class="arg-type"> {field.type}</span>
+                              )}
+                              {field.required && (
+                                <span class="req"> · {sp.requiredArg}</span>
+                              )}
+                            </dt>
+                            <dd>{field.description}</dd>
+                          </>
+                        ))}
+                      </dl>
+                    </details>
+                  ) : (
+                    <p class="entry-desc entry-desc--muted">{sp.toolNoArgs}</p>
+                  );
+                })()}
+                {/* What comes back, collapsed: `read` answers with 19 fields,
+                      and what you need to CALL a tool is not what you need to
+                      READ its answer. Zero JS — a plain <details>. */}
+                {(() => {
+                  const out = schemaFields(entry.data.outputSchema);
+                  return out.length > 0 ? (
+                    <details class="returns disclosure">
+                      <summary>
+                        {sp.toolReturnsHead}{" "}
+                        <span class="count">
+                          ({out.length} {sp.toolFieldsToggle})
+                        </span>
+                      </summary>
+                      <dl class="args">
+                        {out.map((field) => (
+                          <>
+                            <dt>
+                              <code>{field.name}</code>
+                              {field.type && (
+                                <span class="arg-type"> {field.type}</span>
+                              )}
+                            </dt>
+                            <dd>{field.description}</dd>
+                          </>
+                        ))}
+                      </dl>
+                    </details>
+                  ) : null;
+                })()}
+                <p class="entry-cta">
+                  <a href={inspectorHref("tools", entry.data.name)}>
+                    {sp.tryInInspector}
+                  </a>
+                </p>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* gitlab's fine-grained action catalog (`gitlab://tools`), counted
+          by domain from the committed snapshot. This section only ever
+          consumes AGGREGATES (`meta` counts + per-domain rows) — never the
+          upstream instance the manifest was read from, which the extractor's
+          anti-leak guard keeps out of the snapshot in the first place. */}
+      {actions && (
+        <section
+          class="server-family"
+          aria-labelledby="catalog-title"
+          id="catalog-h"
+        >
+          <h2
+            class="subsection-title"
+            id="catalog-title"
+          >
+            {sp.catalogHead}{" "}
+            <span class="count">({actions.meta.actionCount})</span>
+          </h2>
+          <p class="fold-intro">{sp.catalogIntro}</p>
+          {/* Always visible, never folded: every count below is only true
+                for the token tier that asked (`cacheScope: "private"`). */}
+          <p class="catalog-token-note">
+            {sp.catalogTokenNote.replace("{count}", () =>
+              String(actions.meta.actionCount),
+            )}
+          </p>
+          <div class="table-scroll">
+            <table class="catalog-table">
+              <caption class="sr-only">{sp.catalogTableCaption}</caption>
+              <thead>
+                <tr>
+                  <th scope="col">{sp.catalogColDomain}</th>
+                  <th scope="col">{sp.catalogColTotal}</th>
+                  <th scope="col">{sp.catalogColDestructive}</th>
+                  <th scope="col">{sp.catalogColReadOnly}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {catalogRows.map((row) => (
+                  <tr>
+                    <th scope="row">
+                      {/* Each domain has its own reference page with the
+                            full list (collapsed) and its own filter. */}
+                      <a href={`${actionsDomainBase}${row.domain}/`}>
+                        <code>{row.domain}</code>
+                      </a>
+                    </th>
+                    <td>{row.count}</td>
+                    <td>{row.destructiveCount}</td>
+                    <td>{row.readOnlyCount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <ActionSearch
+            client:visible
+            lang={lang}
+            indexUrl={actionsIndexHref}
+            domainPageBase={actionsDomainBase}
+          />
+        </section>
+      )}
+
+      {hasPrompts && (
+        <section
+          class="server-family"
+          aria-labelledby="prompts-title"
+          id="prompts-h"
+        >
+          <h2
+            class="subsection-title"
+            id="prompts-title"
+          >
+            {t.promptsHead} <span class="count">({promptEntries.length})</span>
+          </h2>
+          <p class="fold-intro">{t.promptsIntro}</p>
+          {promptEntries.length > CHIP_THRESHOLD && (
+            <ServerEntryChips
+              entries={promptEntries}
+              ariaLabel={`${sp.chipIndexLabel} — ${t.promptsHead}`}
+            />
+          )}
+          <div class="entry-list">
+            {promptEntries.map((entry) => {
               const icon = safeIcon(entry.data.icons);
-              const chips = toolAnnotationChips(entry.data.annotations);
               return (
                 <article
                   class="entry"
@@ -650,16 +840,159 @@ function toolAnnotationChips(
                   <p class="entry-name">
                     <code>{entry.data.name}</code>
                   </p>
-                  {chips.length > 0 && (
+                  {descriptionParagraphs(entry.data.description).map(
+                    (paragraph) => (
+                      <p class="entry-desc">
+                        {paragraphLines(paragraph).map((line, i) => (
+                          <>
+                            {i > 0 && <br />}
+                            {line}
+                          </>
+                        ))}
+                      </p>
+                    ),
+                  )}
+                  {entry.data.arguments.length > 0 ? (
+                    <dl class="args">
+                      {entry.data.arguments.map((arg) => (
+                        <>
+                          <dt>
+                            <code>{arg.name}</code>
+                            {isRequired(arg) && (
+                              <span class="req"> · {sp.requiredArg}</span>
+                            )}
+                          </dt>
+                          <dd>{arg.description}</dd>
+                        </>
+                      ))}
+                    </dl>
+                  ) : (
+                    <p class="entry-desc entry-desc--muted">{sp.noArguments}</p>
+                  )}
+                  <p class="entry-cta">
+                    <a href={inspectorHref("prompts", entry.data.name)}>
+                      {sp.tryInInspector}
+                    </a>
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {hasResources && (
+        <section
+          class="server-family"
+          aria-labelledby="resources-title"
+          id="resources-h"
+        >
+          <h2
+            class="subsection-title"
+            id="resources-title"
+          >
+            {sp.resourcesHead}{" "}
+            <span class="count">({resourceEntries.length})</span>
+          </h2>
+          <div class="entry-list">
+            {resourceEntries.map((entry) => {
+              const icon = safeIcon(entry.data.icons);
+              return (
+                <article
+                  class="entry"
+                  id={entry.id}
+                >
+                  <h3 class="entry-title">
+                    {icon && (
+                      <img
+                        src={icon.src}
+                        alt=""
+                        aria-hidden="true"
+                        class="entry-icon"
+                      />
+                    )}
+                    {entry.label}
+                  </h3>
+                  <p class="entry-name">
+                    <code>{entry.data.uri}</code>
+                  </p>
+                  {descriptionParagraphs(entry.data.description).map(
+                    (paragraph) => (
+                      <p class="entry-desc">
+                        {paragraphLines(paragraph).map((line, i) => (
+                          <>
+                            {i > 0 && <br />}
+                            {line}
+                          </>
+                        ))}
+                      </p>
+                    ),
+                  )}
+                  {entry.data.mimeType && (
+                    <p class="entry-meta">
+                      {sp.mimeTypeLabel}: <code>{entry.data.mimeType}</code>
+                    </p>
+                  )}
+                  <p class="entry-cta">
+                    <a href={inspectorHref("resources", entry.data.uri)}>
+                      {sp.tryInInspector}
+                    </a>
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {hasTemplates && (
+        <section
+          class="server-family"
+          aria-labelledby="templates-title"
+          id="templates-h"
+        >
+          <h2
+            class="subsection-title"
+            id="templates-title"
+          >
+            {sp.templatesHead}{" "}
+            <span class="count">({templateEntries.length})</span>
+          </h2>
+          <p class="fold-intro">{sp.templatesIntro}</p>
+          {templateEntries.length > CHIP_THRESHOLD && (
+            <ServerEntryChips
+              entries={templateEntries}
+              ariaLabel={`${sp.chipIndexLabel} — ${sp.templatesHead}`}
+            />
+          )}
+          <div class="entry-list">
+            {templateEntries.map((entry) => {
+              const icon = safeIcon(entry.data.icons);
+              return (
+                <article
+                  class="entry"
+                  id={entry.id}
+                >
+                  <h3 class="entry-title">
+                    {icon && (
+                      <img
+                        src={icon.src}
+                        alt=""
+                        aria-hidden="true"
+                        class="entry-icon"
+                      />
+                    )}
+                    {entry.data.title}
+                  </h3>
+                  <p class="entry-name">
+                    <code>{entry.data.uriTemplate}</code>
+                  </p>
+                  {entry.data.subscribable && (
                     <ul
                       class="annotation-chips"
                       aria-label={sp.toolBehaviorLabel}
                     >
-                      {chips.map((chip) => (
-                        <li class={`chip a-chip--${chip.variant}`}>
-                          {chip.label}
-                        </li>
-                      ))}
+                      <li class="chip a-chip--info">{sp.subscribableChip}</li>
                     </ul>
                   )}
                   {descriptionParagraphs(entry.data.description).map(
@@ -674,447 +1007,75 @@ function toolAnnotationChips(
                       </p>
                     ),
                   )}
-                  {/* What to send. The same `schemaFields` the inspector uses
-                      on the LIVE `tools/list`, run here over the card's
-                      committed copy — one reader, so a field is described the
-                      same way whichever page you meet it on. Collapsed, like
-                      the return below it: a tool carries two lists where a
-                      prompt carries one, and both open at once buried the
-                      description they belong to. */}
-                  {(() => {
-                    const args = schemaFields(entry.data.inputSchema);
-                    return args.length > 0 ? (
-                      <details class="returns disclosure">
-                        <summary>
-                          {sp.toolArgsHead}{" "}
-                          <span class="count">
-                            ({args.length} {sp.toolFieldsToggle})
-                          </span>
-                        </summary>
-                        <dl class="args">
-                          {args.map((field) => (
-                            <>
-                              <dt>
-                                <code>{field.name}</code>
-                                {field.type && (
-                                  <span class="arg-type"> {field.type}</span>
-                                )}
-                                {field.required && (
-                                  <span class="req"> · {sp.requiredArg}</span>
-                                )}
-                              </dt>
-                              <dd>{field.description}</dd>
-                            </>
-                          ))}
-                        </dl>
-                      </details>
-                    ) : (
-                      <p class="entry-desc entry-desc--muted">
-                        {sp.toolNoArgs}
-                      </p>
-                    );
-                  })()}
-                  {/* What comes back, collapsed: `read` answers with 19 fields,
-                      and what you need to CALL a tool is not what you need to
-                      READ its answer. Zero JS — a plain <details>. */}
-                  {(() => {
-                    const out = schemaFields(entry.data.outputSchema);
-                    return out.length > 0 ? (
-                      <details class="returns disclosure">
-                        <summary>
-                          {sp.toolReturnsHead}{" "}
-                          <span class="count">
-                            ({out.length} {sp.toolFieldsToggle})
-                          </span>
-                        </summary>
-                        <dl class="args">
-                          {out.map((field) => (
-                            <>
-                              <dt>
-                                <code>{field.name}</code>
-                                {field.type && (
-                                  <span class="arg-type"> {field.type}</span>
-                                )}
-                              </dt>
-                              <dd>{field.description}</dd>
-                            </>
-                          ))}
-                        </dl>
-                      </details>
-                    ) : null;
-                  })()}
-                  <p class="entry-cta">
-                    <a href={inspectorHref("tools", entry.data.name)}>
-                      {sp.tryInInspector}
-                    </a>
-                  </p>
+                  {entry.data.mimeType && (
+                    <p class="entry-meta">
+                      {sp.mimeTypeLabel}: <code>{entry.data.mimeType}</code>
+                    </p>
+                  )}
                 </article>
               );
-            })
-          }
-        </div>
-      </section>
+            })}
+          </div>
+        </section>
+      )}
 
-      {
-        /* gitlab's fine-grained action catalog (`gitlab://tools`), counted
-          by domain from the committed snapshot. This section only ever
-          consumes AGGREGATES (`meta` counts + per-domain rows) — never the
-          upstream instance the manifest was read from, which the extractor's
-          anti-leak guard keeps out of the snapshot in the first place. */
-      }
-      {
-        actions && (
-          <section
-            class="server-family"
-            aria-labelledby="catalog-title"
-            id="catalog-h"
-          >
-            <h2
-              class="subsection-title"
-              id="catalog-title"
-            >
-              {sp.catalogHead}{" "}
-              <span class="count">({actions.meta.actionCount})</span>
-            </h2>
-            <p class="fold-intro">{sp.catalogIntro}</p>
-            {/* Always visible, never folded: every count below is only true
-                for the token tier that asked (`cacheScope: "private"`). */}
-            <p class="catalog-token-note">
-              {sp.catalogTokenNote.replace("{count}", () =>
-                String(actions.meta.actionCount),
-              )}
-            </p>
-            <div class="table-scroll">
-              <table class="catalog-table">
-                <caption class="sr-only">{sp.catalogTableCaption}</caption>
-                <thead>
-                  <tr>
-                    <th scope="col">{sp.catalogColDomain}</th>
-                    <th scope="col">{sp.catalogColTotal}</th>
-                    <th scope="col">{sp.catalogColDestructive}</th>
-                    <th scope="col">{sp.catalogColReadOnly}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {catalogRows.map((row) => (
-                    <tr>
-                      <th scope="row">
-                        {/* Each domain has its own reference page with the
-                            full list (collapsed) and its own filter. */}
-                        <a href={`${actionsDomainBase}${row.domain}/`}>
-                          <code>{row.domain}</code>
-                        </a>
-                      </th>
-                      <td>{row.count}</td>
-                      <td>{row.destructiveCount}</td>
-                      <td>{row.readOnlyCount}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <ActionSearch
-              client:visible
-              lang={lang}
-              indexUrl={actionsIndexHref}
-              domainPageBase={actionsDomainBase}
-            />
-          </section>
-        )
-      }
-
-      {
-        hasPrompts && (
-          <section
-            class="server-family"
-            aria-labelledby="prompts-title"
-            id="prompts-h"
-          >
-            <h2
-              class="subsection-title"
-              id="prompts-title"
-            >
-              {t.promptsHead}{" "}
-              <span class="count">({promptEntries.length})</span>
-            </h2>
-            <p class="fold-intro">{t.promptsIntro}</p>
-            {promptEntries.length > CHIP_THRESHOLD && (
-              <ServerEntryChips
-                entries={promptEntries}
-                ariaLabel={`${sp.chipIndexLabel} — ${t.promptsHead}`}
-              />
-            )}
-            <div class="entry-list">
-              {promptEntries.map((entry) => {
-                const icon = safeIcon(entry.data.icons);
-                return (
-                  <article
-                    class="entry"
-                    id={entry.id}
-                  >
-                    <h3 class="entry-title">
-                      {icon && (
-                        <img
-                          src={icon.src}
-                          alt=""
-                          aria-hidden="true"
-                          class="entry-icon"
-                        />
-                      )}
-                      {entry.data.title}
-                    </h3>
-                    <p class="entry-name">
-                      <code>{entry.data.name}</code>
-                    </p>
-                    {descriptionParagraphs(entry.data.description).map(
-                      (paragraph) => (
-                        <p class="entry-desc">
-                          {paragraphLines(paragraph).map((line, i) => (
-                            <>
-                              {i > 0 && <br />}
-                              {line}
-                            </>
-                          ))}
-                        </p>
-                      ),
-                    )}
-                    {entry.data.arguments.length > 0 ? (
-                      <dl class="args">
-                        {entry.data.arguments.map((arg) => (
-                          <>
-                            <dt>
-                              <code>{arg.name}</code>
-                              {isRequired(arg) && (
-                                <span class="req"> · {sp.requiredArg}</span>
-                              )}
-                            </dt>
-                            <dd>{arg.description}</dd>
-                          </>
-                        ))}
-                      </dl>
-                    ) : (
-                      <p class="entry-desc entry-desc--muted">
-                        {sp.noArguments}
-                      </p>
-                    )}
-                    <p class="entry-cta">
-                      <a href={inspectorHref("prompts", entry.data.name)}>
-                        {sp.tryInInspector}
-                      </a>
-                    </p>
-                  </article>
-                );
-              })}
-            </div>
-          </section>
-        )
-      }
-
-      {
-        hasResources && (
-          <section
-            class="server-family"
-            aria-labelledby="resources-title"
-            id="resources-h"
-          >
-            <h2
-              class="subsection-title"
-              id="resources-title"
-            >
-              {sp.resourcesHead}{" "}
-              <span class="count">({resourceEntries.length})</span>
-            </h2>
-            <div class="entry-list">
-              {resourceEntries.map((entry) => {
-                const icon = safeIcon(entry.data.icons);
-                return (
-                  <article
-                    class="entry"
-                    id={entry.id}
-                  >
-                    <h3 class="entry-title">
-                      {icon && (
-                        <img
-                          src={icon.src}
-                          alt=""
-                          aria-hidden="true"
-                          class="entry-icon"
-                        />
-                      )}
-                      {entry.label}
-                    </h3>
-                    <p class="entry-name">
-                      <code>{entry.data.uri}</code>
-                    </p>
-                    {descriptionParagraphs(entry.data.description).map(
-                      (paragraph) => (
-                        <p class="entry-desc">
-                          {paragraphLines(paragraph).map((line, i) => (
-                            <>
-                              {i > 0 && <br />}
-                              {line}
-                            </>
-                          ))}
-                        </p>
-                      ),
-                    )}
-                    {entry.data.mimeType && (
-                      <p class="entry-meta">
-                        {sp.mimeTypeLabel}: <code>{entry.data.mimeType}</code>
-                      </p>
-                    )}
-                    <p class="entry-cta">
-                      <a href={inspectorHref("resources", entry.data.uri)}>
-                        {sp.tryInInspector}
-                      </a>
-                    </p>
-                  </article>
-                );
-              })}
-            </div>
-          </section>
-        )
-      }
-
-      {
-        hasTemplates && (
-          <section
-            class="server-family"
-            aria-labelledby="templates-title"
-            id="templates-h"
-          >
-            <h2
-              class="subsection-title"
-              id="templates-title"
-            >
-              {sp.templatesHead}{" "}
-              <span class="count">({templateEntries.length})</span>
-            </h2>
-            <p class="fold-intro">{sp.templatesIntro}</p>
-            {templateEntries.length > CHIP_THRESHOLD && (
-              <ServerEntryChips
-                entries={templateEntries}
-                ariaLabel={`${sp.chipIndexLabel} — ${sp.templatesHead}`}
-              />
-            )}
-            <div class="entry-list">
-              {templateEntries.map((entry) => {
-                const icon = safeIcon(entry.data.icons);
-                return (
-                  <article
-                    class="entry"
-                    id={entry.id}
-                  >
-                    <h3 class="entry-title">
-                      {icon && (
-                        <img
-                          src={icon.src}
-                          alt=""
-                          aria-hidden="true"
-                          class="entry-icon"
-                        />
-                      )}
-                      {entry.data.title}
-                    </h3>
-                    <p class="entry-name">
-                      <code>{entry.data.uriTemplate}</code>
-                    </p>
-                    {entry.data.subscribable && (
-                      <ul
-                        class="annotation-chips"
-                        aria-label={sp.toolBehaviorLabel}
-                      >
-                        <li class="chip a-chip--info">{sp.subscribableChip}</li>
-                      </ul>
-                    )}
-                    {descriptionParagraphs(entry.data.description).map(
-                      (paragraph) => (
-                        <p class="entry-desc">
-                          {paragraphLines(paragraph).map((line, i) => (
-                            <>
-                              {i > 0 && <br />}
-                              {line}
-                            </>
-                          ))}
-                        </p>
-                      ),
-                    )}
-                    {entry.data.mimeType && (
-                      <p class="entry-meta">
-                        {sp.mimeTypeLabel}: <code>{entry.data.mimeType}</code>
-                      </p>
-                    )}
-                  </article>
-                );
-              })}
-            </div>
-          </section>
-        )
-      }
-
-      {
-        /* Whether a client can subscribe instead of polling — the block that
+      {/* Whether a client can subscribe instead of polling — the block that
           explains the "subscribable" chips on the templates above, so it
           sits right after them. Availability is read from the card, never
           hardcoded: on THIS deployment `subscriptions/listen` is up and
-          `resources/subscribe` is not, but only the data says so. */
-      }
-      {
-        subs && (
-          <section
-            class="server-family"
-            aria-labelledby="subscriptions-title"
-            id="subscriptions-h"
+          `resources/subscribe` is not, but only the data says so. */}
+      {subs && (
+        <section
+          class="server-family"
+          aria-labelledby="subscriptions-title"
+          id="subscriptions-h"
+        >
+          <h2
+            class="subsection-title"
+            id="subscriptions-title"
           >
-            <h2
-              class="subsection-title"
-              id="subscriptions-title"
-            >
-              {sp.subscriptionsHead}
-            </h2>
-            <p class="fold-intro">{sp.subscriptionsIntro}</p>
-            <dl class="meta-grid">
-              {Object.entries(subs.methods).map(([methodName, method]) => (
-                <div>
-                  <dt>
-                    <code>{methodName}</code>
-                  </dt>
-                  <dd>
-                    {method.available
-                      ? sp.subscriptionAvailable
-                      : sp.subscriptionUnavailable}
-                    {method.available && method.since_protocol && (
-                      <>
-                        {" · "}
-                        {sp.subscriptionSinceProtocol}{" "}
-                        <code>{method.since_protocol}</code>
-                      </>
-                    )}
-                    {!method.available && method.requires && (
-                      <>
-                        {" · "}
-                        {sp.subscriptionRequiresLabel}: {method.requires}
-                      </>
-                    )}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-            <p class="entry-meta">
-              {sp.subscribableTemplatesLabel}: {subscribableCount} /{" "}
-              {templateEntries.length}
-            </p>
-          </section>
-        )
-      }
+            {sp.subscriptionsHead}
+          </h2>
+          <p class="fold-intro">{sp.subscriptionsIntro}</p>
+          <dl class="meta-grid">
+            {Object.entries(subs.methods).map(([methodName, method]) => (
+              <div>
+                <dt>
+                  <code>{methodName}</code>
+                </dt>
+                <dd>
+                  {method.available
+                    ? sp.subscriptionAvailable
+                    : sp.subscriptionUnavailable}
+                  {method.available && method.since_protocol && (
+                    <>
+                      {" · "}
+                      {sp.subscriptionSinceProtocol}{" "}
+                      <code>{method.since_protocol}</code>
+                    </>
+                  )}
+                  {!method.available && method.requires && (
+                    <>
+                      {" · "}
+                      {sp.subscriptionRequiresLabel}: {method.requires}
+                    </>
+                  )}
+                </dd>
+              </div>
+            ))}
+          </dl>
+          <p class="entry-meta">
+            {sp.subscribableTemplatesLabel}: {subscribableCount} /{" "}
+            {templateEntries.length}
+          </p>
+        </section>
+      )}
 
       <UpdatedLine lang={lang} />
     </div>
 
-    {
-      /* Desktop: sticky rail, always visible above the breakpoint (see the
-        media queries below) — plain anchors, no JS. */
-    }
+    {/* Desktop: sticky rail, always visible above the breakpoint (see the
+        media queries below) — plain anchors, no JS. */}
     <aside class="toc-rail">
       <ServerToc
         families={tocFamilies}
@@ -1122,11 +1083,9 @@ function toolAnnotationChips(
       />
     </aside>
 
-    {
-      /* Mobile: floating button + panel, both driven by `#toc-open` above.
+    {/* Mobile: floating button + panel, both driven by `#toc-open` above.
         `<label for="toc-open">` toggles the checkbox on click/tap with zero
-        JavaScript — standard label behaviour, not a custom mechanism. */
-    }
+        JavaScript — standard label behaviour, not a custom mechanism. */}
     <label
       for="toc-open"
       class="toc-fab"

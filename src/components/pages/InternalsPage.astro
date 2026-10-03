@@ -306,10 +306,11 @@ const MATCHED_NODE_INDEX = 0;
   >
     {t.pathEyebrow}
   </h2>
-  {t.pathBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+  {t.pathBody.map((paragraph) => (
+    <p class="prose-text">{paragraph}</p>
+  ))}
 
-  {
-    /* Request-path figure: a strip of six fixed stages (the "aria-hidden"
+  {/* Request-path figure: a strip of six fixed stages (the "aria-hidden"
       icons are pure decoration, the stage names and node numbers/countries
       are real HTML, not SVG text) plus a single highlight indicator that
       glides between all six stages the bubbles narrate, and six
@@ -318,28 +319,24 @@ const MATCHED_NODE_INDEX = 0;
       `height` (see the `style` block) — that is what keeps the page from
       jumping as they cycle. `MATCHED_NODE_INDEX` only matters for the
       reduced-motion frozen frame, defined entirely inside that media query
-      below. */
-  }
+      below. */}
   <figure class="mcp-flow-figure">
     <div class="mcp-scale">
       <div class="mcp-strip">
-        {
-          /* Traveling highlight box — see the `style` block's "Traveling
+        {/* Traveling highlight box — see the `style` block's "Traveling
           highlight box" section. Two elements sharing one animation: the
           fill goes FIRST in the DOM (paints behind the stages below, via
           `isolation: isolate` on `.mcp-strip` plus its own negative
           `z-index`) and the border goes LAST (paints above everything, via
           a positive `z-index`) — that split is what keeps the highlight's
           background from ever covering a stage's icon or label text. Both
-          `aria-hidden`: purely decorative, like every icon on this strip. */
-        }
+          `aria-hidden`: purely decorative, like every icon on this strip. */}
         <span
           class="mcp-box-fill"
           aria-hidden="true"
         ></span>
 
-        {
-          /* The connectors, painted BEHIND every stage (see `.mcp-wires` in the
+        {/* The connectors, painted BEHIND every stage (see `.mcp-wires` in the
           `style` block) so the opaque icons read as beads on the wires. One
           path per hop, coloured by transport — the flat line this replaced
           could only ever draw a pipeline, and what happens here is a fork:
@@ -349,65 +346,52 @@ const MATCHED_NODE_INDEX = 0;
 
           `preserveAspectRatio="none"` lets x stretch with the grid while y
           stays in px, and `vector-effect="non-scaling-stroke"` keeps that
-          stretch from thickening the strokes. */
-        }
+          stretch from thickening the strokes. */}
         <svg
           class="mcp-wires"
           viewBox={`0 0 100 ${TRACK_H}`}
           preserveAspectRatio="none"
           aria-hidden="true"
         >
-          {
-            wires.tls_in.map((d) => (
-              <path
-                class="wire wire--tls"
-                d={d}
-                vector-effect="non-scaling-stroke"
-              />
-            ))
-          }
-          {
-            wires.local.map((d) => (
-              <path
-                class="wire wire--local"
-                d={d}
-                vector-effect="non-scaling-stroke"
-              />
-            ))
-          }
-          {
-            wires.wg.map((d) => (
-              <path
-                class="wire wire--wg"
-                d={d}
-                vector-effect="non-scaling-stroke"
-              />
-            ))
-          }
-          {
-            wires.tls_out.map((d) => (
-              <path
-                class="wire wire--tls"
-                d={d}
-                vector-effect="non-scaling-stroke"
-              />
-            ))
-          }
-          {
-            /* Flow dots: the same paths again, dotted and marching, so the figure
+          {wires.tls_in.map((d) => (
+            <path
+              class="wire wire--tls"
+              d={d}
+              vector-effect="non-scaling-stroke"
+            />
+          ))}
+          {wires.local.map((d) => (
+            <path
+              class="wire wire--local"
+              d={d}
+              vector-effect="non-scaling-stroke"
+            />
+          ))}
+          {wires.wg.map((d) => (
+            <path
+              class="wire wire--wg"
+              d={d}
+              vector-effect="non-scaling-stroke"
+            />
+          ))}
+          {wires.tls_out.map((d) => (
+            <path
+              class="wire wire--tls"
+              d={d}
+              vector-effect="non-scaling-stroke"
+            />
+          ))}
+          {/* Flow dots: the same paths again, dotted and marching, so the figure
             is visibly alive the moment it appears instead of waiting for the
             highlight box's first move. Painted over the colours, in the accent
-            so they read against green, grey and blue alike. */
-          }
-          {
-            allWires.map((d) => (
-              <path
-                class="flow"
-                d={d}
-                vector-effect="non-scaling-stroke"
-              />
-            ))
-          }
+            so they read against green, grey and blue alike. */}
+          {allWires.map((d) => (
+            <path
+              class="flow"
+              d={d}
+              vector-effect="non-scaling-stroke"
+            />
+          ))}
         </svg>
 
         <div class="stage stage--client">
@@ -415,7 +399,9 @@ const MATCHED_NODE_INDEX = 0;
             class="stage-icon stage-icon--client"
             aria-hidden="true"
           >
-            <span></span><span></span><span></span>
+            <span></span>
+            <span></span>
+            <span></span>
           </span>
           <span class="stage-label">{t.diagramStageClient}</span>
         </div>
@@ -440,15 +426,13 @@ const MATCHED_NODE_INDEX = 0;
 
         <div class="stage stage--nodes">
           <div class="node-cluster">
-            {
-              nodes.map((_, i) => (
-                <span
-                  class={`node-badge${i === MATCHED_NODE_INDEX ? " node-badge--matched" : ""}`}
-                >
-                  <span class="node-badge-num">{i + 1}</span>
-                </span>
-              ))
-            }
+            {nodes.map((_, i) => (
+              <span
+                class={`node-badge${i === MATCHED_NODE_INDEX ? " node-badge--matched" : ""}`}
+              >
+                <span class="node-badge-num">{i + 1}</span>
+              </span>
+            ))}
           </div>
           <span class="stage-label">{t.diagramStageNodes}</span>
         </div>
@@ -456,22 +440,18 @@ const MATCHED_NODE_INDEX = 0;
         <div class="stage stage--egress">
           <div class="egress-zone">
             <div class="egress-stack">
-              {
-                /* One bead per node, same row as its node. The country code
+              {/* One bead per node, same row as its node. The country code
                 is real text — two of them read "ES" today, and that is not
                 a mistake: two exits are in Spain, at different addresses.
                 The `--matched` bead pairs with `MATCHED_NODE_INDEX` in the
-                reduced-motion frozen frame — ILLUSTRATIVE, like the node ring. */
-              }
-              {
-                exits.map((code, i) => (
-                  <span
-                    class={`stage-icon stage-icon--egress${i === MATCHED_NODE_INDEX ? " stage-icon--egress-matched" : ""}`}
-                  >
-                    {code}
-                  </span>
-                ))
-              }
+                reduced-motion frozen frame — ILLUSTRATIVE, like the node ring. */}
+              {exits.map((code, i) => (
+                <span
+                  class={`stage-icon stage-icon--egress${i === MATCHED_NODE_INDEX ? " stage-icon--egress-matched" : ""}`}
+                >
+                  {code}
+                </span>
+              ))}
             </div>
           </div>
           <span class="stage-label">{t.diagramStageEgress}</span>
@@ -485,14 +465,14 @@ const MATCHED_NODE_INDEX = 0;
           <span class="stage-label">{t.diagramStageDestination}</span>
         </div>
 
-        {
-          /* nginx and the instances run on ONE machine, and that machine is in
+        {/* nginx and the instances run on ONE machine, and that machine is in
           Spain: the box says so rather than leaving it implied. The country
           code is real text, not decoration — it answers "where is my request
           actually processed", which is a different question from where it
-          leaves through afterwards. */
-        }
-        <div class="mcp-region"><span class="mcp-region-tag">ES</span></div>
+          leaves through afterwards. */}
+        <div class="mcp-region">
+          <span class="mcp-region-tag">ES</span>
+        </div>
 
         <span
           class="mcp-box-border"
@@ -501,46 +481,45 @@ const MATCHED_NODE_INDEX = 0;
       </div>
     </div>
 
-    {
-      /* Transport legend. The connector line under the strip is painted in
+    {/* Transport legend. The connector line under the strip is painted in
         one colour per transport (see "Connector line" in the `style`
         block); this is what those colours say, in real text — colour alone
         never carries the meaning. It sits between the strip and the bubbles
         because that is where the author asked for it, and because a reader
         meets the coloured line first and the question ("what do the colours
-        mean?") immediately after. */
-    }
+        mean?") immediately after. */}
     <ul class="mcp-legend">
       <li>
         <span
           class="mcp-legend-swatch mcp-legend-swatch--tls"
           aria-hidden="true"
-        ></span>{t.diagramLegendTls}
+        ></span>
+        {t.diagramLegendTls}
       </li>
       <li>
         <span
           class="mcp-legend-swatch mcp-legend-swatch--local"
           aria-hidden="true"
-        ></span>{t.diagramLegendLocal}
+        ></span>
+        {t.diagramLegendLocal}
       </li>
       <li>
         <span
           class="mcp-legend-swatch mcp-legend-swatch--wg"
           aria-hidden="true"
-        ></span>{t.diagramLegendWg}
+        ></span>
+        {t.diagramLegendWg}
       </li>
     </ul>
 
-    {
-      /* Fixed-height annotation zone: exactly one bubble opaque at a time,
+    {/* Fixed-height annotation zone: exactly one bubble opaque at a time,
         via the `phase-N` keyframes shared with the highlight box's
         `box-travel` animation above (see the `style` block's "Bubble
         cycle" section for the timing table both share). `bubble-leader`'s
         `left` and the highlight box's travel target both key off the same
         six column positions, defined once as `--pos` per `.bubble--N` and
         reused by its leader/tail — see the `style` block's "Shared column
-        positions" comment for why. */
-    }
+        positions" comment for why. */}
     <div class="mcp-bubbles">
       <div class="bubble bubble--1">
         <span
@@ -551,8 +530,10 @@ const MATCHED_NODE_INDEX = 0;
           <span
             class="bubble-num"
             aria-hidden="true"
-            >1</span
-          ><span class="bubble-text">{t.diagramBubble1}</span>
+          >
+            1
+          </span>
+          <span class="bubble-text">{t.diagramBubble1}</span>
         </p>
       </div>
       <div class="bubble bubble--2">
@@ -564,8 +545,10 @@ const MATCHED_NODE_INDEX = 0;
           <span
             class="bubble-num"
             aria-hidden="true"
-            >2</span
-          ><span class="bubble-text">{t.diagramBubble2}</span>
+          >
+            2
+          </span>
+          <span class="bubble-text">{t.diagramBubble2}</span>
         </p>
       </div>
       <div class="bubble bubble--3">
@@ -577,8 +560,10 @@ const MATCHED_NODE_INDEX = 0;
           <span
             class="bubble-num"
             aria-hidden="true"
-            >3</span
-          ><span class="bubble-text">{t.diagramBubble3}</span>
+          >
+            3
+          </span>
+          <span class="bubble-text">{t.diagramBubble3}</span>
         </p>
       </div>
       <div class="bubble bubble--4">
@@ -590,8 +575,10 @@ const MATCHED_NODE_INDEX = 0;
           <span
             class="bubble-num"
             aria-hidden="true"
-            >4</span
-          ><span class="bubble-text">{t.diagramBubble4}</span>
+          >
+            4
+          </span>
+          <span class="bubble-text">{t.diagramBubble4}</span>
         </p>
       </div>
       <div class="bubble bubble--5">
@@ -603,8 +590,10 @@ const MATCHED_NODE_INDEX = 0;
           <span
             class="bubble-num"
             aria-hidden="true"
-            >5</span
-          ><span class="bubble-text">{t.diagramBubble5}</span>
+          >
+            5
+          </span>
+          <span class="bubble-text">{t.diagramBubble5}</span>
         </p>
       </div>
       <div class="bubble bubble--6">
@@ -616,8 +605,10 @@ const MATCHED_NODE_INDEX = 0;
           <span
             class="bubble-num"
             aria-hidden="true"
-            >6</span
-          ><span class="bubble-text">{t.diagramBubble6}</span>
+          >
+            6
+          </span>
+          <span class="bubble-text">{t.diagramBubble6}</span>
         </p>
       </div>
     </div>
@@ -628,71 +619,73 @@ const MATCHED_NODE_INDEX = 0;
     </figcaption>
   </figure>
 
-  {
-    /* Prose timeline: same six numbers as the bubbles above, full detail,
+  {/* Prose timeline: same six numbers as the bubbles above, full detail,
       real HTML — this, not the figure, is what a crawler, an assistant or a
       `prefers-reduced-motion` visitor actually reads. See this file's
-      header comment for why the detail lives here and not in the figure. */
-  }
+      header comment for why the detail lives here and not in the figure. */}
   <p class="prose-text">{t.diagramTimelineIntro}</p>
   <ol class="mcp-timeline">
     <li>
       <span
         class="mcp-timeline-num"
         aria-hidden="true"
-        >1</span
       >
+        1
+      </span>
       <p>{t.diagramTimelineStep1}</p>
     </li>
     <li>
       <span
         class="mcp-timeline-num"
         aria-hidden="true"
-        >2</span
       >
+        2
+      </span>
       <p>{t.diagramTimelineStep2}</p>
     </li>
     <li>
       <span
         class="mcp-timeline-num"
         aria-hidden="true"
-        >3</span
       >
+        3
+      </span>
       <p>{t.diagramTimelineStep3}</p>
     </li>
     <li>
       <span
         class="mcp-timeline-num"
         aria-hidden="true"
-        >4</span
       >
+        4
+      </span>
       <p>{t.diagramTimelineStep4}</p>
     </li>
     <li>
       <span
         class="mcp-timeline-num"
         aria-hidden="true"
-        >5</span
       >
+        5
+      </span>
       <p>{t.diagramTimelineStep5}</p>
     </li>
     <li>
       <span
         class="mcp-timeline-num"
         aria-hidden="true"
-        >6</span
       >
+        6
+      </span>
       <p>{t.diagramTimelineStep6}</p>
     </li>
   </ol>
 </section>
 
-{
-  /* The inspector's storage sits right before the wire section: both are
+{/* The inspector's storage sits right before the wire section: both are
     about what happens to a credential, and this one answers the question the
     inspector's own privacy note raises — "how would I know?". The anchor id is
-    linked from that note, so it is part of the contract. */
-}
+    linked from that note, so it is part of the contract. */}
 <section aria-labelledby="inspector-storage-h">
   <h2
     class="eyebrow"
@@ -700,11 +693,9 @@ const MATCHED_NODE_INDEX = 0;
   >
     {t.storageEyebrow}
   </h2>
-  {
-    t.storageBody.map((paragraph: string) => (
-      <p class="prose-text">{paragraph}</p>
-    ))
-  }
+  {t.storageBody.map((paragraph: string) => (
+    <p class="prose-text">{paragraph}</p>
+  ))}
 </section>
 
 <section aria-labelledby="wire-h">
@@ -714,7 +705,9 @@ const MATCHED_NODE_INDEX = 0;
   >
     {t.wireEyebrow}
   </h2>
-  {t.wireBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+  {t.wireBody.map((paragraph) => (
+    <p class="prose-text">{paragraph}</p>
+  ))}
 </section>
 
 <section aria-labelledby="instances-h">
@@ -724,7 +717,9 @@ const MATCHED_NODE_INDEX = 0;
   >
     {t.instancesEyebrow}
   </h2>
-  {t.instancesBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+  {t.instancesBody.map((paragraph) => (
+    <p class="prose-text">{paragraph}</p>
+  ))}
 </section>
 
 <section aria-labelledby="affinity-h">
@@ -737,11 +732,9 @@ const MATCHED_NODE_INDEX = 0;
   <p class="prose-text">{t.affinityIntro}</p>
   <p class="prose-text">{t.affinityLibgen}</p>
   <p class="prose-text">{t.affinityGitlab}</p>
-  {
-    t.affinityCodeIntro.map((paragraph) => (
-      <p class="prose-text">{paragraph}</p>
-    ))
-  }
+  {t.affinityCodeIntro.map((paragraph) => (
+    <p class="prose-text">{paragraph}</p>
+  ))}
   <pre><code>{affinityTokens.map((tok) =>
     tok.cls ? <span class={`snippet-${tok.cls}`}>{tok.text}</span> : tok.text,
   )}</code></pre>
@@ -755,15 +748,15 @@ const MATCHED_NODE_INDEX = 0;
   >
     {t.egressEyebrow}
   </h2>
-  {t.egressBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
+  {t.egressBody.map((paragraph) => (
+    <p class="prose-text">{paragraph}</p>
+  ))}
 </section>
 
-{
-  /* After "Egress" and before "A personal service": what is there → what
+{/* After "Egress" and before "A personal service": what is there → what
     happens when it fails → none of this is a promise. One section for both
     kinds of failure (an instance, an exit) because they end in the same
-    consequence for the client, and that is worth stating once. */
-}
+    consequence for the client, and that is worth stating once. */}
 <section aria-labelledby="failures-h">
   <h2
     class="eyebrow"
@@ -773,13 +766,11 @@ const MATCHED_NODE_INDEX = 0;
   </h2>
   <p class="prose-text">{t.failuresBody[0]}</p>
   <p class="prose-text">{t.failuresBody[1]}</p>
-  {
-    /* Each ladder sits right after the paragraph it condenses — the instance
+  {/* Each ladder sits right after the paragraph it condenses — the instance
       one after nginx/Docker/updates, the exit one after the watcher — not
       both at the top: a figure next to its prose is a summary, two figures
       before any prose are a puzzle. Tones are the beads' colours only; the
-      state word beside each bead carries the meaning (see the component). */
-  }
+      state word beside each bead carries the meaning (see the component). */}
   <FailureLadder
     ladder={t.failureLadderInstance}
     tones={instanceTones}
@@ -800,21 +791,19 @@ const MATCHED_NODE_INDEX = 0;
   >
     {t.personalEyebrow}
   </h2>
-  {t.personalBody.map((paragraph) => <p class="prose-text">{paragraph}</p>)}
-  {
-    /* Points at the full statements (no-SLA, legal position) instead of
+  {t.personalBody.map((paragraph) => (
+    <p class="prose-text">{paragraph}</p>
+  ))}
+  {/* Points at the full statements (no-SLA, legal position) instead of
       repeating them: this page's job is the mechanism, policies' job is the
-      commitment — or lack of one. */
-  }
+      commitment — or lack of one. */}
   <p class="prose-text">
     <a href={policiesHref}>{t.policiesLink}</a>
   </p>
 </section>
 
-{
-  /* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
-    cannot just live in the footer. */
-}
+{/* Visible freshness INSIDE <main>. See `UpdatedLine.astro` for why this
+    cannot just live in the footer. */}
 <UpdatedLine lang={lang} />
 
 <style>
