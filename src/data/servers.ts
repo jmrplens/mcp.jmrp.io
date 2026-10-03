@@ -394,11 +394,18 @@ export const servers: McpServer[] = [
     // https://mcp.jmrp.io/libgen because the deployment passes --public-url.
     // Measured against all three replicas before the site stopped emitting
     // one: same body, same strong ETag, its own Cache-Control and CORS.
+    // Since 2.1.0 (#269) the binary also answers that card at
+    // `<endpoint>/mcp/server-card`, for a client given the `/mcp` form of the
+    // endpoint, as gitlab has since 3.1.0. Same body and strong ETag as
+    // `/libgen/server-card`, measured live on 2026-10-03. The site announces
+    // only `<endpoint>/server-card`, as it does for gitlab.
     ownServerCard: true,
-    version: "2.0.1",
+    version: "2.1.0",
     // Measured 2026-09-10, anonymously: a POST carrying
     // `MCP-Protocol-Version: 1999-01-01` is answered 400 "Unsupported
     // protocol version (supported versions: ...)" with exactly this list.
+    // Re-measured on 2.1.0 (2026-10-03): the same list, now as a JSON-RPC
+    // -32022 whose `data.supported` carries it, like gitlab's.
     // Re-measure rather than copy it if either binary is upgraded.
     supportedProtocolVersions: [
       "2026-07-28",
@@ -505,8 +512,8 @@ export const servers: McpServer[] = [
             es: "Ninguna de las dos. libgen no pide credencial alguna: ni cuenta aquí, ni clave de API, ni registro por fuente. Todas las que consulta son abiertas o públicas y ninguna exige alta previa, y por eso el endpoint acepta una llamada de cualquiera que pueda alcanzarlo.",
           },
           {
-            en: "The only ceiling is the rate limit described below, which is there to spend third-party capacity slowly rather than to ration yours.",
-            es: "El único techo es el límite de peticiones descrito abajo, que existe para gastar despacio la capacidad de terceros, no para ponerte un cupo.",
+            en: "The only ceilings are the ones described below, which are there to spend third-party capacity slowly and keep each instance answering, not to ration yours.",
+            es: "Los únicos techos son los que se describen abajo, que existen para gastar despacio la capacidad de terceros y para que cada instancia siga respondiendo, no para ponerte un cupo.",
           },
         ],
       },
@@ -548,18 +555,37 @@ export const servers: McpServer[] = [
             en: "libgen at mcp.jmrp.io is a personal service, offered as-is and with no SLA. It may change or go away without notice, so do not build anything critical on top of it — run your own instance instead: the server is open source and a single static binary.",
             es: "libgen en mcp.jmrp.io es un servicio personal, ofrecido tal cual y sin SLA. Puede cambiar o desaparecer sin aviso, así que no montes nada crítico encima — levanta tu propia instancia: el servidor es open source y un único binario estático.",
           },
+          // The shared bucket is `limiter` in internal/libgen/client.go
+          // (LIBGEN_MCP_RATE_RPS=2, burst 4 in ops/stack/env/libgen.env).
+          // It never covered the open-access providers: each one under
+          // internal/discovery builds its own rate.Limiter at that source's
+          // etiquette, and the Crossref/OpenLibrary metadata lookups have an
+          // `enrichLimiter` of their own. The old sentence said "whichever
+          // source they reach", which was not true of any release.
           {
-            en: "Its outbound requests are rate-limited to about 2 per second per instance (3 instances, so roughly 6 per second in total) — one limiter for the whole process, covering catalogue queries and downloads alike, whichever source they reach. That ceiling is deliberately low: it points at third-party mirrors, and going faster would spend their capacity, not ours.",
-            es: "Sus peticiones salientes están limitadas a unas 2 por segundo por instancia (hay 3 instancias, así que unas 6 por segundo en total) — un único limitador para todo el proceso, que cubre igual las consultas al catálogo y las descargas, sea cual sea la fuente a la que lleguen. Ese techo es deliberadamente bajo: apunta a servicios de terceros, y correr más gastaría su capacidad, no la nuestra.",
+            en: "Its catalogue queries and every download share one limiter per instance, about 2 requests a second (3 instances, so roughly 6 a second in total). The open-access sources it also searches — arXiv, Crossref, PubMed and the rest — are each paced on their own, at the rate that source asks of its clients. Those ceilings are deliberately low: they point at third-party services, and going faster would spend their capacity, not ours.",
+            es: "Sus consultas al catálogo y todas las descargas comparten un limitador por instancia, de unas 2 peticiones por segundo (hay 3 instancias, así que unas 6 por segundo en total). Las fuentes de acceso abierto que también consulta —arXiv, Crossref, PubMed y las demás— van cada una a su propio ritmo, el que esa fuente pide a sus clientes. Esos techos son deliberadamente bajos: apuntan a servicios de terceros, y correr más gastaría su capacidad, no la nuestra.",
+          },
+          // Measured in the startup log of all three replicas of 2.1.0
+          // (2026-10-03): "process ceilings" held_calls_per_process=2860 from
+          // a descriptor limit of 32767, and "in-flight ceiling on download and read"
+          // 4 per charged address, 64 across the process. The 2860 is derived
+          // from the descriptor limit, so it moves if the container's ulimit
+          // does: re-read that log line rather than trusting this figure. The
+          // busy refusal is HTTP 503 with Retry-After: 30 on 2026-07-28 and
+          // an isError result on older revisions (cmd/server/held.go, #279).
+          {
+            en: "Each instance also bounds what it holds open: at most four download or read calls per address at a time (64 across the instance), and 2,860 calls of any kind. Past the first, the call is refused with a message telling you to let one finish; past the second, the server answers that it is busy — on the current protocol, HTTP 503 with Retry-After: 30 — instead of queuing it.",
+            es: "Cada instancia limita además lo que mantiene abierto: como mucho cuatro llamadas de descarga o lectura por dirección a la vez (64 en toda la instancia), y 2.860 llamadas de cualquier tipo. Pasado el primero, la llamada se rechaza con un mensaje que te pide esperar a que termine una; pasado el segundo, el servidor responde que está ocupado —en el protocolo actual, HTTP 503 con Retry-After: 30— en lugar de ponerla en cola.",
           },
         ],
       },
     ],
-    // Concuerda con el aviso `limits` de arriba (2/s por instancia, 3
-    // instancias): si cambia el techo, cambian los dos.
+    // Agrees with the `limits` notice above (2/s per instance, 3 instances,
+    // open-access sources paced on their own): if one changes, both do.
     rateLimit: {
-      en: "Its outbound calls are capped at about 2 per second per instance, three instances in all — a single limiter per process, spanning catalogue queries and downloads whichever source they reach. The ceiling is deliberately low: the capacity it spends there belongs to a third party, not to this site.",
-      es: "Sus llamadas salientes están limitadas a unas 2 por segundo por instancia, tres instancias en total — un solo limitador por proceso, que abarca las consultas al catálogo y las descargas sea cual sea la fuente. El techo es deliberadamente bajo: la capacidad que gastan ahí es de un tercero, no de este sitio.",
+      en: "Catalogue queries and downloads share one outbound limiter of about 2 requests a second per instance, three instances in all, and each open-access source is paced on its own. The ceilings are deliberately low: the capacity they spend belongs to third parties, not to this site.",
+      es: "Las consultas al catálogo y las descargas comparten un limitador saliente de unas 2 peticiones por segundo por instancia, tres instancias en total, y cada fuente de acceso abierto va a su propio ritmo. Los techos son deliberadamente bajos: la capacidad que gastan es de terceros, no de este sitio.",
     },
     requiredHeaders: [],
     optionalHeaders: [],
