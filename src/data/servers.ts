@@ -381,7 +381,7 @@ export const servers: McpServer[] = [
     card: {
       title: "Books & Papers MCP Server",
       description:
-        "Federated search of books and papers, BibTeX/RIS citations, open-access retrieval and reading.",
+        "Federated search of books and papers, formatted citations, open-access retrieval and reading.",
     },
     // libgen-mcp 1.6.3 (2026-08-22) started serving its own SEP-1649 Server
     // Card at `<endpoint>/.well-known/mcp/server-card.json`, same as gitlab —
@@ -400,12 +400,13 @@ export const servers: McpServer[] = [
     // `/libgen/server-card`, measured live on 2026-10-03. The site announces
     // only `<endpoint>/server-card`, as it does for gitlab.
     ownServerCard: true,
-    version: "2.1.0",
+    version: "2.2.0",
     // Measured 2026-09-10, anonymously: a POST carrying
     // `MCP-Protocol-Version: 1999-01-01` is answered 400 "Unsupported
     // protocol version (supported versions: ...)" with exactly this list.
     // Re-measured on 2.1.0 (2026-10-03): the same list, now as a JSON-RPC
-    // -32022 whose `data.supported` carries it, like gitlab's.
+    // -32022 whose `data.supported` carries it, like gitlab's. Unchanged on
+    // 2.2.0 (2026-10-04).
     // Re-measure rather than copy it if either binary is upgraded.
     supportedProtocolVersions: [
       "2026-07-28",
@@ -443,22 +444,22 @@ export const servers: McpServer[] = [
       {
         name: "search",
         what: {
-          en: "Find books, papers, comics, magazines and standards, with metadata and download links.",
-          es: "Busca libros, artículos, cómics, revistas y normas, con metadatos y enlaces de descarga.",
+          en: "Find books, papers, comics, magazines and standards, with metadata and download links, optionally within a range of publication years.",
+          es: "Busca libros, artículos, cómics, revistas y normas, con metadatos y enlaces de descarga, y si quieres dentro de un rango de años de publicación.",
         },
       },
       {
         name: "get_details",
         what: {
-          en: "Full metadata for one record: description, identifiers, DOI, cover, other editions.",
-          es: "Metadatos completos de un registro: descripción, identificadores, DOI, portada y otras ediciones.",
+          en: "Full metadata for one record (identifiers, DOI, cover, other editions), citations in BibTeX and RIS plus, on request, six more styles or CSL-JSON, the works it cites or that cite it, and a pasted reference resolved to its DOI.",
+          es: "Metadatos completos de un registro (identificadores, DOI, portada, otras ediciones), citas en BibTeX y RIS y, si se piden, seis estilos más o CSL-JSON, las obras que cita o que lo citan, y una referencia pegada resuelta a su DOI.",
         },
       },
       {
         name: "read",
         what: {
-          en: "Extract and paginate the text of a book or paper, so a model can read it without downloading it whole.",
-          es: "Extrae y pagina el texto de un libro o artículo, para que un modelo pueda leerlo sin descargarlo entero.",
+          en: "Extract and paginate the text of a book or paper, search inside it or read one section of its table of contents, so a model can read it without downloading it whole.",
+          es: "Extrae y pagina el texto de un libro o artículo, busca dentro de él o lee una sección de su índice, para que un modelo pueda leerlo sin descargarlo entero.",
         },
       },
       {
@@ -563,29 +564,34 @@ export const servers: McpServer[] = [
           // `enrichLimiter` of their own. The old sentence said "whichever
           // source they reach", which was not true of any release.
           {
-            en: "Its catalogue queries and every download share one limiter per instance, about 2 requests a second (3 instances, so roughly 6 a second in total). The open-access sources it also searches — arXiv, Crossref, PubMed and the rest — are each paced on their own, at the rate that source asks of its clients. Those ceilings are deliberately low: they point at third-party services, and going faster would spend their capacity, not ours.",
-            es: "Sus consultas al catálogo y todas las descargas comparten un limitador por instancia, de unas 2 peticiones por segundo (hay 3 instancias, así que unas 6 por segundo en total). Las fuentes de acceso abierto que también consulta —arXiv, Crossref, PubMed y las demás— van cada una a su propio ritmo, el que esa fuente pide a sus clientes. Esos techos son deliberadamente bajos: apuntan a servicios de terceros, y correr más gastaría su capacidad, no la nuestra.",
+            en: "Its catalogue queries and every download share one limiter per instance, about 2 requests a second (3 instances, so roughly 6 a second in total). The open-access sources it also searches — arXiv, Crossref, PubMed and the rest — are each paced on their own, at the rate that source asks of its clients. OpenAlex meters an address rather than a person, so everyone using this endpoint shares its daily allowance: its search results, and the works a record cites or that cite it, can run out sooner here than on a server of your own. Those ceilings are deliberately low: they point at third-party services, and going faster would spend their capacity, not ours.",
+            es: "Sus consultas al catálogo y todas las descargas comparten un limitador por instancia, de unas 2 peticiones por segundo (hay 3 instancias, así que unas 6 por segundo en total). Las fuentes de acceso abierto que también consulta —arXiv, Crossref, PubMed y las demás— van cada una a su propio ritmo, el que esa fuente pide a sus clientes. OpenAlex mide por dirección y no por persona, así que todos los que usan este endpoint comparten su cuota diaria: sus resultados de búsqueda, y las obras que cita un registro o que lo citan, pueden agotarse antes aquí que en un servidor propio. Esos techos son deliberadamente bajos: apuntan a servicios de terceros, y correr más gastaría su capacidad, no la nuestra.",
           },
-          // Measured in the startup log of all three replicas of 2.1.0
-          // (2026-10-03): "process ceilings" held_calls_per_process=2860 from
-          // a descriptor limit of 32767, and "in-flight ceiling on download and read"
-          // 4 per charged address, 64 across the process. The 2860 is derived
-          // from the descriptor limit, so it moves if the container's ulimit
-          // does: re-read that log line rather than trusting this figure. The
-          // busy refusal is HTTP 503 with Retry-After: 30 on 2026-07-28 and
-          // an isError result on older revisions (cmd/server/held.go, #279).
+          // Measured in the startup log of all three replicas of 2.2.0
+          // (2026-10-04): "process ceilings" held_calls_per_process=2384 from
+          // a descriptor limit of 32767 (2860 on 2.1.0: each held call is
+          // costed at 2 + the extra searchers, and 2.2.0 added OpenAlex and
+          // Europe PMC), and "in-flight ceiling on download and read" 4 per
+          // charged address, 64 across the process. Re-read that log line on
+          // every release rather than trusting this figure. The busy refusal
+          // is HTTP 503 with Retry-After: 30 on 2026-07-28 and an isError
+          // result on older revisions (cmd/server/held.go, #279). The inbound
+          // rate is --rate-limit-rps=60 in ops/stack/flags/libgen.flags with
+          // the default burst of 40 (cmd/server/rate_limit.go); a refused
+          // tools/call is an isError result, other methods -42900.
           {
-            en: "Each instance also bounds what it holds open: at most four download or read calls per address at a time (64 across the instance), and 2,860 calls of any kind. Past the first, the call is refused with a message telling you to let one finish; past the second, the server answers that it is busy — on the current protocol, HTTP 503 with Retry-After: 30 — instead of queuing it.",
-            es: "Cada instancia limita además lo que mantiene abierto: como mucho cuatro llamadas de descarga o lectura por dirección a la vez (64 en toda la instancia), y 2.860 llamadas de cualquier tipo. Pasado el primero, la llamada se rechaza con un mensaje que te pide esperar a que termine una; pasado el segundo, el servidor responde que está ocupado —en el protocolo actual, HTTP 503 con Retry-After: 30— en lugar de ponerla en cola.",
+            en: "Each address may make 60 calls a second per instance, in bursts of up to 40, with listing the tools on a bucket of its own; a tool call past that comes back as an error the model can read and back off from. Each instance also bounds what it holds open: at most four download or read calls per address at a time (64 across the instance), and 2,384 calls of any kind. Past the first, the call is refused with a message telling you to let one finish; past the second, the server answers that it is busy — on the current protocol, HTTP 503 with Retry-After: 30 — instead of queuing it.",
+            es: "Cada dirección puede hacer 60 llamadas por segundo por instancia, en ráfagas de hasta 40, y el listado de tools va en un cubo aparte; una llamada que pase de ahí vuelve como un error que el modelo puede leer para frenar. Cada instancia limita además lo que mantiene abierto: como mucho cuatro llamadas de descarga o lectura por dirección a la vez (64 en toda la instancia), y 2.384 llamadas de cualquier tipo. Pasado el primero, la llamada se rechaza con un mensaje que te pide esperar a que termine una; pasado el segundo, el servidor responde que está ocupado —en el protocolo actual, HTTP 503 con Retry-After: 30— en lugar de ponerla en cola.",
           },
         ],
       },
     ],
-    // Agrees with the `limits` notice above (2/s per instance, 3 instances,
-    // open-access sources paced on their own): if one changes, both do.
+    // Agrees with the `limits` notice above (60 calls/s per address in, 2/s
+    // per instance out, 3 instances, open-access sources paced on their
+    // own): if one changes, both do.
     rateLimit: {
-      en: "Catalogue queries and downloads share one outbound limiter of about 2 requests a second per instance, three instances in all, and each open-access source is paced on its own. The ceilings are deliberately low: the capacity they spend belongs to third parties, not to this site.",
-      es: "Las consultas al catálogo y las descargas comparten un limitador saliente de unas 2 peticiones por segundo por instancia, tres instancias en total, y cada fuente de acceso abierto va a su propio ritmo. Los techos son deliberadamente bajos: la capacidad que gastan es de terceros, no de este sitio.",
+      en: "Each address may make 60 calls a second per instance. Outbound, catalogue queries and downloads share one limiter of about 2 requests a second per instance, three instances in all, and each open-access source is paced on its own. The outbound ceilings are deliberately low: the capacity they spend belongs to third parties, not to this site.",
+      es: "Cada dirección puede hacer 60 llamadas por segundo por instancia. De salida, las consultas al catálogo y las descargas comparten un limitador de unas 2 peticiones por segundo por instancia, tres instancias en total, y cada fuente de acceso abierto va a su propio ritmo. Los techos de salida son deliberadamente bajos: la capacidad que gastan es de terceros, no de este sitio.",
     },
     requiredHeaders: [],
     optionalHeaders: [],
