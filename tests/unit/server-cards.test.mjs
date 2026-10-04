@@ -38,7 +38,7 @@ test("libgen (complete card): exposes the server's title/description/websiteUrl/
   assert.equal(card.serverInfo.title, "Books & Papers MCP Server");
   assert.equal(
     card.serverInfo.description,
-    "Federated search of books and papers, BibTeX/RIS citations, open-access retrieval and reading.",
+    "Federated search of books and papers, formatted citations, open-access retrieval and reading.",
   );
   assert.equal(card.serverInfo.websiteUrl, "https://jmrp.io/docs/libgen-mcp");
   assert.ok(
