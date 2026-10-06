@@ -400,13 +400,13 @@ export const servers: McpServer[] = [
     // `/libgen/server-card`, measured live on 2026-10-03. The site announces
     // only `<endpoint>/server-card`, as it does for gitlab.
     ownServerCard: true,
-    version: "2.2.0",
+    version: "2.2.1",
     // Measured 2026-09-10, anonymously: a POST carrying
     // `MCP-Protocol-Version: 1999-01-01` is answered 400 "Unsupported
     // protocol version (supported versions: ...)" with exactly this list.
     // Re-measured on 2.1.0 (2026-10-03): the same list, now as a JSON-RPC
     // -32022 whose `data.supported` carries it, like gitlab's. Unchanged on
-    // 2.2.0 (2026-10-04).
+    // 2.2.0 (2026-10-04) and 2.2.1 (2026-10-06).
     // Re-measure rather than copy it if either binary is upgraded.
     supportedProtocolVersions: [
       "2026-07-28",
@@ -568,7 +568,8 @@ export const servers: McpServer[] = [
             es: "Sus consultas al catálogo y todas las descargas comparten un limitador por instancia, de unas 2 peticiones por segundo (hay 3 instancias, así que unas 6 por segundo en total). Las fuentes de acceso abierto que también consulta —arXiv, Crossref, PubMed y las demás— van cada una a su propio ritmo, el que esa fuente pide a sus clientes. OpenAlex mide por dirección y no por persona, así que todos los que usan este endpoint comparten su cuota diaria: sus resultados de búsqueda, y las obras que cita un registro o que lo citan, pueden agotarse antes aquí que en un servidor propio. Esos techos son deliberadamente bajos: apuntan a servicios de terceros, y correr más gastaría su capacidad, no la nuestra.",
           },
           // Measured in the startup log of all three replicas of 2.2.0
-          // (2026-10-04): "process ceilings" held_calls_per_process=2384 from
+          // (2026-10-04), and the same on 2.2.1 (2026-10-06): "process
+          // ceilings" held_calls_per_process=2384 from
           // a descriptor limit of 32767 (2860 on 2.1.0: each held call is
           // costed at 2 + the extra searchers, and 2.2.0 added OpenAlex and
           // Europe PMC), and "in-flight ceiling on download and read" 4 per
