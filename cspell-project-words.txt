@@ -55,6 +55,7 @@ extraíble
 filemode
 fontconfig
 Fragmento
+fromdateiso
 gitlab
 gitlab's
 glama
