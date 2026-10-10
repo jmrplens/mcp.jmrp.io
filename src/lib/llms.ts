@@ -539,17 +539,21 @@ localStorage, no cookies, no query string, no logs. Reloading the page drops it.
 
 For \`gitlab\` that credential is \`Authorization: Bearer <token>\`, and either
 kind works: an OAuth access token obtained from gitlab.com, or a personal
-access token sent the same way. An unauthenticated call answers \`401\` with a
-\`WWW-Authenticate\` challenge naming
+access token sent the same way, classic or fine-grained. An unauthenticated
+call answers \`401\` with a \`WWW-Authenticate\` challenge naming
 \`${SITE_ORIGIN}/.well-known/oauth-protected-resource/gitlab\`, the RFC 9728
 document that says which authorization server issues tokens for this endpoint.
 
 Treat any site that asks for a token with suspicion, this one included. Ask
 for the narrowest scope that does what you need: a token scoped to
-\`read_api\` is admitted and served the read-only part of the surface, which is
-the right one for trying the server out, while \`api\` is only needed to reach
-the actions that write. The decision is per action rather than once at the
-door, so a client that asks for less is served less rather than refused.
+\`read_api\` is admitted and served exactly the actions GitLab accepts from that
+scope, which are reads and the right ones for trying the server out, while
+\`api\` is only needed to reach the actions that write. A fine-grained personal
+access token is narrower still: it carries a grant of named permissions on the
+projects or groups you pick, the server serves it only what that grant reaches,
+and it refuses one at the door unless the grant includes \`User: Read\`. The
+decision is per action rather than once at the door, so a client that asks for
+less is served less rather than refused.
 
 The RFC 9728 document named by the \`401\` challenge advertises exactly one
 scope, ${advertisedScope}: the one that buys the full surface, and the one a

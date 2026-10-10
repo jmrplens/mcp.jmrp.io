@@ -627,12 +627,12 @@ export const servers: McpServer[] = [
         "Free hosted GitLab MCP: 700+ operations with your own gitlab.com token, never written to disk.",
     },
     nativeCard: true,
-    version: "3.1.0",
+    version: "3.2.0",
     // Measured 2026-09-10 against 3.0.0+4d73bc0. Same probe as libgen and,
     // unlike what the audit assumed, no token is needed: the version check
     // runs before authorization, so the bad-version POST comes back
     // unauthenticated as a JSON-RPC -32022 whose `data.supported` is this
-    // list.
+    // list. Re-measured on 3.2.0+73f17e6 (2026-10-10): unchanged.
     supportedProtocolVersions: [
       "2026-07-28",
       "2025-11-25",
@@ -699,6 +699,12 @@ export const servers: McpServer[] = [
           es: "¿A dónde va tu token de GitLab?",
         },
         body: [
+          // "never ... logs it" became exact in 3.2.0
+          // (jmrplens/gitlab-mcp-server#1220). Up to 3.1.0 the bearer guard
+          // and the server pool wrote the token's last four characters as
+          // `token_suffix`; now a log line names a credential only by
+          // `credential_hash`, sixteen hex characters of an HMAC-SHA-256
+          // under a key drawn once per process and written nowhere.
           {
             en: "Your token stays in your browser's memory only. It is not written to localStorage or cookies, never travels in the URL, and is gone on reload. It is sent solely as an Authorization: Bearer header to mcp.jmrp.io/gitlab, which never writes it to disk or logs it: the server keeps it in memory only while you keep using it — up to an hour after your last call — and then drops it.",
             es: "Tu token se queda solo en la memoria de tu navegador. No se guarda en localStorage ni en cookies, no viaja en la URL y desaparece al recargar. Se envía únicamente como cabecera Authorization: Bearer a mcp.jmrp.io/gitlab, que nunca lo escribe en disco ni lo registra: el servidor lo conserva en memoria solo mientras lo sigas usando —hasta una hora después de tu última llamada— y después lo descarta.",
@@ -723,8 +729,8 @@ export const servers: McpServer[] = [
             es: "Comprobarlo tú mismo: el código de esta página es público, y el del servidor también.",
           },
           {
-            en: "Use the narrowest credential that does what you need. A token scoped to read_api is admitted and gets the read-only part of the surface: it cannot break anything, and it is the right one for trying the server out. api is only needed to reach the actions that write. The server decides per action, not once at the door, so asking for less is served less rather than refused.",
-            es: "Usar la credencial más estrecha que te sirva. Un token con alcance read_api se admite y obtiene la parte de sólo lectura de la superficie: no puede romper nada, y es el adecuado para probar el servidor. api sólo hace falta para llegar a las acciones que escriben. El servidor decide acción por acción, no una vez en la puerta, así que pedir menos te sirve menos en lugar de rechazarte.",
+            en: "Use the narrowest credential that does what you need. A token scoped to read_api is admitted and served exactly the actions GitLab accepts from that scope, which are reads: it cannot break anything, and it is the right one for trying the server out. api is only needed to reach the actions that write. Narrower still is a GitLab fine-grained token, limited to the projects and permissions you pick: the server serves it only what its grant reaches, and turns it away at the door unless the grant includes User: Read. The server decides per action, not once at the door, so asking for less is served less rather than refused.",
+            es: "Usar la credencial más estrecha que te sirva. Un token con alcance read_api se admite y recibe exactamente las acciones que GitLab acepta de ese alcance, que son lecturas: no puede romper nada, y es el adecuado para probar el servidor. api sólo hace falta para llegar a las acciones que escriben. Más estrecho todavía es un token fine-grained de GitLab, limitado a los proyectos y permisos que elijas: el servidor le sirve sólo lo que alcanza su concesión, y lo rechaza en la puerta si la concesión no incluye User: Read. El servidor decide acción por acción, no una vez en la puerta, así que pedir menos te sirve menos en lugar de rechazarte.",
           },
           {
             en: "Revoke it when you are done testing.",
@@ -778,8 +784,9 @@ export const servers: McpServer[] = [
       scopes: ["api"],
       metadataUrl:
         "https://mcp.jmrp.io/.well-known/oauth-protected-resource/gitlab",
-      // Measured on 3.1.0+17f13ba (2026-09-22) and again on the 3.1.0
-      // release, 3.1.0+6cf683b (2026-09-30): `["api"]`. See the type.
+      // Measured on 3.1.0+17f13ba (2026-09-22), on the 3.1.0 release,
+      // 3.1.0+6cf683b (2026-09-30), and on 3.2.0+73f17e6 (2026-10-10):
+      // `["api"]`. See the type.
       advertisedScopes: ["api"],
       callbackPort: 8090,
       // The read-only application behind the inspector's sign-in button.

@@ -4,7 +4,7 @@
     "resourceUri": "gitlab://tools",
     "surface": "dynamic",
     "uriTemplate": "gitlab://tools/{id}",
-    "sourceVersion": "3.1.0",
+    "sourceVersion": "3.2.0",
     "entryCount": 769,
     "actionCount": 768,
     "visibleTools": [
@@ -23,7 +23,7 @@
     ],
     "ttlMs": 300000,
     "cacheScope": "private",
-    "generatedAt": "2026-09-30T20:22:42Z"
+    "generatedAt": "2026-10-10T04:37:06Z"
   },
   "domains": [
     {
@@ -2442,7 +2442,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": false,
-      "description": "Update a group issue board's name and scope (assignee, milestone, labels, weight). Returns: the updated board with its group, milestone, labels, and lists. See also: group.group_board_get, group.group_board_list.",
+      "description": "Update a group issue board's name, and on Premium and Ultimate its scope (assignee, milestone, labels, weight). Returns: the updated board with its group, milestone, labels, and lists. See also: group.group_board_get, group.group_board_list.",
       "required_params": [
         {
           "name": "board_id",
@@ -2536,7 +2536,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": false,
-      "description": "Create a new group label. Returns: the created label with id, name, color, text color, description, counts, priority, and subscription state. See also: group.group_label_list, group.group_label_get, group.group_label_update.",
+      "description": "Create a new group label. Returns: the created label with id, name, color, text color, description, and subscription state. See also: group.group_label_list, group.group_label_get, group.group_label_update.",
       "required_params": [
         {
           "name": "color",
@@ -2576,7 +2576,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": true,
-      "description": "Get a single group label by ID or name. Returns: the label with color, text color, description, issue and merge request counts, priority, and subscription state. See also: group.group_label_list, group.group_label_update, group.group_label_delete.",
+      "description": "Get a single group label by ID or name. Returns: the label with color, text color, description, and subscription state. GitLab sends a label's usage counts only to group.group_label_list with with_counts. See also: group.group_label_list, group.group_label_update, group.group_label_delete.",
       "required_params": [
         {
           "name": "group_id",
@@ -2594,7 +2594,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": true,
-      "description": "List labels in a group with filtering and pagination. Returns: matching labels with color, text color, description, issue and merge request counts, priority, subscription state, and pagination metadata. See also: group.group_label_get, group.group_label_create, group.get.",
+      "description": "List labels in a group with filtering and pagination. Returns: matching labels with color, text color, description, subscription state, the issue and merge request counts when with_counts is true, and pagination metadata. See also: group.group_label_get, group.group_label_create, group.get.",
       "required_params": [
         {
           "name": "group_id",
@@ -2644,7 +2644,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": false,
-      "description": "Update a group label. Returns: the updated label with id, name, color, text color, description, counts, priority, and subscription state. See also: group.group_label_get, group.group_label_list, group.group_label_delete.",
+      "description": "Update a group label. Returns: the updated label with id, name, color, text color, description, and subscription state. See also: group.group_label_get, group.group_label_list, group.group_label_delete.",
       "required_params": [
         {
           "name": "group_id",
@@ -4110,7 +4110,7 @@
       "domain": "issue",
       "destructive": false,
       "read_only": true,
-      "description": "List issues across accessible projects. Returns: visible issues with project context and pagination metadata. See also: issue.list, issue.list_group, search.issues."
+      "description": "List issues across projects: only the ones the caller created when scope is omitted, since GitLab defaults to scope=created_by_me, and every issue the caller can see with scope=all. Returns: the matching issues with project context and pagination metadata. See also: issue.list, issue.list_group, search.issues."
     },
     {
       "id": "issue.list_group",
@@ -4377,7 +4377,7 @@
       "domain": "issue",
       "destructive": false,
       "read_only": true,
-      "description": "Get global issue count statistics across all visible projects. Returns: a statistics object with nested counts (all, opened, closed). See also: issue.statistics_get_group, issue.statistics_get_project, issue.list."
+      "description": "Get global issue count statistics: of the issues the caller created when scope is omitted, since GitLab defaults to scope=created_by_me, and of every issue the caller can see with scope=all. Returns: a statistics object with nested counts (all, opened, closed). See also: issue.statistics_get_group, issue.statistics_get_project, issue.list."
     },
     {
       "id": "issue.statistics_get_group",
@@ -5177,7 +5177,7 @@
       "domain": "merge_request",
       "destructive": false,
       "read_only": true,
-      "description": "Get the approvals of a merge request. Returns: whether it is approved, the approved-by users with timestamps, and whether the calling user has approved and may approve. For approvals required and left, use the approval state. See also: merge_request.approve.",
+      "description": "Get the approvals of a merge request. Returns: whether it is approved, the approved-by users with timestamps, and whether the calling user has approved and may approve, and on an Enterprise Edition instance also the approvals required and left, the rules left to satisfy and the suggested approvers, which Community Edition does not send. For each rule's status, use the approval state. See also: merge_request.approve.",
       "required_params": [
         {
           "name": "merge_request_iid",
@@ -5213,7 +5213,7 @@
       "domain": "merge_request",
       "destructive": false,
       "read_only": false,
-      "description": "Approve a merge request on behalf of the caller. Returns: the approval state with required-approvals count, approved-by count, overall approved flag, the approvers with when each approved, and whether the caller has approved and may approve. See also: merge_request.unapprove, merge_request.merge, merge_request.get.",
+      "description": "Approve a merge request on behalf of the caller. Returns: the approval state with the approved-by count, overall approved flag, the approvers with when each approved, and whether the caller has approved and may approve, and on an Enterprise Edition instance also the approvals required and left and the rules left to satisfy. See also: merge_request.unapprove, merge_request.merge, merge_request.get.",
       "required_params": [
         {
           "name": "merge_request_iid",
@@ -5763,7 +5763,7 @@
       "domain": "merge_request",
       "destructive": false,
       "read_only": true,
-      "description": "List merge requests across all accessible projects. Returns: visible MRs with project context, state, branches, and pagination metadata. See also: merge_request.list, merge_request.list_group, search.merge_requests."
+      "description": "List merge requests across projects: only the ones the caller created when scope is omitted, since GitLab defaults to scope=created_by_me, and every merge request the caller can see with scope=all. Returns: the matching MRs with project context, state, branches, and pagination metadata. See also: merge_request.list, merge_request.list_group, search.merge_requests."
     },
     {
       "id": "merge_request.list_group",
@@ -6009,7 +6009,7 @@
       "domain": "merge_request",
       "destructive": true,
       "read_only": false,
-      "description": "Remove the caller's approval from a merge request. Returns: a success confirmation naming the MR and project. See also: merge_request.approve, merge_request.get.",
+      "description": "Remove the caller's approval from a merge request. Returns: the approval state left after the withdrawal, in the shape the approve answers with: the approved-by count and users, the overall approved flag, whether the caller has approved and may approve, and on an Enterprise Edition instance the approvals required and left. See also: merge_request.approve, merge_request.get.",
       "required_params": [
         {
           "name": "merge_request_iid",
@@ -7223,7 +7223,7 @@
       "domain": "pipeline",
       "destructive": false,
       "read_only": true,
-      "description": "Get the latest pipeline for a ref. Returns: full pipeline metadata for the most recent run. See also: pipeline.get, pipeline.list, job.list_project.",
+      "description": "Get the latest pipeline of a ref (the default branch when ref is omitted): the one GitLab ran for the commit at its head, or, when that commit has none on the ref, the newest on the ref (the first under any filters or ordering passed). Returns: full pipeline metadata, plus head_sha and fallback_note when the pipeline ran for an earlier commit. See also: pipeline.get, pipeline.list, job.list_project.",
       "required_params": [
         {
           "name": "project_id",
@@ -7947,7 +7947,7 @@
       "domain": "project",
       "destructive": false,
       "read_only": false,
-      "description": "Create a board list (column) scoped to a label, assignee, milestone, or iteration. Returns: the created list with its scope, position, and issue limits. See also: project.board_list_get, project.board_list_update, project.board_list_list.",
+      "description": "Create a board list (column) scoped to a label, or on Premium and Ultimate to an assignee, milestone, or iteration. Returns: the created list with its scope, position, and issue limits. See also: project.board_list_get, project.board_list_update, project.board_list_list.",
       "required_params": [
         {
           "name": "board_id",
@@ -8053,7 +8053,7 @@
       "domain": "project",
       "destructive": false,
       "read_only": false,
-      "description": "Update an issue board's name, scope (assignee, milestone, labels, weight), or list visibility. Returns: the updated board with its project, scope, and lists. See also: project.board_get, project.board_delete, project.board_list.",
+      "description": "Update an issue board's name or list visibility, and on Premium and Ultimate its scope (assignee, milestone, labels, weight). Returns: the updated board with its project, scope, and lists. See also: project.board_get, project.board_delete, project.board_list.",
       "required_params": [
         {
           "name": "board_id",
@@ -8673,7 +8673,7 @@
       "domain": "project",
       "destructive": false,
       "read_only": false,
-      "description": "Create a project label with required name and hex color, plus optional description, priority, and archived state. Returns: the created label (id, name, color, text_color, description, counts, priority, subscribed, is_project_label, archived). See also: project.label_get, project.label_update, issue.list.",
+      "description": "Create a project label with required name and hex color, plus optional description, priority, and archived state. Returns: the created label (id, name, color, text_color, description, priority, subscribed, is_project_label, archived). See also: project.label_get, project.label_update, issue.list.",
       "required_params": [
         {
           "name": "color",
@@ -8713,7 +8713,7 @@
       "domain": "project",
       "destructive": false,
       "read_only": true,
-      "description": "Get a single project label by ID or name. Returns: id, name, color, text_color, description, open/closed issue counts, open MR count, priority, subscribed, is_project_label, and archived. See also: project.label_list, project.label_update, project.label_delete.",
+      "description": "Get a single project label by ID or name. Returns: id, name, color, text_color, description, priority, subscribed, is_project_label, and archived. GitLab sends a label's usage counts only to project.label_list with with_counts. See also: project.label_list, project.label_update, project.label_delete.",
       "required_params": [
         {
           "name": "label_id",
@@ -8731,7 +8731,7 @@
       "domain": "project",
       "destructive": false,
       "read_only": true,
-      "description": "List labels in a project with optional search, counts, ancestor-group inclusion, ordering, and offset or keyset pagination. Returns: id, name, color, text_color, description, open/closed issue counts, open MR count, priority, subscribed, is_project_label, archived, and pagination metadata. See also: project.label_get, project.label_create, issue.list.",
+      "description": "List labels in a project with optional search, counts, ancestor-group inclusion, ordering, and offset or keyset pagination. Returns: id, name, color, text_color, description, priority, subscribed, is_project_label, archived, the open/closed issue and open MR counts when with_counts is true, and pagination metadata. See also: project.label_get, project.label_create, issue.list.",
       "required_params": [
         {
           "name": "project_id",
@@ -8799,7 +8799,7 @@
       "domain": "project",
       "destructive": false,
       "read_only": false,
-      "description": "Update an existing project label (new_name, color, description, priority, archived). Returns: the updated label (id, name, color, text_color, description, counts, priority, subscribed, is_project_label, archived). See also: project.label_get, project.label_list, project.label_delete.",
+      "description": "Update an existing project label (new_name, color, description, priority, archived). Returns: the updated label (id, name, color, text_color, description, priority, subscribed, is_project_label, archived). See also: project.label_get, project.label_list, project.label_delete.",
       "required_params": [
         {
           "name": "label_id",
