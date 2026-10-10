@@ -2,13 +2,15 @@
  * The fine-grained line of an action, as the domain pages and their Markdown
  * twins print it.
  *
- * Each case is a shape the committed snapshot actually holds (3.2.0, GitLab
- * 19.4.1): one permission at one boundary, two permissions on one line, one
- * permission at either of two boundaries, two lines one alternative needs,
- * alternatives of which any is enough, an alternative the grant does not
- * judge, the empty alternative `repository.archive` has, and a denial. The
- * reading is the upstream table's: a line holds all its permissions at one of
- * its boundaries, any one alternative is enough.
+ * The cases are the shapes the committed snapshot holds (3.2.0, GitLab
+ * 19.4.1) — one permission at one boundary, two on one line, one at any of
+ * several boundaries, two lines at the same boundary, the same line published
+ * as one alternative per boundary (the search actions), an alternative the
+ * grant does not judge, the empty alternative `repository.archive` has, a
+ * denial — plus the ones that pin where the folding must stop. The reading is
+ * the upstream table's: a line holds all its permissions at one of its
+ * boundaries, an alternative holds all its lines, any one alternative is
+ * enough; folding may shorten the sentence, never change what it requires.
  */
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -55,24 +57,78 @@ const cases = [
     es: "Access Request: Delete en grupo o usuario",
   },
   {
-    name: "two lines one alternative needs",
+    name: "two lines at the same single boundary read as one",
     entry: oneOf({
       needs: [
         line(["Work Item: Read"], ["group"]),
         line(["Work Item: Delete"], ["group"]),
       ],
     }),
-    en: "Work Item: Read at group + Work Item: Delete at group",
-    es: "Work Item: Read en grupo + Work Item: Delete en grupo",
+    en: "Work Item: Read and Work Item: Delete at group",
+    es: "Work Item: Read y Work Item: Delete en grupo",
+  },
+  {
+    name: "two lines at different boundaries stay two lines",
+    entry: oneOf({
+      needs: [line(["A: Read"], ["project"]), line(["B: Read"], ["group"])],
+    }),
+    en: "A: Read at project + B: Read at group",
+    es: "A: Read en proyecto + B: Read en grupo",
+  },
+  {
+    // Each line may be met at a different boundary; one line would demand
+    // both at the same one, which says less than the server does.
+    name: "two lines with several boundaries are never joined",
+    entry: oneOf({
+      needs: [
+        line(["A: Read"], ["group", "user"]),
+        line(["B: Read"], ["group", "user"]),
+      ],
+    }),
+    en: "A: Read at group or user + B: Read at group or user",
+    es: "A: Read en grupo o usuario + B: Read en grupo o usuario",
+  },
+  {
+    name: "one permission at any of three boundaries",
+    entry: oneOf({
+      needs: [line(["Global Search: Use"], ["project", "group", "user"])],
+    }),
+    en: "Global Search: Use at project, group or user",
+    es: "Global Search: Use en proyecto, grupo o usuario",
   },
   {
     name: "alternatives, any one enough",
     entry: oneOf(
-      { needs: [line(["Global Search: Use"], ["project"])] },
-      { needs: [line(["Global Search: Use"], ["instance"])] },
+      { needs: [line(["A: Read"], ["project"])] },
+      { needs: [line(["B: Read"], ["group"])] },
     ),
-    en: "Global Search: Use at project or Global Search: Use at instance",
-    es: "Global Search: Use en proyecto o Global Search: Use en instancia",
+    en: "A: Read at project or B: Read at group",
+    es: "A: Read en proyecto o B: Read en grupo",
+  },
+  {
+    // search.code on 3.2.0: the server publishes three alternatives, and a
+    // line is held at any one of its boundaries, so they say one line.
+    name: "alternatives that differ only in the boundary fold into one line",
+    entry: oneOf(
+      { needs: [line(["Global Search: Use"], ["project"])] },
+      { needs: [line(["Global Search: Use"], ["group"])] },
+      { needs: [line(["Global Search: Use"], ["user"])] },
+    ),
+    en: "Global Search: Use at project, group or user",
+    es: "Global Search: Use en proyecto, grupo o usuario",
+  },
+  {
+    name: "folding leaves other permissions and two-line alternatives alone",
+    entry: oneOf(
+      { needs: [line(["A: Read"], ["project"])] },
+      { needs: [line(["B: Read"], ["group"])] },
+      { needs: [line(["A: Read"], ["group"])] },
+      {
+        needs: [line(["A: Read"], ["user"]), line(["C: Read"], ["project"])],
+      },
+    ),
+    en: "A: Read at project or group or B: Read at group or A: Read at user + C: Read at project",
+    es: "A: Read en proyecto o grupo o B: Read en grupo o A: Read en usuario + C: Read en proyecto",
   },
   {
     name: "a request the grant does not judge",

@@ -11,6 +11,17 @@
  * alternative parameters: "+" between the lines one alternative needs, "or"
  * between alternatives.
  *
+ * Alternatives that are one line each and differ only in where it is held are
+ * written as that one line with all their boundaries: the server publishes
+ * `search.code` as three alternatives, `Global Search: Use` at project, at
+ * group, at user, and "Global Search: Use at project, group or user" says
+ * exactly the same, since a line is held at any one of its boundaries.
+ * Likewise, the lines of one alternative held at the same single boundary are
+ * written as one line with all their permissions: "Work Item: Read and Work
+ * Item: Delete at group" for the two lines `group.group_milestone_delete`
+ * needs. Lines with several boundaries are never joined that way, because
+ * each may be held at a different one.
+ *
  * One function produces the sequence and each rendering only decides how a
  * permission name looks, so the page and the twin cannot say two different
  * things. Pure, no node:fs, and it takes the page's strings as an argument
@@ -31,27 +42,86 @@ export type FineGrainedStrings = (typeof serversPage)[Lang];
 export type FineGrainedSegment = string | { permission: string };
 
 /**
- * "A", "A and B", "A, B and C": the permissions one line holds together.
+ * "A", "A and B", "A, B and C": commas between the items, the connective
+ * before the last one.
  *
- * @param permissions The line's permissions, in GitLab's words.
- * @param and The connective, in the page's language.
- * @returns The segments, the names kept apart from the punctuation.
+ * @param items The items, already as segments.
+ * @param last The connective before the last item, in the page's language.
+ * @returns The segments, the items kept apart from the punctuation.
  */
-function permissionList(
-  permissions: string[],
-  and: string,
-): FineGrainedSegment[] {
-  return permissions.flatMap((permission, i) => {
-    const name = { permission };
-    if (i === 0) return [name];
-    const joiner = i === permissions.length - 1 ? ` ${and} ` : ", ";
-    return [joiner, name];
+function list(items: FineGrainedSegment[], last: string): FineGrainedSegment[] {
+  return items.flatMap((item, i) => {
+    if (i === 0) return [item];
+    const joiner = i === items.length - 1 ? ` ${last} ` : ", ";
+    return [joiner, item];
   });
 }
 
 /**
+ * Folds the lines of one alternative held at the same single boundary into
+ * one line with all their permissions, where the first of them stood. Lines
+ * with several boundaries are kept apart: each may be met at a different one,
+ * and one line would demand they all be met at the same.
+ *
+ * @param needs The alternative's lines, as the server published them.
+ * @returns The same lines, with those folded.
+ */
+function foldLines(needs: FineGrainedNeed[]): FineGrainedNeed[] {
+  const folded: FineGrainedNeed[] = [];
+  const byBoundary = new Map<string, FineGrainedNeed>();
+  for (const need of needs) {
+    const line = need.at.length === 1 ? byBoundary.get(need.at[0]) : undefined;
+    if (line) {
+      for (const p of need.permissions) {
+        if (!line.permissions.includes(p)) line.permissions.push(p);
+      }
+      continue;
+    }
+    const copy = { permissions: [...need.permissions], at: [...need.at] };
+    if (need.at.length === 1) byBoundary.set(need.at[0], copy);
+    folded.push(copy);
+  }
+  return folded;
+}
+
+/**
+ * Folds the alternatives that are one line each and hold the same
+ * permissions into one line with their boundaries together, each group where
+ * its first member stood. Everything else is kept as it is.
+ *
+ * @param alternatives The entry's alternatives, as the server published them.
+ * @returns The same alternatives, with those lines folded.
+ */
+function foldBoundaries(
+  alternatives: FineGrainedAlternative[],
+): FineGrainedAlternative[] {
+  const folded: FineGrainedAlternative[] = [];
+  const byPermissions = new Map<string, FineGrainedNeed>();
+  for (const alternative of alternatives) {
+    if (
+      "not_judged_by_grant" in alternative ||
+      alternative.needs.length !== 1
+    ) {
+      folded.push(alternative);
+      continue;
+    }
+    const [need] = alternative.needs;
+    const key = JSON.stringify(need.permissions);
+    const line = byPermissions.get(key);
+    if (line) {
+      for (const b of need.at) if (!line.at.includes(b)) line.at.push(b);
+      continue;
+    }
+    const copy = { permissions: need.permissions, at: [...need.at] };
+    byPermissions.set(key, copy);
+    folded.push({ needs: [copy] });
+  }
+  return folded;
+}
+
+/**
  * One line: "Project: Read at project", "Access Request: Delete at group or
- * user".
+ * user", "Global Search: Use at project, group or user".
  *
  * @param need The line.
  * @param t The page's strings.
@@ -61,12 +131,12 @@ function lineSegments(
   need: FineGrainedNeed,
   t: FineGrainedStrings,
 ): FineGrainedSegment[] {
-  const where = need.at
-    .map((b) => t.domainFineGrainedBoundary[b])
-    .join(` ${t.domainAnyOfJoiner} `);
+  const names = need.permissions.map((permission) => ({ permission }));
+  const where = need.at.map((b) => t.domainFineGrainedBoundary[b]);
   return [
-    ...permissionList(need.permissions, t.domainFineGrainedAnd),
-    ` ${t.domainFineGrainedAt} ${where}`,
+    ...list(names, t.domainFineGrainedAnd),
+    ` ${t.domainFineGrainedAt} `,
+    ...list(where, t.domainAnyOfJoiner),
   ];
 }
 
@@ -104,10 +174,26 @@ export function fineGrainedSegments(
   t: FineGrainedStrings,
 ): FineGrainedSegment[] {
   if ("denied" in entry) return [t.domainFineGrainedDenied];
-  return entry.any_of.flatMap((alternative, i) => [
+  const alternatives = entry.any_of.map((alternative) =>
+    "needs" in alternative
+      ? { needs: foldLines(alternative.needs) }
+      : alternative,
+  );
+  const segments = foldBoundaries(alternatives).flatMap((alternative, i) => [
     ...(i > 0 ? [` ${t.domainAnyOfJoiner} `] : []),
     ...alternativeSegments(alternative, t),
   ]);
+  // Neighbouring runs of text as one: the renderings get one string between
+  // two names, however many pieces built it.
+  return segments.reduce<FineGrainedSegment[]>((out, segment) => {
+    const prev = out.at(-1);
+    if (typeof segment === "string" && typeof prev === "string") {
+      out[out.length - 1] = prev + segment;
+    } else {
+      out.push(segment);
+    }
+    return out;
+  }, []);
 }
 
 /**
