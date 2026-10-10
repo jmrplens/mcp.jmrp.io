@@ -29,7 +29,7 @@ import {
 export const getStaticPaths = (() =>
   actionsDomainPaths()) satisfies GetStaticPaths;
 
-const { server, domain, actions, domainOf } = Astro.props;
+const { server, domain, actions, domainOf, fineGrained } = Astro.props;
 const lang = getLangFromUrl(Astro.url);
 const sp = serversPage[lang];
 
@@ -74,5 +74,6 @@ const description = sp.domainMetaDescription
     actions={actions}
     tokenNote={tokenNote}
     domainOf={domainOf}
+    fineGrained={fineGrained}
   />
 </Base>

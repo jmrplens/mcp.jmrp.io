@@ -307,6 +307,38 @@ export const serversPage = {
     domainAnyOfJoiner: "or",
     /** Label of the alias marker; the target id follows as a link. */
     domainAliasOf: "alias of",
+    /**
+     * ---- Fine-grained token line (gitlab 3.2.0+) ---------------------------
+     *
+     * What a GitLab fine-grained personal access token must hold for each
+     * action, from the `fine_grained` block of its gitlab://tools/{id}
+     * detail (see scripts/sync-server-surface.mjs). Permission names are
+     * GitLab's own and stay in English on both editions, like the
+     * descriptions; the boundaries and the connective words are translated.
+     */
+    domainFineGrainedLabel: "Fine-grained token",
+    /** Sits under the intro; `{version}` is the GitLab release judged at. */
+    domainFineGrainedNote:
+      "Each entry also says what a GitLab fine-grained personal access token needs to run it, as GitLab {version} declares it: every permission of one line, at one of the boundaries named. Where there are alternatives, any one is enough.",
+    /** Between two permissions of the same line: "A and B at project". */
+    domainFineGrainedAnd: "and",
+    /** Before the boundaries of a line: "Project: Read at project". */
+    domainFineGrainedAt: "at",
+    /** One alternative that needs no permission (`repository.archive`). */
+    domainFineGrainedNone: "needs no permission",
+    /** An alternative GitLab authenticates by another token or not at all. */
+    domainFineGrainedNotJudged:
+      "not judged by the grant (GitLab authenticates this request another way)",
+    /** An action no fine-grained token can run at this release. */
+    domainFineGrainedDenied:
+      "none can run it at this GitLab release, which declares nothing for it; use a classic token",
+    /** The four boundaries a permission is held at. */
+    domainFineGrainedBoundary: {
+      project: "project",
+      group: "group",
+      user: "user",
+      instance: "instance",
+    },
   },
   es: {
     /** Ver `en.metaTitleIndex`. */
@@ -510,5 +542,22 @@ export const serversPage = {
     domainAnyOfLabel: "Al menos uno de",
     domainAnyOfJoiner: "o",
     domainAliasOf: "alias de",
+    /** Ver `en.domainFineGrainedLabel`. */
+    domainFineGrainedLabel: "Token fine-grained",
+    domainFineGrainedNote:
+      "Cada entrada dice también qué necesita un token de acceso personal fine-grained de GitLab para ejecutarla, tal como lo declara GitLab {version}: todos los permisos de una línea, en uno de los ámbitos indicados. Cuando hay alternativas, basta con cualquiera.",
+    domainFineGrainedAnd: "y",
+    domainFineGrainedAt: "en",
+    domainFineGrainedNone: "no necesita ningún permiso",
+    domainFineGrainedNotJudged:
+      "la concesión no lo juzga (GitLab autentica esta petición de otra forma)",
+    domainFineGrainedDenied:
+      "ninguno puede ejecutarla en esta versión de GitLab, que no declara nada para ella; usa un token clásico",
+    domainFineGrainedBoundary: {
+      project: "proyecto",
+      group: "grupo",
+      user: "usuario",
+      instance: "instancia",
+    },
   },
 } as const;

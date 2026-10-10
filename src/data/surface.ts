@@ -159,6 +159,52 @@ export interface GitlabActionsSnapshot {
   entries: GitlabActionEntry[];
 }
 
+/** Where a fine-grained permission is held. */
+export type FineGrainedBoundary = "project" | "group" | "user" | "instance";
+
+/** One line: every permission, held at ONE of the boundaries. */
+export interface FineGrainedNeed {
+  permissions: string[];
+  at: FineGrainedBoundary[];
+}
+
+/**
+ * One alternative of an action: lines that must all hold (an empty list is
+ * "no permission"), or a request the grant does not judge.
+ */
+export type FineGrainedAlternative =
+  { needs: FineGrainedNeed[] } | { not_judged_by_grant: true };
+
+/**
+ * What a GitLab fine-grained personal access token needs for one action:
+ * alternatives of which any one is enough, or a denial, when GitLab declares
+ * nothing for the action at the release named in the snapshot.
+ */
+export type FineGrainedEntry =
+  | { any_of: FineGrainedAlternative[] }
+  | { denied: { cause: string; element: string; effect: string } };
+
+/** The committed `gitlab-fine-grained.json` snapshot. */
+export interface FineGrainedSnapshot {
+  meta: {
+    endpoint: string;
+    uriTemplate: string;
+    /** gitlab-mcp-server release the details were read from. */
+    sourceVersion: string;
+    /** GitLab release the permissions are declared at. */
+    gitlabVersion: string;
+    actionCount: number;
+    generatedAt: string;
+  };
+  actions: Record<string, FineGrainedEntry>;
+}
+
+/** The fine-grained data one domain page renders. */
+export interface DomainFineGrained {
+  gitlabVersion: string;
+  actions: Record<string, FineGrainedEntry>;
+}
+
 const SURFACE_DIR = path.join(process.cwd(), "src", "data", "surface");
 
 /**
@@ -395,6 +441,97 @@ export function getGitlabActions(): GitlabActionsSnapshot | undefined {
     GitlabActionsSnapshot | undefined;
 }
 
+const BOUNDARIES = new Set(["project", "group", "user", "instance"]);
+
+const isStringList = (v: unknown): v is string[] =>
+  Array.isArray(v) && v.length > 0 && v.every(isString);
+
+/** A line the extractor would have written. */
+function isNeed(v: unknown): boolean {
+  return (
+    isRecord(v) &&
+    isStringList(v.permissions) &&
+    isStringList(v.at) &&
+    v.at.every((b) => BOUNDARIES.has(b))
+  );
+}
+
+/** An alternative the extractor would have written. */
+function isAlternative(v: unknown): boolean {
+  if (!isRecord(v)) return false;
+  if (v.not_judged_by_grant === true) return true;
+  return Array.isArray(v.needs) && v.needs.every(isNeed);
+}
+
+/** One action's entry: alternatives, or a denial with its three strings. */
+function isFineGrainedEntry(v: unknown): boolean {
+  if (!isRecord(v)) return false;
+  if (isRecord(v.denied)) {
+    return [v.denied.cause, v.denied.element, v.denied.effect].every(isString);
+  }
+  return (
+    Array.isArray(v.any_of) &&
+    v.any_of.length > 0 &&
+    v.any_of.every(isAlternative)
+  );
+}
+
+/**
+ * Shape check for the fine-grained snapshot: the header the pages read and
+ * every entry, since a page renders each one it is handed.
+ */
+function validateFineGrained(parsed: unknown): string | undefined {
+  if (!isRecord(parsed)) return "root is not an object";
+  const { meta, actions } = parsed;
+  if (
+    !isRecord(meta) ||
+    !isString(meta.sourceVersion) ||
+    !isString(meta.gitlabVersion) ||
+    !isNumber(meta.actionCount)
+  ) {
+    return "meta is missing or badly typed";
+  }
+  if (!isRecord(actions)) return "actions is not an object";
+  const bad = Object.entries(actions).find(([, v]) => !isFineGrainedEntry(v));
+  return bad ? `entry ${bad[0]} is badly shaped` : undefined;
+}
+
+/**
+ * The fine-grained permissions of every gitlab action, or `undefined` when
+ * the snapshot is absent or invalid.
+ */
+export function getGitlabFineGrained(): FineGrainedSnapshot | undefined {
+  return loadSnapshot("gitlab-fine-grained.json", validateFineGrained) as
+    FineGrainedSnapshot | undefined;
+}
+
+/**
+ * The fine-grained data for one domain's actions, or `undefined` when there
+ * is none to show. Only a snapshot read from the SAME gitlab-mcp-server
+ * release as the catalog is used: permissions from one release beside
+ * actions from another would be a page that contradicts itself.
+ *
+ * @param catalog The action catalog the domain page renders.
+ * @param ids The ids of the domain's actions.
+ * @returns The GitLab release and the entries for those ids.
+ */
+export function domainFineGrained(
+  catalog: GitlabActionsSnapshot,
+  ids: string[],
+): DomainFineGrained | undefined {
+  const snapshot = getGitlabFineGrained();
+  if (snapshot?.meta.sourceVersion !== catalog.meta.sourceVersion) {
+    return undefined;
+  }
+  const actions = Object.fromEntries(
+    ids.flatMap((id) => {
+      const entry = snapshot.actions[id];
+      return entry ? [[id, entry]] : [];
+    }),
+  );
+  return { gitlabVersion: snapshot.meta.gitlabVersion, actions };
+}
+
 /**
  * Detail URI for one action, derived from the manifest's own
  * `uri_template` — never hardcoded, so a future template change upstream
@@ -443,6 +580,11 @@ export interface ActionsDomainPath {
      * it from the id's prefix: `issue.list_group` lives in `group`.
      */
     domainOf: Record<string, string>;
+    /**
+     * What a fine-grained token needs for each of these actions, when the
+     * snapshot is from the catalog's release (see `domainFineGrained`).
+     */
+    fineGrained?: DomainFineGrained;
   };
 }
 
@@ -468,9 +610,16 @@ export function actionsDomainPaths(): ActionsDomainPath[] {
       );
       return catalog.domains.map((d) => {
         const actions = catalog.entries.filter((e) => e.domain === d.domain);
+        const fineGrained =
+          server === "gitlab"
+            ? domainFineGrained(
+                catalog,
+                actions.map((a) => a.id),
+              )
+            : undefined;
         return {
           params: { server, domain: d.domain },
-          props: { server, domain: d.domain, actions, domainOf },
+          props: { server, domain: d.domain, actions, domainOf, fineGrained },
         };
       });
     });

@@ -141,3 +141,7 @@ overrides:
     language: en,es
   - filename: "tests/e2e/inspector-ui.spec.ts"
     language: en,es
+  # The fine-grained line is asserted in both languages: its Spanish cases are
+  # the text the /es/ domain pages print, not prose to translate.
+  - filename: "tests/unit/fine-grained.test.mjs"
+    language: en,es

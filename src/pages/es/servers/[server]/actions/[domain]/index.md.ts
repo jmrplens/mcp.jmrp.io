@@ -36,5 +36,6 @@ export const GET = ({
       props.actions,
       props.domainOf,
       "es",
+      props.fineGrained,
     ),
   );
