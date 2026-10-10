@@ -15,9 +15,14 @@
  * as explicit `<br />` because the post-build minifier collapses raw
  * newlines in text nodes (see ServerPage's `paragraphLines`).
  */
-import type { GitlabActionEntry, GitlabActionParam } from "../../data/surface";
+import type {
+  DomainFineGrained,
+  GitlabActionEntry,
+  GitlabActionParam,
+} from "../../data/surface";
 import type { Lang } from "../../i18n/ui";
 import { serversPage } from "../../i18n/ui/servers-page";
+import { fineGrainedSegments } from "../../lib/fine-grained";
 import { serverPagePath } from "../../lib/seo";
 import DomainActionsFilter from "../DomainActionsFilter";
 
@@ -37,9 +42,15 @@ interface Props {
    * because the descriptions name actions too ("See also: package.list, …").
    */
   domainOf: Record<string, string>;
+  /**
+   * What a GitLab fine-grained token needs for each action, when the route
+   * has it for the catalog's release; absent, the line is simply not drawn.
+   */
+  fineGrained?: DomainFineGrained;
 }
 
-const { lang, serverId, domain, actions, tokenNote, domainOf } = Astro.props;
+const { lang, serverId, domain, actions, tokenNote, domainOf, fineGrained } =
+  Astro.props;
 const sp = serversPage[lang];
 
 const localePrefix = lang === "es" ? "/es/" : "/";
@@ -141,6 +152,14 @@ function lineSegments(line: string, selfId: string): Segment[] {
     </span>
   </p>
   <p class="domain-note">{tokenNote}</p>
+  {fineGrained && (
+    <p class="domain-note">
+      {sp.domainFineGrainedNote.replace(
+        "{version}",
+        () => fineGrained.gitlabVersion,
+      )}
+    </p>
+  )}
   <p class="domain-back">
     <a href={cardHref}>{sp.domainBackToCard}</a>
   </p>
@@ -270,6 +289,21 @@ function lineSegments(line: string, selfId: string): Segment[] {
                   ))}
                 </p>
               )}
+            {fineGrained?.actions[action.id] && (
+              <p class="action-params">
+                <strong>{sp.domainFineGrainedLabel}:</strong>{" "}
+                {fineGrainedSegments(fineGrained.actions[action.id], sp).map(
+                  (segment) =>
+                    typeof segment === "string" ? (
+                      segment
+                    ) : (
+                      <code lang={lang === "es" ? "en" : undefined}>
+                        {segment.permission}
+                      </code>
+                    ),
+                )}
+              </p>
+            )}
           </div>
         </details>
       </li>

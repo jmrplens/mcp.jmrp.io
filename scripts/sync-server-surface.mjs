@@ -2,7 +2,8 @@
 /**
  * Refreshes the committed snapshots of each MCP's live "surface"
  * (src/data/surface/*.json): the result of `server/discover` for libgen and
- * gitlab, and the reduced `gitlab://tools` action manifest.
+ * gitlab, the reduced `gitlab://tools` action manifest, and the fine-grained
+ * token permissions of each action from its `gitlab://tools/{id}` detail.
  *
  * SAME PATTERN as src/lib/identity.ts and scripts/sync-server-cards.sh: the
  * live source is queried on every build and the committed snapshot is the
@@ -661,8 +662,219 @@ async function collectGitlabActions(
   }
 }
 
+// ── gitlab · the fine-grained permissions of every action ───────────────────
+//
+// Since 3.2.0 each action's detail resource, gitlab://tools/{id}, carries a
+// `fine_grained` block: what a GitLab fine-grained personal access token must
+// hold for the action, as the GitLab release named in it declares. The
+// aggregate manifest does not carry it, so it is one resources/read per
+// action — 768 today — paced by the server's own limit on resources/read
+// (-42900), which lets a burst through and then refuses until it refills.
+// Measured on 2026-10-10: about 13 s with four in flight.
+//
+// The block only changes with a release, so the details are read again only
+// when the committed snapshot is from another sourceVersion or covers a
+// different set of actions; every other build costs nothing.
+
+const FINE_GRAINED_FILE = "gitlab-fine-grained.json";
+const DETAIL_CONCURRENCY = 4;
+const RATE_LIMITED = -42_900;
+const RATE_LIMIT_RETRIES = 40;
+const RATE_LIMIT_PAUSE_MS = 500;
+const BOUNDARIES = new Set(["project", "group", "user", "instance"]);
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const isNonEmptyStringArray = (v) =>
+  Array.isArray(v) && v.length > 0 && v.every(isNonEmptyString);
+
 /**
- * Orchestrates the three extractions. Each one degrades to a soft failure on
+ * One permission line of an alternative: every permission, at one of the
+ * boundaries. Throws on anything else, so an upstream change in shape stops
+ * the snapshot instead of publishing half of it.
+ */
+function projectNeed(need) {
+  if (
+    !isPlainObject(need) ||
+    !isNonEmptyStringArray(need.permissions) ||
+    !isNonEmptyStringArray(need.at) ||
+    need.at.some((b) => !BOUNDARIES.has(b))
+  ) {
+    throw new Error("fine_grained: a line without permissions or boundaries");
+  }
+  return { permissions: [...need.permissions], at: [...need.at] };
+}
+
+/**
+ * One alternative: a list of lines, a request the grant does not judge, or
+ * an empty object, which is an alternative that needs no permission at all
+ * (`repository.archive` on 3.2.0; the upstream table prints "no permission").
+ */
+function projectAlternative(alt) {
+  if (isPlainObject(alt) && alt.not_judged_by_grant === true) {
+    return { not_judged_by_grant: true };
+  }
+  if (isPlainObject(alt) && Object.keys(alt).length === 0) {
+    return { needs: [] };
+  }
+  if (
+    !isPlainObject(alt) ||
+    !Array.isArray(alt.needs) ||
+    alt.needs.length === 0
+  ) {
+    throw new Error("fine_grained: an alternative with no lines");
+  }
+  return { needs: alt.needs.map(projectNeed) };
+}
+
+/**
+ * The `fine_grained` block of one action, reduced by allowlist to what the
+ * site renders. Returns the projection and the GitLab release it is judged at.
+ */
+function projectFineGrained(block) {
+  if (!isPlainObject(block) || !isNonEmptyString(block.gitlab_version)) {
+    throw new Error("fine_grained: no block, or no gitlab_version");
+  }
+  const d = block.denied;
+  if (isPlainObject(d)) {
+    if (![d.cause, d.element, d.effect].every(isNonEmptyString)) {
+      throw new Error("fine_grained: a denial without cause, element, effect");
+    }
+    const denied = { cause: d.cause, element: d.element, effect: d.effect };
+    return { version: block.gitlab_version, entry: { denied } };
+  }
+  if (!Array.isArray(block.any_of) || block.any_of.length === 0) {
+    throw new Error("fine_grained: neither any_of nor denied");
+  }
+  return {
+    version: block.gitlab_version,
+    entry: { any_of: block.any_of.map(projectAlternative) },
+  };
+}
+
+/** resources/read of one action's detail, waiting out the rate limit. */
+async function readActionDetail(endpoint, id) {
+  const uri = `gitlab://tools/${id}`;
+  for (let attempt = 0; ; attempt++) {
+    const { raw, rpc } = await postRpc(
+      endpoint,
+      "resources/read",
+      { uri, _meta: discoverParams()._meta },
+      { Authorization: `Bearer ${GITLAB_TOKEN}`, "Mcp-Name": uri },
+    );
+    if (rpc.error?.code === RATE_LIMITED && attempt < RATE_LIMIT_RETRIES) {
+      await sleep(RATE_LIMIT_PAUSE_MS);
+      continue;
+    }
+    if (rpc.error) {
+      throw new Error(
+        `${uri}: JSON-RPC ${rpc.error.code}: ${rpc.error.message}`,
+      );
+    }
+    // Same envelope as the manifest's: contents[0].text holds the JSON.
+    const { manifest: detail } = parseManifestEnvelope(rpc.result);
+    return { raw, detail };
+  }
+}
+
+/**
+ * Every id's projection, read DETAIL_CONCURRENCY at a time. Each worker takes
+ * the next id and chains itself, the same sliding window as
+ * mapWithConcurrency.
+ */
+async function readAllFineGrained(endpoint, ids) {
+  const entries = {};
+  const raws = [];
+  const versions = new Set();
+  let next = 0;
+  const worker = async () => {
+    if (next >= ids.length) return;
+    const id = ids[next++];
+    const { raw, detail } = await readActionDetail(endpoint, id);
+    const { version, entry } = projectFineGrained(detail.fine_grained);
+    raws.push(raw);
+    versions.add(version);
+    entries[id] = entry;
+    return worker();
+  };
+  await Promise.all(Array.from({ length: DETAIL_CONCURRENCY }, worker));
+  if (versions.size !== 1) {
+    throw new Error(
+      `fine_grained: ${versions.size} GitLab releases in one catalog`,
+    );
+  }
+  return { entries, raws, gitlabVersion: [...versions][0] };
+}
+
+/** The committed snapshot already describes this release and these ids. */
+function fineGrainedIsCurrent(sourceVersion, ids) {
+  try {
+    const committed = JSON.parse(
+      fs.readFileSync(path.join(SURFACE_DIR, FINE_GRAINED_FILE), "utf8"),
+    );
+    const have = Object.keys(committed.actions ?? {}).sort(byteCompare);
+    return (
+      committed.meta?.sourceVersion === sourceVersion &&
+      JSON.stringify(have) === JSON.stringify(ids)
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * gitlab · the fine-grained snapshot, for the ids of the manifest this pass
+ * read. Soft failure on its own, like every other collector.
+ */
+async function collectGitlabFineGrained(pending, endpoint, generatedAt) {
+  const actions = pending.find((p) =>
+    p.target.endsWith("gitlab-actions.json"),
+  )?.snapshot;
+  if (!actions) {
+    softWarn(FINE_GRAINED_FILE, "no manifest read in this pass");
+    return;
+  }
+  const { sourceVersion } = actions.meta;
+  const ids = actions.entries.map((e) => e.id).sort(byteCompare);
+  if (fineGrainedIsCurrent(sourceVersion, ids)) {
+    console.log(`${TAG} = ${FINE_GRAINED_FILE}: same release, not read again`);
+    return;
+  }
+  try {
+    const started = Date.now();
+    const { entries, raws, gitlabVersion } = await readAllFineGrained(
+      endpoint,
+      ids,
+    );
+    const sorted = Object.fromEntries(
+      Object.keys(entries)
+        .sort(byteCompare)
+        .map((id) => [id, entries[id]]),
+    );
+    pending.push({
+      target: path.join(SURFACE_DIR, FINE_GRAINED_FILE),
+      snapshot: {
+        meta: {
+          endpoint,
+          uriTemplate: actions.meta.uriTemplate,
+          sourceVersion,
+          gitlabVersion,
+          actionCount: ids.length,
+          generatedAt,
+        },
+        actions: sorted,
+      },
+      raws,
+    });
+    const seconds = ((Date.now() - started) / 1000).toFixed(1);
+    console.log(`${TAG} read ${ids.length} action details in ${seconds}s`);
+  } catch (error) {
+    softWarn(FINE_GRAINED_FILE, error.message);
+  }
+}
+
+/**
+ * Orchestrates the four extractions. Each one degrades to a soft failure on
  * its own (like sync-server-cards.sh: one MCP being down does not block the
  * other); only the anti-leak guard is a hard failure, and it runs BEFORE
  * anything is written. Flat on purpose (S3776): each phase lives in its own
@@ -693,8 +905,10 @@ async function main() {
     );
     if (sourceVersion) {
       await collectGitlabActions(pending, endpoint, sourceVersion, generatedAt);
+      await collectGitlabFineGrained(pending, endpoint, generatedAt);
     } else {
       softWarn("gitlab-actions.json", "no discover to tie sourceVersion to");
+      softWarn(FINE_GRAINED_FILE, "no discover to tie sourceVersion to");
     }
   } else {
     const reason = GITLAB_TOKEN
@@ -702,6 +916,7 @@ async function main() {
       : "MCP_PERSONAL_GITLAB_COM_TOKEN is missing";
     softWarn("gitlab-discover.json", reason);
     softWarn("gitlab-actions.json", reason);
+    softWarn(FINE_GRAINED_FILE, reason);
   }
 
   // ANTI-LEAK GUARD — a HARD failure before a single file is written. The RAW

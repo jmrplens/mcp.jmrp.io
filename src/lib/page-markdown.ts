@@ -10,6 +10,7 @@ import { serverCards } from "../data/server-cards";
 import type { McpServer } from "../data/servers";
 import { servers } from "../data/servers";
 import type {
+  DomainFineGrained,
   GitlabActionEntry,
   GitlabActionParam,
   SurfaceServerId,
@@ -22,6 +23,7 @@ import { license } from "../i18n/ui/license";
 import { policies } from "../i18n/ui/policies";
 import { serversPage } from "../i18n/ui/servers-page";
 import { noscriptCurl } from "./client-config";
+import { fineGrainedText } from "./fine-grained";
 import { pageUrl, serverPageUrl, SITE_ORIGIN, SITE_REPO } from "./seo";
 import { pageDatesOf } from "./sitemap-lastmod";
 
@@ -592,6 +594,8 @@ function paramLabel(param: GitlabActionParam): string {
  * @param actions Its actions, in catalog order.
  * @param domainOf Domain of each id an `alias_of` in this page points at.
  * @param lang Locale to render.
+ * @param fineGrained What a fine-grained token needs per action, when the
+ *   route has it for the catalog's release.
  * @returns The markdown.
  */
 export function domainMarkdown(
@@ -600,6 +604,7 @@ export function domainMarkdown(
   actions: GitlabActionEntry[],
   domainOf: Record<string, string>,
   lang: Lang,
+  fineGrained?: DomainFineGrained,
 ): string {
   const t = serversPage[lang];
   const url = `${SITE_ORIGIN}${lang === "es" ? "/es" : ""}/servers/${server}/actions/${domain}/`;
@@ -624,6 +629,12 @@ export function domainMarkdown(
           .join(` ${t.domainAnyOfJoiner} `);
         lines.push(`**${t.domainAnyOfLabel}:** ${groups}`);
       }
+      const grant = fineGrained?.actions[action.id];
+      if (grant) {
+        lines.push(
+          `**${t.domainFineGrainedLabel}:** ${fineGrainedText(grant, t, code)}`,
+        );
+      }
       if (action.alias_of) {
         const target = domainOf[action.alias_of];
         const where = target ? ` (${target})` : "";
@@ -642,12 +653,15 @@ export function domainMarkdown(
     throw new Error(`[twins] "${server}" has domain twins but no catalog`);
   }
   const tokenNote = t.catalogTokenNote.replace("{count}", () => String(total));
+  const fineGrainedNote = fineGrained
+    ? `\n\n${t.domainFineGrainedNote.replace("{version}", () => fineGrained.gitlabVersion)}`
+    : "";
   return (
     head(
       `${domain} — ${server}`,
       `${actions.length} ${countLabel}`,
       url,
       lang,
-    ) + `\n${tokenNote}\n\n## ${t.mdActionsHead}\n\n${body}\n`
+    ) + `\n${tokenNote}${fineGrainedNote}\n\n## ${t.mdActionsHead}\n\n${body}\n`
   );
 }
