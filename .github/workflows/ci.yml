@@ -58,12 +58,6 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck --minimumFailingSeverity warning
 
-      # Before the build: if the identity snapshot is stale, the build would
-      # silently use it on any network failure and publish old data. Here it is
-      # visible.
-      - name: Identity up to date
-        run: pnpm identity:check
-
       - name: Build
         run: pnpm build
 

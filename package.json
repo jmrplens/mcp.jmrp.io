@@ -15,7 +15,6 @@
     "test:e2e": "playwright test",
     "deploy": "pnpm build",
     "identity:sync": "node scripts/sync-identity.mjs",
-    "identity:check": "node scripts/sync-identity.mjs --check",
     "validate:html": "html-validate dist",
     "check": "pnpm lint && pnpm typecheck && pnpm build && pnpm test:unit && pnpm validate:html",
     "lint:css": "stylelint \"src/**/*.{astro,css}\"",

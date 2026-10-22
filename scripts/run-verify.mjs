@@ -269,9 +269,6 @@ async function runVerify() {
       name: "Lint: JSDoc Coverage",
       command: "node scripts/ci/calculate-jsdoc-coverage.mjs",
     },
-    // This repo's equivalent of jmrp.io's identity check: it verifies the
-    // committed identity document still matches its source.
-    { name: "Lint: Identity sync", command: "pnpm identity:check" },
   ];
 
   const staticResults = await runParallel(staticStepDefs);

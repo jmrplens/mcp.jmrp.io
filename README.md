@@ -63,7 +63,7 @@ pnpm dev
 | `pnpm deploy`                      | Build + nginx snippets + Cloudflare purge |
 | `pnpm lint` · `pnpm typecheck`     | eslint · astro check                      |
 | `pnpm test:unit` · `pnpm test:e2e` | node:test · Playwright                    |
-| `pnpm identity:sync`               | Refresh the canonical identity snapshot   |
+| `pnpm identity:sync`               | Write the local identity snapshot         |
 
 The e2e tests call the **real endpoints** in production: that is intentional —
 they validate the full path. Without Internet access, `E2E_NO_NETWORK=1`
