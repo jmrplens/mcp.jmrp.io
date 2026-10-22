@@ -87,8 +87,11 @@ function normalize(parsed: unknown, origin: string): PersonNode {
  * `scripts/sync-identity.mjs` writes, and only when they changed: the graph is
  * built once per page, and every page calls {@link loadPersonNode}.
  *
- * Best effort: a snapshot that cannot be written costs only the next offline
- * build its fallback, so it warns instead of failing this one.
+ * Atomic: the bytes go to a temporary file beside it, then a rename replaces
+ * the snapshot in one step, so a full disk or a killed process leaves the
+ * previous snapshot whole instead of truncated. Best effort: a snapshot that
+ * cannot be written costs only the next offline build its fallback, so it
+ * warns instead of failing this one.
  *
  * @param document The canonical document as downloaded, `@context` included.
  */
@@ -102,7 +105,9 @@ function writeSnapshot(document: unknown): void {
       return;
     }
     fs.mkdirSync(path.dirname(SNAPSHOT_PATH), { recursive: true });
-    fs.writeFileSync(SNAPSHOT_PATH, bytes);
+    const temporary = `${SNAPSHOT_PATH}.${process.pid}.tmp`;
+    fs.writeFileSync(temporary, bytes);
+    fs.renameSync(temporary, SNAPSHOT_PATH);
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
     console.warn(`⚠ [identity] Could not refresh ${SNAPSHOT_PATH}: ${reason}`);

@@ -118,6 +118,7 @@ cv_latex/generated/
 # Canonical #person snapshot: a local fallback that every build rewrites when
 # it downloads the document (src/lib/identity.ts). Not versioned.
 identity/person.snapshot.json
+identity/person.snapshot.json.*.tmp
 # Agentic workflows and local knowledge
 .agent/
 PROJECT_KNOWLEDGE.md
