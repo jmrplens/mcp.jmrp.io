@@ -1,20 +1,17 @@
 #!/usr/bin/env node
 /**
- * Refreshes the committed snapshot of the canonical `#person` entity.
+ * Writes the local snapshot of the canonical `#person` entity.
  *
- * The build downloads the live document (see src/lib/identity.ts); this
- * snapshot is only the fallback for when there is no network. It is refreshed
- * deliberately — with this script and in its own commit — so the identity this
- * site would publish with no network is visible in review, rather than staying
- * frozen at whatever it was the day the file was created.
- *
- * The same script as in the repos' other documentation sites.
+ * The build downloads the live document (see src/lib/identity.ts) and rewrites
+ * this snapshot itself whenever the download succeeds; the snapshot is only
+ * the fallback for a build with no network. It is git-ignored since
+ * 2026-10-22, so this script is just a way to write it without building, for
+ * example before working offline.
  *
  * Usage:
- *   node scripts/sync-identity.mjs           # writes the snapshot
- *   node scripts/sync-identity.mjs --check   # fails when it is stale (CI)
+ *   node scripts/sync-identity.mjs   # writes the snapshot
  */
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
@@ -29,26 +26,6 @@ if (!response.ok) {
 }
 const latest = `${JSON.stringify(await response.json(), null, 2)}\n`;
 
-if (process.argv.includes("--check")) {
-  let committed;
-  try {
-    committed = readFileSync(TARGET, "utf8");
-  } catch {
-    console.error(
-      "✗ identity/person.snapshot.json is missing — create it with: pnpm run identity:sync",
-    );
-    process.exit(1);
-  }
-  if (committed !== latest) {
-    console.error(
-      "✗ identity/person.snapshot.json is out of date.\n" +
-        "  Refresh it with: pnpm run identity:sync",
-    );
-    process.exit(1);
-  }
-  console.log("✓ The snapshot matches the canonical document.");
-} else {
-  mkdirSync(path.dirname(TARGET), { recursive: true });
-  writeFileSync(TARGET, latest);
-  console.log("✓ identity/person.snapshot.json refreshed");
-}
+mkdirSync(path.dirname(TARGET), { recursive: true });
+writeFileSync(TARGET, latest);
+console.log("✓ identity/person.snapshot.json refreshed");

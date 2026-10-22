@@ -115,6 +115,9 @@ cv_latex/*.pdf
 cv_latex/generated/
 
 # --- 8. PROJECT SPECIFIC & MISC ---
+# Canonical #person snapshot: a local fallback that every build rewrites when
+# it downloads the document (src/lib/identity.ts). Not versioned.
+identity/person.snapshot.json
 # Agentic workflows and local knowledge
 .agent/
 PROJECT_KNOWLEDGE.md

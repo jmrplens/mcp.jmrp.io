@@ -143,14 +143,18 @@ The canonical `Person` node is downloaded at build time from
 `raw.githubusercontent.com/jmrplens/jmrp.io/main/public/identity/person.jsonld`,
 with `identity/person.snapshot.json` as a fallback.
 
-It is **the same method the other documentation sites use** (libgen-mcp,
-gitlab-mcp-server, phonometry…). Do not change it to read the file from the
+The download is **the same method the other documentation sites use**
+(libgen-mcp, gitlab-mcp-server, phonometry…). Do not change it to read the file from the
 local disk even though you build on the same machine as jmrp.io: GitHub
 Actions' CI does not have that path, and the same commit would produce a build
 with an identity in production and without one in CI.
 
-Refresh the snapshot with `pnpm run identity:sync`. CI watches it with
-`pnpm run identity:check`.
+Unlike those sites, the snapshot is **not versioned** here (git-ignored, the
+author's decision of 2026-10-22): every build that downloads the document
+rewrites it, so a change to the canonical entity needs no pull request in this
+repository. `pnpm run identity:sync` writes it without building. A machine
+that has never downloaded it has no fallback, and its build stops on a
+network failure instead of publishing a page without an identity.
 
 ## Adding an MCP server
 
@@ -187,7 +191,7 @@ pnpm typecheck            # astro check
 pnpm test:unit            # node:test
 pnpm validate:html        # html-validate over dist/
 pnpm test:e2e --workers=1 # playwright (calls the real endpoints)
-pnpm identity:sync        # refreshes the #person snapshot
+pnpm identity:sync        # writes the local #person snapshot
 ```
 
 `pnpm verify` is the gate, and it is what to run before calling anything
