@@ -2,12 +2,14 @@
  * The fine-grained line of an action, as the domain pages and their Markdown
  * twins print it.
  *
- * The cases are the shapes the committed snapshot holds (3.2.0, GitLab
- * 19.4.1) — one permission at one boundary, two on one line, one at any of
+ * The cases are the shapes the committed snapshot holds (3.3.0, GitLab
+ * 19.5.0) — one permission at one boundary, two on one line, one at any of
  * several boundaries, two lines at the same boundary, the same line published
  * as one alternative per boundary (the search actions), an alternative the
  * grant does not judge, the empty alternative `repository.archive` has, a
- * denial — plus the ones that pin where the folding must stop. The reading is
+ * denial, and since 3.3.0 what some calls also need, an input no token
+ * passes and the parts served empty — plus the ones that pin where the
+ * folding must stop. The reading is
  * the upstream table's: a line holds all its permissions at one of its
  * boundaries, an alternative holds all its lines, any one alternative is
  * enough; folding may shorten the sentence, never change what it requires.
@@ -18,8 +20,10 @@ import { test } from "node:test";
 import { getGitlabFineGrained } from "../../src/data/surface.ts";
 import { serversPage } from "../../src/i18n/ui/servers-page.ts";
 import {
+  fineGrainedEmptySegments,
   fineGrainedSegments,
   fineGrainedText,
+  segmentsText,
 } from "../../src/lib/fine-grained.ts";
 
 const line = (permissions, at) => ({ permissions, at });
@@ -156,7 +160,44 @@ const cases = [
   },
 ];
 
-for (const c of cases) {
+// The 3.3.0 additions, each with the entry the snapshot holds for it.
+const casesSince330 = [
+  {
+    name: "what some calls also need (branch.protect)",
+    entry: {
+      ...oneOf({ needs: [line(["Branch: Protect"], ["project"])] }),
+      optional_needs: [line(["Protected Branch: Read"], ["project"])],
+    },
+    en: "Branch: Protect at project. Some calls also need: Protected Branch: Read at project",
+    es: "Branch: Protect en proyecto. Algunas llamadas necesitan además: Protected Branch: Read en proyecto",
+  },
+  {
+    name: "an input no fine-grained token passes (group.epic_list)",
+    entry: {
+      ...oneOf({ needs: [line(["Work Item: Read"], ["group"])] }),
+      denied_ways: [
+        {
+          cause: "graphql-type-undeclared",
+          element: "Namespace",
+          effect: "null",
+        },
+      ],
+    },
+    en: "Work Item: Read at group. With an input that makes it send another request, none can run it at this release",
+    es: "Work Item: Read en grupo. Con una entrada que le haga enviar otra petición, ninguno puede ejecutarla en esta versión",
+  },
+  {
+    name: "a call that sends a request no token passes",
+    entry: {
+      ...oneOf({ needs: [line(["A: Read"], ["project"])] }),
+      optional_denied: [{ cause: "c", element: "E", effect: "refused" }],
+    },
+    en: "A: Read at project. Some calls send a request none can pass at this release",
+    es: "A: Read en proyecto. Algunas llamadas envían una petición que ninguno puede superar en esta versión",
+  },
+];
+
+for (const c of [...cases, ...casesSince330]) {
   test(`fine-grained line: ${c.name}`, () => {
     assert.equal(fineGrainedText(c.entry, serversPage.en), c.en);
     assert.equal(fineGrainedText(c.entry, serversPage.es), c.es);
@@ -189,4 +230,57 @@ test("the committed snapshot renders every action without a gap", () => {
       assert.ok(!/undefined|\[object/.test(text), `${id} (${lang}): ${text}`);
     }
   }
+});
+
+test("the parts served empty: always, or without what follows", () => {
+  const entry = {
+    ...oneOf({ needs: [line(["Work Item: Update"], ["group"])] }),
+    always_empty: ["updateNote { quickActionsStatus }"],
+    empty_without: [
+      {
+        selection: "updateNote { note { author } }",
+        needs: [line(["User: Read"], ["user"])],
+      },
+    ],
+  };
+  assert.deepEqual(fineGrainedEmptySegments(entry, serversPage.en), [
+    { selection: "updateNote { quickActionsStatus }" },
+    " (always), ",
+    { selection: "updateNote { note { author } }" },
+    " (without ",
+    { permission: "User: Read" },
+    " at user)",
+  ]);
+  assert.equal(
+    segmentsText(
+      fineGrainedEmptySegments(entry, serversPage.es),
+      (c) => `\`${c}\``,
+    ),
+    "`updateNote { quickActionsStatus }` (siempre), `updateNote { note { author } }` (sin `User: Read` en usuario)",
+  );
+  // Nothing served empty, or a denial: no second line at all.
+  assert.deepEqual(
+    fineGrainedEmptySegments(oneOf({ needs: [] }), serversPage.en),
+    [],
+  );
+  assert.deepEqual(
+    fineGrainedEmptySegments(
+      { denied: { cause: "c", element: "E", effect: "x" } },
+      serversPage.en,
+    ),
+    [],
+  );
+});
+
+test("the committed snapshot's served-empty lines render without a gap", () => {
+  const snapshot = getGitlabFineGrained();
+  let lines = 0;
+  for (const [id, entry] of Object.entries(snapshot.actions)) {
+    const segments = fineGrainedEmptySegments(entry, serversPage.en);
+    if (segments.length === 0) continue;
+    lines++;
+    const text = segmentsText(segments);
+    assert.ok(!/undefined|\[object/.test(text), `${id}: ${text}`);
+  }
+  assert.ok(lines > 0, "3.3.0 serves part of some answers empty");
 });

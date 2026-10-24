@@ -159,6 +159,24 @@ export interface GitlabActionsSnapshot {
   entries: GitlabActionEntry[];
 }
 
+/**
+ * The tier gitlab.com resolves the build's token to: the action catalog is
+ * that token's surface (`cacheScope: "private"`), so every count the site
+ * publishes is this tier's, minus the administration domains.
+ *
+ * It was Free up to gitlab-mcp-server 3.2.0 (768 actions). 3.3.0 (#1273)
+ * also reads the tier from the top-level groups a token belongs to, and the
+ * build's token is a member of one whose plan carries Ultimate, so the same
+ * token now resolves to Ultimate (977 actions). The manifest never names the
+ * tier: tests/unit/catalog-count.test.mjs holds this value to the
+ * Ultimate-only domains the committed catalog carries, and every string that
+ * states it to this value.
+ */
+export const GITLAB_CATALOG_TIER = "Ultimate";
+
+/** The note `/servers.json` and `/servers/<id>/actions.json` attach to the count. */
+export const GITLAB_CATALOG_NOTE = `Counted with a token gitlab.com resolves to the ${GITLAB_CATALOG_TIER} tier; the catalog is scoped to the token that asks, so tier and token permissions both move the count.`;
+
 /** Where a fine-grained permission is held. */
 export type FineGrainedBoundary = "project" | "group" | "user" | "instance";
 
@@ -175,14 +193,47 @@ export interface FineGrainedNeed {
 export type FineGrainedAlternative =
   { needs: FineGrainedNeed[] } | { not_judged_by_grant: true };
 
+/** A request no fine-grained token passes at the snapshot's release, and why. */
+export interface FineGrainedDenial {
+  cause: string;
+  element: string;
+  effect: string;
+}
+
 /**
- * What a GitLab fine-grained personal access token needs for one action:
- * alternatives of which any one is enough, or a denial, when GitLab declares
- * nothing for the action at the release named in the snapshot.
+ * A part of the answer GitLab serves empty unless the grant also holds
+ * `needs`, written as the GraphQL selection that reaches it.
  */
-export type FineGrainedEntry =
-  | { any_of: FineGrainedAlternative[] }
-  | { denied: { cause: string; element: string; effect: string } };
+export interface FineGrainedEmptyWithout {
+  selection: string;
+  needs: FineGrainedNeed[];
+}
+
+/**
+ * What a fine-grained token needs to run an action (gitlab 3.3.0 added every
+ * optional field; each is present only when not empty).
+ */
+export interface FineGrainedGrant {
+  /** The ways of running it, any one of which is enough. */
+  any_of: FineGrainedAlternative[];
+  /** Ways no fine-grained token passes: an input that selects one is refused. */
+  denied_ways?: FineGrainedDenial[];
+  /** What the requests it sends on some calls only also need. */
+  optional_needs?: FineGrainedNeed[];
+  /** Requests it sends on some calls only that no fine-grained token passes. */
+  optional_denied?: FineGrainedDenial[];
+  /** Parts of the answer always served empty to a fine-grained token. */
+  always_empty?: string[];
+  /** Parts of the answer served empty unless the grant also holds more. */
+  empty_without?: FineGrainedEmptyWithout[];
+}
+
+/**
+ * What a GitLab fine-grained personal access token needs for one action, or
+ * a denial, when GitLab declares nothing for the action at the release named
+ * in the snapshot.
+ */
+export type FineGrainedEntry = FineGrainedGrant | { denied: FineGrainedDenial };
 
 /** The committed `gitlab-fine-grained.json` snapshot. */
 export interface FineGrainedSnapshot {
@@ -463,17 +514,49 @@ function isAlternative(v: unknown): boolean {
   return Array.isArray(v.needs) && v.needs.every(isNeed);
 }
 
-/** One action's entry: alternatives, or a denial with its three strings. */
+/** A denial with its three strings. */
+function isDenial(v: unknown): boolean {
+  return isRecord(v) && [v.cause, v.element, v.effect].every(isString);
+}
+
+/** A served-empty part: its selection and what the grant must also hold. */
+function isEmptyWithout(v: unknown): boolean {
+  return (
+    isRecord(v) &&
+    isString(v.selection) &&
+    Array.isArray(v.needs) &&
+    v.needs.length > 0 &&
+    v.needs.every(isNeed)
+  );
+}
+
+/** Each optional field of a grant, and what every item of it must be. */
+const GRANT_LISTS: Record<string, (v: unknown) => boolean> = {
+  denied_ways: isDenial,
+  optional_needs: isNeed,
+  optional_denied: isDenial,
+  always_empty: isString,
+  empty_without: isEmptyWithout,
+};
+
+/** One action's entry: alternatives and their optional lists, or a denial. */
 function isFineGrainedEntry(v: unknown): boolean {
   if (!isRecord(v)) return false;
-  if (isRecord(v.denied)) {
-    return [v.denied.cause, v.denied.element, v.denied.effect].every(isString);
+  if (v.denied !== undefined) return isDenial(v.denied);
+  if (
+    !Array.isArray(v.any_of) ||
+    v.any_of.length === 0 ||
+    !v.any_of.every(isAlternative)
+  ) {
+    return false;
   }
-  return (
-    Array.isArray(v.any_of) &&
-    v.any_of.length > 0 &&
-    v.any_of.every(isAlternative)
-  );
+  return Object.entries(GRANT_LISTS).every(([field, isItem]) => {
+    const list = v[field];
+    return (
+      list === undefined ||
+      (Array.isArray(list) && list.length > 0 && list.every(isItem))
+    );
+  });
 }
 
 /**

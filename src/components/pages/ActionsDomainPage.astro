@@ -22,7 +22,11 @@ import type {
 } from "../../data/surface";
 import type { Lang } from "../../i18n/ui";
 import { serversPage } from "../../i18n/ui/servers-page";
-import { fineGrainedSegments } from "../../lib/fine-grained";
+import {
+  fineGrainedEmptySegments,
+  fineGrainedSegments,
+  segmentCode,
+} from "../../lib/fine-grained";
 import { serverPagePath } from "../../lib/seo";
 import DomainActionsFilter from "../DomainActionsFilter";
 
@@ -298,12 +302,31 @@ function lineSegments(line: string, selfId: string): Segment[] {
                       segment
                     ) : (
                       <code lang={lang === "es" ? "en" : undefined}>
-                        {segment.permission}
+                        {segmentCode(segment)}
                       </code>
                     ),
                 )}
               </p>
             )}
+            {fineGrained?.actions[action.id] &&
+              fineGrainedEmptySegments(fineGrained.actions[action.id], sp)
+                .length > 0 && (
+                <p class="action-params">
+                  <strong>{sp.domainFineGrainedEmptyLabel}:</strong>{" "}
+                  {fineGrainedEmptySegments(
+                    fineGrained.actions[action.id],
+                    sp,
+                  ).map((segment) =>
+                    typeof segment === "string" ? (
+                      segment
+                    ) : (
+                      <code lang={lang === "es" ? "en" : undefined}>
+                        {segmentCode(segment)}
+                      </code>
+                    ),
+                  )}
+                </p>
+              )}
           </div>
         </details>
       </li>

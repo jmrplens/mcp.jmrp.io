@@ -2,10 +2,10 @@
   "meta": {
     "endpoint": "https://mcp.jmrp.io/gitlab/mcp",
     "uriTemplate": "gitlab://tools/{id}",
-    "sourceVersion": "3.2.0",
-    "gitlabVersion": "19.4.1",
-    "actionCount": 768,
-    "generatedAt": "2026-10-10T07:49:36Z"
+    "sourceVersion": "3.3.0",
+    "gitlabVersion": "19.5.0",
+    "actionCount": 977,
+    "generatedAt": "2026-10-24T11:02:03Z"
   },
   "actions": {
     "access.approve_group": {
@@ -862,6 +862,144 @@
         "effect": "removed-items"
       }
     },
+    "attestation.download": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Attestation: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "attestation.list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Attestation: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Project: Read"
+          ],
+          "at": [
+            "project"
+          ]
+        }
+      ]
+    },
+    "audit_event.get_group": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Audit Event: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "audit_event.get_instance": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Audit Event: Read"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "audit_event.get_project": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Audit Event: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "audit_event.list_group": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Audit Event: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "audit_event.list_instance": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Audit Event: Read"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "audit_event.list_project": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Audit Event: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "branch.create": {
       "any_of": [
         {
@@ -986,6 +1124,16 @@
                 "project"
               ]
             }
+          ]
+        }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Protected Branch: Read"
+          ],
+          "at": [
+            "project"
           ]
         }
       ]
@@ -1283,26 +1431,175 @@
         }
       ]
     },
+    "compliance_policy.get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Compliance Policy Setting: Read"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "compliance_policy.update": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Compliance Policy Setting: Update"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "custom_emoji.create": {
-      "denied": {
-        "cause": "graphql-payload-undeclared",
-        "element": "CustomEmoji",
-        "effect": "committed-then-null"
-      }
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Custom Emoji: Create"
+              ],
+              "at": [
+                "group"
+              ]
+            },
+            {
+              "permissions": [
+                "Custom Emoji: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
     },
     "custom_emoji.delete": {
-      "denied": {
-        "cause": "graphql-payload-undeclared",
-        "element": "CustomEmoji",
-        "effect": "committed-then-null"
-      }
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Custom Emoji: Delete"
+              ],
+              "at": [
+                "group"
+              ]
+            },
+            {
+              "permissions": [
+                "Custom Emoji: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
     },
     "custom_emoji.list": {
-      "denied": {
-        "cause": "graphql-type-undeclared",
-        "element": "CustomEmoji",
-        "effect": "removed-items"
-      }
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Group: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            },
+            {
+              "permissions": [
+                "Custom Emoji: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "dependency.export_create": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Dependency List Export: Create"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "dependency.export_download": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Dependency List Export: Read"
+              ],
+              "at": [
+                "project",
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "dependency.export_get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Dependency List Export: Read"
+              ],
+              "at": [
+                "project",
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "dependency.list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Dependency: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
     },
     "discover_project.resolve": {
       "any_of": [
@@ -1311,6 +1608,38 @@
             {
               "permissions": [
                 "Project: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "dora_metrics.group": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Dora Metric: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "dora_metrics.project": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Dora Metric: Read"
               ],
               "at": [
                 "project"
@@ -1577,6 +1906,86 @@
         }
       ]
     },
+    "environment.protected_get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Protected Environment: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "environment.protected_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Protected Environment: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "environment.protected_protect": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Protected Environment: Create"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "environment.protected_unprotect": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Protected Environment: Delete"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "environment.protected_update": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Protected Environment: Update"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "environment.stop": {
       "any_of": [
         {
@@ -1600,6 +2009,134 @@
             {
               "permissions": [
                 "Environment: Update"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "external_status_check.create_project": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "External Status Check Service: Create"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "external_status_check.delete_project": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "External Status Check Service: Delete"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "external_status_check.list_project": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "External Status Check Service: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "external_status_check.list_project_checks": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "External Status Check Service: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "external_status_check.list_project_mr_checks": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "External Status Check: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "external_status_check.retry_project": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "External Status Check: Retry"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "external_status_check.set_project_mr_status": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "External Status Check: Update"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "external_status_check.update_project": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "External Status Check Service: Update"
               ],
               "at": [
                 "project"
@@ -1769,6 +2306,54 @@
         }
       ]
     },
+    "group.analytics_issues_count": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Activity Analytics: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.analytics_members_count": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Activity Analytics: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.analytics_mr_count": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Activity Analytics: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "group.archive": {
       "any_of": [
         {
@@ -1897,6 +2482,70 @@
         }
       ]
     },
+    "group.credential_delete_ssh_key": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "SSH Key: Delete"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.credential_list_pats": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Personal Access Token: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.credential_list_ssh_keys": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "SSH Key: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.credential_revoke_pat": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Personal Access Token: Revoke"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "group.delete": {
       "any_of": [
         {
@@ -1904,6 +2553,406 @@
             {
               "permissions": [
                 "Group: Delete"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.epic_board_get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.epic_board_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.epic_create": {
+      "denied": {
+        "cause": "graphql-payload-undeclared",
+        "element": "WorkItemType",
+        "effect": "committed-then-null"
+      }
+    },
+    "group.epic_delete": {
+      "denied": {
+        "cause": "graphql-type-undeclared",
+        "element": "Namespace",
+        "effect": "null"
+      }
+    },
+    "group.epic_discussion_add_note": {
+      "denied": {
+        "cause": "graphql-type-undeclared",
+        "element": "Namespace",
+        "effect": "null"
+      }
+    },
+    "group.epic_discussion_create": {
+      "denied": {
+        "cause": "graphql-type-undeclared",
+        "element": "Namespace",
+        "effect": "null"
+      }
+    },
+    "group.epic_discussion_delete_note": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "project",
+                "group"
+              ]
+            },
+            {
+              "permissions": [
+                "Work Item: Delete"
+              ],
+              "at": [
+                "project",
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.epic_discussion_get": {
+      "denied": {
+        "cause": "graphql-type-undeclared",
+        "element": "Namespace",
+        "effect": "null"
+      }
+    },
+    "group.epic_discussion_list": {
+      "denied": {
+        "cause": "graphql-type-undeclared",
+        "element": "Namespace",
+        "effect": "null"
+      }
+    },
+    "group.epic_discussion_update_note": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "project",
+                "group"
+              ]
+            },
+            {
+              "permissions": [
+                "Work Item: Update"
+              ],
+              "at": [
+                "project",
+                "group"
+              ]
+            }
+          ]
+        }
+      ],
+      "always_empty": [
+        "updateNote { quickActionsStatus }"
+      ],
+      "empty_without": [
+        {
+          "selection": "updateNote { note { author } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "updateNote { note { lastEditedBy } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "updateNote { note { resolvedBy } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.epic_get": {
+      "denied": {
+        "cause": "graphql-type-undeclared",
+        "element": "Namespace",
+        "effect": "null"
+      }
+    },
+    "group.epic_get_links": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.epic_issue_assign": {
+      "denied": {
+        "cause": "graphql-type-undeclared",
+        "element": "Namespace",
+        "effect": "null"
+      }
+    },
+    "group.epic_issue_list": {
+      "denied": {
+        "cause": "graphql-type-undeclared",
+        "element": "Namespace",
+        "effect": "null"
+      }
+    },
+    "group.epic_issue_remove": {
+      "denied": {
+        "cause": "graphql-type-undeclared",
+        "element": "Namespace",
+        "effect": "null"
+      }
+    },
+    "group.epic_issue_update": {
+      "denied": {
+        "cause": "graphql-type-undeclared",
+        "element": "Namespace",
+        "effect": "null"
+      }
+    },
+    "group.epic_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ],
+      "denied_ways": [
+        {
+          "cause": "graphql-type-undeclared",
+          "element": "Namespace",
+          "effect": "null"
+        }
+      ]
+    },
+    "group.epic_note_create": {
+      "denied": {
+        "cause": "graphql-type-undeclared",
+        "element": "Namespace",
+        "effect": "null"
+      }
+    },
+    "group.epic_note_delete": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "project",
+                "group"
+              ]
+            },
+            {
+              "permissions": [
+                "Work Item: Delete"
+              ],
+              "at": [
+                "project",
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.epic_note_get": {
+      "denied": {
+        "cause": "graphql-type-undeclared",
+        "element": "Namespace",
+        "effect": "null"
+      }
+    },
+    "group.epic_note_list": {
+      "denied": {
+        "cause": "graphql-type-undeclared",
+        "element": "Namespace",
+        "effect": "null"
+      }
+    },
+    "group.epic_note_update": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "project",
+                "group"
+              ]
+            },
+            {
+              "permissions": [
+                "Work Item: Update"
+              ],
+              "at": [
+                "project",
+                "group"
+              ]
+            }
+          ]
+        }
+      ],
+      "always_empty": [
+        "updateNote { quickActionsStatus }"
+      ],
+      "empty_without": [
+        {
+          "selection": "updateNote { note { author } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "updateNote { note { lastEditedBy } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "updateNote { note { resolvedBy } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.epic_update": {
+      "denied": {
+        "cause": "graphql-type-undeclared",
+        "element": "Namespace",
+        "effect": "null"
+      }
+    },
+    "group.event_epic_label_get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.event_epic_label_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
               ],
               "at": [
                 "group"
@@ -1929,6 +2978,70 @@
         }
       ]
     },
+    "group.group_billable_member_memberships_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Member: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.group_billable_member_remove": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Member: Delete"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.group_billable_members_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Member: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.group_board_create": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Create"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "group.group_board_create_list": {
       "any_of": [
         {
@@ -1936,6 +3049,22 @@
             {
               "permissions": [
                 "Work Item: Create"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.group_board_delete": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Delete"
               ],
               "at": [
                 "group"
@@ -2329,6 +3458,22 @@
         }
       ]
     },
+    "group.group_milestone_burndown": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "group.group_milestone_create": {
       "any_of": [
         {
@@ -2537,6 +3682,182 @@
         }
       ]
     },
+    "group.hook_add": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Webhook: Create"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.hook_delete": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Webhook: Delete"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.hook_delete_custom_header": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Webhook: Update"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.hook_delete_url_variable": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Webhook: Update"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.hook_edit": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Webhook: Update"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.hook_get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Webhook: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.hook_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Webhook: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.hook_resend_event": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Webhook: Trigger"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.hook_set_custom_header": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Webhook: Update"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.hook_set_url_variable": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Webhook: Update"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.hook_test": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Webhook: Trigger"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "group.invited_groups": {
       "any_of": [
         {
@@ -2569,6 +3890,96 @@
         }
       ]
     },
+    "group.ldap_link_add": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "LDAP Group Link: Create"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.ldap_link_delete": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "LDAP Group Link: Delete"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.ldap_link_delete_for_provider": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "LDAP Group Link: Delete"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.ldap_link_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "LDAP Group Link: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Group: Read"
+          ],
+          "at": [
+            "group"
+          ]
+        }
+      ]
+    },
+    "group.ldap_sync": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "LDAP Group Sync: Run"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "group.list": {
       "any_of": [
         {
@@ -2579,6 +3990,22 @@
               ],
               "at": [
                 "user"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.list_provisioned_users": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Provisioned User: Read"
+              ],
+              "at": [
+                "group"
               ]
             }
           ]
@@ -2608,6 +4035,230 @@
             {
               "permissions": [
                 "Project: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.protected_branch_get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Protected Branch: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.protected_branch_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Protected Branch: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.protected_branch_protect": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Branch: Protect"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.protected_branch_unprotect": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Branch: Protect"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.protected_branch_update": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Protected Branch: Update"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.protected_env_get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Protected Environment: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.protected_env_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Protected Environment: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.protected_env_protect": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Protected Environment: Create"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.protected_env_unprotect": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Protected Environment: Delete"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.protected_env_update": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Protected Environment: Update"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.push_rule_add": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Push Rule: Create"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.push_rule_delete": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Push Rule: Delete"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.push_rule_edit": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Push Rule: Update"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.push_rule_get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Push Rule: Read"
               ],
               "at": [
                 "group"
@@ -2649,6 +4300,86 @@
         }
       ]
     },
+    "group.saml_link_add": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "SAML Group Link: Create"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.saml_link_delete": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "SAML Group Link: Delete"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.saml_link_get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "SAML Group Link: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.saml_link_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "SAML Group Link: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.saml_users_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "SAML User: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "group.search": {
       "any_of": [
         {
@@ -2659,6 +4390,22 @@
               ],
               "at": [
                 "user"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.security_settings_update": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Security Setting: Update"
+              ],
+              "at": [
+                "group"
               ]
             }
           ]
@@ -2857,6 +4604,54 @@
         }
       ]
     },
+    "group.ssh_cert_create": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "SSH Certificate: Create"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.ssh_cert_delete": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "SSH Certificate: Delete"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.ssh_cert_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "SSH Certificate: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "group.subgroups": {
       "any_of": [
         {
@@ -2885,6 +4680,32 @@
                 "group"
               ]
             }
+          ]
+        }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Group: Read"
+          ],
+          "at": [
+            "group"
+          ]
+        },
+        {
+          "permissions": [
+            "Todo: Read"
+          ],
+          "at": [
+            "user"
+          ]
+        },
+        {
+          "permissions": [
+            "Metadata: Read"
+          ],
+          "at": [
+            "instance"
           ]
         }
       ]
@@ -2976,6 +4797,150 @@
             {
               "permissions": [
                 "Group: Update"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.wiki_create": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Wiki: Create"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.wiki_delete": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Wiki: Delete"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.wiki_edit": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Wiki: Update"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.wiki_get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Wiki: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group.wiki_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Wiki: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group_scim.delete": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "SCIM Identity: Delete"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group_scim.get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "SCIM Identity: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group_scim.list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "SCIM Identity: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "group_scim.update": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "SCIM Identity: Update"
               ],
               "at": [
                 "group"
@@ -3321,6 +5286,38 @@
         }
       ]
     },
+    "issue.event_issue_iteration_get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "issue.event_issue_iteration_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "issue.event_issue_label_get": {
       "any_of": [
         {
@@ -3417,6 +5414,22 @@
         }
       ]
     },
+    "issue.event_issue_weight_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "issue.get": {
       "any_of": [
         {
@@ -3443,6 +5456,38 @@
               ],
               "at": [
                 "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "issue.iteration_list_group": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "issue.iteration_list_project": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "project"
               ]
             }
           ]
@@ -3815,6 +5860,16 @@
             }
           ]
         }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Work Item: Read"
+          ],
+          "at": [
+            "project"
+          ]
+        }
       ]
     },
     "issue.time_estimate_reset": {
@@ -3877,6 +5932,16 @@
                 "project"
               ]
             }
+          ]
+        }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Work Item: Read"
+          ],
+          "at": [
+            "project"
           ]
         }
       ]
@@ -4188,6 +6253,16 @@
             }
           ]
         }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Metadata: Read"
+          ],
+          "at": [
+            "instance"
+          ]
+        }
       ]
     },
     "job.list_project": {
@@ -4398,6 +6473,102 @@
         }
       ]
     },
+    "member_role.create_group": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Member Role: Create"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "member_role.create_instance": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Member Role: Create"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "member_role.delete_group": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Member Role: Delete"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "member_role.delete_instance": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Member Role: Delete"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "member_role.list_group": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Member Role: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "member_role.list_instance": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Member Role: Read"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "merge_request.approval_config": {
       "any_of": [
         {
@@ -4421,6 +6592,150 @@
             {
               "permissions": [
                 "Merge Request: Approve"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "merge_request.approval_rule_create": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Merge Request Approval Rule: Create"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "merge_request.approval_rule_delete": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Merge Request Approval Rule: Delete"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "merge_request.approval_rule_update": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Merge Request Approval Rule: Update"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "merge_request.approval_rules": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Merge Request Approval Rule: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "merge_request.approval_settings_group_get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Approval Setting: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "merge_request.approval_settings_group_update": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Approval Setting: Update"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "merge_request.approval_settings_project_get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Approval Setting: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "merge_request.approval_settings_project_update": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Approval Setting: Update"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "merge_request.approval_state": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Merge Request: Read"
               ],
               "at": [
                 "project"
@@ -4458,6 +6773,24 @@
                 "project"
               ]
             }
+          ]
+        }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Metadata: Read"
+          ],
+          "at": [
+            "instance"
+          ]
+        },
+        {
+          "permissions": [
+            "Merge Request: Read"
+          ],
+          "at": [
+            "project"
           ]
         }
       ]
@@ -4590,6 +6923,54 @@
         }
       ]
     },
+    "merge_request.dependencies_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Merge Request: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "merge_request.dependency_create": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Merge Request: Create"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "merge_request.dependency_delete": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Merge Request: Delete"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "merge_request.emoji_mr_create": {
       "any_of": [
         {
@@ -4602,6 +6983,24 @@
                 "project"
               ]
             }
+          ]
+        }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "User: Read"
+          ],
+          "at": [
+            "user"
+          ]
+        },
+        {
+          "permissions": [
+            "Work Item: Read"
+          ],
+          "at": [
+            "project"
           ]
         }
       ]
@@ -4908,6 +7307,16 @@
             }
           ]
         }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Merge Request: Read"
+          ],
+          "at": [
+            "project"
+          ]
+        }
       ]
     },
     "merge_request.participants": {
@@ -5036,6 +7445,16 @@
             }
           ]
         }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Merge Request: Read"
+          ],
+          "at": [
+            "project"
+          ]
+        }
       ]
     },
     "merge_request.time_estimate_reset": {
@@ -5116,6 +7535,16 @@
             }
           ]
         }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Merge Request: Read"
+          ],
+          "at": [
+            "project"
+          ]
+        }
       ]
     },
     "merge_request.update": {
@@ -5125,6 +7554,70 @@
             {
               "permissions": [
                 "Merge Request: Update"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "merge_train.add": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Merge Train Merge Request: Add"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "merge_train.get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Merge Train: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "merge_train.list_branch": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Merge Train: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "merge_train.list_project": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Merge Train: Read"
               ],
               "at": [
                 "project"
@@ -5210,6 +7703,16 @@
                 "project"
               ]
             }
+          ]
+        }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Merge Request: Read"
+          ],
+          "at": [
+            "project"
           ]
         }
       ]
@@ -5324,6 +7827,16 @@
             }
           ]
         }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Merge Request: Read"
+          ],
+          "at": [
+            "project"
+          ]
+        }
       ]
     },
     "mr_review.draft_note_delete": {
@@ -5420,6 +7933,16 @@
             }
           ]
         }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Merge Request: Read"
+          ],
+          "at": [
+            "project"
+          ]
+        }
       ]
     },
     "mr_review.note_create": {
@@ -5512,6 +8035,102 @@
               ],
               "at": [
                 "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "orbit.dsl": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Orbit: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "orbit.graph_status": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Orbit: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "orbit.query": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Orbit: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "orbit.schema": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Orbit: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "orbit.status": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Orbit: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "orbit.tools": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Orbit: Read"
+              ],
+              "at": [
+                "user"
               ]
             }
           ]
@@ -6084,6 +8703,24 @@
             }
           ]
         }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Project: Read"
+          ],
+          "at": [
+            "project"
+          ]
+        },
+        {
+          "permissions": [
+            "Commit: Read"
+          ],
+          "at": [
+            "project"
+          ]
+        }
       ]
     },
     "pipeline.list": {
@@ -6093,6 +8730,23 @@
             {
               "permissions": [
                 "Pipeline: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "pipeline.resource_group_current_job": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Job: Read",
+                "Resource Group: Read"
               ],
               "at": [
                 "project"
@@ -6535,6 +9189,118 @@
         }
       ]
     },
+    "project.approval_config_change": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Approval Configuration: Update"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "project.approval_config_get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Approval Configuration: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "project.approval_rule_create": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Approval Rule: Create"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "project.approval_rule_delete": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Approval Rule: Delete"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "project.approval_rule_get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Approval Rule: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "project.approval_rule_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Approval Rule: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "project.approval_rule_update": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Approval Rule: Update"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "project.archive": {
       "any_of": [
         {
@@ -6869,6 +9635,16 @@
             }
           ]
         }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Project: Read"
+          ],
+          "at": [
+            "project"
+          ]
+        }
       ]
     },
     "project.delete_fork_relation": {
@@ -6894,6 +9670,22 @@
             {
               "permissions": [
                 "Project: Share"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "project.dependency_firewall_evaluate": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Dependency Firewall Evaluation: Create"
               ],
               "at": [
                 "project"
@@ -7421,7 +10213,8 @@
                 "Label: Delete"
               ],
               "at": [
-                "project"
+                "project",
+                "group"
               ]
             }
           ]
@@ -7517,7 +10310,8 @@
                 "Label: Update"
               ],
               "at": [
-                "project"
+                "project",
+                "group"
               ]
             }
           ]
@@ -7780,6 +10574,22 @@
         }
       ]
     },
+    "project.milestone_burndown": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "project.milestone_create": {
       "any_of": [
         {
@@ -7875,6 +10685,30 @@
             {
               "permissions": [
                 "Work Item: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "project.milestone_promote": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            },
+            {
+              "permissions": [
+                "Work Item: Update"
               ],
               "at": [
                 "project"
@@ -8164,6 +10998,112 @@
         }
       ]
     },
+    "project.pull_mirror_configure": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Pull Mirror: Update"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Pull Mirror: Read"
+          ],
+          "at": [
+            "project"
+          ]
+        }
+      ]
+    },
+    "project.pull_mirror_get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Pull Mirror: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "project.push_rule_add": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Push Rule: Create"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "project.push_rule_delete": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Push Rule: Delete"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "project.push_rule_edit": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Push Rule: Update"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "project.push_rule_get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Push Rule: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "project.repository_storage_get": {
       "any_of": [
         {
@@ -8187,6 +11127,38 @@
             {
               "permissions": [
                 "Project: Update"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "project.security_settings_get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Security Setting: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "project.security_settings_update": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Security Setting: Update"
               ],
               "at": [
                 "project"
@@ -8370,6 +11342,16 @@
             }
           ]
         }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Project: Read"
+          ],
+          "at": [
+            "project"
+          ]
+        }
       ]
     },
     "project.start_housekeeping": {
@@ -8379,6 +11361,22 @@
             {
               "permissions": [
                 "Project: Update"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "project.start_mirroring": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Pull Mirror: Create"
               ],
               "at": [
                 "project"
@@ -8404,6 +11402,36 @@
         }
       ]
     },
+    "project.target_branch_rule_create": {
+      "denied": {
+        "cause": "graphql-payload-undeclared",
+        "element": "ProjectTargetBranchRule",
+        "effect": "committed-then-null"
+      }
+    },
+    "project.target_branch_rule_delete": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Target Branch Rule: Delete"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "project.target_branch_rule_list": {
+      "denied": {
+        "cause": "graphql-type-undeclared",
+        "element": "ProjectTargetBranchRule",
+        "effect": "removed-items"
+      }
+    },
     "project.transfer": {
       "any_of": [
         {
@@ -8416,6 +11444,32 @@
                 "project"
               ]
             }
+          ]
+        }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Project: Read"
+          ],
+          "at": [
+            "project"
+          ]
+        },
+        {
+          "permissions": [
+            "Todo: Read"
+          ],
+          "at": [
+            "user"
+          ]
+        },
+        {
+          "permissions": [
+            "Metadata: Read"
+          ],
+          "at": [
+            "instance"
           ]
         }
       ]
@@ -9161,6 +12215,16 @@
             }
           ]
         }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Repository: Read"
+          ],
+          "at": [
+            "project"
+          ]
+        }
       ]
     },
     "repository.file_delete": {
@@ -9273,6 +12337,16 @@
             }
           ]
         }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Repository: Read"
+          ],
+          "at": [
+            "project"
+          ]
+        }
       ]
     },
     "repository.list_submodules": {
@@ -9287,6 +12361,16 @@
                 "project"
               ]
             }
+          ]
+        }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Project: Read"
+          ],
+          "at": [
+            "project"
           ]
         }
       ]
@@ -9346,6 +12430,14 @@
           "needs": [
             {
               "permissions": [
+                "Project: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            },
+            {
+              "permissions": [
                 "Repository: Read"
               ],
               "at": [
@@ -9382,6 +12474,246 @@
               ],
               "at": [
                 "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "runner.controller_create": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Runner Controller: Create"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "runner.controller_delete": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Runner Controller: Delete"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "runner.controller_get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Runner Controller: Read"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "runner.controller_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Runner Controller: Read"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "runner.controller_scope_add_instance": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Runner Controller: Update"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "runner.controller_scope_add_runner": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Runner Controller: Update"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "runner.controller_scope_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Runner Controller: Read"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "runner.controller_scope_remove_instance": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Runner Controller: Update"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "runner.controller_scope_remove_runner": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Runner Controller: Update"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "runner.controller_token_create": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Runner Controller Token: Create"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "runner.controller_token_get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Runner Controller Token: Read"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "runner.controller_token_list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Runner Controller Token: Read"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "runner.controller_token_revoke": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Runner Controller Token: Revoke"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "runner.controller_token_rotate": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Runner Controller Token: Rotate"
+              ],
+              "at": [
+                "instance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "runner.controller_update": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Runner Controller: Update"
+              ],
+              "at": [
+                "instance"
               ]
             }
           ]
@@ -9651,6 +12983,20 @@
               ]
             }
           ]
+        }
+      ]
+    },
+    "runner.reset_token_by_token": {
+      "any_of": [
+        {
+          "not_judged_by_grant": true
+        }
+      ]
+    },
+    "runner.router_discovery": {
+      "any_of": [
+        {
+          "not_judged_by_grant": true
         }
       ]
     },
@@ -10019,6 +13365,117 @@
         }
       ]
     },
+    "security_attribute.bulk_update": {
+      "denied": {
+        "cause": "graphql-mutation-undeclared",
+        "element": "bulkUpdateSecurityAttributes",
+        "effect": "refused"
+      }
+    },
+    "security_attribute.create": {
+      "denied": {
+        "cause": "graphql-payload-undeclared",
+        "element": "SecurityAttribute",
+        "effect": "committed-then-null"
+      }
+    },
+    "security_attribute.delete": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Security Attribute: Delete"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "security_attribute.project_update": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Security Attribute: Update"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "security_attribute.update": {
+      "denied": {
+        "cause": "graphql-payload-undeclared",
+        "element": "SecurityAttribute",
+        "effect": "committed-then-null"
+      }
+    },
+    "security_category.create": {
+      "denied": {
+        "cause": "graphql-payload-undeclared",
+        "element": "SecurityCategory",
+        "effect": "committed-then-null"
+      }
+    },
+    "security_category.delete": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Security Attribute: Delete"
+              ],
+              "at": [
+                "group"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "security_category.update": {
+      "denied": {
+        "cause": "graphql-payload-undeclared",
+        "element": "SecurityCategory",
+        "effect": "committed-then-null"
+      }
+    },
+    "security_finding.list": {
+      "denied": {
+        "cause": "graphql-type-undeclared",
+        "element": "PipelineSecurityReportFinding",
+        "effect": "removed-items"
+      }
+    },
+    "security_scan_profile.attach": {
+      "denied": {
+        "cause": "graphql-mutation-undeclared",
+        "element": "securityScanProfileAttach",
+        "effect": "refused"
+      }
+    },
+    "security_scan_profile.detach": {
+      "denied": {
+        "cause": "graphql-mutation-undeclared",
+        "element": "securityScanProfileDetach",
+        "effect": "refused"
+      }
+    },
+    "security_scan_profile.list_project_statuses": {
+      "denied": {
+        "cause": "graphql-type-undeclared",
+        "element": "ScanProfileProjectStatus",
+        "effect": "list-null"
+      }
+    },
     "server.health_check": {
       "any_of": [
         {
@@ -10031,6 +13488,16 @@
                 "instance"
               ]
             }
+          ]
+        }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "User: Read"
+          ],
+          "at": [
+            "user"
           ]
         }
       ]
@@ -10047,6 +13514,16 @@
                 "instance"
               ]
             }
+          ]
+        }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "User: Read"
+          ],
+          "at": [
+            "user"
           ]
         }
       ]
@@ -11081,6 +14558,16 @@
             }
           ]
         }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Project: Read"
+          ],
+          "at": [
+            "project"
+          ]
+        }
       ]
     },
     "user.create": {
@@ -11417,6 +14904,16 @@
             }
           ]
         }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Project: Read"
+          ],
+          "at": [
+            "project"
+          ]
+        }
       ]
     },
     "user.event_list_project": {
@@ -11431,6 +14928,16 @@
                 "project"
               ]
             }
+          ]
+        }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Project: Read"
+          ],
+          "at": [
+            "project"
           ]
         }
       ]
@@ -12074,6 +15581,822 @@
           ]
         }
       ]
+    },
+    "vulnerability.confirm": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Vulnerability: Update"
+              ],
+              "at": [
+                "project"
+              ]
+            },
+            {
+              "permissions": [
+                "Vulnerability: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ],
+      "always_empty": [
+        "vulnerabilityConfirm { vulnerability { findingTokenStatus } }",
+        "vulnerabilityConfirm { vulnerability { location { kubernetesResource } } }",
+        "vulnerabilityConfirm { vulnerability { issueLinks { nodes } } }"
+      ],
+      "empty_without": [
+        {
+          "selection": "vulnerabilityConfirm { vulnerability { dismissedBy } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityConfirm { vulnerability { resolvedBy } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityConfirm { vulnerability { confirmedBy } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityConfirm { vulnerability { scanner } }",
+          "needs": [
+            {
+              "permissions": [
+                "Vulnerability: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityConfirm { vulnerability { location { kubernetesResource { agent } } } }",
+          "needs": [
+            {
+              "permissions": [
+                "Cluster Agent: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityConfirm { vulnerability { project } }",
+          "needs": [
+            {
+              "permissions": [
+                "Project: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityConfirm { vulnerability { issueLinks { nodes { issue } } } }",
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityConfirm { vulnerability { mergeRequest } }",
+          "needs": [
+            {
+              "permissions": [
+                "Merge Request: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "vulnerability.dismiss": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Vulnerability: Update"
+              ],
+              "at": [
+                "project"
+              ]
+            },
+            {
+              "permissions": [
+                "Vulnerability: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ],
+      "always_empty": [
+        "vulnerabilityDismiss { vulnerability { findingTokenStatus } }",
+        "vulnerabilityDismiss { vulnerability { location { kubernetesResource } } }",
+        "vulnerabilityDismiss { vulnerability { issueLinks { nodes } } }"
+      ],
+      "empty_without": [
+        {
+          "selection": "vulnerabilityDismiss { vulnerability { dismissedBy } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityDismiss { vulnerability { resolvedBy } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityDismiss { vulnerability { confirmedBy } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityDismiss { vulnerability { scanner } }",
+          "needs": [
+            {
+              "permissions": [
+                "Vulnerability: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityDismiss { vulnerability { location { kubernetesResource { agent } } } }",
+          "needs": [
+            {
+              "permissions": [
+                "Cluster Agent: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityDismiss { vulnerability { project } }",
+          "needs": [
+            {
+              "permissions": [
+                "Project: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityDismiss { vulnerability { issueLinks { nodes { issue } } } }",
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityDismiss { vulnerability { mergeRequest } }",
+          "needs": [
+            {
+              "permissions": [
+                "Merge Request: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "vulnerability.get": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Vulnerability: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ],
+      "always_empty": [
+        "vulnerability { findingTokenStatus }",
+        "vulnerability { location { kubernetesResource } }",
+        "vulnerability { issueLinks { nodes } }"
+      ],
+      "empty_without": [
+        {
+          "selection": "vulnerability { dismissedBy }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerability { resolvedBy }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerability { confirmedBy }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerability { scanner }",
+          "needs": [
+            {
+              "permissions": [
+                "Vulnerability: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerability { location { kubernetesResource { agent } } }",
+          "needs": [
+            {
+              "permissions": [
+                "Cluster Agent: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerability { project }",
+          "needs": [
+            {
+              "permissions": [
+                "Project: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerability { issueLinks { nodes { issue } } }",
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerability { mergeRequest }",
+          "needs": [
+            {
+              "permissions": [
+                "Merge Request: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "vulnerability.list": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Project: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            },
+            {
+              "permissions": [
+                "Vulnerability: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ],
+      "always_empty": [
+        "project { vulnerabilities { nodes { findingTokenStatus } } }",
+        "project { vulnerabilities { nodes { location { kubernetesResource } } } }",
+        "project { vulnerabilities { nodes { issueLinks { nodes } } } }"
+      ],
+      "empty_without": [
+        {
+          "selection": "project { vulnerabilities { nodes { dismissedBy } } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "project { vulnerabilities { nodes { resolvedBy } } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "project { vulnerabilities { nodes { confirmedBy } } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "project { vulnerabilities { nodes { scanner } } }",
+          "needs": [
+            {
+              "permissions": [
+                "Vulnerability: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "project { vulnerabilities { nodes { location { kubernetesResource { agent } } } } }",
+          "needs": [
+            {
+              "permissions": [
+                "Cluster Agent: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "project { vulnerabilities { nodes { project } } }",
+          "needs": [
+            {
+              "permissions": [
+                "Project: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "project { vulnerabilities { nodes { issueLinks { nodes { issue } } } } }",
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "project { vulnerabilities { nodes { mergeRequest } } }",
+          "needs": [
+            {
+              "permissions": [
+                "Merge Request: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "vulnerability.pipeline_security_summary": {
+      "denied": {
+        "cause": "graphql-type-undeclared",
+        "element": "SecurityReportSummary",
+        "effect": "null"
+      }
+    },
+    "vulnerability.resolve": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Vulnerability: Update"
+              ],
+              "at": [
+                "project"
+              ]
+            },
+            {
+              "permissions": [
+                "Vulnerability: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ],
+      "always_empty": [
+        "vulnerabilityResolve { vulnerability { findingTokenStatus } }",
+        "vulnerabilityResolve { vulnerability { location { kubernetesResource } } }",
+        "vulnerabilityResolve { vulnerability { issueLinks { nodes } } }"
+      ],
+      "empty_without": [
+        {
+          "selection": "vulnerabilityResolve { vulnerability { dismissedBy } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityResolve { vulnerability { resolvedBy } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityResolve { vulnerability { confirmedBy } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityResolve { vulnerability { scanner } }",
+          "needs": [
+            {
+              "permissions": [
+                "Vulnerability: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityResolve { vulnerability { location { kubernetesResource { agent } } } }",
+          "needs": [
+            {
+              "permissions": [
+                "Cluster Agent: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityResolve { vulnerability { project } }",
+          "needs": [
+            {
+              "permissions": [
+                "Project: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityResolve { vulnerability { issueLinks { nodes { issue } } } }",
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityResolve { vulnerability { mergeRequest } }",
+          "needs": [
+            {
+              "permissions": [
+                "Merge Request: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "vulnerability.revert": {
+      "any_of": [
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Vulnerability: Update"
+              ],
+              "at": [
+                "project"
+              ]
+            },
+            {
+              "permissions": [
+                "Vulnerability: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ],
+      "always_empty": [
+        "vulnerabilityRevertToDetected { vulnerability { findingTokenStatus } }",
+        "vulnerabilityRevertToDetected { vulnerability { location { kubernetesResource } } }",
+        "vulnerabilityRevertToDetected { vulnerability { issueLinks { nodes } } }"
+      ],
+      "empty_without": [
+        {
+          "selection": "vulnerabilityRevertToDetected { vulnerability { dismissedBy } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityRevertToDetected { vulnerability { resolvedBy } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityRevertToDetected { vulnerability { confirmedBy } }",
+          "needs": [
+            {
+              "permissions": [
+                "User: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityRevertToDetected { vulnerability { scanner } }",
+          "needs": [
+            {
+              "permissions": [
+                "Vulnerability: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityRevertToDetected { vulnerability { location { kubernetesResource { agent } } } }",
+          "needs": [
+            {
+              "permissions": [
+                "Cluster Agent: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityRevertToDetected { vulnerability { project } }",
+          "needs": [
+            {
+              "permissions": [
+                "Project: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityRevertToDetected { vulnerability { issueLinks { nodes { issue } } } }",
+          "needs": [
+            {
+              "permissions": [
+                "Work Item: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        },
+        {
+          "selection": "vulnerabilityRevertToDetected { vulnerability { mergeRequest } }",
+          "needs": [
+            {
+              "permissions": [
+                "Merge Request: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "vulnerability.severity_count": {
+      "denied": {
+        "cause": "graphql-type-undeclared",
+        "element": "VulnerabilitySeveritiesCount",
+        "effect": "null"
+      }
     },
     "wiki.create": {
       "any_of": [

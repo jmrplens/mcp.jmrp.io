@@ -101,7 +101,7 @@ test("gitlab (its own identity since 2.7.0): exposes title/description/websiteUr
   );
   assert.equal(
     card.serverInfo.websiteUrl,
-    "https://jmrp.io/docs/gitlab-mcp-server",
+    "https://docs.jmrp.io/gitlab-mcp-server",
   );
   assert.ok(
     card.serverInfo.icons?.length,

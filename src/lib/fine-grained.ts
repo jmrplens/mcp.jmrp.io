@@ -22,6 +22,11 @@
  * needs. Lines with several boundaries are never joined that way, because
  * each may be held at a different one.
  *
+ * Since 3.3.0 an entry may go on: what the requests an action sends on some
+ * calls only also need ("Some calls also need"), inputs or calls no
+ * fine-grained token passes, and the parts of the answer GitLab serves empty
+ * to such a token, which get a line of their own.
+ *
  * One function produces the sequence and each rendering only decides how a
  * permission name looks, so the page and the twin cannot say two different
  * things. Pure, no node:fs, and it takes the page's strings as an argument
@@ -38,8 +43,43 @@ import type { serversPage } from "../i18n/ui/servers-page";
 /** The servers-page strings of one language: `serversPage[lang]`. */
 export type FineGrainedStrings = (typeof serversPage)[Lang];
 
-/** A run of plain text, or a permission name in GitLab's own words. */
-export type FineGrainedSegment = string | { permission: string };
+/**
+ * A run of plain text, a permission name in GitLab's own words, or a part of
+ * an answer written as the GraphQL selection that reaches it.
+ */
+export type FineGrainedSegment =
+  string | { permission: string } | { selection: string };
+
+/**
+ * The code a non-text segment shows: its permission name or its selection.
+ *
+ * @param segment A segment that is not plain text.
+ * @returns The text to set as code.
+ */
+export function segmentCode(
+  segment: Exclude<FineGrainedSegment, string>,
+): string {
+  return "permission" in segment ? segment.permission : segment.selection;
+}
+
+/**
+ * Neighbouring runs of text as one: the renderings get one string between
+ * two names, however many pieces built it.
+ *
+ * @param segments The segments as built.
+ * @returns The same, with adjacent strings joined.
+ */
+function mergeText(segments: FineGrainedSegment[]): FineGrainedSegment[] {
+  return segments.reduce<FineGrainedSegment[]>((out, segment) => {
+    const prev = out.at(-1);
+    if (typeof segment === "string" && typeof prev === "string") {
+      out[out.length - 1] = prev + segment;
+    } else {
+      out.push(segment);
+    }
+    return out;
+  }, []);
+}
 
 /**
  * "A", "A and B", "A, B and C": commas between the items, the connective
@@ -156,14 +196,31 @@ function alternativeSegments(
     return [t.domainFineGrainedNotJudged];
   }
   if (alternative.needs.length === 0) return [t.domainFineGrainedNone];
-  return alternative.needs.flatMap((need, i) => [
+  return needsSegments(alternative.needs, t);
+}
+
+/**
+ * Lines that must all hold, joined by "+", the ones at the same single
+ * boundary folded first.
+ *
+ * @param needs The lines.
+ * @param t The page's strings.
+ * @returns Their segments.
+ */
+function needsSegments(
+  needs: FineGrainedNeed[],
+  t: FineGrainedStrings,
+): FineGrainedSegment[] {
+  return foldLines(needs).flatMap((need, i) => [
     ...(i > 0 ? [" + "] : []),
     ...lineSegments(need, t),
   ]);
 }
 
 /**
- * The whole fine-grained line of one action, without its label.
+ * The whole fine-grained line of one action, without its label: the ways
+ * that run it, then, in the upstream table's order, what some calls also
+ * need and the inputs or calls no fine-grained token passes.
  *
  * @param entry The action's entry in the fine-grained snapshot.
  * @param t The page's strings: `serversPage[lang]`.
@@ -183,17 +240,66 @@ export function fineGrainedSegments(
     ...(i > 0 ? [` ${t.domainAnyOfJoiner} `] : []),
     ...alternativeSegments(alternative, t),
   ]);
-  // Neighbouring runs of text as one: the renderings get one string between
-  // two names, however many pieces built it.
-  return segments.reduce<FineGrainedSegment[]>((out, segment) => {
-    const prev = out.at(-1);
-    if (typeof segment === "string" && typeof prev === "string") {
-      out[out.length - 1] = prev + segment;
-    } else {
-      out.push(segment);
-    }
-    return out;
-  }, []);
+  if (entry.optional_needs) {
+    segments.push(
+      `. ${t.domainFineGrainedAlsoNeed}: `,
+      ...needsSegments(entry.optional_needs, t),
+    );
+  }
+  if (entry.denied_ways) segments.push(`. ${t.domainFineGrainedDeniedWays}`);
+  if (entry.optional_denied) {
+    segments.push(`. ${t.domainFineGrainedOptionalDenied}`);
+  }
+  return mergeText(segments);
+}
+
+/**
+ * The parts of the answer GitLab serves empty to a fine-grained token, as
+ * the upstream table lists them: each selection, then "(always)" or
+ * "(without" what the grant must also hold ")", separated by commas. Empty
+ * when the action has none, so a rendering prints the line only then.
+ *
+ * @param entry The action's entry in the fine-grained snapshot.
+ * @param t The page's strings: `serversPage[lang]`.
+ * @returns The segments, without the line's label.
+ */
+export function fineGrainedEmptySegments(
+  entry: FineGrainedEntry,
+  t: FineGrainedStrings,
+): FineGrainedSegment[] {
+  if ("denied" in entry) return [];
+  const items: FineGrainedSegment[][] = [
+    ...(entry.always_empty ?? []).map((selection) => [
+      { selection },
+      ` (${t.domainFineGrainedAlways})`,
+    ]),
+    ...(entry.empty_without ?? []).map((part) => [
+      { selection: part.selection },
+      ` (${t.domainFineGrainedWithout} `,
+      ...needsSegments(part.needs, t),
+      ")",
+    ]),
+  ];
+  return mergeText(
+    items.flatMap((item, i) => (i > 0 ? [", ", ...item] : item)),
+  );
+}
+
+/**
+ * Segments as one string, each code part passed through `code` (backticks in
+ * the Markdown twin, nothing in a test).
+ *
+ * @param segments The segments.
+ * @param code How a permission name or a selection is written.
+ * @returns The text.
+ */
+export function segmentsText(
+  segments: FineGrainedSegment[],
+  code: (text: string) => string = (c) => c,
+): string {
+  return segments
+    .map((s) => (typeof s === "string" ? s : code(segmentCode(s))))
+    .join("");
 }
 
 /**
@@ -210,7 +316,5 @@ export function fineGrainedText(
   t: FineGrainedStrings,
   name: (permission: string) => string = (p) => p,
 ): string {
-  return fineGrainedSegments(entry, t)
-    .map((s) => (typeof s === "string" ? s : name(s.permission)))
-    .join("");
+  return segmentsText(fineGrainedSegments(entry, t), name);
 }

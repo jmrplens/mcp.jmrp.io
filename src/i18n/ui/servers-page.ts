@@ -210,7 +210,8 @@ export const serversPage = {
      * `gitlab://tools` manifest snapshot. `catalogTokenNote` is the caveat
      * that must stay ALWAYS visible: the manifest is scoped to the token
      * that asks (`cacheScope: "private"`), so every count on the page is the
-     * Free tier's surface, not a universal one.
+     * surface of the build's token — the tier gitlab.com resolves it to,
+     * `GITLAB_CATALOG_TIER` in src/data/surface.ts — not a universal one.
      */
     catalogHead: "Action catalog",
     // The markdown twins' heading and count word. They were inline
@@ -230,7 +231,7 @@ export const serversPage = {
      * asking token's surface, and it may not be published without it.
      */
     mdCatalogBody:
-      "The tools above front a catalog of {count} {actions} across {domains} {domainWord}: they are found and called through those tools, not exposed one by one. Counted with a Free-tier token — both the tier and the token's permissions move the figure. Index: {index}. One reference page per domain under {base}.",
+      "The tools above front a catalog of {count} {actions} across {domains} {domainWord}: they are found and called through those tools, not exposed one by one. Counted with a token gitlab.com resolves to the Ultimate tier — both the tier and the token's permissions move the figure. Index: {index}. One reference page per domain under {base}.",
     catalogIntro:
       "Behind the tools above sits a catalog of fine-grained actions, invoked through gitlab_execute_action and published as the gitlab://tools resource. This table only counts it, by domain — the full list is the resource itself.",
     /**
@@ -242,9 +243,10 @@ export const serversPage = {
      * 2026-09-30; it was 747 when this was written, and the hand-typed figure
      * outlived the catalog by three weeks), 851 in the upstream README's Free/CE surface,
      * "850+ (1,000+ Enterprise)" in the repository description and 1,006 in
-     * the documentation site and the awesome-list. As of the 3.1.0 release
-     * (2026-09-30) the documentation site says 868 on Community Edition and
-     * up to 1,094 on GitLab.com, and the note below quotes those two. Each is right about its
+     * the documentation site and the awesome-list. As of the 3.3.0 release
+     * (2026-10-20) the documentation site says 872 on Free/CE and up to
+     * 1,099 on GitLab.com (868 and 1,094 on 3.1.0), and the note below
+     * quotes those two. Each is right about its
      * own vantage point, and this site never named the other two, so a model
      * reconciling them had this one as the outlier and the README as the
      * consensus. Naming all three here turns a contradiction into something
@@ -256,7 +258,7 @@ export const serversPage = {
      * catalog.
      */
     catalogTokenNote:
-      "Counted with a Free-tier token against gitlab.com, which is the only host this endpoint talks to: to use it against a self-managed instance, run the server yourself — its documentation covers that. The catalog is scoped to the token that asks, so the count moves with both its tier and its permissions: higher tiers expose more actions, and administration domains only appear to tokens allowed to use them. That is why the figures differ elsewhere: the upstream project counts 868 operations on Community Edition and up to 1,094 on GitLab.com's top tier, while this deployment publishes {count} because it is OAuth-only and acts with your token, so the administration domains a non-admin account cannot call never appear. All three describe the same catalog, counted from three vantage points.",
+      "Counted against gitlab.com, which is the only host this endpoint talks to, with a token it resolves to the Ultimate tier: to use it against a self-managed instance, run the server yourself — its documentation covers that. The catalog is scoped to the token that asks, so the count moves with both its tier and its permissions: a Free token sees fewer actions, a member of a group on a paid plan sees that plan's, and administration domains only appear to tokens allowed to use them. That is why the figures differ elsewhere: the upstream project counts 872 operations on Community Edition and up to 1,099 on GitLab.com's top tier, while this deployment publishes {count} because it is OAuth-only and acts with your token, so the administration domains a non-admin account cannot call never appear. All three describe the same catalog, counted from three vantage points.",
     catalogTableCaption: "Actions by domain",
     catalogColDomain: "Domain",
     catalogColTotal: "Actions",
@@ -319,7 +321,7 @@ export const serversPage = {
     domainFineGrainedLabel: "Fine-grained token",
     /** Sits under the intro; `{version}` is the GitLab release judged at. */
     domainFineGrainedNote:
-      "Each entry also says what a GitLab fine-grained personal access token needs to run it, as GitLab {version} declares it: every permission of one line, at one of the boundaries named. Where there are alternatives, any one is enough.",
+      'Each entry also says what a GitLab fine-grained personal access token needs to run it, as GitLab {version} declares it: every permission of one line, at one of the boundaries named. Where there are alternatives, any one is enough. What follows "Some calls also need" is needed only by the calls that send that request, and the parts of the answer GitLab serves empty to such a token are listed apart.',
     /** Between two permissions of the same line: "A and B at project". */
     domainFineGrainedAnd: "and",
     /** Before the boundaries of a line: "Project: Read at project". */
@@ -332,6 +334,26 @@ export const serversPage = {
     /** An action no fine-grained token can run at this release. */
     domainFineGrainedDenied:
       "none can run it at this GitLab release, which declares nothing for it; use a classic token",
+    /**
+     * Since gitlab 3.3.0. Before what the requests an action sends on some
+     * calls only also need: "Branch: Protect at project. Some calls also
+     * need: Protected Branch: Read at project" (the upstream table's words).
+     */
+    domainFineGrainedAlsoNeed: "Some calls also need",
+    /** After the ways that run: an input that selects a refused one. */
+    domainFineGrainedDeniedWays:
+      "With an input that makes it send another request, none can run it at this release",
+    /** A request sent on some calls only that no fine-grained token passes. */
+    domainFineGrainedOptionalDenied:
+      "Some calls send a request none can pass at this release",
+    /**
+     * The second line: the parts of the answer GitLab serves empty to a
+     * fine-grained token, each as its GraphQL selection, "(always)" or
+     * "(without <what the grant must also hold>)".
+     */
+    domainFineGrainedEmptyLabel: "Served empty to a fine-grained token",
+    domainFineGrainedAlways: "always",
+    domainFineGrainedWithout: "without",
     /** The four boundaries a permission is held at. */
     domainFineGrainedBoundary: {
       project: "project",
@@ -485,13 +507,13 @@ export const serversPage = {
     mdDomainMany: "dominios",
     /** Ver `en.mdCatalogBody`: la sección del catálogo en el gemelo. */
     mdCatalogBody:
-      "Las tools de arriba dan la cara por un catálogo de {count} {actions} en {domains} {domainWord}: se encuentran y se llaman a través de ellas, no se exponen una a una. Contado con un token Free — el tier y los permisos del token mueven la cifra. Índice: {index}. Una página de referencia por dominio en {base}.",
+      "Las tools de arriba dan la cara por un catálogo de {count} {actions} en {domains} {domainWord}: se encuentran y se llaman a través de ellas, no se exponen una a una. Contado con un token que gitlab.com resuelve como Ultimate — el tier y los permisos del token mueven la cifra. Índice: {index}. Una página de referencia por dominio en {base}.",
     /** Ver `en.catalogIntro`. */
     catalogIntro:
       "Detrás de las tools de arriba hay un catálogo de acciones de grano fino, invocadas vía gitlab_execute_action y publicadas como el resource gitlab://tools. Esta tabla solo lo cuenta, por dominio — la lista completa es el propio resource.",
     /** Ver `en.catalogTokenNote`: la cifra, su alcance, y por qué las otras difieren. */
     catalogTokenNote:
-      "Contado con un token Free contra gitlab.com, que es el único host con el que habla este endpoint: para usarlo contra una instancia self-managed, levanta tú el servidor — su documentación lo cubre. El catálogo depende del token que pregunta, así que el recuento se mueve con su tier y con sus permisos: los tiers superiores exponen más acciones, y los dominios de administración solo aparecen a tokens autorizados a usarlos. Por eso las cifras difieren en otros sitios: el proyecto upstream cuenta 868 operaciones en Community Edition y hasta 1.094 en el tier más alto de GitLab.com, mientras que este despliegue publica {count} porque es solo-OAuth y actúa con tu token, así que los dominios de administración que una cuenta sin admin no puede llamar no aparecen nunca. Las tres describen el mismo catálogo, contado desde tres sitios distintos.",
+      "Contado contra gitlab.com, que es el único host con el que habla este endpoint, con un token que resuelve como Ultimate: para usarlo contra una instancia self-managed, levanta tú el servidor — su documentación lo cubre. El catálogo depende del token que pregunta, así que el recuento se mueve con su tier y con sus permisos: un token Free ve menos acciones, quien es miembro de un grupo con plan de pago ve las de ese plan, y los dominios de administración solo aparecen a tokens autorizados a usarlos. Por eso las cifras difieren en otros sitios: el proyecto upstream cuenta 872 operaciones en Community Edition y hasta 1.099 en el tier más alto de GitLab.com, mientras que este despliegue publica {count} porque es solo-OAuth y actúa con tu token, así que los dominios de administración que una cuenta sin admin no puede llamar no aparecen nunca. Las tres describen el mismo catálogo, contado desde tres sitios distintos.",
     /** Ver `en.catalogTableCaption`. */
     catalogTableCaption: "Acciones por dominio",
     /** Ver `en.catalogColDomain`. */
@@ -545,7 +567,7 @@ export const serversPage = {
     /** Ver `en.domainFineGrainedLabel`. */
     domainFineGrainedLabel: "Token fine-grained",
     domainFineGrainedNote:
-      "Cada entrada dice también qué necesita un token de acceso personal fine-grained de GitLab para ejecutarla, tal como lo declara GitLab {version}: todos los permisos de una línea, en uno de los ámbitos indicados. Cuando hay alternativas, basta con cualquiera.",
+      "Cada entrada dice también qué necesita un token de acceso personal fine-grained de GitLab para ejecutarla, tal como lo declara GitLab {version}: todos los permisos de una línea, en uno de los ámbitos indicados. Cuando hay alternativas, basta con cualquiera. Lo que sigue a «Algunas llamadas necesitan además» solo lo necesitan las llamadas que envían esa petición, y las partes de la respuesta que GitLab sirve vacías a ese token van aparte.",
     domainFineGrainedAnd: "y",
     domainFineGrainedAt: "en",
     domainFineGrainedNone: "no necesita ningún permiso",
@@ -553,6 +575,14 @@ export const serversPage = {
       "la concesión no lo juzga (GitLab autentica esta petición de otra forma)",
     domainFineGrainedDenied:
       "ninguno puede ejecutarla en esta versión de GitLab, que no declara nada para ella; usa un token clásico",
+    domainFineGrainedAlsoNeed: "Algunas llamadas necesitan además",
+    domainFineGrainedDeniedWays:
+      "Con una entrada que le haga enviar otra petición, ninguno puede ejecutarla en esta versión",
+    domainFineGrainedOptionalDenied:
+      "Algunas llamadas envían una petición que ninguno puede superar en esta versión",
+    domainFineGrainedEmptyLabel: "Vacío para un token fine-grained",
+    domainFineGrainedAlways: "siempre",
+    domainFineGrainedWithout: "sin",
     domainFineGrainedBoundary: {
       project: "proyecto",
       group: "grupo",

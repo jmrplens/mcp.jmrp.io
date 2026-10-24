@@ -524,7 +524,8 @@ function partialApi(server: McpServer): Record<string, unknown> {
  * {@link buildApiNode}): that server's card, never another.
  *
  * This `@id` is not only ours: each repo's documentation site
- * (`https://jmrp.io/docs/<repo>`) is the entity's home and publishes the SAME
+ * (`https://docs.jmrp.io/<repo>`, where `https://jmrp.io/docs/<repo>`
+ * redirects) is the entity's home and publishes the SAME
  * `@id`. That is why the four facts asserted here — `name`,
  * `programmingLanguage`, `license` and `author` — have been checked one by one
  * against what that site publishes for that `@id`, and are only asserted

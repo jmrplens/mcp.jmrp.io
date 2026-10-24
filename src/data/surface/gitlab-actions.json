@@ -4,9 +4,9 @@
     "resourceUri": "gitlab://tools",
     "surface": "dynamic",
     "uriTemplate": "gitlab://tools/{id}",
-    "sourceVersion": "3.2.0",
-    "entryCount": 769,
-    "actionCount": 768,
+    "sourceVersion": "3.3.0",
+    "entryCount": 978,
+    "actionCount": 977,
     "visibleTools": [
       {
         "name": "gitlab_execute_action",
@@ -23,7 +23,7 @@
     ],
     "ttlMs": 300000,
     "cacheScope": "private",
-    "generatedAt": "2026-10-10T04:37:06Z"
+    "generatedAt": "2026-10-22T09:53:37Z"
   },
   "domains": [
     {
@@ -37,6 +37,18 @@
       "count": 12,
       "destructiveCount": 3,
       "readOnlyCount": 4
+    },
+    {
+      "domain": "attestation",
+      "count": 2,
+      "destructiveCount": 0,
+      "readOnlyCount": 2
+    },
+    {
+      "domain": "audit_event",
+      "count": 6,
+      "destructiveCount": 0,
+      "readOnlyCount": 6
     },
     {
       "domain": "branch",
@@ -57,10 +69,22 @@
       "readOnlyCount": 6
     },
     {
+      "domain": "compliance_policy",
+      "count": 2,
+      "destructiveCount": 0,
+      "readOnlyCount": 1
+    },
+    {
       "domain": "custom_emoji",
       "count": 3,
       "destructiveCount": 1,
       "readOnlyCount": 1
+    },
+    {
+      "domain": "dependency",
+      "count": 4,
+      "destructiveCount": 0,
+      "readOnlyCount": 3
     },
     {
       "domain": "discover_project",
@@ -69,10 +93,22 @@
       "readOnlyCount": 1
     },
     {
+      "domain": "dora_metrics",
+      "count": 2,
+      "destructiveCount": 0,
+      "readOnlyCount": 2
+    },
+    {
       "domain": "environment",
-      "count": 18,
-      "destructiveCount": 4,
-      "readOnlyCount": 7
+      "count": 23,
+      "destructiveCount": 5,
+      "readOnlyCount": 9
+    },
+    {
+      "domain": "external_status_check",
+      "count": 8,
+      "destructiveCount": 1,
+      "readOnlyCount": 3
     },
     {
       "domain": "feature_flags",
@@ -82,9 +118,15 @@
     },
     {
       "domain": "group",
-      "count": 75,
-      "destructiveCount": 12,
-      "readOnlyCount": 33
+      "count": 158,
+      "destructiveCount": 31,
+      "readOnlyCount": 68
+    },
+    {
+      "domain": "group_scim",
+      "count": 4,
+      "destructiveCount": 1,
+      "readOnlyCount": 2
     },
     {
       "domain": "interactive",
@@ -94,9 +136,9 @@
     },
     {
       "domain": "issue",
-      "count": 66,
+      "count": 71,
       "destructiveCount": 8,
-      "readOnlyCount": 33
+      "readOnlyCount": 38
     },
     {
       "domain": "job",
@@ -105,10 +147,22 @@
       "readOnlyCount": 13
     },
     {
+      "domain": "member_role",
+      "count": 6,
+      "destructiveCount": 2,
+      "readOnlyCount": 2
+    },
+    {
       "domain": "merge_request",
-      "count": 46,
-      "destructiveCount": 7,
-      "readOnlyCount": 23
+      "count": 58,
+      "destructiveCount": 9,
+      "readOnlyCount": 28
+    },
+    {
+      "domain": "merge_train",
+      "count": 4,
+      "destructiveCount": 0,
+      "readOnlyCount": 3
     },
     {
       "domain": "model_registry",
@@ -123,6 +177,12 @@
       "readOnlyCount": 10
     },
     {
+      "domain": "orbit",
+      "count": 6,
+      "destructiveCount": 0,
+      "readOnlyCount": 6
+    },
+    {
       "domain": "package",
       "count": 30,
       "destructiveCount": 8,
@@ -130,15 +190,15 @@
     },
     {
       "domain": "pipeline",
-      "count": 33,
+      "count": 34,
       "destructiveCount": 4,
-      "readOnlyCount": 15
+      "readOnlyCount": 16
     },
     {
       "domain": "project",
-      "count": 124,
-      "destructiveCount": 25,
-      "readOnlyCount": 51
+      "count": 146,
+      "destructiveCount": 29,
+      "readOnlyCount": 60
     },
     {
       "domain": "release",
@@ -154,15 +214,39 @@
     },
     {
       "domain": "runner",
-      "count": 19,
-      "destructiveCount": 4,
-      "readOnlyCount": 8
+      "count": 36,
+      "destructiveCount": 8,
+      "readOnlyCount": 14
     },
     {
       "domain": "search",
       "count": 10,
       "destructiveCount": 0,
       "readOnlyCount": 10
+    },
+    {
+      "domain": "security_attribute",
+      "count": 5,
+      "destructiveCount": 3,
+      "readOnlyCount": 0
+    },
+    {
+      "domain": "security_category",
+      "count": 3,
+      "destructiveCount": 1,
+      "readOnlyCount": 0
+    },
+    {
+      "domain": "security_finding",
+      "count": 1,
+      "destructiveCount": 0,
+      "readOnlyCount": 1
+    },
+    {
+      "domain": "security_scan_profile",
+      "count": 3,
+      "destructiveCount": 1,
+      "readOnlyCount": 1
     },
     {
       "domain": "server",
@@ -193,6 +277,12 @@
       "count": 76,
       "destructiveCount": 14,
       "readOnlyCount": 37
+    },
+    {
+      "domain": "vulnerability",
+      "count": 8,
+      "destructiveCount": 0,
+      "readOnlyCount": 4
     },
     {
       "domain": "wiki",
@@ -437,6 +527,10 @@
         {
           "name": "name",
           "type": "string"
+        },
+        {
+          "name": "scopes",
+          "type": "array"
         }
       ]
     },
@@ -455,6 +549,10 @@
         {
           "name": "project_id",
           "type": "string|integer"
+        },
+        {
+          "name": "scopes",
+          "type": "array"
         }
       ]
     },
@@ -1116,7 +1214,7 @@
       "domain": "achievement",
       "destructive": false,
       "read_only": false,
-      "description": "Change one award, which today means its show_on_profile visibility. Returns: the updated award with id, achievement_id, user_id, priority, show_on_profile, and timestamps. See also: achievement.user_list, achievement.user_achievement_reorder, achievement.update.",
+      "description": "Change one award: its show_on_profile visibility and its award message. Returns: the updated award with id, achievement_id, user_id, priority, show_on_profile, award message, and timestamps. See also: achievement.user_list, achievement.user_achievement_reorder, achievement.update.",
       "required_params": [
         {
           "name": "user_achievement_id",
@@ -1135,6 +1233,128 @@
         {
           "name": "username",
           "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "attestation.download",
+      "title": "Download Attestation",
+      "domain": "attestation",
+      "destructive": false,
+      "read_only": true,
+      "description": "Download the raw in-toto attestation bundle for one attestation by IID (Ultimate). Returns: the attestation_iid, the bundle size in bytes, and the base64-encoded content_base64 bundle payload. See also: attestation.list, package.list, project.get.",
+      "required_params": [
+        {
+          "name": "attestation_iid",
+          "type": "integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "attestation.list",
+      "title": "List Attestations",
+      "domain": "attestation",
+      "destructive": false,
+      "read_only": true,
+      "description": "List SLSA build provenance attestations for a project artifact by subject digest (Ultimate). Returns: each attestation's id, iid, project_id, build_id, status, predicate_kind, predicate_type, subject_digest, download_url, and created/updated/expire timestamps, with pagination metadata. See also: attestation.download, package.list, project.get.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "subject_digest",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "audit_event.get_group",
+      "title": "Get Group Audit Event",
+      "domain": "audit_event",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a single group-level audit event by group_id and ID. Returns: the audit event with author, entity, event name/type, target details, IP address, and timestamp. See also: audit_event.list_group, audit_event.get_project, audit_event.get_instance.",
+      "required_params": [
+        {
+          "name": "event_id",
+          "type": "integer"
+        },
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "audit_event.get_instance",
+      "title": "Get Instance Audit Event",
+      "domain": "audit_event",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a single instance-level audit event by ID (administrator only). Returns: the audit event with author, entity, event name/type, target details, IP address, and timestamp. See also: audit_event.list_instance, audit_event.get_group, audit_event.get_project.",
+      "required_params": [
+        {
+          "name": "event_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "audit_event.get_project",
+      "title": "Get Project Audit Event",
+      "domain": "audit_event",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a single project-level audit event by project_id and ID. Returns: the audit event with author, entity, event name/type, target details, IP address, and timestamp. See also: audit_event.list_project, audit_event.get_group, audit_event.get_instance.",
+      "required_params": [
+        {
+          "name": "event_id",
+          "type": "integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "audit_event.list_group",
+      "title": "List Group Audit Events",
+      "domain": "audit_event",
+      "destructive": false,
+      "read_only": true,
+      "description": "List group-level audit events for a group. Returns: audit events with author, entity, event name/type, details, timestamps, and pagination metadata. See also: audit_event.get_group, audit_event.list_project, audit_event.list_instance.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "audit_event.list_instance",
+      "title": "List Instance Audit Events",
+      "domain": "audit_event",
+      "destructive": false,
+      "read_only": true,
+      "description": "List instance-level audit events (administrator only). Returns: audit events with author, entity, event name/type, details, timestamps, and pagination metadata. See also: audit_event.get_instance, audit_event.list_group, audit_event.list_project."
+    },
+    {
+      "id": "audit_event.list_project",
+      "title": "List Project Audit Events",
+      "domain": "audit_event",
+      "destructive": false,
+      "read_only": true,
+      "description": "List project-level audit events for a project. Returns: audit events with author, entity, event name/type, details, timestamps, and pagination metadata. See also: audit_event.get_project, audit_event.list_group, audit_event.list_instance.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
         }
       ]
     },
@@ -1413,6 +1633,10 @@
         {
           "name": "key",
           "type": "string"
+        },
+        {
+          "name": "value",
+          "type": "string"
         }
       ]
     },
@@ -1494,6 +1718,10 @@
       "required_params": [
         {
           "name": "key",
+          "type": "string"
+        },
+        {
+          "name": "value",
           "type": "string"
         }
       ]
@@ -1581,6 +1809,28 @@
       ]
     },
     {
+      "id": "compliance_policy.get",
+      "title": "Get Compliance Policy Settings",
+      "domain": "compliance_policy",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get the instance compliance policy settings. Returns: the centralized compliance security policy (CSP) namespace ID, or unset when no namespace hosts the compliance policy project. See also: compliance_policy.update, group.get."
+    },
+    {
+      "id": "compliance_policy.update",
+      "title": "Update Compliance Policy Settings",
+      "domain": "compliance_policy",
+      "destructive": false,
+      "read_only": false,
+      "description": "Update the instance compliance policy settings. Returns: the compliance policy settings with the newly bound centralized compliance security policy (CSP) namespace ID. See also: compliance_policy.get, group.get.",
+      "required_params": [
+        {
+          "name": "csp_namespace_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
       "id": "custom_emoji.create",
       "title": "Create Custom Emoji",
       "domain": "custom_emoji",
@@ -1622,11 +1872,67 @@
       "domain": "custom_emoji",
       "destructive": false,
       "read_only": true,
-      "description": "List group-level custom emoji using GraphQL-backed routes.",
+      "description": "List group-level custom emoji using GraphQL-backed routes. A subgroup is listed with its own emoji only, as GitLab defaults. Set include_ancestor_groups to true to add the emoji of its ancestor groups, which it can use as well.",
       "required_params": [
         {
           "name": "group_path",
           "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "dependency.export_create",
+      "title": "Create Dependency List Export",
+      "domain": "dependency",
+      "destructive": false,
+      "read_only": false,
+      "description": "Create a dependency list export from a pipeline.",
+      "required_params": [
+        {
+          "name": "pipeline_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "dependency.export_download",
+      "title": "Download Dependency List Export",
+      "domain": "dependency",
+      "destructive": false,
+      "read_only": true,
+      "description": "Download generated dependency list export content whole. An export over 32 MiB is refused with the GitLab route to fetch it directly, never cut short.",
+      "required_params": [
+        {
+          "name": "export_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "dependency.export_get",
+      "title": "Get Dependency List Export",
+      "domain": "dependency",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a dependency list export's status (created, running, finished or failed), its type and its expiry. Poll it until the status is finished before fetching the content.",
+      "required_params": [
+        {
+          "name": "export_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "dependency.list",
+      "title": "List Project Dependencies",
+      "domain": "dependency",
+      "destructive": false,
+      "read_only": true,
+      "description": "List project dependency inventory.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
         }
       ]
     },
@@ -1641,6 +1947,42 @@
         {
           "name": "remote_url",
           "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "dora_metrics.group",
+      "title": "Get Group Dora Metrics",
+      "domain": "dora_metrics",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get the four DORA DevOps performance metrics aggregated across a group over a date window. Returns: one time series of date/value data points for the requested metric (deployment frequency, lead time for changes, time to restore service, or change failure rate), bucketed by interval. See also: dora_metrics.project.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "metric",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "dora_metrics.project",
+      "title": "Get Project Dora Metrics",
+      "domain": "dora_metrics",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get the four DORA DevOps performance metrics for a project over a date window. Returns: one time series of date/value data points for the requested metric (deployment frequency, lead time for changes, time to restore service, or change failure rate), bucketed by interval. See also: dora_metrics.group.",
+      "required_params": [
+        {
+          "name": "metric",
+          "type": "string"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
         }
       ]
     },
@@ -1725,6 +2067,14 @@
         {
           "name": "sha",
           "type": "string"
+        },
+        {
+          "name": "status",
+          "type": "string"
+        },
+        {
+          "name": "tag",
+          "type": "boolean"
         }
       ]
     },
@@ -1941,6 +2291,96 @@
       ]
     },
     {
+      "id": "environment.protected_get",
+      "title": "Protected Environment Get",
+      "domain": "environment",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a single protected (or wildcard) environment by name. Returns: the environment with its deploy access levels (id, access level, user/group, group inheritance) and approval rules. See also: environment.protected_list, environment.protected_update, environment.protected_unprotect.",
+      "required_params": [
+        {
+          "name": "environment",
+          "type": "string"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "environment.protected_list",
+      "title": "Protected Environment List",
+      "domain": "environment",
+      "destructive": false,
+      "read_only": true,
+      "description": "List protected environments in a project with order_by/sort and offset or keyset pagination. Returns: protected environments with their deploy access levels, required approval count, approval rules, and pagination metadata. See also: environment.protected_get, environment.protected_protect, environment.list.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "environment.protected_protect",
+      "title": "Protected Environment Protect",
+      "domain": "environment",
+      "destructive": false,
+      "read_only": false,
+      "description": "Protect a single environment or wildcard with deploy access levels and approval rules. Returns: the newly protected environment with its deploy access levels, required approval count, and approval rules. See also: environment.protected_get, environment.protected_update, environment.protected_unprotect.",
+      "required_params": [
+        {
+          "name": "deploy_access_levels",
+          "type": "array"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "environment.protected_unprotect",
+      "title": "Protected Environment Unprotect",
+      "domain": "environment",
+      "destructive": true,
+      "read_only": false,
+      "description": "Unprotect a single environment or wildcard, removing its deployment gates. Returns: a success confirmation naming the unprotected environment. See also: environment.protected_list, environment.protected_protect.",
+      "required_params": [
+        {
+          "name": "environment",
+          "type": "string"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "environment.protected_update",
+      "title": "Protected Environment Update",
+      "domain": "environment",
+      "destructive": false,
+      "read_only": false,
+      "description": "Update a protected environment's deploy access levels and approval rules (use _destroy to remove an entry). Returns: the updated environment with its deploy access levels, required approval count, and approval rules. See also: environment.protected_get, environment.protected_protect, environment.protected_unprotect.",
+      "required_params": [
+        {
+          "name": "environment",
+          "type": "string"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
       "id": "environment.stop",
       "title": "Environment Stop",
       "domain": "environment",
@@ -1968,6 +2408,162 @@
       "required_params": [
         {
           "name": "environment_id",
+          "type": "integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "external_status_check.create_project",
+      "title": "Create Project External Status Check",
+      "domain": "external_status_check",
+      "destructive": false,
+      "read_only": false,
+      "description": "Create an external status check service for a project. Returns: the created check with id, name, external_url, hmac, and protected branches. See also: external_status_check.list_project, external_status_check.update_project, external_status_check.delete_project.",
+      "required_params": [
+        {
+          "name": "external_url",
+          "type": "string"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "external_status_check.delete_project",
+      "title": "Delete Project External Status Check",
+      "domain": "external_status_check",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete a project external status check service permanently. Returns: a success confirmation. See also: external_status_check.list_project, external_status_check.create_project, external_status_check.update_project.",
+      "required_params": [
+        {
+          "name": "check_id",
+          "type": "integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "external_status_check.list_project",
+      "title": "List Project External Status Checks",
+      "domain": "external_status_check",
+      "destructive": false,
+      "read_only": true,
+      "description": "List a project's external status check services. Returns: each check with id, name, external_url, hmac, protected branches, and pagination metadata. See also: external_status_check.create_project, external_status_check.update_project, external_status_check.delete_project, external_status_check.list_project_mr_checks.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "external_status_check.list_project_checks",
+      "title": "List Project Status Checks",
+      "domain": "external_status_check",
+      "destructive": false,
+      "read_only": true,
+      "description": "List a project's external status check services (deprecated endpoint). Returns: each check with id, name, external_url, hmac, protected branches, and pagination metadata. See also: external_status_check.list_project, external_status_check.create_project, external_status_check.list_project_mr_checks.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "external_status_check.list_project_mr_checks",
+      "title": "List Project MR External Status Checks",
+      "domain": "external_status_check",
+      "destructive": false,
+      "read_only": true,
+      "description": "List the external status checks for a merge request and their status. Returns: each check with id, name, external_url, status, and pagination metadata. See also: external_status_check.list_project, external_status_check.set_project_mr_status, external_status_check.retry_project.",
+      "required_params": [
+        {
+          "name": "merge_request_iid",
+          "type": "integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "external_status_check.retry_project",
+      "title": "Retry Failed External Status Check For Project MR",
+      "domain": "external_status_check",
+      "destructive": false,
+      "read_only": false,
+      "description": "Retry a failed external status check for a merge request. Returns: a success confirmation. See also: external_status_check.list_project_mr_checks, external_status_check.set_project_mr_status.",
+      "required_params": [
+        {
+          "name": "check_id",
+          "type": "integer"
+        },
+        {
+          "name": "merge_request_iid",
+          "type": "integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "external_status_check.set_project_mr_status",
+      "title": "Set Project MR External Status Check Status",
+      "domain": "external_status_check",
+      "destructive": false,
+      "read_only": false,
+      "description": "Set the status of an external status check for a merge request. Returns: a success confirmation. See also: external_status_check.list_project_mr_checks, external_status_check.retry_project.",
+      "required_params": [
+        {
+          "name": "external_status_check_id",
+          "type": "integer"
+        },
+        {
+          "name": "merge_request_iid",
+          "type": "integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "sha",
+          "type": "string"
+        },
+        {
+          "name": "status",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "external_status_check.update_project",
+      "title": "Update Project External Status Check",
+      "domain": "external_status_check",
+      "destructive": false,
+      "read_only": false,
+      "description": "Update a project external status check service. Returns: the updated check with id, name, external_url, hmac, and protected branches. See also: external_status_check.list_project, external_status_check.create_project, external_status_check.delete_project.",
+      "required_params": [
+        {
+          "name": "check_id",
           "type": "integer"
         },
         {
@@ -2153,6 +2749,48 @@
       ]
     },
     {
+      "id": "group.analytics_issues_count",
+      "title": "Get Recently Created Issues Count",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get the count of recently created issues across a group. Returns: the group path and recently created issues count (Premium). See also: group.analytics_mr_count, group.analytics_members_count, group.get.",
+      "required_params": [
+        {
+          "name": "group_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.analytics_members_count",
+      "title": "Get Recently Added Members Count",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get the count of recently added members across a group. Returns: the group path and recently added members count (Premium). See also: group.analytics_issues_count, group.analytics_mr_count, group.get.",
+      "required_params": [
+        {
+          "name": "group_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.analytics_mr_count",
+      "title": "Get Recently Created MR Count",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get the count of recently created merge requests across a group. Returns: the group path and recently created merge requests count (Premium). See also: group.analytics_issues_count, group.analytics_members_count, group.get.",
+      "required_params": [
+        {
+          "name": "group_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "id": "group.archive",
       "title": "Group Archive",
       "domain": "group",
@@ -2289,6 +2927,74 @@
         {
           "name": "name",
           "type": "string"
+        },
+        {
+          "name": "path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.credential_delete_ssh_key",
+      "title": "Delete Group SSH Key",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete an enterprise SSH key in a group. Returns: a success confirmation naming the key and group. See also: group.credential_list_ssh_keys, group.get.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "key_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "group.credential_list_pats",
+      "title": "List Group Personal Access Tokens",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List a group's enterprise personal access tokens. Returns: tokens with name, scopes, owner user ID, active/revoked flags, created and last-used dates, expiry, and pagination metadata. See also: group.credential_revoke_pat, group.credential_list_ssh_keys, group.get.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group.credential_list_ssh_keys",
+      "title": "List Group SSH Keys",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List a group's enterprise SSH keys. Returns: keys with title, owner user ID, usage type, created/expiry/last-used dates, and pagination metadata. See also: group.credential_delete_ssh_key, group.credential_list_pats, group.get.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group.credential_revoke_pat",
+      "title": "Revoke Group Personal Access Token",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false,
+      "description": "Revoke an enterprise personal access token in a group. Returns: a success confirmation naming the token and group. See also: group.credential_list_pats, group.get.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "token_id",
+          "type": "integer"
         }
       ]
     },
@@ -2307,6 +3013,520 @@
       ]
     },
     {
+      "id": "group.epic_board_get",
+      "title": "Group Epic Board Get",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a single group epic board by ID (Premium/Ultimate). Returns: the epic board with its group, hide_*_list flags, scope labels, and lists (columns) with their label scope. See also: group.epic_board_list, group.epic_list.",
+      "required_params": [
+        {
+          "name": "board_id",
+          "type": "integer"
+        },
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_board_list",
+      "title": "Group Epic Board List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List all epic boards in a group with pagination (Premium/Ultimate). Returns: each epic board with its group, hide_*_list flags, scope labels, and lists (columns) with their label scope, plus pagination metadata. See also: group.epic_board_get, group.epic_list.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_create",
+      "title": "Epic Create",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Create a new epic in a group, optionally under a parent epic and already linked to others. Returns: the created epic with IID, state, labels, assignees, dates, and web URL. See also: group.epic_get, group.epic_list, group.epic_update.",
+      "required_params": [
+        {
+          "name": "full_path",
+          "type": "string"
+        },
+        {
+          "name": "title",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_delete",
+      "title": "Epic Delete",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false,
+      "description": "Permanently delete an epic from a group. Returns: a success confirmation naming the epic and group. See also: group.epic_get, group.epic_list, group.epic_update.",
+      "required_params": [
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "full_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_discussion_add_note",
+      "title": "Add Epic Discussion Note",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Add a reply note to an existing epic discussion thread. Returns: the created note (id, author username, body, timestamps), plus the status of any quick actions the body carried. See also: group.epic_discussion_create, group.epic_discussion_get, group.epic_discussion_update_note.",
+      "required_params": [
+        {
+          "name": "body",
+          "type": "string"
+        },
+        {
+          "name": "discussion_id",
+          "type": "string"
+        },
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "full_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_discussion_create",
+      "title": "Create Epic Discussion",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Create a new discussion thread on a group epic with an initial note. Returns: the created thread (discussion id) with its first note, plus the status of any quick actions the body carried. See also: group.epic_discussion_add_note, group.epic_discussion_list, group.epic_note_create.",
+      "required_params": [
+        {
+          "name": "body",
+          "type": "string"
+        },
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "full_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_discussion_delete_note",
+      "title": "Delete Epic Discussion Note",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete a note from an epic discussion thread (destructive). Returns: a deletion confirmation message. See also: group.epic_discussion_update_note, group.epic_discussion_get, group.epic_discussion_list.",
+      "required_params": [
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "full_path",
+          "type": "string"
+        },
+        {
+          "name": "note_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_discussion_get",
+      "title": "Get Epic Discussion",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a single epic discussion thread by its discussion id. Returns: the thread with its resolution state and every note (id, author username, body, system and internal flags, timestamps). See also: group.epic_discussion_list, group.epic_discussion_add_note, group.epic_get.",
+      "required_params": [
+        {
+          "name": "discussion_id",
+          "type": "string"
+        },
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "full_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_discussion_list",
+      "title": "List Epic Discussions",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List discussion threads on a group epic with cursor-based keyset pagination. Returns: discussion threads with their resolution state and notes (id, author username, body, system and internal flags, timestamps) and pagination metadata. Pages forward only: this GitLab connection takes first and after, and rejects last and before. See also: group.epic_discussion_get, group.epic_discussion_create, group.epic_get, group.epic_note_list.",
+      "required_params": [
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "full_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_discussion_update_note",
+      "title": "Update Epic Discussion Note",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Update the body of a note in an epic discussion thread. Returns: the updated note (id, author username, body, timestamps), plus the status of any quick actions the new body carried. See also: group.epic_discussion_add_note, group.epic_discussion_delete_note, group.epic_discussion_get.",
+      "required_params": [
+        {
+          "name": "body",
+          "type": "string"
+        },
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "full_path",
+          "type": "string"
+        },
+        {
+          "name": "note_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_get",
+      "title": "Epic Get",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a single epic from a group by epic IID. Returns: epic metadata, state, labels, author, assignees, start/due dates, health status, weight, parent, and linked items. See also: group.epic_list, group.epic_update, group.epic_get_links, group.epic_delete.",
+      "required_params": [
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "full_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_get_links",
+      "title": "Epic Get Links",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List child epics linked to a parent epic. Returns: child epics with state, labels, author, dates, and parent reference. See also: group.epic_get, group.epic_list, group.epic_update.",
+      "required_params": [
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "full_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_issue_assign",
+      "title": "Epic Issue Assign",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Assign an existing project issue as a child of a group epic. Returns: the resolved epic and issue work item GIDs confirming the link. See also: group.epic_issue_list, group.epic_issue_remove, group.epic_get.",
+      "required_params": [
+        {
+          "name": "child_iid",
+          "type": "integer"
+        },
+        {
+          "name": "child_project_path",
+          "type": "string"
+        },
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "full_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_issue_list",
+      "title": "Epic Issue List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List the issues linked to a group epic via the Work Items hierarchy. Returns: child issues with IID, full reference, type, title, description, state, confidentiality, author, labels with their details, web URL, timestamps, and cursor pagination metadata. See also: group.epic_issue_assign, group.epic_issue_remove, group.epic_get.",
+      "required_params": [
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "full_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_issue_remove",
+      "title": "Epic Issue Remove",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false,
+      "description": "Unlink a child issue from a group epic (destructive. Requires confirmation). An issue that is not a child of that epic is refused and left where it is. Returns: the resolved epic and issue work item GIDs confirming the removal. See also: group.epic_issue_list, group.epic_issue_assign, group.epic_get.",
+      "required_params": [
+        {
+          "name": "child_iid",
+          "type": "integer"
+        },
+        {
+          "name": "child_project_path",
+          "type": "string"
+        },
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "full_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_issue_update",
+      "title": "Epic Issue Update",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Reorder an issue within a group epic by moving it before or after another linked issue. Both issues must already be children of that epic: one in another epic is refused, never moved. Returns: the epic's child issues in their updated order. See also: group.epic_issue_list, group.epic_issue_assign, group.epic_issue_remove.",
+      "required_params": [
+        {
+          "name": "child_id",
+          "type": "string"
+        },
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "full_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_list",
+      "title": "Epic List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List epics in a group with filtering and pagination. Returns: matching epics with state, labels, author, assignees, dates, children, and the pagination block of whichever API answered. See also: group.epic_get, group.epic_create, group.epic_get_links.",
+      "required_params": [
+        {
+          "name": "full_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_note_create",
+      "title": "Epic Note Create",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Add a comment (note) to an epic. Returns: the created note with id, author, body, internal flag and timestamps, plus the status of any quick actions the body carried (a body of quick actions alone returns the status and no note). See also: group.epic_note_list, group.epic_get, group.epic_discussion_create.",
+      "required_params": [
+        {
+          "name": "body",
+          "type": "string"
+        },
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "full_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_note_delete",
+      "title": "Epic Note Delete",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete an epic note permanently. Returns: a success confirmation naming the note, epic, and group. See also: group.epic_note_get, group.epic_note_list.",
+      "required_params": [
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "full_path",
+          "type": "string"
+        },
+        {
+          "name": "note_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_note_get",
+      "title": "Epic Note Get",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a single epic note by its ID. Returns: the note with author, body, timestamps, system and internal flags, and resolution state. See also: group.epic_note_list, group.epic_note_update, group.epic_note_delete.",
+      "required_params": [
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "full_path",
+          "type": "string"
+        },
+        {
+          "name": "note_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_note_list",
+      "title": "Epic Note List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List all notes (comments) on an epic. Returns: notes with author, body, system and internal flags, resolution state, timestamps, and keyset pagination metadata. Pages forward only: this GitLab connection takes first and after, and rejects last and before. See also: group.epic_note_get, group.epic_note_create, group.epic_discussion_get.",
+      "required_params": [
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "full_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_note_update",
+      "title": "Epic Note Update",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Update an epic note's body. Returns: the updated note with new body and updated_at timestamp, plus the status of any quick actions the new body carried. See also: group.epic_note_get, group.epic_note_list, group.epic_note_delete.",
+      "required_params": [
+        {
+          "name": "body",
+          "type": "string"
+        },
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "full_path",
+          "type": "string"
+        },
+        {
+          "name": "note_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "group.epic_update",
+      "title": "Epic Update",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Update an existing epic. Supports close/reopen via state_event. Returns: the updated epic with its current state, labels, assignees, dates, and web URL. See also: group.epic_get, group.epic_list, group.epic_delete.",
+      "required_params": [
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "full_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.event_epic_label_get",
+      "title": "Get Group Epic Label Event",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a single label event for a group epic (Premium/Ultimate). Returns: the event with action, the label object, and the acting user. See also: group.event_epic_label_list, group.epic_get.",
+      "required_params": [
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "label_event_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "group.event_epic_label_list",
+      "title": "List Group Epic Label Events",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List label events for a group epic (Premium/Ultimate). Returns: label events with action, the label object, the acting user, and pagination metadata. See also: group.event_epic_label_get, group.epic_get.",
+      "required_params": [
+        {
+          "name": "epic_iid",
+          "type": "integer"
+        },
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
       "id": "group.get",
       "title": "Group Get",
       "domain": "group",
@@ -2317,6 +3537,74 @@
         {
           "name": "group_id",
           "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group.group_billable_member_memberships_list",
+      "title": "List Billable Member Memberships",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List the memberships of a billable group member (Premium/Ultimate). Returns: each membership's source id, source full name, source members URL, access level (numeric + string), created/expiry dates, plus pagination. See also: group.group_billable_members_list, group.group_billable_member_remove, group.members.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "user_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "group.group_billable_member_remove",
+      "title": "Remove Billable Group Member",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false,
+      "description": "Remove a billable member from a group, freeing a seat (Premium/Ultimate, destructive, requires confirmation). Returns: a removal confirmation. See also: group.group_billable_members_list, group.group_billable_member_memberships_list, group.members.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "user_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "group.group_billable_members_list",
+      "title": "List Billable Group Members",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List the billable members of a group (Premium/Ultimate). Returns: each member's id, username, name, state, email, membership type, removable flag, is_last_owner, last activity, and last login, plus pagination. See also: group.group_billable_member_memberships_list, group.group_billable_member_remove, group.members.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group.group_board_create",
+      "title": "Group Board Create",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Create a new group issue board (Premium/Ultimate). Returns: the created board with its group, milestone, labels, and lists. See also: group.group_board_get, group.group_board_update, group.group_board_delete.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "name",
+          "type": "string"
         }
       ]
     },
@@ -2339,6 +3627,24 @@
         {
           "name": "label_id",
           "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "group.group_board_delete",
+      "title": "Group Board Delete",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete a group issue board permanently (Premium/Ultimate). Returns: a success confirmation. See also: group.group_board_get, group.group_board_list.",
+      "required_params": [
+        {
+          "name": "board_id",
+          "type": "integer"
+        },
+        {
+          "name": "group_id",
+          "type": "string|integer"
         }
       ]
     },
@@ -2410,7 +3716,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": true,
-      "description": "List all issue boards in a group with pagination. Returns: each board with its group, milestone, scope labels, lists, and pagination metadata. See also: group.group_board_get, group.group_board_list_lists.",
+      "description": "List all issue boards in a group with pagination. Returns: each board with its group, milestone, scope labels, lists, and pagination metadata. See also: group.group_board_get, group.group_board_create, group.group_board_list_lists.",
       "required_params": [
         {
           "name": "group_id",
@@ -2665,13 +3971,27 @@
       "description": "Add a user as a direct member of a group. Returns: the created membership with access level, custom member role, expiry, and seat usage. See also: group.members, group.group_member_edit, group.group_member_get.",
       "required_params": [
         {
-          "name": "group_id",
-          "type": "string|integer"
+          "name": "access_level",
+          "type": "integer"
         },
         {
-          "name": "user_id",
-          "type": "integer"
+          "name": "group_id",
+          "type": "string|integer"
         }
+      ],
+      "required_params_any_of": [
+        [
+          {
+            "name": "user_id",
+            "type": "integer"
+          }
+        ],
+        [
+          {
+            "name": "username",
+            "type": "string"
+          }
+        ]
       ]
     },
     {
@@ -2682,6 +4002,10 @@
       "read_only": false,
       "description": "Edit a direct group member's access level, expiry, or custom member role. Returns: the updated membership. See also: group.members, group.group_member_get, group.group_member_remove.",
       "required_params": [
+        {
+          "name": "access_level",
+          "type": "integer"
+        },
         {
           "name": "group_id",
           "type": "string|integer"
@@ -2755,6 +4079,10 @@
       "description": "Share a group with another group at a chosen access level, optionally granting a custom member role. Returns: the shared group's id, names, paths, visibility and web URL, and every group it is now shared with, the new share among them with its access level, expiry and custom role. See also: group.group_member_unshare, group.get, group.members.",
       "required_params": [
         {
+          "name": "group_access",
+          "type": "integer"
+        },
+        {
           "name": "group_id",
           "type": "string|integer"
         },
@@ -2778,6 +4106,24 @@
         },
         {
           "name": "share_group_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "group.group_milestone_burndown",
+      "title": "Group Milestone Burndown Events",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List the burndown chart events of a group milestone (Premium or higher). Returns: every dated event with the issue's weight and the action (created, closed, reopened). See also: group.group_milestone_get, group.group_milestone_issues, group.group_milestone_merge_requests.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "milestone_iid",
           "type": "integer"
         }
       ]
@@ -2874,7 +4220,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": true,
-      "description": "List merge requests assigned to a group milestone. Returns: assigned merge requests with IID, project, title, state, draft flag, merge status, source and target branches, labels, author, assignees, reviewers, web URL, timestamps, and pagination metadata. See also: group.group_milestone_get, group.group_milestone_issues.",
+      "description": "List merge requests assigned to a group milestone. Returns: assigned merge requests with IID, project, title, state, draft flag, merge status, source and target branches, labels, author, assignees, reviewers, web URL, timestamps, and pagination metadata. See also: group.group_milestone_get, group.group_milestone_issues, group.group_milestone_burndown.",
       "required_params": [
         {
           "name": "group_id",
@@ -2987,6 +4333,232 @@
       ]
     },
     {
+      "id": "group.hook_add",
+      "title": "Group Hook Add",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Create a webhook on a GitLab group. Returns: the created hook with URL, enabled events, and SSL/header metadata. See also: group.hook_list, group.hook_get, group.hook_delete.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "url",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.hook_delete",
+      "title": "Group Hook Delete",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete a GitLab group webhook. Returns: a success confirmation. See also: group.hook_list, group.hook_get, group.hook_add.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "hook_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "group.hook_delete_custom_header",
+      "title": "Group Hook Delete Custom Header",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete a custom header from a GitLab group webhook. Returns: a success confirmation. See also: group.hook_set_custom_header, group.hook_get.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "hook_id",
+          "type": "integer"
+        },
+        {
+          "name": "key",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.hook_delete_url_variable",
+      "title": "Group Hook Delete URL Variable",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete a URL variable from a GitLab group webhook. Returns: a success confirmation. See also: group.hook_set_url_variable, group.hook_get.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "hook_id",
+          "type": "integer"
+        },
+        {
+          "name": "key",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.hook_edit",
+      "title": "Group Hook Edit",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Update a GitLab group webhook. Returns: the updated hook with URL, enabled events, and SSL/header metadata. See also: group.hook_list, group.hook_get, group.hook_delete.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "hook_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "group.hook_get",
+      "title": "Group Hook Get",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a single GitLab group webhook by ID. Returns: the hook's URL, enabled events, and SSL/header metadata. See also: group.hook_list, group.hook_edit, group.hook_delete.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "hook_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "group.hook_list",
+      "title": "Group Hook List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List the webhooks on a GitLab group. Returns: hooks with URL, enabled events, and SSL settings. See also: group.hook_get, group.hook_add, group.get.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group.hook_resend_event",
+      "title": "Group Hook Resend Event",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Resend a GitLab group hook event. Returns: a success confirmation. See also: group.hook_test, group.hook_get.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "hook_event_id",
+          "type": "integer"
+        },
+        {
+          "name": "hook_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "group.hook_set_custom_header",
+      "title": "Group Hook Set Custom Header",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Set a custom header on a GitLab group webhook. Returns: a success confirmation. See also: group.hook_delete_custom_header, group.hook_get.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "hook_id",
+          "type": "integer"
+        },
+        {
+          "name": "key",
+          "type": "string"
+        },
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.hook_set_url_variable",
+      "title": "Group Hook Set URL Variable",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Set a URL variable on a GitLab group webhook. Returns: a success confirmation. See also: group.hook_delete_url_variable, group.hook_get.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "hook_id",
+          "type": "integer"
+        },
+        {
+          "name": "key",
+          "type": "string"
+        },
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.hook_test",
+      "title": "Group Hook Test",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Trigger a test event for a GitLab group webhook. Returns: a success confirmation. See also: group.hook_get, group.hook_resend_event.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "hook_id",
+          "type": "integer"
+        },
+        {
+          "name": "trigger",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "id": "group.invited_groups",
       "title": "Group Invited List",
       "domain": "group",
@@ -3015,12 +4587,116 @@
       ]
     },
     {
+      "id": "group.ldap_link_add",
+      "title": "Group Ldap Link Add",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Add an LDAP group link to a GitLab group by CN or filter (Premium/Ultimate). Returns: the created link with its CN/filter, provider, access level, and member role ID. See also: group.ldap_link_list, group.ldap_sync, group.ldap_link_delete.",
+      "required_params": [
+        {
+          "name": "group_access",
+          "type": "integer"
+        },
+        {
+          "name": "group_id",
+          "type": "string"
+        },
+        {
+          "name": "provider",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.ldap_link_delete",
+      "title": "Group Ldap Link Delete",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete a GitLab group's LDAP link by CN or filter (Premium/Ultimate). Returns: a success confirmation. See also: group.ldap_link_list, group.ldap_link_add, group.ldap_sync.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string"
+        },
+        {
+          "name": "provider",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.ldap_link_delete_for_provider",
+      "title": "Group Ldap Link Delete For Provider",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete a GitLab group's LDAP link for a specific provider by CN (Premium/Ultimate). Returns: a success confirmation. See also: group.ldap_link_list, group.ldap_link_delete, group.ldap_sync.",
+      "required_params": [
+        {
+          "name": "cn",
+          "type": "string"
+        },
+        {
+          "name": "group_id",
+          "type": "string"
+        },
+        {
+          "name": "provider",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.ldap_link_list",
+      "title": "Group Ldap Link List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List a GitLab group's LDAP group links. Returns: each link's CN/filter, provider, and access level. See also: group.ldap_link_add, group.ldap_sync, group.get.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.ldap_sync",
+      "title": "Group Ldap Sync",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Trigger an asynchronous LDAP sync for a GitLab group's LDAP links. Returns: a confirmation that the sync was queued. See also: group.ldap_link_list, group.ldap_link_add, group.get.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "id": "group.list",
       "title": "Group List",
       "domain": "group",
       "destructive": false,
       "read_only": true,
       "description": "List accessible GitLab groups with filtering and pagination. Returns: matching groups including path, name, and visibility metadata. See also: group.get, group.search, group.create."
+    },
+    {
+      "id": "group.list_provisioned_users",
+      "title": "Group List Provisioned Users",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List the users provisioned for a GitLab group via SAML/SCIM (Premium/Ultimate). Returns: provisioned users with username, name, state, and identity metadata. See also: group.members, group.get, group.list.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
     },
     {
       "id": "group.members",
@@ -3043,6 +4719,238 @@
       "destructive": false,
       "read_only": true,
       "description": "List the projects in a GitLab group. Returns: compact project rows with names and paths, web and clone URLs, visibility, default branch, topics, star and fork counts, archived status, and created and last-activity times. See also: group.get, group.subgroups, group.transfer_project.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group.protected_branch_get",
+      "title": "Group Protected Branch Get",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a single group-level protected branch by name or wildcard. Returns: the protected branch with push, merge, and unprotect access levels (access_level, access_level_description, user_id, group_id) and force-push and code-owner-approval flags. See also: group.protected_branch_list, group.protected_branch_update, group.protected_branch_unprotect.",
+      "required_params": [
+        {
+          "name": "branch",
+          "type": "string"
+        },
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group.protected_branch_list",
+      "title": "Group Protected Branch List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List group-level protected branches with search and offset or keyset pagination. Returns: protected branches with push, merge, and unprotect access levels (access_level, access_level_description, user_id, group_id), force-push and code-owner-approval flags, plus pagination metadata. See also: group.protected_branch_get, group.protected_branch_protect, group.get.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group.protected_branch_protect",
+      "title": "Group Protected Branch Protect",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Protect a group-level branch or wildcard, optionally with per-user/per-group allowed-to-push, merge, and unprotect entries. Returns: the created protected branch with its push, merge, and unprotect access levels and force-push and code-owner-approval flags. See also: group.protected_branch_get, group.protected_branch_update, group.protected_branch_unprotect.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.protected_branch_unprotect",
+      "title": "Group Protected Branch Unprotect",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false,
+      "description": "Unprotect a group-level branch, cascading the removal to all subgroup projects. Returns: a success confirmation naming the unprotected branch. See also: group.protected_branch_get, group.protected_branch_list, group.protected_branch_protect.",
+      "required_params": [
+        {
+          "name": "branch",
+          "type": "string"
+        },
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group.protected_branch_update",
+      "title": "Group Protected Branch Update",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Update a group-level protected branch, adding or removing (_destroy) allowed-to-push, merge, and unprotect entries. Returns: the updated protected branch with its push, merge, and unprotect access levels and force-push and code-owner-approval flags. See also: group.protected_branch_get, group.protected_branch_list, group.protected_branch_unprotect.",
+      "required_params": [
+        {
+          "name": "branch",
+          "type": "string"
+        },
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group.protected_env_get",
+      "title": "Group Protected Environment Get",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a single group-level protected environment by tier name. Returns: the environment with its deploy access levels (id, access level, user/group, group inheritance) and approval rules. See also: group.protected_env_list, group.protected_env_update, group.protected_env_unprotect.",
+      "required_params": [
+        {
+          "name": "environment",
+          "type": "string"
+        },
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group.protected_env_list",
+      "title": "Group Protected Environment List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List group-level protected environments with order_by/sort and offset or keyset pagination. Returns: group protected environments with their deploy access levels, required approval count, approval rules, and pagination metadata. See also: group.protected_env_get, group.protected_env_protect, group.get.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group.protected_env_protect",
+      "title": "Group Protected Environment Protect",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Protect a group-level environment tier with deploy access levels and approval rules. Protection cascades to all subgroup projects. Returns: the newly protected environment with its deploy access levels, required approval count, and approval rules. See also: group.protected_env_get, group.protected_env_update, group.protected_env_unprotect.",
+      "required_params": [
+        {
+          "name": "deploy_access_levels",
+          "type": "array"
+        },
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.protected_env_unprotect",
+      "title": "Group Protected Environment Unprotect",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false,
+      "description": "Unprotect a group-level environment tier, removing its deployment gates from the group and its subgroup projects. Returns: a success confirmation. See also: group.protected_env_list, group.protected_env_protect.",
+      "required_params": [
+        {
+          "name": "environment",
+          "type": "string"
+        },
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group.protected_env_update",
+      "title": "Group Protected Environment Update",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Update a group-level protected environment's deploy access levels and approval rules (use _destroy to remove an entry). Returns: the updated environment with its deploy access levels, required approval count, and approval rules. See also: group.protected_env_get, group.protected_env_protect, group.protected_env_unprotect.",
+      "required_params": [
+        {
+          "name": "environment",
+          "type": "string"
+        },
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group.push_rule_add",
+      "title": "Group Add Push Rule",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Add push rules to a GitLab group. Returns: the created push-rule configuration. See also: group.push_rule_get, group.push_rule_edit.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group.push_rule_delete",
+      "title": "Group Delete Push Rule",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete a GitLab group's push rules. Returns: a success confirmation. See also: group.push_rule_get, group.push_rule_add.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group.push_rule_edit",
+      "title": "Group Edit Push Rule",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Edit a GitLab group's push rules. Returns: the updated push-rule configuration. See also: group.push_rule_get, group.push_rule_add.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group.push_rule_get",
+      "title": "Group Get Push Rules",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a GitLab group's push rules. Returns: the singleton push-rule configuration. See also: group.push_rule_add, group.push_rule_edit.",
       "required_params": [
         {
           "name": "group_id",
@@ -3079,6 +4987,92 @@
       ]
     },
     {
+      "id": "group.saml_link_add",
+      "title": "Group Saml Link Add",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Add a SAML group link mapping a SAML group name to an access level (Premium/Ultimate).",
+      "required_params": [
+        {
+          "name": "access_level",
+          "type": "integer"
+        },
+        {
+          "name": "group_id",
+          "type": "string"
+        },
+        {
+          "name": "saml_group_name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.saml_link_delete",
+      "title": "Group Saml Link Delete",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete a SAML group link from a GitLab group by SAML group name. Returns: a confirmation that the SAML group mapping was removed (members are not deleted). See also: group.saml_link_list, group.saml_link_get, group.saml_link_add.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string"
+        },
+        {
+          "name": "saml_group_name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.saml_link_get",
+      "title": "Group Saml Link Get",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get one SAML group link of a GitLab group by SAML group name. Returns: the link's SAML group name, access level, and provider. See also: group.saml_link_list, group.saml_link_add, group.saml_link_delete.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string"
+        },
+        {
+          "name": "saml_group_name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.saml_link_list",
+      "title": "Group Saml Link List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List a GitLab group's SAML group links. Returns: each link's SAML group name, access level, and provider. See also: group.saml_users_list, group.saml_link_add, group.get.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.saml_users_list",
+      "title": "Group Saml Users List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List SAML SSO-provisioned users of a top-level GitLab group, with keyset pagination. Returns: matching users with full profile (id, username, name, state, email, identities, scim_identities, custom_attributes, created_by) plus pagination metadata. See also: group.saml_link_list, group.members, group.get.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "id": "group.search",
       "title": "Group Search",
       "domain": "group",
@@ -3089,6 +5083,24 @@
         {
           "name": "query",
           "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.security_settings_update",
+      "title": "Update Group Secret Push Protection",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Enable or disable secret push protection for a whole group, inherited by its projects (Ultimate). Returns: the group's secret_push_protection_enabled state and any errors. See also: project.security_settings_update, group.get.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "secret_push_protection_enabled",
+          "type": "boolean"
         }
       ]
     },
@@ -3313,6 +5325,60 @@
       ]
     },
     {
+      "id": "group.ssh_cert_create",
+      "title": "Create Group SSH Certificate",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Register a new SSH CA certificate on a group from a CA public key and title. Returns: the created certificate's id, title, public key, and creation timestamp. See also: group.ssh_cert_list, group.ssh_cert_delete, group.get.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "key",
+          "type": "string"
+        },
+        {
+          "name": "title",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.ssh_cert_delete",
+      "title": "Delete Group SSH Certificate",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false,
+      "description": "Revoke an SSH CA certificate from a group by certificate id. Returns: a success status and confirmation message. See also: group.ssh_cert_list, group.ssh_cert_create, group.get.",
+      "required_params": [
+        {
+          "name": "certificate_id",
+          "type": "integer"
+        },
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group.ssh_cert_list",
+      "title": "List Group SSH Certificates",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List the SSH CA certificates registered on a group. Returns: each certificate's id, title, public key, and creation timestamp, with offset/keyset pagination. See also: group.ssh_cert_create, group.ssh_cert_delete, group.get.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
       "id": "group.subgroups",
       "title": "Subgroups List",
       "domain": "group",
@@ -3332,7 +5398,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": false,
-      "description": "Transfer a GitLab group under a new parent (or to top level), waiting up to 45 seconds for GitLab to apply the move. Returns: the group under its new parent, or with transfer_queued set and its current parent when GitLab has not applied the move yet, or an error when GitLab reports the move failed. See also: group.transfer_locations, group.get, group.subgroups.",
+      "description": "Transfer a GitLab group under a new parent (or to top level), waiting up to 45 seconds for GitLab to apply the move. Returns: the group under its new parent, or with transfer_queued set and its current parent when GitLab has not applied the move yet, or an error when GitLab reports the move failed, with GitLab's reason from 19.5. See also: group.transfer_locations, group.get, group.subgroups.",
       "required_params": [
         {
           "name": "group_id",
@@ -3437,12 +5503,180 @@
       ]
     },
     {
+      "id": "group.wiki_create",
+      "title": "Group Wiki Create",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Create a new group wiki page. Returns: the created page with title, slug, format, content, and encoding. See also: group.wiki_get, group.wiki_edit, group.wiki_list.",
+      "required_params": [
+        {
+          "name": "content",
+          "type": "string"
+        },
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "title",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.wiki_delete",
+      "title": "Group Wiki Delete",
+      "domain": "group",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete a group wiki page permanently. Returns: a success confirmation for the removed page. See also: group.wiki_get, group.wiki_list.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "slug",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.wiki_edit",
+      "title": "Group Wiki Edit",
+      "domain": "group",
+      "destructive": false,
+      "read_only": false,
+      "description": "Update an existing group wiki page by slug. Returns: the updated page with title, slug, format, content, and encoding. See also: group.wiki_get, group.wiki_delete, group.wiki_list.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "slug",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.wiki_get",
+      "title": "Group Wiki Get",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a single group wiki page by slug. Returns: the page title, slug, format, content, and encoding. See also: group.wiki_list, group.wiki_edit, group.wiki_delete.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "slug",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group.wiki_list",
+      "title": "Group Wiki List",
+      "domain": "group",
+      "destructive": false,
+      "read_only": true,
+      "description": "List a group's wiki pages (GitLab Premium). Returns: each page's title, slug, and format (plus content when with_content is set), with hints to read or create pages. See also: group.wiki_get, group.wiki_create.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group_scim.delete",
+      "title": "Delete Group Scim Identity",
+      "domain": "group_scim",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete a SCIM identity from a top-level group by its SCIM external UID. Returns: a success confirmation naming the deleted SCIM identity and group. See also: group_scim.get, group_scim.list, group_scim.update.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "uid",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group_scim.get",
+      "title": "Get Group Scim Identity",
+      "domain": "group_scim",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get one SCIM identity of a top-level group by its SCIM external UID. Returns: the identity's external_uid, user_id, and active status. See also: group_scim.list, group_scim.update, group_scim.delete.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "uid",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "group_scim.list",
+      "title": "List Group Scim Identities",
+      "domain": "group_scim",
+      "destructive": false,
+      "read_only": true,
+      "description": "List a top-level group's SCIM identities provisioned through SAML SSO SCIM. Returns: each identity with external_uid, user_id, and active status. See also: group_scim.get, group_scim.update, group_scim.delete.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "group_scim.update",
+      "title": "Update Group Scim Identity",
+      "domain": "group_scim",
+      "destructive": false,
+      "read_only": false,
+      "description": "Update the extern_uid of an existing group SCIM identity. Returns: a confirmation that the SCIM identity's external UID was rewritten. See also: group_scim.get, group_scim.list, group_scim.delete.",
+      "required_params": [
+        {
+          "name": "extern_uid",
+          "type": "string"
+        },
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "uid",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "id": "interactive.issue_create",
       "title": "Interactive Issue Create",
       "domain": "interactive",
       "destructive": false,
       "read_only": false,
-      "description": "Create a GitLab issue through step-by-step prompts, with explicit confirmation before calling the GitLab API. Canceling at any prompt aborts without creating the issue.\n\nInput: project_id (numeric ID or URL-encoded path) selects the target project. Prompted fields are title, description, labels, confidential, and confirm. Requires permission to create issues in that project.\n\nAfter invocation, the tool elicits in order:\n- title (string, required): issue title.\n- description (string, optional, multi-line, Markdown): leave empty to skip.\n- labels (string, optional): comma-separated. Trimmed and deduped server-side.\n- confidential (boolean, optional): yes/no confirmation. Defaults to public when declined.\n- confirm (boolean, required): final yes/no review of the assembled summary.\n\nBehavior: canceling at any prompt aborts with no GitLab API call and no side effects. Declining an optional prompt continues with that field unset. Each confirmed invocation creates ONE new issue. NON-idempotent: re-running with the same title/fields creates another issue. Side effects on success: GitLab fires issue-created webhooks and may notify issue subscribers.\n\nWhen to use: human-in-the-loop issue creation. NOT for: scripted/programmatic creation. Use issue.create with all fields pre-supplied.\n\nRequires the MCP client to support the elicitation capability. If unsupported, returns a structured error naming issue.create as the alternative.\n\nReturns: JSON with the created issue (id, issue_iid, web_url, title, state). issue_iid corresponds to GitLab's iid field.\n\nSee also: issue.create, issue.get."
+      "description": "Create a GitLab issue through step-by-step prompts, with explicit confirmation before calling the GitLab API. Canceling at any prompt aborts without creating the issue.\n\nInput: project_id (numeric ID or URL-encoded path) selects the target project. Prompted fields are title, description, labels, confidential, and confirm. Requires permission to create issues in that project.\n\nAfter invocation, the tool elicits in order:\n- title (string, required): issue title.\n- description (string, optional, multi-line, Markdown): leave empty to skip.\n- labels (string, optional): comma-separated. Trimmed and deduped server-side.\n- confidential (boolean, optional): yes/no confirmation. Defaults to public when declined.\n- confirm (boolean, required): final yes/no review of the assembled summary.\n\nBehavior: canceling at any prompt aborts with no GitLab API call and no side effects. Declining an optional prompt continues with that field unset. Each confirmed invocation creates ONE new issue. NON-idempotent: re-running with the same title/fields creates another issue. Side effects on success: GitLab fires issue-created webhooks and may notify issue subscribers.\n\nWhen to use: human-in-the-loop issue creation. NOT for: scripted/programmatic creation. Use issue.create with all fields pre-supplied.\n\nRequires the MCP client to support the elicitation capability. If unsupported, returns a structured error naming issue.create as the alternative.\n\nReturns: JSON with the created issue (id, issue_iid, web_url, title, state). issue_iid corresponds to GitLab's iid field.\n\nSee also: issue.create, issue.get.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
     },
     {
       "id": "interactive.mr_create",
@@ -3450,7 +5684,13 @@
       "domain": "interactive",
       "destructive": false,
       "read_only": false,
-      "description": "Create a GitLab merge request through step-by-step prompts, with explicit confirmation before calling the GitLab API. Canceling at any prompt aborts without creating the MR.\n\nInput: project_id (numeric ID or URL-encoded path) selects the target project. Prompted fields are source_branch, target_branch, title, description, labels, remove_source_branch, squash, and confirm. Requires permission to create merge requests in that project.\n\nAfter invocation, the tool elicits in order:\n- source_branch (string, required): branch with the changes to merge.\n- target_branch (string, required): branch to merge into (e.g. main, develop).\n- title (string, required): MR title.\n- description (string, optional, multi-line, Markdown): leave empty to skip.\n- labels (string, optional): comma-separated. Trimmed and deduped server-side.\n- remove_source_branch (boolean, optional): yes/no confirmation, default unset.\n- squash (boolean, optional): yes/no confirmation, default unset.\n- confirm (boolean, required): final yes/no review of the assembled summary.\n\nBehavior: canceling at any prompt aborts with no GitLab API call and no side effects. Declining an optional prompt continues with that field unset. Each confirmed invocation creates ONE new merge request. NON-idempotent: GitLab rejects an already-open MR for the same source_branch to target_branch in the same project as a validation failure (HTTP 422). Retries may fail with 422 instead of returning the existing MR. Confirm branch/MR state before re-running. For scripted idempotent workflows, use merge_request.create with all fields pre-supplied and handle 422 as the expected duplicate case.\n\nWhen to use: human-in-the-loop MR creation. NOT for: scripted/programmatic creation. Use merge_request.create with all fields pre-supplied.\n\nRequires the MCP client to support the elicitation capability. If unsupported, returns a structured error naming merge_request.create as the alternative.\n\nReturns: JSON with the created MR (id, merge_request_iid, web_url, title, source_branch, target_branch, state). merge_request_iid corresponds to GitLab's iid field.\n\nSee also: merge_request.create, branch.create."
+      "description": "Create a GitLab merge request through step-by-step prompts, with explicit confirmation before calling the GitLab API. Canceling at any prompt aborts without creating the MR.\n\nInput: project_id (numeric ID or URL-encoded path) selects the target project. Prompted fields are source_branch, target_branch, title, description, labels, remove_source_branch, squash, and confirm. Requires permission to create merge requests in that project.\n\nAfter invocation, the tool elicits in order:\n- source_branch (string, required): branch with the changes to merge.\n- target_branch (string, required): branch to merge into (e.g. main, develop).\n- title (string, required): MR title.\n- description (string, optional, multi-line, Markdown): leave empty to skip.\n- labels (string, optional): comma-separated. Trimmed and deduped server-side.\n- remove_source_branch (boolean, optional): yes/no confirmation, default unset.\n- squash (boolean, optional): yes/no confirmation, default unset.\n- confirm (boolean, required): final yes/no review of the assembled summary.\n\nBehavior: canceling at any prompt aborts with no GitLab API call and no side effects. Declining an optional prompt continues with that field unset. Each confirmed invocation creates ONE new merge request. NON-idempotent: GitLab rejects an already-open MR for the same source_branch to target_branch in the same project as a validation failure (HTTP 422). Retries may fail with 422 instead of returning the existing MR. Confirm branch/MR state before re-running. For scripted idempotent workflows, use merge_request.create with all fields pre-supplied and handle 422 as the expected duplicate case.\n\nWhen to use: human-in-the-loop MR creation. NOT for: scripted/programmatic creation. Use merge_request.create with all fields pre-supplied.\n\nRequires the MCP client to support the elicitation capability. If unsupported, returns a structured error naming merge_request.create as the alternative.\n\nReturns: JSON with the created MR (id, merge_request_iid, web_url, title, source_branch, target_branch, state). merge_request_iid corresponds to GitLab's iid field.\n\nSee also: merge_request.create, branch.create.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
     },
     {
       "id": "interactive.project_create",
@@ -3458,7 +5698,7 @@
       "domain": "interactive",
       "destructive": false,
       "read_only": false,
-      "description": "Create a GitLab project through step-by-step prompts, with explicit confirmation before calling the GitLab API. Canceling at any prompt aborts without creating the project. Declining an optional prompt continues with that field unset, except initialize_with_readme, where a decline continues with false.\n\nInput: no fields. Every project detail is elicited. Requires permission to create projects for the authenticated user.\n\nAfter invocation, the tool elicits in order:\n- name (string, required): project display name and (when path is omitted) URL slug.\n- description (string, optional): leave empty to skip.\n- visibility (enum, required): one of private, internal, public.\n- initialize_with_readme (boolean, optional): yes/no confirmation. An explicit no or a decline continues with false. Canceling aborts the flow.\n- default_branch (string, optional): leave empty to use the GitLab default ('main').\n- confirm (boolean, required): final yes/no review of the assembled summary.\n\nWhen to use: human-in-the-loop project creation. NOT for: scripted/programmatic creation. Use project.create with all fields pre-supplied.\n\nBehavior: each successful invocation creates ONE new project after explicit user confirmation. NON-idempotent: re-running with the same project path/name can fail with 400/409. Canceling at any prompt aborts with no GitLab API call and no side effects. Declining an optional prompt continues, with initialize_with_readme taking a decline as false. Side effects on success: GitLab may initialize a repository and notify project members.\n\nRequires the MCP client to support the elicitation capability. If unsupported, returns a structured error naming project.create as the alternative.\n\nReturns: JSON with the created project (id, path_with_namespace, web_url, visibility, default_branch).\n\nSee also: project.get, group.get."
+      "description": "Create a GitLab project through step-by-step prompts, with explicit confirmation before calling the GitLab API. Canceling at any prompt aborts without creating the project. Declining an optional prompt continues with that field unset, except initialize_with_readme, where a decline continues with false.\n\nInput: no fields. Every project detail is elicited. Requires permission to create projects for the authenticated user.\n\nAfter invocation, the tool elicits in order:\n- name (string, required): project display name and (when path is omitted) URL slug.\n- description (string, optional): leave empty to skip.\n- visibility (enum, required): one of private, internal, public.\n- initialize_with_readme (boolean, optional): yes/no confirmation. An explicit no or a decline continues with false. Canceling aborts the flow.\n- default_branch (string, optional, asked only after a yes to initialize_with_readme, since GitLab applies a default branch on creation only with a README): leave empty to use the instance's default branch name.\n- confirm (boolean, required): final yes/no review of the assembled summary.\n\nWhen to use: human-in-the-loop project creation. NOT for: scripted/programmatic creation. Use project.create with all fields pre-supplied.\n\nBehavior: each successful invocation creates ONE new project after explicit user confirmation. NON-idempotent: re-running with the same project path/name can fail with 400/409. Canceling at any prompt aborts with no GitLab API call and no side effects. Declining an optional prompt continues, with initialize_with_readme taking a decline as false. Side effects on success: GitLab may initialize a repository and notify project members.\n\nRequires the MCP client to support the elicitation capability. If unsupported, returns a structured error naming project.create as the alternative.\n\nReturns: JSON with the created project (id, path_with_namespace, web_url, visibility, default_branch).\n\nSee also: project.get, group.get."
     },
     {
       "id": "interactive.release_create",
@@ -3466,7 +5706,13 @@
       "domain": "interactive",
       "destructive": false,
       "read_only": false,
-      "description": "Create a GitLab release through step-by-step prompts, with explicit confirmation before calling the GitLab API. Canceling or declining any prompt aborts without creating the release.\n\nInput: project_id (numeric ID or URL-encoded path) selects the target project. Prompted fields are tag_name, name, description, and confirm. Requires permission to create releases in that project.\n\nAfter invocation, the tool elicits in order:\n- tag_name (string, required): must reference an existing tag in the project. Create it first via tag.create.\n- name (string, optional): release title. Answer with an empty value to let GitLab name the release after the tag. Declining the prompt aborts.\n- description (string, optional, multi-line, Markdown): release notes. Leave empty to skip.\n- confirm (boolean, required): final yes/no review of the assembled summary.\n\nWhen to use: human-in-the-loop release publishing. NOT for: CI/automated release creation. Use release.create with all fields pre-supplied.\n\nRequires the MCP client to support the elicitation capability. If unsupported, returns a structured error naming release.create as the alternative.\n\nBehavior: each successful invocation publishes ONE new release after explicit user confirmation. NON-idempotent: re-running with the same tag returns 409 (release already exists). Canceling or declining any prompt aborts with no GitLab API call and no side effects. This flow's optional fields take an empty answer rather than a decline. Side effects on success: GitLab fires release-created webhooks and may notify release subscribers.\n\nReturns: JSON with the created release (tag_name, name, description, web_url).\n\nSee also: release.create, tag.create."
+      "description": "Create a GitLab release through step-by-step prompts, with explicit confirmation before calling the GitLab API. Canceling or declining any prompt aborts without creating the release.\n\nInput: project_id (numeric ID or URL-encoded path) selects the target project. Prompted fields are tag_name, name, description, and confirm. Requires permission to create releases in that project.\n\nAfter invocation, the tool elicits in order:\n- tag_name (string, required): must reference an existing tag in the project. Create it first via tag.create.\n- name (string, optional): release title. Answer with an empty value to let GitLab name the release after the tag. Declining the prompt aborts.\n- description (string, optional, multi-line, Markdown): release notes. Leave empty to skip.\n- confirm (boolean, required): final yes/no review of the assembled summary.\n\nWhen to use: human-in-the-loop release publishing. NOT for: CI/automated release creation. Use release.create with all fields pre-supplied.\n\nRequires the MCP client to support the elicitation capability. If unsupported, returns a structured error naming release.create as the alternative.\n\nBehavior: each successful invocation publishes ONE new release after explicit user confirmation. NON-idempotent: re-running with the same tag returns 409 (release already exists). Canceling or declining any prompt aborts with no GitLab API call and no side effects. This flow's optional fields take an empty answer rather than a decline. Side effects on success: GitLab fires release-created webhooks and may notify release subscribers.\n\nReturns: JSON with the created release (tag_name, name, description, web_url).\n\nSee also: release.create, tag.create.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
     },
     {
       "id": "issue.create",
@@ -3851,6 +6097,46 @@
       ]
     },
     {
+      "id": "issue.event_issue_iteration_get",
+      "title": "Issue Iteration Event Get",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a single iteration event for an issue (Premium/Ultimate). Returns: the event with action, the iteration object, and the acting user. See also: issue.event_issue_iteration_list.",
+      "required_params": [
+        {
+          "name": "issue_iid",
+          "type": "integer"
+        },
+        {
+          "name": "iteration_event_id",
+          "type": "integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "issue.event_issue_iteration_list",
+      "title": "Issue Iteration Event List",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true,
+      "description": "List iteration events for an issue (Premium/Ultimate). Returns: iteration events with action, the iteration object, the acting user, and pagination metadata. See also: issue.event_issue_iteration_get, issue.get.",
+      "required_params": [
+        {
+          "name": "issue_iid",
+          "type": "integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
       "id": "issue.event_issue_label_get",
       "title": "Issue Label Event Get",
       "domain": "issue",
@@ -3971,6 +6257,24 @@
       ]
     },
     {
+      "id": "issue.event_issue_weight_list",
+      "title": "Issue Weight Event List",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true,
+      "description": "List weight events for an issue (Premium/Ultimate). Returns: weight events with the weight value, the acting user, and pagination metadata. See also: issue.get.",
+      "required_params": [
+        {
+          "name": "issue_iid",
+          "type": "integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
       "id": "issue.get",
       "title": "Issue Get",
       "domain": "issue",
@@ -3999,6 +6303,34 @@
         {
           "name": "issue_id",
           "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "issue.iteration_list_group",
+      "title": "List Group Iterations",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true,
+      "description": "List a group's iterations (sprints), optionally filtered by state, search term, or ancestor groups. Returns: iterations with sequence, title, description, state, start and due dates, web URL, and pagination metadata. See also: group.get, issue.list_group, issue.iteration_list_project.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "issue.iteration_list_project",
+      "title": "List Project Iterations",
+      "domain": "issue",
+      "destructive": false,
+      "read_only": true,
+      "description": "List iterations (sprints) for a project, optionally including ancestor-group iterations. Returns: iterations with id, iid, sequence, group_id, title, description, state, start/due dates, timestamps, web URL, and pagination metadata. See also: issue.iteration_list_group, issue.list, project.milestone_list.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
         }
       ]
     },
@@ -4739,7 +7071,7 @@
       "domain": "job",
       "destructive": false,
       "read_only": true,
-      "description": "Download the full artifact archive for a CI job, or one report named by file_type (GitLab 19.4 or later), base64-encoded and truncated at 1MB. Returns: size, content, and truncation flag. See also: job.download_single_artifact, job.keep_artifacts, job.get.",
+      "description": "Download the full artifact archive for a CI job, or one report named by file_type (GitLab 19.4 or later), base64-encoded when it is 1 MB or less. Returns: size, content, and a truncated flag set when the artifact was larger and no content came back. See also: job.download_single_artifact, job.keep_artifacts, job.get.",
       "required_params": [
         {
           "name": "job_id",
@@ -4807,11 +7139,19 @@
       "domain": "job",
       "destructive": false,
       "read_only": true,
-      "description": "Download the latest successful artifacts archive for a ref and job name. Returns: archive size, content, and truncation flag. See also: job.artifacts, job.download_single_artifact, job.get.",
+      "description": "Download the latest successful artifacts archive for a ref and job name, base64-encoded when it is 1 MB or less. Returns: archive size, content, and a truncated flag set when the archive was larger and no content came back. See also: job.artifacts, job.download_single_artifact, job.get.",
       "required_params": [
+        {
+          "name": "job",
+          "type": "string"
+        },
         {
           "name": "project_id",
           "type": "string|integer"
+        },
+        {
+          "name": "ref_name",
+          "type": "string"
         }
       ]
     },
@@ -4821,7 +7161,7 @@
       "domain": "job",
       "destructive": false,
       "read_only": true,
-      "description": "Download one artifact file from a job by job_id and artifact_path. Returns: file size, raw content, and truncation flag. See also: job.artifacts, job.download_artifacts, job.get.",
+      "description": "Download one artifact file from a job by job_id and artifact_path. Returns: file size, the encoding (text, or base64 for a file that is not text), the content, and a truncated flag. See also: job.artifacts, job.download_artifacts, job.get.",
       "required_params": [
         {
           "name": "artifact_path",
@@ -4843,7 +7183,7 @@
       "domain": "job",
       "destructive": false,
       "read_only": true,
-      "description": "Download one artifact file from the latest successful job on a ref by name and path. Returns: file size, raw content, and truncation flag. See also: job.download_artifacts, job.download_single_artifact, job.get.",
+      "description": "Download one artifact file from the latest successful job on a ref by name and path. Returns: file size, the encoding (text, or base64 for a file that is not text), the content, and a truncated flag. See also: job.download_artifacts, job.download_single_artifact, job.get.",
       "required_params": [
         {
           "name": "artifact_path",
@@ -4941,7 +7281,7 @@
       "domain": "job",
       "destructive": false,
       "read_only": true,
-      "description": "List CI bridge (trigger) jobs for one pipeline with keyset pagination. Returns: bridge summaries with status and downstream pipeline references. See also: job.list, pipeline.get, job.get.",
+      "description": "List CI bridge (trigger) jobs for one pipeline with status filters and page-number pagination. Returns: bridge summaries with status and downstream pipeline references. See also: job.list, pipeline.get, job.get.",
       "required_params": [
         {
           "name": "pipeline_id",
@@ -5141,7 +7481,7 @@
       "domain": "job",
       "destructive": false,
       "read_only": true,
-      "description": "Get CI job trace output. Returns: text log with truncation metadata when logs exceed limits. See also: job.get, job.retry, job.cancel.",
+      "description": "Get CI job trace output, the end of it when it is over 100 KB. Returns: the log text, a truncated flag and the bytes left out of its beginning. See also: job.get, job.retry, job.cancel.",
       "required_params": [
         {
           "name": "job_id",
@@ -5172,12 +7512,98 @@
       ]
     },
     {
+      "id": "member_role.create_group",
+      "title": "Create Group Member Role",
+      "domain": "member_role",
+      "destructive": false,
+      "read_only": false,
+      "description": "Create a group-level custom member role. Returns: the created role with id, name, base_access_level, and its enabled permission flags. See also: member_role.list_group, member_role.delete_group, member_role.create_instance.",
+      "required_params": [
+        {
+          "name": "base_access_level",
+          "type": "integer"
+        },
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "member_role.create_instance",
+      "title": "Create Instance Member Role",
+      "domain": "member_role",
+      "destructive": false,
+      "read_only": false,
+      "description": "Create an instance-level custom member role. Returns: the created role with id, name, base_access_level, and its enabled permission flags. See also: member_role.list_instance, member_role.delete_instance, member_role.create_group.",
+      "required_params": [
+        {
+          "name": "base_access_level",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "member_role.delete_group",
+      "title": "Delete Group Member Role",
+      "domain": "member_role",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete a group-level custom member role. Returns: a success confirmation naming the deleted role and group. See also: member_role.list_group, member_role.create_group.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "member_role_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "member_role.delete_instance",
+      "title": "Delete Instance Member Role",
+      "domain": "member_role",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete an instance-level custom member role. Returns: a success confirmation naming the deleted role. See also: member_role.list_instance, member_role.create_instance.",
+      "required_params": [
+        {
+          "name": "member_role_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "member_role.list_group",
+      "title": "List Group Member Roles",
+      "domain": "member_role",
+      "destructive": false,
+      "read_only": true,
+      "description": "List group-level custom member roles. Returns: each role with id, name, description, base_access_level, and its enabled permission flags. See also: member_role.list_instance, member_role.create_group, member_role.delete_group.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "member_role.list_instance",
+      "title": "List Instance Member Roles",
+      "domain": "member_role",
+      "destructive": false,
+      "read_only": true,
+      "description": "List instance-level custom member roles. Returns: each role with id, name, description, base_access_level, and its enabled permission flags. See also: member_role.create_instance, member_role.delete_instance, member_role.list_group."
+    },
+    {
       "id": "merge_request.approval_config",
       "title": "MR Approval Config",
       "domain": "merge_request",
       "destructive": false,
       "read_only": true,
-      "description": "Get the approvals of a merge request. Returns: whether it is approved, the approved-by users with timestamps, and whether the calling user has approved and may approve, and on an Enterprise Edition instance also the approvals required and left, the rules left to satisfy and the suggested approvers, which Community Edition does not send. For each rule's status, use the approval state. See also: merge_request.approve.",
+      "description": "Get the approvals of a merge request. Returns: whether it is approved, the approved-by users with timestamps, and whether the calling user has approved and may approve, and on an Enterprise Edition instance also the approvals required and left, the rules left to satisfy and the suggested approvers, which Community Edition does not send. For each rule's status, use the approval state. See also: merge_request.approval_state, merge_request.approval_rules, merge_request.approve.",
       "required_params": [
         {
           "name": "merge_request_iid",
@@ -5195,7 +7621,169 @@
       "domain": "merge_request",
       "destructive": true,
       "read_only": false,
-      "description": "Reset all approvals on a merge request. Returns: a success confirmation. See also: merge_request.approval_config, merge_request.unapprove.",
+      "description": "Reset all approvals on a merge request. Returns: a success confirmation. See also: merge_request.approval_state, merge_request.approval_config, merge_request.unapprove.",
+      "required_params": [
+        {
+          "name": "merge_request_iid",
+          "type": "integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "merge_request.approval_rule_create",
+      "title": "MR Approval Rule Create",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false,
+      "description": "Create an approval rule on a merge request. Returns: the created rule with its type, required count, eligible approvers, users, and groups. See also: merge_request.approval_rules, merge_request.approval_rule_update, merge_request.approval_rule_delete.",
+      "required_params": [
+        {
+          "name": "approvals_required",
+          "type": "integer"
+        },
+        {
+          "name": "merge_request_iid",
+          "type": "integer"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "merge_request.approval_rule_delete",
+      "title": "MR Approval Rule Delete",
+      "domain": "merge_request",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete an approval rule from a merge request. Returns: a success confirmation. See also: merge_request.approval_rules, merge_request.approval_rule_update, merge_request.approval_rule_create.",
+      "required_params": [
+        {
+          "name": "approval_rule_id",
+          "type": "integer"
+        },
+        {
+          "name": "merge_request_iid",
+          "type": "integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "merge_request.approval_rule_update",
+      "title": "MR Approval Rule Update",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false,
+      "description": "Update an approval rule on a merge request. Returns: the updated rule with its type, required count, eligible approvers, users, and groups. See also: merge_request.approval_rules, merge_request.approval_rule_create, merge_request.approval_rule_delete.",
+      "required_params": [
+        {
+          "name": "approval_rule_id",
+          "type": "integer"
+        },
+        {
+          "name": "merge_request_iid",
+          "type": "integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "merge_request.approval_rules",
+      "title": "MR Approval Rules",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true,
+      "description": "List the approval rules of a merge request. Returns: each rule with its type, required count, approved flag, eligible approvers, users, groups, and source rule, with pagination metadata. See also: merge_request.approval_rule_create, merge_request.approval_rule_update, merge_request.approval_state.",
+      "required_params": [
+        {
+          "name": "merge_request_iid",
+          "type": "integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "merge_request.approval_settings_group_get",
+      "title": "Get Group MR Approval Settings",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true,
+      "description": "Read the merge request approval settings of a group. Returns: each setting (allow author approval, allow committer approval, allow approver-list overrides, retain approvals on push, selective code owner removals, require password to approve, require reauthentication to approve) with its value, locked flag, and inherited-from source. See also: merge_request.approval_settings_group_update, merge_request.approval_settings_project_get.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "merge_request.approval_settings_group_update",
+      "title": "Update Group MR Approval Settings",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false,
+      "description": "Update the merge request approval settings of a group. Returns: the resulting settings (value, locked flag, and inherited-from source for each setting). See also: merge_request.approval_settings_group_get, merge_request.approval_settings_project_update.",
+      "required_params": [
+        {
+          "name": "group_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "merge_request.approval_settings_project_get",
+      "title": "Get Project MR Approval Settings",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true,
+      "description": "Read the merge request approval settings of a project. Returns: each setting (allow author approval, allow committer approval, allow approver-list overrides, retain approvals on push, selective code owner removals, require password to approve, require reauthentication to approve) with its value, locked flag, and inherited-from source. See also: merge_request.approval_settings_project_update, merge_request.approval_settings_group_get.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "merge_request.approval_settings_project_update",
+      "title": "Update Project MR Approval Settings",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false,
+      "description": "Update the merge request approval settings of a project. Returns: the resulting settings (value, locked flag, and inherited-from source for each setting). See also: merge_request.approval_settings_project_get, merge_request.approval_settings_group_update.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "merge_request.approval_state",
+      "title": "MR Approval State",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get the approval state of a merge request. Returns: whether project rules were overwritten and each applicable rule with its type, required count, approved flag, and approvers. See also: merge_request.approval_rules, merge_request.approval_config, merge_request.approve.",
       "required_params": [
         {
           "name": "merge_request_iid",
@@ -5393,6 +7981,64 @@
       "read_only": false,
       "description": "Delete a merge request permanently. Returns: a success confirmation naming the MR and project. See also: merge_request.update, merge_request.get.",
       "required_params": [
+        {
+          "name": "merge_request_iid",
+          "type": "integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "merge_request.dependencies_list",
+      "title": "MR Dependencies List",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": true,
+      "description": "List a merge request's blocking dependencies. Returns: the dependency links with blocking MR references and their states, with pagination metadata. See also: merge_request.dependency_create, merge_request.dependency_delete.",
+      "required_params": [
+        {
+          "name": "merge_request_iid",
+          "type": "integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "merge_request.dependency_create",
+      "title": "MR Dependency Create",
+      "domain": "merge_request",
+      "destructive": false,
+      "read_only": false,
+      "description": "Add a blocking dependency to a merge request. Returns: the created dependency linking the MR to its blocking MR. See also: merge_request.dependency_delete, merge_request.dependencies_list.",
+      "required_params": [
+        {
+          "name": "merge_request_iid",
+          "type": "integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "merge_request.dependency_delete",
+      "title": "MR Dependency Delete",
+      "domain": "merge_request",
+      "destructive": true,
+      "read_only": false,
+      "description": "Remove a blocking dependency from a merge request. Returns: a success confirmation naming the dependency, the MR, and the project. See also: merge_request.dependency_create, merge_request.dependencies_list.",
+      "required_params": [
+        {
+          "name": "blocking_merge_request_id",
+          "type": "integer"
+        },
         {
           "name": "merge_request_iid",
           "type": "integer"
@@ -6058,12 +8704,80 @@
       ]
     },
     {
+      "id": "merge_train.add",
+      "title": "Add Merge Request To Merge Train",
+      "domain": "merge_train",
+      "destructive": false,
+      "read_only": false,
+      "description": "Add a merge request to a merge train. Returns: the resulting merge train entries with the merge request, user, pipeline, target branch, status, and duration. See also: merge_train.get, merge_train.list_branch, merge_train.list_project.",
+      "required_params": [
+        {
+          "name": "merge_request_iid",
+          "type": "integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "merge_train.get",
+      "title": "Get Merge Request On Merge Train",
+      "domain": "merge_train",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get the merge train status of a single merge request. Returns: the merge train entry with the merge request, user, pipeline, target branch, status, and duration. See also: merge_train.list_project, merge_train.list_branch, merge_train.add.",
+      "required_params": [
+        {
+          "name": "merge_request_iid",
+          "type": "integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "merge_train.list_branch",
+      "title": "List Merge Request In Merge Train",
+      "domain": "merge_train",
+      "destructive": false,
+      "read_only": true,
+      "description": "List the merge requests on a merge train for a target branch. Returns: merge train entries with the merge request, user, pipeline, status, duration, and pagination metadata. See also: merge_train.list_project, merge_train.get, merge_train.add.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "target_branch",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "merge_train.list_project",
+      "title": "List Project Merge Trains",
+      "domain": "merge_train",
+      "destructive": false,
+      "read_only": true,
+      "description": "List all merge trains in a project. Returns: merge train entries with the merge request, user, pipeline, target branch, status, duration, and pagination metadata. See also: merge_train.list_branch, merge_train.get, merge_train.add.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
       "id": "model_registry.download",
       "title": "Download Ml Model Package",
       "domain": "model_registry",
       "destructive": false,
       "read_only": true,
-      "description": "Download one artifact file from a project ML model registry package version by project, model version, path, and filename. Returns: the artifact bytes base64-encoded in content_base64, plus project, model version, path, filename, and decoded size_bytes. See also: package.list, release.link_create, repository.raw_blob.",
+      "description": "Download one artifact file from a project ML model registry package version by project, model version, path (empty for a file at the package root), and filename. Returns: the artifact bytes base64-encoded in content_base64, plus project, model version, path, filename, and decoded size_bytes. See also: package.list, release.link_create, repository.raw_blob.",
       "required_params": [
         {
           "name": "filename",
@@ -6072,10 +8786,6 @@
         {
           "name": "model_version_id",
           "type": "string|integer"
-        },
-        {
-          "name": "path",
-          "type": "string"
         },
         {
           "name": "project_id",
@@ -6582,6 +9292,60 @@
       ]
     },
     {
+      "id": "orbit.dsl",
+      "title": "Orbit Dsl",
+      "domain": "orbit",
+      "destructive": false,
+      "read_only": true,
+      "description": "Read the GitLab Orbit (Knowledge Graph) query language GitLab.com compiles queries in, GQL, as Orbit's query command describes it: its grammar and the JSON Schema of its input, or the same as compact text."
+    },
+    {
+      "id": "orbit.graph_status",
+      "title": "Orbit Graph Status",
+      "domain": "orbit",
+      "destructive": false,
+      "read_only": true,
+      "description": "Inspect GitLab Orbit (Knowledge Graph) indexing status for one namespace, project, or full_path."
+    },
+    {
+      "id": "orbit.query",
+      "title": "Orbit Query",
+      "domain": "orbit",
+      "destructive": false,
+      "read_only": true,
+      "description": "Execute a read-only GitLab Orbit (Knowledge Graph) query in GQL, the language orbit.dsl describes, naming what orbit.schema lists. A query is one MATCH ... RETURN statement sent as text, with at least one node bounded by its id or a literal property, and a refused query is corrected from the message GitLab answers with.",
+      "required_params": [
+        {
+          "name": "query",
+          "type": "string|object"
+        }
+      ]
+    },
+    {
+      "id": "orbit.schema",
+      "title": "Orbit Schema",
+      "domain": "orbit",
+      "destructive": false,
+      "read_only": true,
+      "description": "Inspect the GitLab Orbit (Knowledge Graph) ontology: domains, node types, edge types."
+    },
+    {
+      "id": "orbit.status",
+      "title": "Orbit Status",
+      "domain": "orbit",
+      "destructive": false,
+      "read_only": true,
+      "description": "Inspect GitLab Orbit (Knowledge Graph) cluster health on GitLab.com."
+    },
+    {
+      "id": "orbit.tools",
+      "title": "Orbit Tools",
+      "domain": "orbit",
+      "destructive": false,
+      "read_only": true,
+      "description": "List the GitLab Orbit (Knowledge Graph) MCP tool manifest and parameter schemas."
+    },
+    {
       "id": "package.delete",
       "title": "Package Delete",
       "domain": "package",
@@ -7083,8 +9847,16 @@
       "domain": "package",
       "destructive": false,
       "read_only": false,
-      "description": "Create a container registry tag protection rule. Returns: the created rule. Omit both minimum access levels to make matching tags immutable. See also: package.registry_tag_rule_list, package.registry_tag_rule_update, package.registry_rule_create.",
+      "description": "Create a container registry tag protection rule. Returns: the created rule. Both minimum access levels (push and delete) are required. See also: package.registry_tag_rule_list, package.registry_tag_rule_update, package.registry_rule_create.",
       "required_params": [
+        {
+          "name": "minimum_access_level_for_delete",
+          "type": "string"
+        },
+        {
+          "name": "minimum_access_level_for_push",
+          "type": "string"
+        },
         {
           "name": "project_id",
           "type": "string|integer"
@@ -7239,6 +10011,24 @@
       "read_only": true,
       "description": "List project pipelines with filters and pagination. Returns: pipeline IDs, refs, statuses, source, and timing metadata. See also: pipeline.get, pipeline.latest, job.list_project.",
       "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "pipeline.resource_group_current_job",
+      "title": "Resource Group Current Job",
+      "domain": "pipeline",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get the CI job that currently holds one resource group's lock by key (GitLab 18.6 or later). Returns: the job's ID, name, status, stage, ref, tag and allow-failure flags, pipeline, web URL, and creation time, or no job when none holds the lock. See also: pipeline.resource_group_upcoming_jobs, pipeline.resource_group_get, job.get.",
+      "required_params": [
+        {
+          "name": "key",
+          "type": "string"
+        },
         {
           "name": "project_id",
           "type": "string|integer"
@@ -7602,6 +10392,10 @@
       "description": "Create a pipeline trigger token. Returns: the created trigger with id, description, token secret, and owner. See also: pipeline.trigger_run, pipeline.trigger_list, pipeline.trigger_delete.",
       "required_params": [
         {
+          "name": "description",
+          "type": "string"
+        },
+        {
           "name": "project_id",
           "type": "string|integer"
         }
@@ -7668,6 +10462,14 @@
         {
           "name": "project_id",
           "type": "string|integer"
+        },
+        {
+          "name": "ref",
+          "type": "string"
+        },
+        {
+          "name": "token",
+          "type": "string"
         }
       ]
     },
@@ -7744,6 +10546,124 @@
         {
           "name": "project_id",
           "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "project.approval_config_change",
+      "title": "Project Approval Config Change",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false,
+      "description": "Change a project's approval configuration. Returns: the updated approval settings. See also: project.approval_config_get, project.approval_rule_create.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "project.approval_config_get",
+      "title": "Project Approval Config Get",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a project's approval configuration. Returns: the approval settings such as reset_approvals_on_push and author approval flags. See also: project.approval_config_change, project.approval_rule_list.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "project.approval_rule_create",
+      "title": "Project Approval Rule Create",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false,
+      "description": "Create a project approval rule. Returns: the created rule with name, approvals_required, users, and groups. See also: project.approval_rule_list, project.approval_rule_update.",
+      "required_params": [
+        {
+          "name": "approvals_required",
+          "type": "integer"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "project.approval_rule_delete",
+      "title": "Project Approval Rule Delete",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete a project approval rule. Returns: a success confirmation naming the rule and project. See also: project.approval_rule_list, project.approval_config_get.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "rule_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "project.approval_rule_get",
+      "title": "Project Approval Rule Get",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a single project approval rule. Returns: the rule with name, approvals_required, users, and groups. See also: project.approval_rule_list, project.approval_rule_update.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "rule_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "project.approval_rule_list",
+      "title": "Project Approval Rule List",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true,
+      "description": "List a project's approval rules. Returns: rules with name, approvals_required, eligible approvers, and groups, plus pagination metadata. See also: project.approval_rule_get, project.approval_rule_create.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "project.approval_rule_update",
+      "title": "Project Approval Rule Update",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false,
+      "description": "Update a project approval rule. Returns: the updated rule with name, approvals_required, users, and groups. See also: project.approval_rule_get, project.approval_rule_delete.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "rule_id",
+          "type": "integer"
         }
       ]
     },
@@ -8072,11 +10992,19 @@
       "destructive": false,
       "read_only": false,
       "description": "Create a new GitLab project. Returns: the created project with id, path_with_namespace, default_branch, visibility, and web URL. See also: project.get, project.update, project.create_for_user.",
-      "required_params": [
-        {
-          "name": "name",
-          "type": "string"
-        }
+      "required_params_any_of": [
+        [
+          {
+            "name": "name",
+            "type": "string"
+          }
+        ],
+        [
+          {
+            "name": "path",
+            "type": "string"
+          }
+        ]
       ]
     },
     {
@@ -8158,6 +11086,32 @@
         {
           "name": "project_id",
           "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "project.dependency_firewall_evaluate",
+      "title": "Project Dependency Firewall Evaluate",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true,
+      "description": "Evaluate one package coordinate against a project's Dependency Firewall policies (Premium, experimental). Returns: the outcome (allowed, warned or blocked) and the policy that produced a warned or blocked verdict. See also: project.get, dependency.list.",
+      "required_params": [
+        {
+          "name": "ecosystem",
+          "type": "string"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "version",
+          "type": "string"
         }
       ]
     },
@@ -8455,7 +11409,13 @@
       "domain": "project",
       "destructive": false,
       "read_only": false,
-      "description": "Import a project from an export archive. Returns: the new project's import status, type, correlation id, any import error, and the relations that failed to import. See also: project.import_status, project.export_download."
+      "description": "Import a project from an export archive. Returns: the new project's import status, type, correlation id, any import error, and the relations that failed to import. See also: project.import_status, project.export_download.",
+      "required_params": [
+        {
+          "name": "path",
+          "type": "string"
+        }
+      ]
     },
     {
       "id": "project.import_status",
@@ -8641,8 +11601,12 @@
       "domain": "project",
       "destructive": false,
       "read_only": false,
-      "description": "Create or update the Datadog integration on a group. Requires Owner role and GitLab Premium/Ultimate (self-managed EE or GitLab.com). At least one of api_key, api_url, datadog_env, datadog_service, datadog_site, datadog_tags, datadog_ci_visibility, archive_trace_events, or use_inherited_settings=true must be supplied.\n\nReturns: JSON with the updated Datadog integration details, whose configuration lives in the nested properties object.\n\nSee also: project.integration_get_group_datadog, project.integration_delete_group_datadog.",
+      "description": "Create or update the Datadog integration on a group. Requires Owner role and GitLab Premium/Ultimate (self-managed EE or GitLab.com). api_key is required on every call, use_inherited_settings=true included. api_url, datadog_env, datadog_service, datadog_site, datadog_tags, datadog_ci_visibility and archive_trace_events are optional.\n\nReturns: JSON with the updated Datadog integration details, whose configuration lives in the nested properties object.\n\nSee also: project.integration_get_group_datadog, project.integration_delete_group_datadog.",
       "required_params": [
+        {
+          "name": "api_key",
+          "type": "string"
+        },
         {
           "name": "group_id",
           "type": "string|integer"
@@ -8657,6 +11621,10 @@
       "read_only": false,
       "description": "Configure the Jira integration for a project. Sets up the connection to a Jira instance with URL, credentials, and event triggers.\n\nReturns: JSON with the configured Jira integration details.\n\nSee also: project.integration_list, project.integration_get.",
       "required_params": [
+        {
+          "name": "password",
+          "type": "string"
+        },
         {
           "name": "project_id",
           "type": "string|integer"
@@ -8698,13 +11666,23 @@
       "description": "Delete a project label by ID or name. Destructive: the label is removed from the project and unassigned from issues and merge requests. Returns: a deletion confirmation. See also: project.label_list, project.label_get, project.label_create.",
       "required_params": [
         {
-          "name": "label_id",
-          "type": "string|integer"
-        },
-        {
           "name": "project_id",
           "type": "string|integer"
         }
+      ],
+      "required_params_any_of": [
+        [
+          {
+            "name": "label_id",
+            "type": "string|integer"
+          }
+        ],
+        [
+          {
+            "name": "name",
+            "type": "string"
+          }
+        ]
       ]
     },
     {
@@ -8802,13 +11780,23 @@
       "description": "Update an existing project label (new_name, color, description, priority, archived). Returns: the updated label (id, name, color, text_color, description, priority, subscribed, is_project_label, archived). See also: project.label_get, project.label_list, project.label_delete.",
       "required_params": [
         {
-          "name": "label_id",
-          "type": "string|integer"
-        },
-        {
           "name": "project_id",
           "type": "string|integer"
         }
+      ],
+      "required_params_any_of": [
+        [
+          {
+            "name": "label_id",
+            "type": "string|integer"
+          }
+        ],
+        [
+          {
+            "name": "name",
+            "type": "string"
+          }
+        ]
       ]
     },
     {
@@ -8895,7 +11883,7 @@
       "domain": "project",
       "destructive": false,
       "read_only": true,
-      "description": "List projects a user contributed to. Returns: projects with namespace, visibility, and pagination metadata. See also: project.list_user_projects, project.list_user_starred.",
+      "description": "List projects a user contributed to, by offset pages only, since GitLab does not page this list by keyset. Returns: projects with namespace, visibility, and pagination metadata. See also: project.list_user_projects, project.list_user_starred.",
       "required_params": [
         {
           "name": "user_id",
@@ -8954,13 +11942,27 @@
       "description": "Add a user to a project team by user_id or username with an access level. Optional: expires_at, member_role_id (Premium/Ultimate). Returns: the created membership. See also: project.member_edit, project.members, user.list.",
       "required_params": [
         {
-          "name": "project_id",
-          "type": "string|integer"
+          "name": "access_level",
+          "type": "integer"
         },
         {
-          "name": "user_id",
-          "type": "integer"
+          "name": "project_id",
+          "type": "string|integer"
         }
+      ],
+      "required_params_any_of": [
+        [
+          {
+            "name": "user_id",
+            "type": "integer"
+          }
+        ],
+        [
+          {
+            "name": "username",
+            "type": "string"
+          }
+        ]
       ]
     },
     {
@@ -8989,6 +11991,10 @@
       "read_only": false,
       "description": "Edit a project member's access level, expiry, or custom member role. Returns: the updated membership. Requires at least the same access level as the target member. See also: project.member_add, project.member_delete, project.members.",
       "required_params": [
+        {
+          "name": "access_level",
+          "type": "integer"
+        },
         {
           "name": "project_id",
           "type": "string|integer"
@@ -9043,6 +12049,24 @@
       "read_only": true,
       "description": "List a project's members (direct plus inherited from parent groups). Returns: each member's id, username, name, state, access level, member role, created_by, seat usage, and web URL. Supports query/user_ids/show_seat_info filtering, order_by/sort, and offset or keyset pagination. See also: project.member_get, project.member_add, project.get.",
       "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "project.milestone_burndown",
+      "title": "Milestone Burndown Events",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true,
+      "description": "List the burndown chart events of a project milestone (Premium or higher). Returns: every dated event with the issue's weight and the action (created, closed, reopened). See also: project.milestone_get, project.milestone_issues, project.milestone_merge_requests.",
+      "required_params": [
+        {
+          "name": "milestone_iid",
+          "type": "integer"
+        },
         {
           "name": "project_id",
           "type": "string|integer"
@@ -9142,6 +12166,24 @@
       "destructive": false,
       "read_only": true,
       "description": "List merge requests assigned to a single milestone with ordering and pagination. Returns: assigned merge requests with IID, project, title, state, draft flag, merge status, source/target branches, labels, author, assignees, reviewers, web URL, timestamps, and pagination metadata. See also: project.milestone_get, project.milestone_issues, merge_request.list.",
+      "required_params": [
+        {
+          "name": "milestone_iid",
+          "type": "integer"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "project.milestone_promote",
+      "title": "Milestone Promote",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false,
+      "description": "Promote a project milestone to a group milestone by milestone IID. GitLab deletes the project milestone and every milestone of the same title in the group's projects, moving their issues and merge requests to the new group milestone. Returns: a confirmation naming the promoted title, since GitLab sends back no milestone. See also: project.milestone_get, project.milestone_list, group.group_milestone_list.",
       "required_params": [
         {
           "name": "milestone_iid",
@@ -9285,7 +12327,7 @@
       "domain": "project",
       "destructive": false,
       "read_only": true,
-      "description": "List a project's push (remote) mirrors. Returns: each mirror with id, enabled state, redacted URL, last-update status, and pagination metadata. See also: project.mirror_get, project.mirror_add.",
+      "description": "List a project's push (remote) mirrors. Returns: each mirror with id, enabled state, redacted URL, last-update status, and pagination metadata. See also: project.mirror_get, project.mirror_add, project.pull_mirror_get.",
       "required_params": [
         {
           "name": "project_id",
@@ -9430,6 +12472,90 @@
       ]
     },
     {
+      "id": "project.pull_mirror_configure",
+      "title": "Project Pull Mirror Configure",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false,
+      "description": "Configure a project's pull mirror. Arming mirror_overwrites_diverged_branches replaces this project's diverged branches with the source's and requires confirmation. Returns: the updated mirror configuration. See also: project.pull_mirror_get, project.start_mirroring.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "project.pull_mirror_get",
+      "title": "Project Pull Mirror Get",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a project's pull-mirror configuration. Returns: the mirror URL, enabled flag, and last sync status. See also: project.pull_mirror_configure, project.start_mirroring.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "project.push_rule_add",
+      "title": "Project Add Push Rule",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false,
+      "description": "Add push rules to a project. Returns: the created push-rule configuration. See also: project.push_rule_get, project.push_rule_edit.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "project.push_rule_delete",
+      "title": "Project Delete Push Rule",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete a project's push rules. Returns: a success confirmation naming the project. See also: project.push_rule_get, project.push_rule_add.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "project.push_rule_edit",
+      "title": "Project Edit Push Rule",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false,
+      "description": "Edit a project's push rules. Returns: the updated push-rule configuration. See also: project.push_rule_get, project.push_rule_add.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "project.push_rule_get",
+      "title": "Project Get Push Rules",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a project's push rules. Returns: the singleton push-rule configuration such as commit_message_regex and reject_unsigned_commits. See also: project.push_rule_add, project.push_rule_edit.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
       "id": "project.repository_storage_get",
       "title": "Project Repository Storage Get",
       "domain": "project",
@@ -9454,6 +12580,38 @@
         {
           "name": "project_id",
           "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "project.security_settings_get",
+      "title": "Get Project Security Settings",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true,
+      "description": "Read a project's security settings (Ultimate). Returns: secret_push_protection_enabled, continuous_vulnerability_scans_enabled, container scanning, and per-analyzer auto-fix flags. See also: project.security_settings_update, project.get.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
+      "id": "project.security_settings_update",
+      "title": "Update Project Secret Push Protection",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false,
+      "description": "Enable or disable secret push protection for a project (Ultimate). Returns: the project's security settings including secret_push_protection_enabled, continuous vulnerability scanning, and auto-fix flags. See also: project.security_settings_get, group.security_settings_update.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "secret_push_protection_enabled",
+          "type": "boolean"
         }
       ]
     },
@@ -9678,6 +12836,20 @@
       ]
     },
     {
+      "id": "project.start_mirroring",
+      "title": "Project Start Mirroring",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false,
+      "description": "Trigger a pull-mirror sync. Returns: a success confirmation naming the project. See also: project.pull_mirror_get, project.pull_mirror_configure.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
       "id": "project.statistics_get",
       "title": "Get Project Statistics",
       "domain": "project",
@@ -9692,12 +12864,62 @@
       ]
     },
     {
+      "id": "project.target_branch_rule_create",
+      "title": "Project Create Target Branch Rule",
+      "domain": "project",
+      "destructive": false,
+      "read_only": false,
+      "description": "Create a target branch rule. Returns: the created rule with id, source-branch name pattern, target_branch, and created_at. See also: project.target_branch_rule_list, project.target_branch_rule_delete.",
+      "required_params": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        },
+        {
+          "name": "target_branch",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "project.target_branch_rule_delete",
+      "title": "Project Delete Target Branch Rule",
+      "domain": "project",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete a target branch rule. Returns: a success confirmation naming the rule. See also: project.target_branch_rule_list, project.target_branch_rule_create.",
+      "required_params": [
+        {
+          "name": "rule_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "project.target_branch_rule_list",
+      "title": "Project List Target Branch Rules",
+      "domain": "project",
+      "destructive": false,
+      "read_only": true,
+      "description": "List a project's target branch rules. Returns: each rule with id, source-branch name pattern, target_branch, and created_at. See also: project.target_branch_rule_create, project.target_branch_rule_delete.",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "string|integer"
+        }
+      ]
+    },
+    {
       "id": "project.transfer",
       "title": "Project Transfer",
       "domain": "project",
       "destructive": true,
       "read_only": false,
-      "description": "Transfer a project to another namespace, waiting up to 45 seconds for GitLab to apply the move. Returns: the project in its new namespace, or with transfer_queued set and its current namespace when GitLab has not applied the move yet, or an error when GitLab reports the move failed. See also: project.get, group.get.",
+      "description": "Transfer a project to another namespace, waiting up to 45 seconds for GitLab to apply the move. Returns: the project in its new namespace, or with transfer_queued set and its current namespace when GitLab has not applied the move yet, or an error when GitLab reports the move failed, with GitLab's reason from 19.5. See also: project.get, group.get.",
       "required_params": [
         {
           "name": "namespace",
@@ -10039,6 +13261,20 @@
           "name": "tag_name",
           "type": "string"
         }
+      ],
+      "required_params_any_of": [
+        [
+          {
+            "name": "name",
+            "type": "string"
+          }
+        ],
+        [
+          {
+            "name": "url",
+            "type": "string"
+          }
+        ]
       ]
     },
     {
@@ -10156,6 +13392,10 @@
         {
           "name": "project_id",
           "type": "string|integer"
+        },
+        {
+          "name": "sha",
+          "type": "string"
         }
       ]
     },
@@ -10470,6 +13710,10 @@
         {
           "name": "project_id",
           "type": "string|integer"
+        },
+        {
+          "name": "sha",
+          "type": "string"
         }
       ]
     },
@@ -10582,6 +13826,10 @@
         {
           "name": "project_id",
           "type": "string|integer"
+        },
+        {
+          "name": "ref",
+          "type": "string"
         }
       ]
     },
@@ -10656,6 +13904,10 @@
         {
           "name": "project_id",
           "type": "string|integer"
+        },
+        {
+          "name": "ref",
+          "type": "string"
         }
       ]
     },
@@ -10689,6 +13941,10 @@
         {
           "name": "project_id",
           "type": "string|integer"
+        },
+        {
+          "name": "ref",
+          "type": "string"
         }
       ]
     },
@@ -10764,7 +14020,7 @@
       "domain": "repository",
       "destructive": false,
       "read_only": true,
-      "description": "List the Git submodules defined in a repository's .gitmodules. Returns: each submodule's name, path, remote url, resolved_project, and pinned commit_sha, plus a count. See also: repository.read_submodule_file, repository.update_submodule, repository.tree.",
+      "description": "List the Git submodules defined in a repository's .gitmodules. Returns: each submodule's name, path, remote url, resolved_project on this instance, or external for a remote on another host and unresolved for one naming no project here, and pinned commit_sha, plus a count. See also: repository.read_submodule_file, repository.update_submodule, repository.tree.",
       "required_params": [
         {
           "name": "project_id",
@@ -10881,6 +14137,224 @@
         {
           "name": "submodule",
           "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "runner.controller_create",
+      "title": "Runner Controller Create",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": false,
+      "description": "Register a new runner controller (admin-only, experimental API) with optional description and state (enabled/disabled/dry_run). Returns: the created controller with id, description, state, and timestamps. See also: runner.controller_get, runner.controller_update, runner.controller_list."
+    },
+    {
+      "id": "runner.controller_delete",
+      "title": "Runner Controller Delete",
+      "domain": "runner",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete a runner controller by controller_id (destructive, admin-only, experimental API). Returns: a success confirmation. See also: runner.controller_list, runner.controller_get, runner.controller_update.",
+      "required_params": [
+        {
+          "name": "controller_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "runner.controller_get",
+      "title": "Runner Controller Get",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get one runner controller by controller_id (admin-only, experimental API). Returns: the controller with id, description, state, connected flag, and created/updated timestamps. See also: runner.controller_list, runner.controller_update, runner.controller_delete.",
+      "required_params": [
+        {
+          "name": "controller_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "runner.controller_list",
+      "title": "Runner Controller List",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": true,
+      "description": "List registered runner controllers (admin-only, experimental API) with offset or keyset pagination. Returns: controllers with id, description, state, created/updated timestamps, plus pagination metadata. See also: runner.controller_get, runner.controller_create, runner.controller_update."
+    },
+    {
+      "id": "runner.controller_scope_add_instance",
+      "title": "Runner Controller Scope Add Instance",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": false,
+      "description": "Grant a runner controller the instance-level scope (admin only). Returns: the created instance-level scoping with created/updated timestamps. See also: runner.controller_scope_remove_instance, runner.controller_scope_list, runner.controller_scope_add_runner.",
+      "required_params": [
+        {
+          "name": "controller_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "runner.controller_scope_add_runner",
+      "title": "Runner Controller Scope Add Runner",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": false,
+      "description": "Scope a runner controller to a specific instance runner by runner ID (admin only). Returns: the created runner-level scoping with the runner ID and created/updated timestamps. See also: runner.controller_scope_remove_runner, runner.controller_scope_list, runner.controller_scope_add_instance.",
+      "required_params": [
+        {
+          "name": "controller_id",
+          "type": "integer"
+        },
+        {
+          "name": "runner_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "runner.controller_scope_list",
+      "title": "Runner Controller Scope List",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": true,
+      "description": "List every scope assigned to a runner controller (admin only). Returns: instance-level scopings with timestamps and runner-level scopings with runner IDs and timestamps. See also: runner.controller_scope_add_instance, runner.controller_scope_add_runner, runner.controller_scope_remove_runner.",
+      "required_params": [
+        {
+          "name": "controller_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "runner.controller_scope_remove_instance",
+      "title": "Runner Controller Scope Remove Instance",
+      "domain": "runner",
+      "destructive": true,
+      "read_only": false,
+      "description": "Revoke a runner controller's instance-level scope (admin only, destructive). Returns: a success confirmation naming the removed instance-level scope. See also: runner.controller_scope_add_instance, runner.controller_scope_list, runner.controller_scope_remove_runner.",
+      "required_params": [
+        {
+          "name": "controller_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "runner.controller_scope_remove_runner",
+      "title": "Runner Controller Scope Remove Runner",
+      "domain": "runner",
+      "destructive": true,
+      "read_only": false,
+      "description": "Remove a specific runner from a runner controller's scope by runner ID (admin only, destructive). Returns: a success confirmation naming the removed runner scope. See also: runner.controller_scope_add_runner, runner.controller_scope_list, runner.controller_scope_remove_instance.",
+      "required_params": [
+        {
+          "name": "controller_id",
+          "type": "integer"
+        },
+        {
+          "name": "runner_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "runner.controller_token_create",
+      "title": "Runner Controller Token Create",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": false,
+      "description": "Create a runner controller token (admin-only). Returns: the new token including its one-time secret value, id, runner controller id, and description. See also: runner.controller_token_list, runner.controller_token_rotate, runner.controller_token_revoke.",
+      "required_params": [
+        {
+          "name": "controller_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "runner.controller_token_get",
+      "title": "Runner Controller Token Get",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get one runner controller token by id (admin-only). Returns: the token's id, runner controller id, description, last-used time, and timestamps. See also: runner.controller_token_list, runner.controller_token_rotate, runner.controller_token_revoke.",
+      "required_params": [
+        {
+          "name": "controller_id",
+          "type": "integer"
+        },
+        {
+          "name": "token_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "runner.controller_token_list",
+      "title": "Runner Controller Token List",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": true,
+      "description": "List runner controller tokens for a controller (admin-only). Returns: each token's id, runner controller id, description, last-used time, and timestamps, with pagination metadata. See also: runner.controller_token_get, runner.controller_token_create, runner.controller_token_revoke.",
+      "required_params": [
+        {
+          "name": "controller_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "runner.controller_token_revoke",
+      "title": "Runner Controller Token Revoke",
+      "domain": "runner",
+      "destructive": true,
+      "read_only": false,
+      "description": "Revoke a runner controller token permanently (admin-only). Returns: a success confirmation that the runner controller token was deleted. See also: runner.controller_token_list, runner.controller_token_get, runner.controller_token_rotate.",
+      "required_params": [
+        {
+          "name": "controller_id",
+          "type": "integer"
+        },
+        {
+          "name": "token_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "runner.controller_token_rotate",
+      "title": "Runner Controller Token Rotate",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": false,
+      "description": "Rotate a runner controller token (admin-only). Returns: the token with its newly issued one-time secret value and unchanged id. See also: runner.controller_token_get, runner.controller_token_list, runner.controller_token_revoke.",
+      "required_params": [
+        {
+          "name": "controller_id",
+          "type": "integer"
+        },
+        {
+          "name": "token_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "runner.controller_update",
+      "title": "Runner Controller Update",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": false,
+      "description": "Update a runner controller's description or state (enabled/disabled/dry_run) by controller_id (admin-only, experimental API). Returns: the updated controller with id, description, state, and timestamps. See also: runner.controller_get, runner.controller_list, runner.controller_delete.",
+      "required_params": [
+        {
+          "name": "controller_id",
+          "type": "integer"
         }
       ]
     },
@@ -11113,6 +14587,34 @@
       ]
     },
     {
+      "id": "runner.reset_token_by_token",
+      "title": "Runner Reset Token By Token",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": false,
+      "description": "Reset a runner's authentication token with its current authentication token. Returns: the new token and its expiry. See also: runner.verify, runner.reset_token.",
+      "required_params": [
+        {
+          "name": "token",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "runner.router_discovery",
+      "title": "Runner Router Discovery",
+      "domain": "runner",
+      "destructive": false,
+      "read_only": true,
+      "description": "Discover the Job Router information for a runner by its authentication token (GitLab 18.7 or later, behind feature flags). Returns: the Job Router server URL. See also: runner.verify, runner.get.",
+      "required_params": [
+        {
+          "name": "token",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "id": "runner.update",
       "title": "Runner Update",
       "domain": "runner",
@@ -11146,7 +14648,7 @@
       "domain": "search",
       "destructive": false,
       "read_only": true,
-      "description": "Search code blobs across global, group, or project scope. Returns: matching blobs with file path, basename, ref, starting line, the surrounding snippet, project ID, and pagination metadata. See also: search.projects, repository.file_get, repository.tree.",
+      "description": "Search code blobs across global, group, or project scope. Returns: matching blobs with file path, basename, ref, the line the snippet starts on, the snippet, project ID, and pagination metadata. On basic search a file that matched by its path also carries its blob ID, and its snippet is the start of the file rather than the lines around a match. On exact search such a file carries its path in place of a snippet. num_context_lines (0 to 20) sets the lines around each match on advanced and exact search, and regex chooses between a regular expression and literal text on exact search. See also: search.projects, repository.file_get, repository.tree.",
       "required_params": [
         {
           "name": "query",
@@ -11216,7 +14718,7 @@
       "domain": "search",
       "destructive": false,
       "read_only": true,
-      "description": "Search note bodies within one project. Returns: matching notes with body, author, noteable type and ID, system flag, and timestamps plus pagination metadata. See also: search.issues, search.merge_requests, issue.note_list.",
+      "description": "Search note bodies within one project. Returns: matching notes with body, author, noteable type and ID, system and internal flags, and timestamps plus pagination metadata. See also: search.issues, search.merge_requests, issue.note_list.",
       "required_params": [
         {
           "name": "project_id",
@@ -11276,10 +14778,292 @@
       "domain": "search",
       "destructive": false,
       "read_only": true,
-      "description": "Search wiki blobs across global, group, or project scope. Returns: matching wiki pages with slug, title, content snippet, and format plus pagination metadata. See also: search.code, wiki.list, wiki.get.",
+      "description": "Search wiki blobs across global, group, or project scope. Returns: the file of each matching wiki page with its path (the page slug plus the format's extension), ref, the line the snippet starts on, the snippet, its project ID and, from advanced search, its group ID (a page of a group wiki carries the group alone), and pagination metadata. On basic search a page whose file matched by its path also carries its blob ID, and its snippet is the start of the page. See also: search.code, wiki.list, wiki.get, group.wiki_get.",
       "required_params": [
         {
           "name": "query",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "security_attribute.bulk_update",
+      "title": "Bulk Update Security Attributes",
+      "domain": "security_attribute",
+      "destructive": true,
+      "read_only": false,
+      "description": "Add, remove, or replace GitLab security attributes on multiple groups and projects via GraphQL. Requires Premium or Ultimate. Returns: bulk update status, execution mode, and selected target/attribute IDs. See also: security_attribute.create, project.get, group.get. API docs: https://docs.gitlab.com/api/graphql/reference/#mutationbulkupdatesecurityattributes",
+      "required_params": [
+        {
+          "name": "attribute_ids",
+          "type": "array"
+        },
+        {
+          "name": "mode",
+          "type": "string"
+        }
+      ],
+      "required_params_any_of": [
+        [
+          {
+            "name": "group_ids",
+            "type": "array"
+          }
+        ],
+        [
+          {
+            "name": "project_ids",
+            "type": "array"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "security_attribute.create",
+      "title": "Create Security Attribute",
+      "domain": "security_attribute",
+      "destructive": false,
+      "read_only": false,
+      "description": "Create one or more GitLab security attributes under a security category via GraphQL. Requires Premium or Ultimate. Returns: created security attributes and their categories. See also: security_category.create, project.get, group.get. API docs: https://docs.gitlab.com/api/graphql/reference/#mutationsecurityattributecreate",
+      "required_params": [
+        {
+          "name": "attributes",
+          "type": "array"
+        },
+        {
+          "name": "category_id",
+          "type": "integer"
+        },
+        {
+          "name": "namespace_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "security_attribute.delete",
+      "title": "Delete Security Attribute",
+      "domain": "security_attribute",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete a GitLab security attribute via GraphQL. Requires Premium or Ultimate. Returns: deletion confirmation. See also: security_category.create, project.get, group.get. API docs: https://docs.gitlab.com/api/graphql/reference/#mutationsecurityattributedestroy",
+      "required_params": [
+        {
+          "name": "attribute_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "security_attribute.project_update",
+      "title": "Update Project Security Attributes",
+      "domain": "security_attribute",
+      "destructive": true,
+      "read_only": false,
+      "description": "Add or remove GitLab security attributes on a project via GraphQL. Requires Premium or Ultimate. Returns: project security attribute assignments. See also: security_attribute.create, project.get. API docs: https://docs.gitlab.com/api/graphql/reference/#mutationsecurityattributeprojectupdate",
+      "required_params": [
+        {
+          "name": "project_id",
+          "type": "integer"
+        }
+      ],
+      "required_params_any_of": [
+        [
+          {
+            "name": "add_attribute_ids",
+            "type": "array"
+          }
+        ],
+        [
+          {
+            "name": "remove_attribute_ids",
+            "type": "array"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "security_attribute.update",
+      "title": "Update Security Attribute",
+      "domain": "security_attribute",
+      "destructive": false,
+      "read_only": false,
+      "description": "Update a GitLab security attribute name, description, or color via GraphQL. Requires Premium or Ultimate. Returns: updated security attribute metadata. See also: security_category.create, project.get, group.get. API docs: https://docs.gitlab.com/api/graphql/reference/#mutationsecurityattributeupdate",
+      "required_params": [
+        {
+          "name": "attribute_id",
+          "type": "integer"
+        }
+      ],
+      "required_params_any_of": [
+        [
+          {
+            "name": "name",
+            "type": "string"
+          }
+        ],
+        [
+          {
+            "name": "description",
+            "type": "string"
+          }
+        ],
+        [
+          {
+            "name": "color",
+            "type": "string"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "security_category.create",
+      "title": "Create Security Category",
+      "domain": "security_category",
+      "destructive": false,
+      "read_only": false,
+      "description": "Create a GitLab security category in a namespace via GraphQL. Requires Premium or Ultimate. Returns: created security category. See also: security_attribute.create, group.get, project.get. API docs: https://docs.gitlab.com/api/graphql/reference/#mutationsecuritycategorycreate",
+      "required_params": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "namespace_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "security_category.delete",
+      "title": "Delete Security Category",
+      "domain": "security_category",
+      "destructive": true,
+      "read_only": false,
+      "description": "Delete a GitLab security category and its associated security attributes via GraphQL. Requires Premium or Ultimate. Returns: deletion confirmation and the IDs of the security attributes deleted with the category. See also: security_attribute.create, group.get, project.get. API docs: https://docs.gitlab.com/api/graphql/reference/#mutationsecuritycategorydestroy",
+      "required_params": [
+        {
+          "name": "category_id",
+          "type": "integer"
+        }
+      ]
+    },
+    {
+      "id": "security_category.update",
+      "title": "Update Security Category",
+      "domain": "security_category",
+      "destructive": false,
+      "read_only": false,
+      "description": "Update a GitLab security category name or description via GraphQL. Requires Premium or Ultimate. Returns: updated security category. See also: security_attribute.create, group.get, project.get. API docs: https://docs.gitlab.com/api/graphql/reference/#mutationsecuritycategoryupdate",
+      "required_params": [
+        {
+          "name": "category_id",
+          "type": "integer"
+        },
+        {
+          "name": "namespace_id",
+          "type": "integer"
+        }
+      ],
+      "required_params_any_of": [
+        [
+          {
+            "name": "name",
+            "type": "string"
+          }
+        ],
+        [
+          {
+            "name": "description",
+            "type": "string"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "security_finding.list",
+      "title": "List Security Findings",
+      "domain": "security_finding",
+      "destructive": false,
+      "read_only": true,
+      "description": "List a pipeline's security report findings with severity, scanner, report-type and state filters, severity sorting and keyset pagination. Returns: matching findings with UUID, title, severity and original severity, report type, scanner, identifiers (CVE, CWE, OWASP), location, state, who dismissed it and why, evidence with the recorded HTTP exchange, proposed remediations, report links, and linked vulnerability state. See also: vulnerability.list, vulnerability.pipeline_security_summary, vulnerability.severity_count.",
+      "required_params": [
+        {
+          "name": "pipeline_iid",
+          "type": "string"
+        },
+        {
+          "name": "project_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "security_scan_profile.attach",
+      "title": "Attach Security Scan Profile",
+      "domain": "security_scan_profile",
+      "destructive": false,
+      "read_only": false,
+      "description": "Attach a GitLab security scan profile to one or more projects and/or groups via GraphQL. Requires Ultimate. Returns: attach confirmation with the resolved profile and targets. See also: security_scan_profile.detach, security_scan_profile.list_project_statuses, project.get. API docs: https://docs.gitlab.com/api/graphql/reference/#mutationsecurityscanprofileattach",
+      "required_params": [
+        {
+          "name": "security_scan_profile_id",
+          "type": "string"
+        }
+      ],
+      "required_params_any_of": [
+        [
+          {
+            "name": "project_ids",
+            "type": "array"
+          }
+        ],
+        [
+          {
+            "name": "group_ids",
+            "type": "array"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "security_scan_profile.detach",
+      "title": "Detach Security Scan Profile",
+      "domain": "security_scan_profile",
+      "destructive": true,
+      "read_only": false,
+      "description": "Detach a GitLab security scan profile from one or more projects and/or groups via GraphQL. Requires Ultimate. Returns: detach confirmation with the resolved profile and targets. See also: security_scan_profile.attach, security_scan_profile.list_project_statuses, project.get. API docs: https://docs.gitlab.com/api/graphql/reference/#mutationsecurityscanprofiledetach",
+      "required_params": [
+        {
+          "name": "security_scan_profile_id",
+          "type": "string"
+        }
+      ],
+      "required_params_any_of": [
+        [
+          {
+            "name": "project_ids",
+            "type": "array"
+          }
+        ],
+        [
+          {
+            "name": "group_ids",
+            "type": "array"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "security_scan_profile.list_project_statuses",
+      "title": "List Project Scan Profile Statuses",
+      "domain": "security_scan_profile",
+      "destructive": false,
+      "read_only": true,
+      "description": "List the security scan profile statuses for a GitLab project via GraphQL. Requires Ultimate. Returns: per-scan-type profile status (NOT_CONFIGURED, PENDING, ACTIVE, WARNING, FAILED, or STALE). See also: security_scan_profile.attach, security_scan_profile.detach, project.get. API docs: https://docs.gitlab.com/api/graphql/reference/#project-scanprofilestatuses",
+      "required_params": [
+        {
+          "name": "project_full_path",
           "type": "string"
         }
       ]
@@ -12814,7 +16598,13 @@
       "domain": "user",
       "destructive": false,
       "read_only": true,
-      "description": "List the email addresses registered to a specific user account. Returns: each email's ID, address, and confirmation timestamp, with pagination metadata. See also: user.get_email, user.add_email_for_user, user.delete_email_for_user, user.get."
+      "description": "List the email addresses registered to a specific user account. Returns: each email's ID, address, and confirmation timestamp, with pagination metadata. See also: user.get_email, user.add_email_for_user, user.delete_email_for_user, user.get.",
+      "required_params": [
+        {
+          "name": "user_id",
+          "type": "integer"
+        }
+      ]
     },
     {
       "id": "user.event_list_contributions",
@@ -12858,7 +16648,13 @@
       "domain": "user",
       "destructive": false,
       "read_only": true,
-      "description": "Get one email address from the authenticated user's account by ID. Returns: the email's ID, address, and confirmation timestamp. See also: user.add_email, user.delete_email, user.emails_for_user."
+      "description": "Get one email address from the authenticated user's account by ID. Returns: the email's ID, address, and confirmation timestamp. See also: user.add_email, user.delete_email, user.emails_for_user.",
+      "required_params": [
+        {
+          "name": "email_id",
+          "type": "integer"
+        }
+      ]
     },
     {
       "id": "user.get_gpg_key",
@@ -13339,6 +17135,122 @@
       "required_params": [
         {
           "name": "filename",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "vulnerability.confirm",
+      "title": "Confirm Vulnerability",
+      "domain": "vulnerability",
+      "destructive": false,
+      "read_only": false,
+      "description": "Confirm a vulnerability as a real finding. Returns: the updated vulnerability with its new confirmed state and timestamp. See also: vulnerability.get, vulnerability.dismiss, vulnerability.resolve.",
+      "required_params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "vulnerability.dismiss",
+      "title": "Dismiss Vulnerability",
+      "domain": "vulnerability",
+      "destructive": false,
+      "read_only": false,
+      "description": "Dismiss a vulnerability with a dismissal reason. Returns: the updated vulnerability with its new dismissed state and timestamp. See also: vulnerability.get, vulnerability.confirm, vulnerability.revert.",
+      "required_params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "vulnerability.get",
+      "title": "Get Vulnerability",
+      "domain": "vulnerability",
+      "destructive": false,
+      "read_only": true,
+      "description": "Get a single vulnerability by global ID. Returns: title, description, severity, state and its comment, report type, scanner, identifiers, CVSS assessments, EPSS and known-exploit data, location, solution, report links, a leaked token's status, who confirmed, dismissed or resolved it, linked issues, and merge request. See also: vulnerability.list, vulnerability.dismiss, vulnerability.confirm.",
+      "required_params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "vulnerability.list",
+      "title": "List Vulnerabilities",
+      "domain": "vulnerability",
+      "destructive": false,
+      "read_only": true,
+      "description": "List a project's vulnerabilities with severity, state, scanner, and report-type filters plus keyset pagination. Returns: matching vulnerabilities with UUID, title, severity, state, report type, scanner, identifiers, location, CVSS and EPSS data, who confirmed, dismissed or resolved each, detection time, and web URL. See also: vulnerability.get, vulnerability.severity_count, security_finding.list.",
+      "required_params": [
+        {
+          "name": "project_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "vulnerability.pipeline_security_summary",
+      "title": "Pipeline Security Summary",
+      "domain": "vulnerability",
+      "destructive": false,
+      "read_only": true,
+      "description": "Summarize a pipeline's security scan results. Returns: per-scanner vulnerability and scanned-resource counts for the pipeline (SAST, DAST, and other report types), the scans that ran with their status, errors and warnings, and the first resources a DAST scan requested. See also: vulnerability.severity_count, vulnerability.list.",
+      "required_params": [
+        {
+          "name": "pipeline_iid",
+          "type": "string"
+        },
+        {
+          "name": "project_path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "vulnerability.resolve",
+      "title": "Resolve Vulnerability",
+      "domain": "vulnerability",
+      "destructive": false,
+      "read_only": false,
+      "description": "Resolve a vulnerability after it is fixed. Returns: the updated vulnerability with its new resolved state and timestamp. See also: vulnerability.get, vulnerability.confirm, vulnerability.revert.",
+      "required_params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "vulnerability.revert",
+      "title": "Revert Vulnerability",
+      "domain": "vulnerability",
+      "destructive": false,
+      "read_only": false,
+      "description": "Revert a vulnerability back to the detected state. Returns: the updated vulnerability with its restored detected state. See also: vulnerability.get, vulnerability.dismiss, vulnerability.resolve.",
+      "required_params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "vulnerability.severity_count",
+      "title": "Vulnerability Severity Count",
+      "domain": "vulnerability",
+      "destructive": false,
+      "read_only": true,
+      "description": "Count a project's vulnerabilities grouped by severity. Returns: critical, high, medium, low, info, and unknown counts. See also: vulnerability.list, vulnerability.pipeline_security_summary.",
+      "required_params": [
+        {
+          "name": "project_path",
           "type": "string"
         }
       ]
