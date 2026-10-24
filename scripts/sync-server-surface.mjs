@@ -44,8 +44,8 @@
  * The cache hints (ttlMs/cacheScope) are persisted as evidence and honoured
  * by refreshing per build, not per request. `cacheScope: "private"` on gitlab
  * means the catalog is the surface OF THE TOKEN used, not a universal one —
- * hence the site labelling it as obtained "with a Free-tier token" (the
- * site's i18n copy, not this snapshot's: the extractor cannot know the tier).
+ * hence the site labelling the tier it was counted at (the site's i18n
+ * copy, not this snapshot's: the manifest does not name the tier).
  *
  * Usage: node scripts/sync-server-surface.mjs
  */
@@ -666,15 +666,19 @@ async function collectGitlabActions(
 //
 // Since 3.2.0 each action's detail resource, gitlab://tools/{id}, carries a
 // `fine_grained` block: what a GitLab fine-grained personal access token must
-// hold for the action, as the GitLab release named in it declares. The
-// aggregate manifest does not carry it, so it is one resources/read per
-// action — 768 today — paced by the server's own limit on resources/read
-// (-42900), which lets a burst through and then refuses until it refills.
-// Measured on 2026-10-10: about 13 s with four in flight.
+// hold for the action, as the GitLab release named in it declares; since
+// 3.3.0 also what some calls only need and the parts of the answer GitLab
+// serves empty to such a token. The aggregate manifest does not carry it, so
+// it is one resources/read per action — 977 on 3.3.0 — paced by the
+// server's own limit on resources/read (-42900), which lets a burst through
+// and then refuses until it refills. Measured: about 13 s for 768 actions
+// (2026-10-10), 16.5 s for 977 (2026-10-24), four in flight.
 //
 // The block only changes with a release, so the details are read again only
 // when the committed snapshot is from another sourceVersion or covers a
-// different set of actions; every other build costs nothing.
+// different set of actions; every other build costs nothing. A change to the
+// projection itself is not a new release: refresh the snapshot by deleting it
+// and running this script once.
 
 const FINE_GRAINED_FILE = "gitlab-fine-grained.json";
 const DETAIL_CONCURRENCY = 4;
@@ -708,7 +712,8 @@ function projectNeed(need) {
 /**
  * One alternative: a list of lines, a request the grant does not judge, or
  * an empty object, which is an alternative that needs no permission at all
- * (`repository.archive` on 3.2.0; the upstream table prints "no permission").
+ * (`repository.archive` since 3.2.0; the upstream table prints "no
+ * permission").
  */
 function projectAlternative(alt) {
   if (isPlainObject(alt) && alt.not_judged_by_grant === true) {
@@ -727,29 +732,86 @@ function projectAlternative(alt) {
   return { needs: alt.needs.map(projectNeed) };
 }
 
+/** A request no fine-grained token passes, and why: three strings. */
+function projectDenial(d) {
+  if (
+    !isPlainObject(d) ||
+    ![d.cause, d.element, d.effect].every(isNonEmptyString)
+  ) {
+    throw new Error("fine_grained: a denial without cause, element, effect");
+  }
+  return { cause: d.cause, element: d.element, effect: d.effect };
+}
+
+/** A part of the answer served empty unless the grant also holds `needs`. */
+function projectEmptyWithout(p) {
+  if (
+    !isPlainObject(p) ||
+    !isNonEmptyString(p.selection) ||
+    !Array.isArray(p.needs) ||
+    p.needs.length === 0
+  ) {
+    throw new Error(
+      "fine_grained: an empty_without without selection or needs",
+    );
+  }
+  return { selection: p.selection, needs: p.needs.map(projectNeed) };
+}
+
 /**
- * The `fine_grained` block of one action, reduced by allowlist to what the
- * site renders. Returns the projection and the GitLab release it is judged at.
+ * Every field a `fine_grained` block may carry, and how each is projected
+ * when present and not empty. An unknown field stops the snapshot (softly,
+ * like every other shape change): 3.3.0 added four, and an allowlist that
+ * dropped what it did not know published every action of that release
+ * without what "some calls also need" and what comes back empty.
+ */
+const FINE_GRAINED_OPTIONAL = {
+  denied_ways: (v) => v.map(projectDenial),
+  optional_needs: (v) => v.map(projectNeed),
+  optional_denied: (v) => v.map(projectDenial),
+  always_empty: (v) => {
+    if (!v.every(isNonEmptyString)) {
+      throw new Error("fine_grained: an always_empty that is not selections");
+    }
+    return [...v];
+  },
+  empty_without: (v) => v.map(projectEmptyWithout),
+};
+const FINE_GRAINED_FIELDS = new Set([
+  "gitlab_version",
+  "any_of",
+  "denied",
+  ...Object.keys(FINE_GRAINED_OPTIONAL),
+]);
+
+/**
+ * The `fine_grained` block of one action, reduced to what the site renders,
+ * in a fixed key order. Returns the projection and the GitLab release it is
+ * judged at.
  */
 function projectFineGrained(block) {
   if (!isPlainObject(block) || !isNonEmptyString(block.gitlab_version)) {
     throw new Error("fine_grained: no block, or no gitlab_version");
   }
-  const d = block.denied;
-  if (isPlainObject(d)) {
-    if (![d.cause, d.element, d.effect].every(isNonEmptyString)) {
-      throw new Error("fine_grained: a denial without cause, element, effect");
-    }
-    const denied = { cause: d.cause, element: d.element, effect: d.effect };
+  const unknown = Object.keys(block).find((k) => !FINE_GRAINED_FIELDS.has(k));
+  if (unknown) throw new Error(`fine_grained: unknown field ${unknown}`);
+  if (block.denied !== undefined) {
+    const denied = projectDenial(block.denied);
     return { version: block.gitlab_version, entry: { denied } };
   }
   if (!Array.isArray(block.any_of) || block.any_of.length === 0) {
     throw new Error("fine_grained: neither any_of nor denied");
   }
-  return {
-    version: block.gitlab_version,
-    entry: { any_of: block.any_of.map(projectAlternative) },
-  };
+  const entry = { any_of: block.any_of.map(projectAlternative) };
+  for (const [field, project] of Object.entries(FINE_GRAINED_OPTIONAL)) {
+    const value = block[field];
+    if (value === undefined) continue;
+    if (!Array.isArray(value)) {
+      throw new TypeError(`fine_grained: ${field} is not a list`);
+    }
+    if (value.length > 0) entry[field] = project(value);
+  }
+  return { version: block.gitlab_version, entry };
 }
 
 /** resources/read of one action's detail, waiting out the rate limit. */

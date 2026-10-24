@@ -209,3 +209,7 @@ pathspecs
 apikey
 Urlbatch
 certbot
+burndown
+reauthentication
+scopings
+remediations

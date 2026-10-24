@@ -24,7 +24,7 @@ import {
 import type { McpHeader, McpServer } from "../data/servers";
 import { servers } from "../data/servers";
 import type { GitlabActionsSnapshot } from "../data/surface";
-import { getGitlabActions } from "../data/surface";
+import { getGitlabActions, GITLAB_CATALOG_TIER } from "../data/surface";
 import type { Lang } from "../i18n/config";
 import { ui } from "../i18n/ui";
 import { internals } from "../i18n/ui/internals";
@@ -184,7 +184,7 @@ export function buildLlmsTxt(): string {
   // One line per server with a committed action catalog, generated from the
   // same snapshot as `/servers.json` and the index itself: a third MCP with a
   // catalog gets in on its own, without touching the template below. The
-  // "Free-tier" qualifier ALWAYS travels with the count: the manifest is read
+  // tier qualifier ALWAYS travels with the count: the manifest is read
   // with `cacheScope: "private"`, so the figure is that token's surface, not
   // the universal one.
   const catalogLines = servers
@@ -193,7 +193,7 @@ export function buildLlmsTxt(): string {
       if (!catalog) return [];
       const path = `/servers/${server.id}/actions.json`;
       return [
-        `\n- [${path}](${SITE_ORIGIN}${path}): ${server.id}'s action catalog index — ${catalog.meta.actionCount} actions counted with a Free-tier token (tier and token permissions both move the count).`,
+        `\n- [${path}](${SITE_ORIGIN}${path}): ${server.id}'s action catalog index — ${catalog.meta.actionCount} actions counted with a token gitlab.com resolves to the ${GITLAB_CATALOG_TIER} tier (tier and token permissions both move the count).`,
       ];
     })
     .join("");
@@ -372,7 +372,7 @@ function subscriptionsBlock(card: ServerCardSummary | undefined): string {
  * `src/data/surface/`.
  *
  * The figures, the sample domains and the source URI come from the snapshot,
- * never from literals; the "Free-tier" qualifier ALWAYS travels with the count
+ * never from literals; the tier qualifier ALWAYS travels with the count
  * (the same reason as in `buildLlmsTxt`: `cacheScope: "private"`).
  *
  * @param serverId The server's id in `src/data/servers.ts`.
@@ -387,7 +387,7 @@ function actionCatalogBlock(serverId: string): string {
     .map((domain) => domain.domain)
     .join(", ");
   const source = `\`${catalog.meta.resourceUri}\``;
-  return `\n\nAction catalog — the tools above front a catalog of ${catalog.meta.actionCount} actions across ${catalog.domains.length} domains (${top}, …), counted with a Free-tier token — tier and token permissions both move the count. Browse the index at ${SITE_ORIGIN}/servers/${serverId}/actions.json, or read ${source} with \`resources/read\`.`;
+  return `\n\nAction catalog — the tools above front a catalog of ${catalog.meta.actionCount} actions across ${catalog.domains.length} domains (${top}, …), counted with a token gitlab.com resolves to the ${GITLAB_CATALOG_TIER} tier — tier and token permissions both move the count. Browse the index at ${SITE_ORIGIN}/servers/${serverId}/actions.json, or read ${source} with \`resources/read\`.`;
 }
 
 /**

@@ -174,24 +174,25 @@ export type McpServer = {
   getStatus: number;
   repo: string;
   /**
-   * README del repositorio, y FALLBACK de `docsSite`.
+   * The repository's README, and the FALLBACK for `docsSite`.
    *
-   * NO migrar a `https://jmrp.io/docs/<repo>` pese a la convención: esa URL
-   * redirige al SITIO de documentación, que es otro recurso. Colapsar los dos
-   * en una sola URL dejaría `docsSite` como campo muerto y el `??` sin
-   * sentido. Y como este es el fallback para un MCP que no tenga sitio de
-   * documentación, no debe depender del mapa de redirección de jmrp.io: una
-   * entrada rota allí se llevaría por delante las dos rutas a la vez.
+   * Do NOT move it to the documentation site's address: that is another
+   * resource. Collapsing the two into one URL would leave `docsSite` a dead
+   * field and the `??` pointless. And as the fallback for an MCP with no
+   * documentation site, it must not depend on any redirect map: one broken
+   * entry there would take both routes down at once.
    */
   docs: string;
   /**
-   * Sitio de documentación completo, si lo hay.
+   * The full documentation site, if there is one.
    *
-   * Se escribe con la forma de convención `https://jmrp.io/docs/<repo>`
-   * (decisión del autor, 2026-08-24) y no con la URL de GitHub Pages a la que
-   * ese mapa redirige. El card SEP-1649 que sirve el propio libgen ya publica
-   * esa forma en `websiteUrl`, así que mantener aquí la otra hacía que la
-   * ficha pintara dos enlaces con URLs distintas al mismo destino.
+   * Written exactly as the server's own card publishes it in `websiteUrl`:
+   * the page links both, and two different URLs for the same destination
+   * read as two sites. That was `https://jmrp.io/docs/<repo>` for both
+   * servers (the author's convention, 2026-08-24); gitlab 3.3.0 declares
+   * `https://docs.jmrp.io/gitlab-mcp-server` instead (#1379), which the old
+   * address now 301s to, while libgen's card still publishes the old form.
+   * Follow each card, not the convention.
    */
   docsSite?: string;
   /**
@@ -627,12 +628,13 @@ export const servers: McpServer[] = [
         "Free hosted GitLab MCP: 700+ operations with your own gitlab.com token, never written to disk.",
     },
     nativeCard: true,
-    version: "3.2.0",
+    version: "3.3.0",
     // Measured 2026-09-10 against 3.0.0+4d73bc0. Same probe as libgen and,
     // unlike what the audit assumed, no token is needed: the version check
     // runs before authorization, so the bad-version POST comes back
     // unauthenticated as a JSON-RPC -32022 whose `data.supported` is this
-    // list. Re-measured on 3.2.0+73f17e6 (2026-10-10): unchanged.
+    // list. Re-measured on 3.2.0+73f17e6 (2026-10-10) and on 3.3.0
+    // (2026-10-24): unchanged.
     supportedProtocolVersions: [
       "2026-07-28",
       "2025-11-25",
@@ -643,7 +645,7 @@ export const servers: McpServer[] = [
     endpoint: "https://mcp.jmrp.io/gitlab",
     repo: "https://github.com/jmrplens/gitlab-mcp-server",
     docs: "https://github.com/jmrplens/gitlab-mcp-server#readme",
-    docsSite: "https://jmrp.io/docs/gitlab-mcp-server",
+    docsSite: "https://docs.jmrp.io/gitlab-mcp-server",
     sameAs: [
       "https://glama.ai/mcp/servers/jmrplens/gitlab-mcp-server",
       "https://mcpservers.org/servers/jmrplens/gitlab-mcp-server",
@@ -785,8 +787,8 @@ export const servers: McpServer[] = [
       metadataUrl:
         "https://mcp.jmrp.io/.well-known/oauth-protected-resource/gitlab",
       // Measured on 3.1.0+17f13ba (2026-09-22), on the 3.1.0 release,
-      // 3.1.0+6cf683b (2026-09-30), and on 3.2.0+73f17e6 (2026-10-10):
-      // `["api"]`. See the type.
+      // 3.1.0+6cf683b (2026-09-30), on 3.2.0+73f17e6 (2026-10-10), and on
+      // 3.3.0 (2026-10-24): `["api"]`. See the type.
       advertisedScopes: ["api"],
       callbackPort: 8090,
       // The read-only application behind the inspector's sign-in button.

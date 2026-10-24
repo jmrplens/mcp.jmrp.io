@@ -20,14 +20,14 @@
  * `entry_count` is the number of entries EMITTED (the snapshot's
  * `actionCount`; the upstream `entryCount` also includes the visible-tool
  * entry the projection excludes): the checkable invariant is
- * `entries.length === entry_count`. The "Free-tier" note is attached to the
- * count because the manifest is read with `cacheScope: "private"` — it is
+ * `entries.length === entry_count`. The tier note (`GITLAB_CATALOG_NOTE`)
+ * is attached to the count because the manifest is read with `cacheScope: "private"` — it is
  * THAT token's surface, not the universal one.
  */
 import type { APIRoute, GetStaticPaths } from "astro";
 
 import type { GitlabActionsSnapshot } from "../../../data/surface";
-import { actionCatalogs } from "../../../data/surface";
+import { actionCatalogs, GITLAB_CATALOG_NOTE } from "../../../data/surface";
 
 /**
  * One route per server WITH a committed catalog (today: gitlab), passing the
@@ -64,7 +64,7 @@ export const GET: APIRoute = ({ props }) => {
     // never a literal, so an upstream change flows through on its own.
     source: catalog.meta.resourceUri,
     entry_count: catalog.meta.actionCount,
-    note: "Counted with a Free-tier token; the catalog is scoped to the token that asks, so tier and token permissions both move the count.",
+    note: GITLAB_CATALOG_NOTE,
     // A per-domain census in the snapshot's order (by bytes, stable across
     // builds): deterministic serialization is the extractor's responsibility
     // (`scripts/sync-server-surface.mjs`) and `src/data/surface.ts` validates

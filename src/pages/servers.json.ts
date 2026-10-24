@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 
 import { serverCardDocuments, serverCards } from "../data/server-cards";
 import { servers } from "../data/servers";
-import { actionCatalogs } from "../data/surface";
+import { actionCatalogs, GITLAB_CATALOG_NOTE } from "../data/surface";
 import { SITE_ORIGIN } from "../lib/seo";
 
 /**
@@ -93,8 +93,8 @@ export const GET: APIRoute = () =>
             // snapshot in `src/data/surface/`. The figures ALWAYS come from
             // the snapshot — the catalog is the surface of the token it was
             // read with (`cacheScope: "private"`), so the count moves with the
-            // token and with each release; hence the "Free-tier" note attached
-            // to the number.
+            // token and with each release; hence the tier note attached to the
+            // number (`GITLAB_CATALOG_NOTE`).
             ...(catalog && {
               actionCatalog: {
                 source: catalog.meta.resourceUri,
@@ -104,7 +104,7 @@ export const GET: APIRoute = () =>
                 // publishing it under another name invited confusing the two.
                 actionCount: catalog.meta.actionCount,
                 domainCount: catalog.domains.length,
-                note: "Counted with a Free-tier token; the catalog is scoped to the token that asks, so tier and token permissions both move the count.",
+                note: GITLAB_CATALOG_NOTE,
                 index: `${SITE_ORIGIN}/servers/${s.id}/actions.json`,
               },
             }),

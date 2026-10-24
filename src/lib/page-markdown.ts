@@ -11,6 +11,7 @@ import type { McpServer } from "../data/servers";
 import { servers } from "../data/servers";
 import type {
   DomainFineGrained,
+  FineGrainedEntry,
   GitlabActionEntry,
   GitlabActionParam,
   SurfaceServerId,
@@ -23,7 +24,11 @@ import { license } from "../i18n/ui/license";
 import { policies } from "../i18n/ui/policies";
 import { serversPage } from "../i18n/ui/servers-page";
 import { noscriptCurl } from "./client-config";
-import { fineGrainedText } from "./fine-grained";
+import {
+  fineGrainedEmptySegments,
+  fineGrainedText,
+  segmentsText,
+} from "./fine-grained";
 import { pageUrl, serverPageUrl, SITE_ORIGIN, SITE_REPO } from "./seo";
 import { pageDatesOf } from "./sitemap-lastmod";
 
@@ -573,6 +578,32 @@ function paramLabel(param: GitlabActionParam): string {
 }
 
 /**
+ * An action's fine-grained lines in the twin: what a token needs and, when
+ * GitLab serves part of the answer empty to one, which parts. None without
+ * an entry.
+ *
+ * @param grant The action's entry in the fine-grained snapshot, if any.
+ * @param t The page's strings.
+ * @returns The lines, already labelled.
+ */
+function fineGrainedLines(
+  grant: FineGrainedEntry | undefined,
+  t: (typeof serversPage)[Lang],
+): string[] {
+  if (!grant) return [];
+  const lines = [
+    `**${t.domainFineGrainedLabel}:** ${fineGrainedText(grant, t, code)}`,
+  ];
+  const empty = fineGrainedEmptySegments(grant, t);
+  if (empty.length > 0) {
+    lines.push(
+      `**${t.domainFineGrainedEmptyLabel}:** ${segmentsText(empty, code)}`,
+    );
+  }
+  return lines;
+}
+
+/**
  * One action-domain page as markdown.
  *
  * These are the twins worth having most, and the reason is volume: the domain
@@ -629,12 +660,7 @@ export function domainMarkdown(
           .join(` ${t.domainAnyOfJoiner} `);
         lines.push(`**${t.domainAnyOfLabel}:** ${groups}`);
       }
-      const grant = fineGrained?.actions[action.id];
-      if (grant) {
-        lines.push(
-          `**${t.domainFineGrainedLabel}:** ${fineGrainedText(grant, t, code)}`,
-        );
-      }
+      lines.push(...fineGrainedLines(fineGrained?.actions[action.id], t));
       if (action.alias_of) {
         const target = domainOf[action.alias_of];
         const where = target ? ` (${target})` : "";
