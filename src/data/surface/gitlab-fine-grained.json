@@ -2,10 +2,10 @@
   "meta": {
     "endpoint": "https://mcp.jmrp.io/gitlab/mcp",
     "uriTemplate": "gitlab://tools/{id}",
-    "sourceVersion": "3.3.0",
+    "sourceVersion": "3.4.0",
     "gitlabVersion": "19.5.0",
     "actionCount": 977,
-    "generatedAt": "2026-10-24T11:02:03Z"
+    "generatedAt": "2026-11-01T17:58:13Z"
   },
   "actions": {
     "access.approve_group": {
@@ -20,6 +20,24 @@
                 "group"
               ]
             }
+          ]
+        }
+      ],
+      "optional_needs": [
+        {
+          "permissions": [
+            "Group: Read"
+          ],
+          "at": [
+            "group"
+          ]
+        },
+        {
+          "permissions": [
+            "Member: Read"
+          ],
+          "at": [
+            "group"
           ]
         }
       ]
@@ -8063,10 +8081,66 @@
           "needs": [
             {
               "permissions": [
+                "Group: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            },
+            {
+              "permissions": [
                 "Orbit: Read"
               ],
               "at": [
                 "user"
+              ]
+            }
+          ]
+        },
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Project: Read"
+              ],
+              "at": [
+                "project"
+              ]
+            },
+            {
+              "permissions": [
+                "Orbit: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            }
+          ]
+        },
+        {
+          "needs": [
+            {
+              "permissions": [
+                "Group: Read"
+              ],
+              "at": [
+                "group"
+              ]
+            },
+            {
+              "permissions": [
+                "Orbit: Read"
+              ],
+              "at": [
+                "user"
+              ]
+            },
+            {
+              "permissions": [
+                "Project: Read"
+              ],
+              "at": [
+                "project"
               ]
             }
           ]
@@ -8102,22 +8176,16 @@
               ]
             }
           ]
+        },
+        {
+          "needs": []
         }
       ]
     },
     "orbit.status": {
       "any_of": [
         {
-          "needs": [
-            {
-              "permissions": [
-                "Orbit: Read"
-              ],
-              "at": [
-                "user"
-              ]
-            }
-          ]
+          "needs": []
         }
       ]
     },
