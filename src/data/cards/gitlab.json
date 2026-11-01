@@ -3461,7 +3461,7 @@
     ],
     "name": "gitlab-mcp-server",
     "title": "GitLab MCP Server",
-    "version": "3.3.0",
+    "version": "3.4.0",
     "websiteUrl": "https://docs.jmrp.io/gitlab-mcp-server"
   },
   "subscriptions": {
@@ -3908,7 +3908,7 @@
                   ]
                 },
                 "required_params_any_of": {
-                  "description": "Alternative groups: a call also needs every name of one group, not all groups.",
+                  "description": "Alternative groups: a call also needs every name of at least one group, not all groups, and of exactly one when required_params_exclusive is true.",
                   "items": {
                     "items": {
                       "type": "string"
@@ -3922,6 +3922,10 @@
                     "null",
                     "array"
                   ]
+                },
+                "required_params_exclusive": {
+                  "description": "True when a call completes exactly one group of required_params_any_of: GitLab refuses a call completing two as it refuses one completing none.",
+                  "type": "boolean"
                 },
                 "schema_uri": {
                   "description": "MCP resource URI for the action parameter schema.",

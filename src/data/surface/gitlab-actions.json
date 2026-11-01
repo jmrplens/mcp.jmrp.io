@@ -4,7 +4,7 @@
     "resourceUri": "gitlab://tools",
     "surface": "dynamic",
     "uriTemplate": "gitlab://tools/{id}",
-    "sourceVersion": "3.3.0",
+    "sourceVersion": "3.4.0",
     "entryCount": 978,
     "actionCount": 977,
     "visibleTools": [
@@ -23,7 +23,7 @@
     ],
     "ttlMs": 300000,
     "cacheScope": "private",
-    "generatedAt": "2026-10-22T09:53:37Z"
+    "generatedAt": "2026-11-01T17:58:13Z"
   },
   "domains": [
     {
@@ -298,7 +298,7 @@
       "domain": "access",
       "destructive": false,
       "read_only": false,
-      "description": "Approve a pending group access request, granting the user membership. Returns: the membership it became, with id, username, name, the granted access level, the state, and the membership fields GitLab sends with it. See also: access.request_list_group, access.deny_group, group.members.",
+      "description": "Approve a pending group access request, granting the user membership at access_level, or Developer when it is left out. Minimal access is granted only on a top-level group with a Premium or Ultimate license, and is reported as granted only once the requester is found among the group's members. Returns: the membership it became, with id, username, name, the granted access level, the state, and the membership fields GitLab sends with it. See also: access.request_list_group, access.deny_group, group.members.",
       "required_params": [
         {
           "name": "group_id",
@@ -316,7 +316,7 @@
       "domain": "access",
       "destructive": false,
       "read_only": false,
-      "description": "Approve a pending project access request, granting the user membership. Returns: the membership it became, with id, username, name, the granted access level, the state, and the membership fields GitLab sends with it. See also: access.request_list_project, access.deny_project, project.members.",
+      "description": "Approve a pending project access request, granting the user membership at access_level, or Developer when it is left out. A level a project does not grant is refused before the request. Returns: the membership it became, with id, username, name, the granted access level, the state, and the membership fields GitLab sends with it. See also: access.request_list_project, access.deny_project, project.members.",
       "required_params": [
         {
           "name": "project_id",
@@ -2328,7 +2328,7 @@
       "domain": "environment",
       "destructive": false,
       "read_only": false,
-      "description": "Protect a single environment or wildcard with deploy access levels and approval rules. Returns: the newly protected environment with its deploy access levels, required approval count, and approval rules. See also: environment.protected_get, environment.protected_update, environment.protected_unprotect.",
+      "description": "Protect a single environment or wildcard with deploy access levels, each naming exactly one of access_level, user_id or group_id, and approval rules, each naming at least one. Returns: the newly protected environment with its deploy access levels, required approval count, and approval rules. See also: environment.protected_get, environment.protected_update, environment.protected_unprotect.",
       "required_params": [
         {
           "name": "deploy_access_levels",
@@ -2368,7 +2368,7 @@
       "domain": "environment",
       "destructive": false,
       "read_only": false,
-      "description": "Update a protected environment's deploy access levels and approval rules (use _destroy to remove an entry). Returns: the updated environment with its deploy access levels, required approval count, and approval rules. See also: environment.protected_get, environment.protected_protect, environment.protected_unprotect.",
+      "description": "Update a protected environment's deploy access levels and approval rules. An entry with the id of an existing one changes it, or removes it with _destroy true, and an entry without an id adds one: a new deploy access level names exactly one of access_level, user_id or group_id, and every approval rule but a removal names at least one. Returns: the updated environment with its deploy access levels, required approval count, and approval rules. See also: environment.protected_get, environment.protected_protect, environment.protected_unprotect.",
       "required_params": [
         {
           "name": "environment",
@@ -3748,7 +3748,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": false,
-      "description": "Update a group issue board's name, and on Premium and Ultimate its scope (assignee, milestone, labels, weight). Returns: the updated board with its group, milestone, labels, and lists. See also: group.group_board_get, group.group_board_list.",
+      "description": "Update a group issue board's name or list visibility, and on Premium and Ultimate its scope (assignee, milestone, labels, weight). Returns: the updated board with its group, milestone, labels, and lists. See also: group.group_board_get, group.group_board_list.",
       "required_params": [
         {
           "name": "board_id",
@@ -4592,7 +4592,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": false,
-      "description": "Add an LDAP group link to a GitLab group by CN or filter (Premium/Ultimate). Returns: the created link with its CN/filter, provider, access level, and member role ID. See also: group.ldap_link_list, group.ldap_sync, group.ldap_link_delete.",
+      "description": "Add an LDAP group link to a GitLab group by CN or filter (Premium/Ultimate). Send exactly one of cn or filter, not both. Returns: the created link with its CN/filter, provider, access level, and member role ID. See also: group.ldap_link_list, group.ldap_sync, group.ldap_link_delete.",
       "required_params": [
         {
           "name": "group_access",
@@ -4606,6 +4606,20 @@
           "name": "provider",
           "type": "string"
         }
+      ],
+      "required_params_any_of": [
+        [
+          {
+            "name": "cn",
+            "type": "string"
+          }
+        ],
+        [
+          {
+            "name": "filter",
+            "type": "string"
+          }
+        ]
       ]
     },
     {
@@ -4614,7 +4628,7 @@
       "domain": "group",
       "destructive": true,
       "read_only": false,
-      "description": "Delete a GitLab group's LDAP link by CN or filter (Premium/Ultimate). Returns: a success confirmation. See also: group.ldap_link_list, group.ldap_link_add, group.ldap_sync.",
+      "description": "Delete a GitLab group's LDAP link by CN or filter (Premium/Ultimate). Send exactly one of cn or filter, not both. Returns: a success confirmation. See also: group.ldap_link_list, group.ldap_link_add, group.ldap_sync.",
       "required_params": [
         {
           "name": "group_id",
@@ -4624,6 +4638,20 @@
           "name": "provider",
           "type": "string"
         }
+      ],
+      "required_params_any_of": [
+        [
+          {
+            "name": "cn",
+            "type": "string"
+          }
+        ],
+        [
+          {
+            "name": "filter",
+            "type": "string"
+          }
+        ]
       ]
     },
     {
@@ -4732,7 +4760,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": true,
-      "description": "Get a single group-level protected branch by name or wildcard. Returns: the protected branch with push, merge, and unprotect access levels (access_level, access_level_description, user_id, group_id) and force-push and code-owner-approval flags. See also: group.protected_branch_list, group.protected_branch_update, group.protected_branch_unprotect.",
+      "description": "Get a single group-level protected branch by name or wildcard. Returns: the protected branch with push, merge, and unprotect access levels (access_level, access_level_description, user_id, group_id, member_role_id, member_role_name) and force-push and code-owner-approval flags. See also: group.protected_branch_list, group.protected_branch_update, group.protected_branch_unprotect.",
       "required_params": [
         {
           "name": "branch",
@@ -4750,7 +4778,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": true,
-      "description": "List group-level protected branches with search and offset or keyset pagination. Returns: protected branches with push, merge, and unprotect access levels (access_level, access_level_description, user_id, group_id), force-push and code-owner-approval flags, plus pagination metadata. See also: group.protected_branch_get, group.protected_branch_protect, group.get.",
+      "description": "List group-level protected branches with search and offset or keyset pagination. Returns: protected branches with push, merge, and unprotect access levels (access_level, access_level_description, user_id, group_id, member_role_id, member_role_name), force-push and code-owner-approval flags, plus pagination metadata. See also: group.protected_branch_get, group.protected_branch_protect, group.get.",
       "required_params": [
         {
           "name": "group_id",
@@ -4764,7 +4792,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": false,
-      "description": "Protect a group-level branch or wildcard, optionally with per-user/per-group allowed-to-push, merge, and unprotect entries. Returns: the created protected branch with its push, merge, and unprotect access levels and force-push and code-owner-approval flags. See also: group.protected_branch_get, group.protected_branch_update, group.protected_branch_unprotect.",
+      "description": "Protect a group-level branch or wildcard, optionally with per-user, per-group or per-custom-role allowed-to-push, merge, and unprotect entries. Returns: the created protected branch with its push, merge, and unprotect access levels and force-push and code-owner-approval flags. See also: group.protected_branch_get, group.protected_branch_update, group.protected_branch_unprotect.",
       "required_params": [
         {
           "name": "group_id",
@@ -4850,7 +4878,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": false,
-      "description": "Protect a group-level environment tier with deploy access levels and approval rules. Protection cascades to all subgroup projects. Returns: the newly protected environment with its deploy access levels, required approval count, and approval rules. See also: group.protected_env_get, group.protected_env_update, group.protected_env_unprotect.",
+      "description": "Protect a group-level environment tier with deploy access levels, each naming exactly one of access_level, user_id or group_id, and approval rules, each naming at least one. Protection cascades to all subgroup projects. Returns: the newly protected environment with its deploy access levels, required approval count, and approval rules. See also: group.protected_env_get, group.protected_env_update, group.protected_env_unprotect.",
       "required_params": [
         {
           "name": "deploy_access_levels",
@@ -4890,7 +4918,7 @@
       "domain": "group",
       "destructive": false,
       "read_only": false,
-      "description": "Update a group-level protected environment's deploy access levels and approval rules (use _destroy to remove an entry). Returns: the updated environment with its deploy access levels, required approval count, and approval rules. See also: group.protected_env_get, group.protected_env_protect, group.protected_env_unprotect.",
+      "description": "Update a group-level protected environment's deploy access levels and approval rules. An entry with the id of an existing one changes it, or removes it with _destroy true, and an entry without an id adds one: a new deploy access level names exactly one of access_level, user_id or group_id, and every approval rule but a removal names at least one. Returns: the updated environment with its deploy access levels, required approval count, and approval rules. See also: group.protected_env_get, group.protected_env_protect, group.protected_env_unprotect.",
       "required_params": [
         {
           "name": "environment",
@@ -8799,7 +8827,7 @@
       "domain": "mr_review",
       "destructive": false,
       "read_only": true,
-      "description": "Get the current file diffs (changes) for a merge request. Returns: per-file diffs with old_path, new_path, diff content, file status (added/deleted/renamed), file modes, and truncated_files when GitLab collapses large diffs. See also: mr_review.diff_versions_list, mr_review.raw_diffs, merge_request.get.",
+      "description": "Get the current file diffs (changes) for a merge request. Returns: per-file diffs with old_path, new_path, diff content, file status (added/deleted/renamed), file modes, pagination metadata, and truncated_files when GitLab collapses large diffs. See also: mr_review.diff_versions_list, mr_review.raw_diffs, merge_request.get.",
       "required_params": [
         {
           "name": "merge_request_iid",
@@ -9305,7 +9333,7 @@
       "domain": "orbit",
       "destructive": false,
       "read_only": true,
-      "description": "Inspect GitLab Orbit (Knowledge Graph) indexing status for one namespace, project, or full_path."
+      "description": "Inspect GitLab Orbit (Knowledge Graph) indexing status for one group or project, by namespace_id, project_id or full_path: whether Orbit is on, the indexing state of each area, the project counts and the indexed items of each domain, and for a top-level group its Orbit access and trial, which decide whether GitLab.com serves the index at all."
     },
     {
       "id": "orbit.query",
@@ -9317,7 +9345,7 @@
       "required_params": [
         {
           "name": "query",
-          "type": "string|object"
+          "type": "string"
         }
       ]
     },
@@ -9327,7 +9355,7 @@
       "domain": "orbit",
       "destructive": false,
       "read_only": true,
-      "description": "Inspect the GitLab Orbit (Knowledge Graph) ontology: domains, node types, edge types."
+      "description": "Inspect the GitLab Orbit (Knowledge Graph) schema: domains, node kinds and edge kinds, with the properties of the node kinds named in expand, or the schema as compact text."
     },
     {
       "id": "orbit.status",
@@ -9335,7 +9363,7 @@
       "domain": "orbit",
       "destructive": false,
       "read_only": true,
-      "description": "Inspect GitLab Orbit (Knowledge Graph) cluster health on GitLab.com."
+      "description": "Inspect the health of the GitLab Orbit (Knowledge Graph) service on GitLab.com: its state, version and the state of each component."
     },
     {
       "id": "orbit.tools",
@@ -9343,7 +9371,7 @@
       "domain": "orbit",
       "destructive": false,
       "read_only": true,
-      "description": "List the GitLab Orbit (Knowledge Graph) MCP tool manifest and parameter schemas."
+      "description": "List the tools GitLab's Orbit (Knowledge Graph) MCP endpoint serves and the input schema of each."
     },
     {
       "id": "package.delete",
@@ -9699,7 +9727,7 @@
       "domain": "package",
       "destructive": false,
       "read_only": false,
-      "description": "Create a container registry protection rule for a project.",
+      "description": "Create a container registry protection rule for a project, with a repository path pattern that starts with the project's full path and at least one of the two minimum access levels.",
       "required_params": [
         {
           "name": "project_id",
@@ -9709,6 +9737,20 @@
           "name": "repository_path_pattern",
           "type": "string"
         }
+      ],
+      "required_params_any_of": [
+        [
+          {
+            "name": "minimum_access_level_for_push",
+            "type": "string"
+          }
+        ],
+        [
+          {
+            "name": "minimum_access_level_for_delete",
+            "type": "string"
+          }
+        ]
       ]
     },
     {
@@ -11939,7 +11981,7 @@
       "domain": "project",
       "destructive": false,
       "read_only": false,
-      "description": "Add a user to a project team by user_id or username with an access level. Optional: expires_at, member_role_id (Premium/Ultimate). Returns: the created membership. See also: project.member_edit, project.members, user.list.",
+      "description": "Add a user to a project team by user_id or username with an access level. Optional: expires_at and, on Ultimate, member_role_id. Returns: the created membership. See also: project.member_edit, project.members, user.list.",
       "required_params": [
         {
           "name": "access_level",

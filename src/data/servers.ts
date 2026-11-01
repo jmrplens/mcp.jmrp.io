@@ -628,13 +628,13 @@ export const servers: McpServer[] = [
         "Free hosted GitLab MCP: 700+ operations with your own gitlab.com token, never written to disk.",
     },
     nativeCard: true,
-    version: "3.3.0",
+    version: "3.4.0",
     // Measured 2026-09-10 against 3.0.0+4d73bc0. Same probe as libgen and,
     // unlike what the audit assumed, no token is needed: the version check
     // runs before authorization, so the bad-version POST comes back
     // unauthenticated as a JSON-RPC -32022 whose `data.supported` is this
-    // list. Re-measured on 3.2.0+73f17e6 (2026-10-10) and on 3.3.0
-    // (2026-10-24): unchanged.
+    // list. Re-measured on 3.2.0+73f17e6 (2026-10-10), on 3.3.0 (2026-10-24)
+    // and on 3.4.0 (2026-11-01): unchanged.
     supportedProtocolVersions: [
       "2026-07-28",
       "2025-11-25",
@@ -764,9 +764,19 @@ export const servers: McpServer[] = [
           // ops/stack/flags/gitlab.flags does not override. The window counts
           // from the first failure (AuthRateLimiter.BlockedFor), and the
           // ladder repeats its last step (`escalationLadder` in the pool).
+          // 3.4.0 (#1481) keys an IPv6 address by its /64 and adds the /48
+          // aggregate (AUB-006: tenancy.AuthNetworkFailingPrefixes = 10, no
+          // flag, in the distinct-token window and up its ladder); a
+          // credential the deployment already serves is exempt from every
+          // block. The discovery documents' bucket is RTC-008
+          // (tenancy.DiscoveryRate 20, DiscoveryBurst 200), also defaults.
           {
-            en: "Failed sign-ins are counted per address. Ten in a minute block that address until the minute is out; fifty different rejected tokens in ten minutes block it for a minute, then ten, then an hour at a time. A client retrying one expired token recovers on its own; one trying token after token does not.",
-            es: "Los accesos fallidos se cuentan por dirección. Diez en un minuto bloquean esa dirección hasta que pasa el minuto; cincuenta tokens rechazados distintos en diez minutos la bloquean un minuto, luego diez, y después una hora cada vez. Un cliente que reintenta con un token caducado se recupera solo; uno que prueba token tras token, no.",
+            en: "Failed sign-ins are counted per address, an IPv6 address by the /64 it lies in. Ten in a minute block that address until the minute is out; fifty different rejected tokens in ten minutes block it for a minute, then ten, then an hour at a time; and once ten /64s of one IPv6 /48 have had a token refused in those ten minutes, the whole /48 is blocked the same way. A token the deployment is already serving is never blocked. A client retrying one expired token recovers on its own; one trying token after token does not.",
+            es: "Los accesos fallidos se cuentan por dirección, y una dirección IPv6 por el /64 en el que está. Diez en un minuto bloquean esa dirección hasta que pasa el minuto; cincuenta tokens rechazados distintos en diez minutos la bloquean un minuto, luego diez, y después una hora cada vez; y cuando diez /64 de un mismo /48 IPv6 han tenido un token rechazado en esos diez minutos, se bloquea el /48 entero de la misma forma. Un token que el despliegue ya está sirviendo no se bloquea nunca. Un cliente que reintenta con un token caducado se recupera solo; uno que prueba token tras token, no.",
+          },
+          {
+            en: "The documents it publishes without a credential, both server cards and the OAuth metadata, are paced per address too: 20 requests a second, in bursts of up to 200.",
+            es: "Los documentos que publica sin credencial, las dos server cards y los metadatos OAuth, también van por dirección: 20 peticiones por segundo, en ráfagas de hasta 200.",
           },
         ],
       },
@@ -787,8 +797,8 @@ export const servers: McpServer[] = [
       metadataUrl:
         "https://mcp.jmrp.io/.well-known/oauth-protected-resource/gitlab",
       // Measured on 3.1.0+17f13ba (2026-09-22), on the 3.1.0 release,
-      // 3.1.0+6cf683b (2026-09-30), on 3.2.0+73f17e6 (2026-10-10), and on
-      // 3.3.0 (2026-10-24): `["api"]`. See the type.
+      // 3.1.0+6cf683b (2026-09-30), on 3.2.0+73f17e6 (2026-10-10), on 3.3.0
+      // (2026-10-24) and on 3.4.0 (2026-11-01): `["api"]`. See the type.
       advertisedScopes: ["api"],
       callbackPort: 8090,
       // The read-only application behind the inspector's sign-in button.
