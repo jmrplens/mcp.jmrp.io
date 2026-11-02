@@ -213,3 +213,4 @@ burndown
 reauthentication
 scopings
 remediations
+cloudflareinsights

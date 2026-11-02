@@ -173,7 +173,9 @@ export async function processHtmlFiles(
   if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
 
   // The Cloudflare beacon hardening jmrp.io does here (`scripts/cf-beacon.js`)
-  // is not copied over: this site loads no analytics of any kind.
+  // happens before the build on this site: scripts/sync-cf-beacon.mjs wraps
+  // the download in its host guard, and Vite content-hashes it into /_astro/,
+  // so this pass treats it as one more local script (nonce and integrity).
 
   let modifiedFilesCount = 0;
   let updatedSriTags = 0;

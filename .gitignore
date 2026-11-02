@@ -14,6 +14,9 @@ builds/
 .dist.tmp-*
 # Astro generated types and runtime cache
 .astro/
+# Downloaded at build time (scripts/sync-cf-beacon.mjs): Cloudflare's bytes,
+# not this repo's, and refreshed on every deploy.
+src/generated/
 # Optimized images cache (speeds up builds)
 .cache/
 # Package manager dependencies
