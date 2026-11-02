@@ -45,23 +45,37 @@ export async function finalizeCspConfig(
       ? `img-src 'self' data: ${imgSrc} https://*.jmrp.io`
       : "img-src 'self' data: https://*.jmrp.io",
     "font-src 'self'",
-    // 'self' plus exactly one third party: gitlab.com's token endpoint.
+    // Per path, like COOP: `$mcp_connect_src` is a map in the vhost, next to
+    // `$mcp_coop`, and nginx refuses the config (`nginx -t`, which the deploy
+    // runs before reloading and rolls back on) if it is missing. It is 'self'
+    // plus exactly one third party on every page, a different one by page:
     //
-    // It is there for one call and one only — the inspector's "sign in with
-    // GitLab" button exchanging an authorization code for an access token
-    // (RFC 7636, Authorization Code + PKCE). Everything else the inspector
-    // does is same-origin, against `/libgen` and `/gitlab`.
+    //   ~^/(es/)?inspector/(index\.html)?$     'self' https://gitlab.com
+    //   ~^/inspector/callback/(index\.html)?$  'self' https://gitlab.com
+    //   default                               'self' https://cloudflareinsights.com
     //
-    // This IS a widening, and it is worth naming what it costs: with a bare
-    // 'self', an injected script could not send the visitor's token anywhere
-    // at all, because the browser had no permitted destination. Now there is
-    // one, and gitlab.com is not a passive host — anyone can open an account
-    // and receive data there. What keeps it narrow: no third-party scripts on
-    // this site, a nonce-only CSP, and a single origin rather than a wildcard.
+    // gitlab.com is there for one call and one only — the inspector's "sign
+    // in with GitLab" button exchanging an authorization code for an access
+    // token (RFC 7636, Authorization Code + PKCE). Everything else the
+    // inspector does is same-origin, against `/libgen` and `/gitlab`. That IS
+    // a widening, and it is worth naming what it costs: with a bare 'self', an
+    // injected script could not send the visitor's token anywhere at all.
+    // Now there is one destination, and gitlab.com is not a passive host —
+    // anyone can open an account and receive data there. What keeps it
+    // narrow: no third-party script on the inspector, a nonce-only CSP, and a
+    // single origin rather than a wildcard.
     //
-    // The security notice on gitlab's card states this in the same terms; if
-    // this line changes, that copy has to change with it.
-    "connect-src 'self' https://gitlab.com",
+    // cloudflareinsights.com is where Cloudflare Web Analytics' beacon
+    // reports (src/lib/analytics.ts). It is NOT on the inspector's list, and
+    // the beacon is not on its pages: the endpoint takes a report under any
+    // site token, so on the one page that holds a credential it would be a
+    // second way out for it. The map is written against `$uri` AFTER
+    // `try_files`, hence the `index.html` in the patterns (the vhost's
+    // comment on `$mcp_coop` tells how that was found).
+    //
+    // The security notice on gitlab's card and the policies page state this
+    // in the same terms; if this changes, that copy changes with it.
+    "connect-src $mcp_connect_src",
     "media-src 'self'",
     "manifest-src 'self'",
     "frame-src 'none'",

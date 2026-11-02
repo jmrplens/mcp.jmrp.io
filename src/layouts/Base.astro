@@ -20,6 +20,7 @@ import { servers } from "../data/servers";
 import { LANGS } from "../i18n/config";
 import { type Lang, ui } from "../i18n/ui";
 import { getLangFromUrl } from "../i18n/utils";
+import { CF_BEACON_TOKEN, pageLoadsAnalytics } from "../lib/analytics";
 import { buildDate } from "../lib/build-date";
 import { safeIcon } from "../lib/card-icons";
 import { humanDate } from "../lib/format";
@@ -116,6 +117,20 @@ const {
   errorPage = false,
   noindex = false,
 } = Astro.props;
+// Cloudflare Web Analytics' beacon, when this build has one: the build's
+// first steps download it to src/generated/ (scripts/sync-cf-beacon.mjs). A
+// glob rather than an import, so a build without the file — CI, a scratch
+// build — compiles and simply has no tag; `?url` makes Vite emit it under a
+// content-hashed name in /_astro/. Every page but the inspector's loads it
+// (see `pageLoadsAnalytics`).
+const beaconSrc = Object.values(
+  import.meta.glob<string>("../generated/cf-beacon.js", {
+    query: "?url",
+    import: "default",
+    eager: true,
+  }),
+)[0];
+const loadsAnalytics = beaconSrc !== undefined && pageLoadsAnalytics(page);
 // The language comes from the URL, never from a prop: that is what lets the
 // mirrored route files under `src/pages/es/` be identical to their English
 // counterparts, and therefore impossible to drift apart.
@@ -547,6 +562,19 @@ const serverSubItems = servers.map((server) => ({
         is:inline
         type="application/ld+json"
         set:html={jsonLd}
+      />
+    )}
+
+    {/* Cloudflare Web Analytics, from this site (see `beaconSrc` above).
+        `is:inline` keeps Astro from bundling it; the post-build gives it the
+        nonce and the integrity attribute like every local script. The
+        configuration is the snippet Cloudflare hands out, token only. */}
+    {loadsAnalytics && (
+      <script
+        is:inline
+        defer
+        src={beaconSrc}
+        data-cf-beacon={JSON.stringify({ token: CF_BEACON_TOKEN })}
       />
     )}
 

@@ -34,6 +34,9 @@ export default [
       "**/.astro/**",
       "**/coverage/**",
       "**/public/scripts/**",
+      // Cloudflare's beacon, downloaded at build time (scripts/sync-cf-beacon.mjs)
+      // and git-ignored: their minified bytes, not code this project writes.
+      "src/generated/**",
       "**/*.min.js",
       "**/test-results/**",
       "**/playwright-report/**",
