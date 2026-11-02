@@ -4,30 +4,30 @@
  * One `@graph` per page. These are its main nodes; the rest (`FAQPage`,
  * `SoftwareSourceCode`) are documented at their own builder:
  *
- *   - `WebSite`  — the whole site, once for both language versions.
- *   - `WebPage`  — this particular page (one `@id` per language).
- *   - `WebAPI`   — ONE server's node, and ONLY on the page that describes
+ *   - `WebSite`: the whole site, once for both language versions.
+ *   - `WebPage`: this particular page (one `@id` per language).
+ *   - `WebAPI`: ONE server's node, and ONLY on the page that describes
  *     it: its own card at `/servers/<id>/` (in both languages). Any other
- *     page that needs to mention it — the home page, `/servers/` — does not
+ *     page that needs to mention it (the home page, `/servers/`) does not
  *     restate its data: it REFERENCES it by `@id` (the FAQ's `about`) or
  *     identifies it with a PARTIAL four-key description (`mainEntity`, see
  *     `partialApi`). That description is still not a redefinition: its four
  *     keys come from the SAME `servers.ts` entry as the full node's, so they
- *     cannot contradict it, and any fact that decides something — license,
- *     tools, actions — is still asserted in exactly one place. It used to be
+ *     cannot contradict it, and any fact that decides something (license,
+ *     tools, actions) is still asserted in exactly one place. It used to be
  *     redefined in full on the home page AND on `/servers/`, and did not
  *     exist at all on the card that describes it: the entity split into two
  *     copies that could drift, on the wrong page. See `buildApiNode` below
  *     and `servers-section-spec.md`, under what it drags along.
- *   - `BreadcrumbList` — the path from the root down to this page, on every
+ *   - `BreadcrumbList`: the path from the root down to this page, on every
  *     page but the home one. See `breadcrumbSteps`.
- *   - `Person`   — jmrp.io's canonical node, spliced in verbatim.
+ *   - `Person`: jmrp.io's canonical node, spliced in verbatim.
  *
  * Every node of ours points at the person by `@id`
  * (`publisher`/`author`/`provider`), never by restating their data: the
  * identity document is the single source of truth for who the author is, and
  * duplicating it here would guarantee the two copies drift apart. The same
- * principle — reference without redefining — now governs the `WebAPI` node
+ * principle (reference without redefining) now governs the `WebAPI` node
  * too.
  *
  * The `person.jsonld` document is NOT published on this domain: the vhost
@@ -65,7 +65,7 @@ import { pageDatesOf } from "./sitemap-lastmod";
 // changed whenever any commit landed; and the repository's first commit was
 // stamped as every page's `datePublished`, so /license/ claimed to have
 // existed on 2026-08-06, weeks before it was written. The footer and
-// `<UpdatedLine>` still use `buildDate()` — a site-wide date is the honest one
+// `<UpdatedLine>` still use `buildDate()`: a site-wide date is the honest one
 // there, because that line is about the deployment.
 
 /** `@id` of the `WebSite` node the pages hang off through `isPartOf`. */
@@ -75,7 +75,7 @@ const WEBSITE_ID = `${SITE_ORIGIN}/#website`;
  * Letters that take "an" rather than "a" before a header name.
  *
  * The only required header today is `Authorization`, and the article used to
- * be hardcoded, so the graph published "Requires a Authorization header" —
+ * be hardcoded, so the graph published "Requires a Authorization header",
  * a sentence an assistant quotes verbatim.
  */
 const VOWELS = new Set(["a", "e", "i", "o", "u"]);
@@ -101,7 +101,7 @@ function localized(values: { en: string; es: string }): LocalizedValue[] {
 /**
  * A node's `dateModified`/`datePublished` pair, ready to spread.
  *
- * Each is omitted rather than emitted empty when git cannot answer — a missing
+ * Each is omitted rather than emitted empty when git cannot answer: a missing
  * date is a gap, an invented one is a false claim, and this file already
  * carries the rule that it does not assert what it cannot verify.
  *
@@ -154,17 +154,17 @@ function buildArticleNode(context: {
     author: ref(PERSON_ID),
     publisher: ref(PERSON_ID),
     // The card's URL, not a reference to the image node the page declares:
-    // schema.org takes a URL for `image`, and the alternative — giving that
-    // node an `@id` and pointing at it — makes the graph-cohesion test read
+    // schema.org takes a URL for `image`, and the alternative (giving that
+    // node an `@id` and pointing at it) makes the graph-cohesion test read
     // the declaration itself as a dangling reference, since it collects only
     // top-level nodes. The licensing block stays stated once, on the page.
     image: ogImageUrl(lang),
     ...dates,
-    // The prose, like every other page's, is CC BY 4.0 — see /license/.
+    // The prose, like every other page's, is CC BY 4.0 (see /license/).
     license: CC_BY_4_0,
     // The partial nodes, not bare refs: these pages carry no `WebAPI` of their
     // own, and an `@id` alone would name an entity that lives on another page
-    // and answers 401/405 when dereferenced — the very thing
+    // and answers 401/405 when dereferenced, the very thing
     // `selectMainEntity` refuses to do. Home and /servers/ can use bare refs
     // for their FAQ because `mainEntity` already puts the partials in the
     // same document.
@@ -202,7 +202,7 @@ function apiId(server: McpServer): string {
  * `#source-code`, NEVER `#software`: jmrp.io/projects already defines that
  * IRI as a `SoftwareApplication` with a different name and license, and
  * describing the same `@id` with contradictory data from two pages makes the
- * merged entity contradict itself — the regression this file already suffered
+ * merged entity contradict itself, the regression this file already suffered
  * and that `#source-code` exists to avoid repeating. See the long comment in
  * {@link buildSourceNode}.
  */
@@ -221,10 +221,10 @@ function sourceId(server: McpServer): string {
  *
  * It is a FIXED value, not server data. A third MCP under another license
  * would turn it into a silent lie, so that day the field has to move down to
- * `src/data/servers.ts` — where `repo` and `docs` already live — rather than
+ * `src/data/servers.ts` (where `repo` and `docs` already live) rather than
  * a second literal being added here.
  */
-const MIT_LICENSE = "https://opensource.org/licenses/MIT";
+const MIT_LICENSE = "https://opensource.org/license/MIT";
 
 /**
  * The license the site's own social cards carry, for `primaryImageOfPage`.
@@ -249,7 +249,7 @@ interface SourceFacts {
  *
  * `name` is NOT derivable: gitlab's canonical says "GitLab MCP Server source
  * code", and deriving it from the repo slug would give "gitlab-mcp-server
- * source code" — a DIFFERENT value for the same `@id`, which is exactly the
+ * source code", a DIFFERENT value for the same `@id`, which is exactly the
  * entity split {@link sourceId} exists to avoid repeating.
  *
  * Their natural home is `src/data/servers.ts`, next to `repo`: they are
@@ -271,7 +271,7 @@ const SOURCE_FACTS: Record<string, SourceFacts | undefined> = {
 /**
  * The two types of an endpoint's node.
  *
- * Shared — not repeated — between the FULL node ({@link buildApiNode}) and the
+ * Shared, not repeated, between the FULL node ({@link buildApiNode}) and the
  * partial description ({@link partialApi}): a type added to only one would
  * leave the other describing the SAME entity with fewer types, which is the
  * silent drift this whole file is built against.
@@ -282,7 +282,7 @@ const API_TYPES = ["WebAPI", "SoftwareApplication"] as const;
  * Builds ONE server's full `WebAPI`/`SoftwareApplication` node.
  *
  * Only called from `buildSiteGraph` when the page being rendered IS that
- * server's card (`meta.serverId` matches) — the entity lives where it is
+ * server's card (`meta.serverId` matches): the entity lives where it is
  * described. Any other page that needs to mention it uses {@link partialApi}
  * (or a bare reference) instead of calling this again: that is what keeps a
  * single place holding the real data and stops two pages asserting different
@@ -294,7 +294,7 @@ const API_TYPES = ["WebAPI", "SoftwareApplication"] as const;
 function buildApiNode(server: McpServer): Record<string, unknown> {
   return {
     // Multi-typed on purpose: `WebAPI` hangs off `Intangible`, so on its own
-    // it rules out `license`, `dateModified` and `isAccessibleForFree` — which
+    // it rules out `license`, `dateModified` and `isAccessibleForFree`, which
     // are precisely the facts that decide whether an assistant recommends an
     // endpoint. Adding `SoftwareApplication` (the `CreativeWork` branch)
     // enables them without giving up the precise "this is an API" semantics.
@@ -305,14 +305,14 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
     // The `@id` is the endpoint's IRI, and the endpoint only speaks POST: a
     // consumer that dereferences it gets 405 from libgen and 401 from gitlab,
     // by design. So the node also names the document that DOES describe it
-    // and answers 200 — its own server card. The `@id` itself must not move:
+    // and answers 200: its own server card. The `@id` itself must not move:
     // jmrp.io's canonical person.jsonld lists both of them in `owns`, and six
     // external consumers read that file.
     mainEntityOfPage: ref(`${serverPageUrl(DEFAULT_LANG, server.id)}#webpage`),
     description: localized(server.description),
     documentation: server.docsSite ?? server.docs,
     serviceType: "Model Context Protocol server",
-    // The same Wikidata anchor as the author's `knowsAbout` — and with the
+    // The same Wikidata anchor as the author's `knowsAbout`, and with the
     // SAME `http://` scheme, which is Wikidata's canonical concept URI and the
     // one jmrp.io already uses. With `https://` the graph declared two
     // different resources for the same concept.
@@ -320,18 +320,18 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
     //
     // A NODE and not a bare string: schema.org's JSON-LD context gives `about`
     // no `"@type": "@id"` coercion, so a string expands to a text literal and
-    // the link to the entity never exists — the graph would be claiming this
+    // the link to the entity never exists; the graph would be claiming this
     // endpoint is about a piece of text that happens to look like a URL. The
     // node form is the one the identity document already uses for this very
     // Q-id in `knowsAbout`.
-    // eslint-disable-next-line sonarjs/no-clear-text-protocols, unicorn/prefer-https -- Not a link: it is Wikidata's canonical CONCEPT IRI, which uses http:// by definition (the site serves https, the identifier does not change). With https it would be a different RDF resource from the one knowsAbout and jmrp.io already use — and in fact eslint --fix silently "corrected" it once and split the entity in two. If Prettier ever breaks this line, the disable MUST move down to whichever line carries the string.
+    // eslint-disable-next-line sonarjs/no-clear-text-protocols, unicorn/prefer-https -- Not a link: it is Wikidata's canonical CONCEPT IRI, which uses http:// by definition (the site serves https, the identifier does not change). With https it would be a different RDF resource from the one knowsAbout and jmrp.io already use. In fact eslint --fix silently "corrected" it once and split the entity in two. If Prettier ever breaks this line, the disable MUST move down to whichever line carries the string.
     about: { "@id": "http://www.wikidata.org/entity/Q133436854" },
     applicationCategory: "DeveloperApplication",
     operatingSystem: "Any (HTTP)",
     // The version the endpoint actually runs, from the same committed card
     // the page and the twin print, with `server.version` as the fallback that
     // field is documented to be. Without it the only version reachable in the
-    // merged graph was the one the software's own node publishes — a release
+    // merged graph was the one the software's own node publishes: a release
     // number that says nothing about what is deployed here, and today does
     // not even match it.
     softwareVersion:
@@ -340,8 +340,8 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
     isAccessibleForFree: true,
     // This server's dates, taken from its own card page: the node describes
     // one endpoint, so the repository's HEAD said nothing about it. The `@id`
-    // is shared by both languages, so the path is resolved in the default one
-    // — the resolver strips the language prefix anyway, since a page and its
+    // is shared by both languages, so the path is resolved in the default one:
+    // the resolver strips the language prefix anyway, since a page and its
     // translation are built from the same sources.
     ...apiDates(server),
     // What it can do, without running the endpoint: the question an agent asks
@@ -359,7 +359,7 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
     // The terms the prose states and the graph did not. `isAccessibleForFree`
     // and `availability: InStock` together read as an unconditional
     // invitation, while /policies/ says the opposite in detail: no SLA, and no
-    // commitment that either endpoint stays online — or unchanged — from one
+    // commitment that either endpoint stays online (or unchanged) from one
     // day to the next. An agent deciding whether to build on this endpoint
     // reads the graph, not the FAQ, so the graph has to carry the caveat.
     //
@@ -410,7 +410,7 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
     provider: ref(PERSON_ID),
     // `provider` says who OPERATES it; `author` who MADE it. Here they are the
     // same person and the visible text already says so ("who is also the author
-    // of both servers") — the graph has to tell the same story.
+    // of both servers"); the graph has to tell the same story.
     author: ref(PERSON_ID),
     // The way back to the code: `targetProduct` has no inverse in schema.org,
     // so without this whoever arrives through `mainEntity` never reaches the
@@ -418,8 +418,8 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
     isBasedOn: ref(sourceId(server)),
     // `softwareHelp` used to be a bare `ref()`, pointing at an `@id` nothing
     // defines: the gitlab docs site names its node `…/#webpage`, never the
-    // naked URL, so the reference dangled. libgen's happened to resolve — its
-    // docs site does define a CollectionPage with the bare `@id` — so the same
+    // naked URL, so the reference dangled. libgen's happened to resolve (its
+    // docs site does define a CollectionPage with the bare `@id`), so the same
     // code behaved differently per server, which is how the 2026-08-22 audit
     // found it. A typed inline node says what the URL is without claiming to
     // define someone else's `@id`; the range is CreativeWork, so a plain URL
@@ -430,7 +430,7 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
       name: `${server.name} documentation`,
     },
     // What a caller has to bring. This is the "can I actually use this?" fact,
-    // and until now only /servers.json answered it — the graph did not.
+    // and until now only /servers.json answered it; the graph did not.
     // The article is derived rather than hardcoded: the only required header
     // today is `Authorization`, and "a Authorization header" is a sentence an
     // assistant would quote verbatim.
@@ -456,7 +456,7 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
     // which is correct by design.
     // Two actions: how to call it, and how to ask whether it is up. The second
     // is the question an agent asks BEFORE the first, and until now only
-    // /servers.json answered it — the health URLs were absent from the graph
+    // /servers.json answered it; the health URLs were absent from the graph
     // even though both return 200.
     potentialAction: [
       {
@@ -490,12 +490,12 @@ function buildApiNode(server: McpServer): Record<string, unknown> {
  *
  * It does not redefine the full node. Its four keys come from the SAME
  * `servers.ts` entry as {@link buildApiNode}'s, so they cannot contradict it,
- * and no fact that decides anything — license, tools, actions, dates — travels
+ * and no fact that decides anything (license, tools, actions, dates) travels
  * outside the card.
  *
  * Nor is the bare reference that used to be here enough: the `@id` is
- * `<endpoint>#api` and a GET on that URL answers an error — 405 on libgen, 401
- * on gitlab; correct by design, the endpoint only speaks POST — so someone
+ * `<endpoint>#api` and a GET on that URL answers an error (405 on libgen, 401
+ * on gitlab; correct by design, the endpoint only speaks POST), so someone
  * reading only the home page cannot tell what that entity is even by following
  * the link. It is the same pattern as `softwareHelp` in {@link buildApiNode}:
  * an inline typed node says WHAT a URL is without pretending to define another
@@ -518,7 +518,7 @@ function partialApi(server: McpServer): Record<string, unknown> {
 }
 
 /**
- * Builds ONE server's `SoftwareSourceCode` node — the bridge between the
+ * Builds ONE server's `SoftwareSourceCode` node: the bridge between the
  * endpoint and the repository that produces it, the evidence behind "can I
  * trust this?". It lives on the SAME page as its `WebAPI` (see
  * {@link buildApiNode}): that server's card, never another.
@@ -526,8 +526,8 @@ function partialApi(server: McpServer): Record<string, unknown> {
  * This `@id` is not only ours: each repo's documentation site
  * (`https://docs.jmrp.io/<repo>`, where `https://jmrp.io/docs/<repo>`
  * redirects) is the entity's home and publishes the SAME
- * `@id`. That is why the four facts asserted here — `name`,
- * `programmingLanguage`, `license` and `author` — have been checked one by one
+ * `@id`. That is why the four facts asserted here (`name`,
+ * `programmingLanguage`, `license` and `author`) have been checked one by one
  * against what that site publishes for that `@id`, and are only asserted
  * because they match: when the two graphs merge they cannot contradict each
  * other. The two that vary per server come from {@link SOURCE_FACTS}, which is
@@ -535,19 +535,19 @@ function partialApi(server: McpServer): Record<string, unknown> {
  *
  * The risk taken, written here so it is not discovered six months from now: if
  * the documentation site changes its `name`, its license or its language, this
- * repo goes out of sync and NO test sees it — the tests only look at what this
+ * repo goes out of sync and NO test sees it: the tests only look at what this
  * repo builds, not at what the other one publishes.
  *
- * What is left out — `creator`, `maintainer`, `isPartOf`, `runtimePlatform`,
- * `version`, `dateModified` — stays out for the usual reason: only the
+ * What is left out (`creator`, `maintainer`, `isPartOf`, `runtimePlatform`,
+ * `version`, `dateModified`) stays out for the usual reason: only the
  * documentation site can keep it true, and asserting it from here is signing
  * up for the day it says something else.
  *
  * The one thing this page contributes, and nobody else can, is which hosted
- * endpoint runs that code — through `targetProduct`, towards the `WebAPI` on
- * this very page and, as an external reference without redefining it, towards
- * jmrp.io/projects' canonical `#software` (the same principle as the identity
- * document's `owns`).
+ * endpoint runs that code. It says so through `targetProduct`, towards the
+ * `WebAPI` on this very page and, as an external reference without
+ * redefining it, towards jmrp.io/projects' canonical `#software` (the same
+ * principle as the identity document's `owns`).
  *
  * @param server A server from `src/data/servers.ts`.
  * @returns The node, ready for the `@graph`.
@@ -593,7 +593,7 @@ export interface PageMeta {
    * here (see `buildApiNode`/`buildSourceNode`) instead of the lightweight
    * `ref()` every other page uses. It also drives the `WebPage`'s
    * `url`/`@id`/translation pair via `serverPageUrl`, because
-   * `pageUrl(lang, "servers")` — the fixed path `PAGE_PATHS` knows — is the
+   * `pageUrl(lang, "servers")` (the fixed path `PAGE_PATHS` knows) is the
    * `/servers/` INDEX's URL, not any one server's; every detail page shares
    * `page: "servers"` (for nav/breadcrumb) but NOT this `@id`.
    */
@@ -604,7 +604,7 @@ export interface PageMeta {
    *
    * Deliberately NOT `serverId`: that prop makes a page the HOME of the
    * server's `WebAPI`/`SoftwareSourceCode` nodes, and those live on the card
-   * alone — define-once is the rule the 2026-08-22 audit restored. A domain
+   * alone: define-once is the rule the 2026-08-22 audit restored. A domain
    * page merely DESCRIBES a slice of that API, so it gets `partialApi` as its
    * `mainEntity` (the same shape every other mentioning page uses) and its
    * own URL/breadcrumb derived here.
@@ -613,13 +613,13 @@ export interface PageMeta {
 }
 
 /**
- * Server this page IS the card of — `undefined` for every page except
- * `/servers/<id>/`. Throws rather than silently ignoring a mismatch: a
+ * Server this page IS the card of (`undefined` for every page except
+ * `/servers/<id>/`). Throws rather than silently ignoring a mismatch: a
  * `serverId` that does not match any entry in `servers.ts` is a caller bug (a
  * stale id, a typo), and rendering the page as if it were a normal one would
  * hide it behind a graph that quietly stopped matching the URL.
  *
- * @param serverId `PageMeta.serverId` — unset for every page but a server
+ * @param serverId `PageMeta.serverId`, unset for every page but a server
  *   card.
  * @returns The matching server, or `undefined` when `serverId` is unset.
  */
@@ -639,7 +639,7 @@ function resolveTargetServer(
 /**
  * This page's URL and its translation's.
  *
- * `pageUrl(lang, page)` only knows the FIXED path per `PageId` — for
+ * `pageUrl(lang, page)` only knows the FIXED path per `PageId`: for
  * `page: "servers"` that is the `/servers/` INDEX, not any one server's
  * card. `serverPageUrl` is the per-server equivalent every detail page needs
  * instead. See the `serverId` doc on `PageMeta`.
@@ -687,8 +687,8 @@ function resolvePageUrls(
  * page", so it can only point at server APIs on pages that actually describe
  * one. A server card's primary entity is SOLELY its own server, never the
  * other one. The home page and `/servers/` describe every server, so they
- * keep the full list. Every other page — `/inspector/`, `/internals/`,
- * `/policies/` — describes no server at all, so `mainEntity` is omitted
+ * keep the full list. Every other page (`/inspector/`, `/internals/`,
+ * `/policies/`) describes no server at all, so `mainEntity` is omitted
  * rather than claim a false subject: those pages used to inherit `apiRefs`
  * wholesale and claimed both server APIs as their primary entity despite
  * rendering no server description.
@@ -696,7 +696,7 @@ function resolvePageUrls(
  * The SHAPE differs by page, and deliberately so. A server's own card gets a
  * BARE reference, because the full node sits in this very document: a partial
  * description there would only repeat two of its keys. The pages that merely
- * mention the servers get {@link partialApi} instead — a bare `@id` there
+ * mention the servers get {@link partialApi} instead: a bare `@id` there
  * names a node that lives on another page and answers an error when dereferenced,
  * so nothing on the page says what the entity even is.
  *
@@ -713,7 +713,7 @@ function selectMainEntity(
 ): Record<string, unknown>[] | undefined {
   if (targetServer) return [ref(apiId(targetServer))];
   // A prose page describes no server, so the slot is free for the article the
-  // page IS — see `buildArticleNode`. Decided here and not at the assembly
+  // page IS (see `buildArticleNode`). Decided here and not at the assembly
   // site so there is one answer to "what is this page's main entity".
   if (PROSE_PAGES.has(page)) return [ref(articleId)];
   if (actionsDomain) {
@@ -736,12 +736,12 @@ function selectMainEntity(
  * renders from, on purpose: the breadcrumb and the menu have to call each page
  * the same thing, or the graph describes a site that is not the one on screen.
  * The `Record<PageId, string>` type means a sixth page cannot be added without
- * a label — the same guarantee `PAGE_PATHS` already gives for routes.
+ * a label, the same guarantee `PAGE_PATHS` already gives for routes.
  *
  * `Base.astro` builds this very map for its `<nav>`. Duplicated knowingly:
  * hoisting it to `seo.ts` (next to `PAGE_PATHS`, which is where it belongs)
  * and having both consume it edits two files this change does not own. Until
- * then the drift is bounded — both halves read the same i18n keys, and neither
+ * then the drift is bounded: both halves read the same i18n keys, and neither
  * compiles with a page missing.
  *
  * @param lang Language of the page being built.
@@ -768,17 +768,17 @@ function pageLabels(lang: Lang): Record<PageId, string> {
  *
  * The `/es/` prefix needs no special case: every step is built with
  * `pageUrl`/`serverPageUrl`, which already carry it, so a Spanish crumb
- * cannot end up pointing at the English page — the failure a hand-built
+ * cannot end up pointing at the English page, the failure a hand-built
  * `${SITE_ORIGIN}/servers/` would make invisible.
  *
  * The server's name is NOT translated: it is data, like the endpoints and the
  * MCP method names (see the header of `src/i18n/ui/servers-page.ts` and of
  * `src/data/servers.ts`). The page LABELS are, and they come from
- * {@link pageLabels} — the same i18n keys the visible navigation renders from,
+ * {@link pageLabels}, the same i18n keys the visible navigation renders from,
  * so the crumb and the nav cannot call the same page two different things.
  *
- * The home page gets no crumb at all — it is the root, there is no path to
- * describe — by the same rule that keeps `FAQPage` and `speakable` on the one
+ * The home page gets no crumb at all (it is the root, there is no path to
+ * describe), by the same rule that keeps `FAQPage` and `speakable` on the one
  * page whose content backs them.
  *
  * @param lang This page's language.
@@ -831,7 +831,7 @@ function breadcrumbSteps(
 /**
  * Builds a page's complete JSON-LD graph.
  *
- * @param meta Language, title, description, page and — for a server card —
+ * @param meta Language, title, description, page and (for a server card)
  *   the `serverId` saying which one is being rendered.
  * @returns An object ready to serialize with {@link safeJsonLd}.
  */
@@ -856,7 +856,7 @@ export async function buildSiteGraph(
   );
 
   // The FAQ (and its speakable pointer) describes the notice cards, and those
-  // only render on the home page — see HomePage.astro / ServerCard. Emitting
+  // only render on the home page (see HomePage.astro / ServerCard). Emitting
   // a FAQPage on /inspector/ or /policies/ would be structured data with no
   // matching content on the page, which is the defect this task fixes.
   const isHome = page === "home";
@@ -872,8 +872,8 @@ export async function buildSiteGraph(
   const noticeServers = serversWithNoticesOn(isHome, targetServer);
 
   // The full WebAPI+SoftwareApplication (and matching SoftwareSourceCode)
-  // node: built ONLY when this page IS that server's own card — see
-  // `buildApiNode`/`buildSourceNode`'s doc comments for why. Every other page
+  // node: built ONLY when this page IS that server's own card (see
+  // `buildApiNode`/`buildSourceNode`'s doc comments for why). Every other page
   // gets an empty array here and reaches the same entity through `apiRefs`
   // below instead, which is a bare `{"@id": …}` and never redeclares the
   // node's data.
@@ -901,7 +901,7 @@ export async function buildSiteGraph(
           name: step.name,
           // `item` as a NODE and not as a string: schema.org gives it no
           // `"@type": "@id"` coercion in its context, so a bare URL would
-          // expand to a text literal and the step would link to nothing — the
+          // expand to a text literal and the step would link to nothing, the
           // same defect `about` carried until today. And without a fragment
           // (`…/servers/`, not `…#webpage`), because it is the URL a search
           // engine paints in the result's breadcrumb.
@@ -912,7 +912,7 @@ export async function buildSiteGraph(
 
   // Loaded here and not just before the graph is assembled: the card's credit
   // line below comes out of this node. The author's name is NOT restated in
-  // this file — see the rule at the top — so if the identity document ever
+  // this file (see the rule at the top), so if the identity document ever
   // stops carrying one, the credit keys drop out instead of printing a guess.
   const person = await loadPersonNode();
   const authorName = typeof person.name === "string" ? person.name : null;
@@ -927,13 +927,13 @@ export async function buildSiteGraph(
     publisher: ref(PERSON_ID),
     // The documents this site publishes for programs. They were reachable
     // only through `<link rel="alternate">` and a `Link:` header, so a
-    // consumer that reads JSON-LD and nothing else could not find them —
+    // consumer that reads JSON-LD and nothing else could not find them,
     // which is most of the audience they were written for.
     // The two `llms` files carry this site's own sentences, so they are CC BY
     // like the pages they summarize. The three machine-readable indexes are
     // the other case /license/ draws: "no condition attaches to them". That is
     // stated with `usageInfo` and NOT with a CC0 `license`, because CC0 is a
-    // license — a stronger claim than the prose makes — and this file does not
+    // license (a stronger claim than the prose makes), and this file does not
     // assert more than the page it points at.
     subjectOf: [
       {
@@ -979,8 +979,8 @@ export async function buildSiteGraph(
   const articleId = `${url}#article`;
 
   // This page's own dates. Resolved from `url` and not from `page`, so a
-  // server card and an actions domain — which share a `PageId` with their
-  // index — each get the dates of the sources they actually render.
+  // server card and an actions domain (which share a `PageId` with their
+  // index) each get the dates of the sources they actually render.
   const webpageDates = datesOf(new URL(url).pathname);
 
   const webpage = {
@@ -991,7 +991,7 @@ export async function buildSiteGraph(
     description,
     inLanguage: lang,
     isPartOf: ref(WEBSITE_ID),
-    // The FAQ is part of this page — but only for the home page, which is the
+    // The FAQ is part of this page, but only for the home page, which is the
     // only one with notice cards to describe. Without this the link ran one
     // way only: #faq declared its `isPartOf`, but nothing led from the page
     // down to it.
@@ -1003,7 +1003,7 @@ export async function buildSiteGraph(
     // hreflang already says these two pages are translations of each other;
     // the graph did not. Same pairing jmrp.io/about/#profile already emits.
     // The other language's `#webpage` for THIS SAME page, not the home
-    // page's — each page pairs with its own translation. `otherUrl` already
+    // page's: each page pairs with its own translation. `otherUrl` already
     // resolves through `serverPageUrl` for a server card (see above), so a
     // card pairs with ITS OWN translation, never the `/servers/` index's.
     ...(lang === "en"
@@ -1018,19 +1018,19 @@ export async function buildSiteGraph(
       url: ogImageUrl(lang),
       // Where the bytes are, as distinct from what `url` identifies. Google's
       // image metadata documentation asks for `contentUrl` specifically, and a
-      // node carrying only `url` does not qualify for the feature at all —
+      // node carrying only `url` does not qualify for the feature at all,
       // which would have made the two license fields below inert even once
       // they existed. The same address here: the card is a PNG with no landing
       // page of its own.
       contentUrl: ogImageUrl(lang),
-      // The card IS this page's image, not decoration beside it — the
+      // The card IS this page's image, not decoration beside it: the
       // distinction Google draws when picking a thumbnail.
       representativeOfPage: true,
       // Attribution by reference to the canonical entity rather than a second
       // Person node, following the rule at the top of this file. `creator`
       // says who made it, `copyrightHolder` who holds the right the license
-      // grants from — the one thing someone reusing it has to know to judge
-      // whether the grant was the owner's to make — and `creditText` how to
+      // grants from (the one thing someone reusing it has to know to judge
+      // whether the grant was the owner's to make), and `creditText` how to
       // name them.
       creator: ref(PERSON_ID),
       copyrightHolder: ref(PERSON_ID),
@@ -1047,7 +1047,7 @@ export async function buildSiteGraph(
       // The cards are drawn at build time from this site's own headings and
       // server data (`src/pages/og-[lang].png.ts`), with nothing in them taken
       // from anywhere else, so the CC BY 4.0 that covers the text covers them
-      // too — which /license/ now says in prose, under `Images`. A `license`
+      // too, which /license/ now says in prose, under `Images`. A `license`
       // asserted here that no page granted would be a claim with nothing
       // behind it.
       license: CC_BY_4_0,
@@ -1067,18 +1067,18 @@ export async function buildSiteGraph(
     // is a PARTIAL four-key description on the pages that merely mention it,
     // and a bare reference on its own card, where the whole node is in plain
     // sight (see `selectMainEntity`).
-    // Omitted entirely on pages that describe no server at all — emitting it
+    // Omitted entirely on pages that describe no server at all: emitting it
     // there claimed a primary entity the page never renders.
     ...(mainEntity && { mainEntity }),
-    // The notices are the page's concise, self-contained passages — token
-    // policy, legal stance, limits — and their DOM `id`s already exist
+    // The notices are the page's concise, self-contained passages (token
+    // policy, legal stance, limits), and their DOM `id`s already exist
     // (ServerCard adds them so they can be linked). `speakable` marks them as
     // the passages an assistant may read aloud or quote. They only exist on
     // the home page, so `speakable` does too.
     //
     // These ids now sit on the <details>, which wraps the question in its
     // <summary> together with the answer. They used to sit on the inner notice
-    // div — the answer alone — so a read-aloud produced "libgen is a client of
+    // div (the answer alone), so a read-aloud produced "libgen is a client of
     // third-party public indexes…" with no question attached to it.
     ...(noticeServers.length > 0 && {
       speakable: {
@@ -1097,7 +1097,7 @@ export async function buildSiteGraph(
   // `url` and `name`: FAQPage is a subclass of WebPage, so without them the
   // graph described the same document as two WebPages, one of which could not
   // be tied to a URL at all. The `hasPart` on the WebPage node below is the
-  // matching inverse — the FAQ used to be reachable upward from itself but not
+  // matching inverse: the FAQ used to be reachable upward from itself but not
   // downward from the page.
   // Only built for the home page: it is the only page with notice cards to
   // describe, and the `isHome` checks on `webpage` above already keep it
@@ -1117,7 +1117,7 @@ export async function buildSiteGraph(
           // description (see `selectMainEntity`), so these resolve to something
           // typed WITHIN this same document.
           // Bare refs, not partial descriptions: every page that carries a FAQ
-          // also carries the entity it is about — the home page through
+          // also carries the entity it is about: the home page through
           // `mainEntity`'s partials, a server's card through the full `WebAPI`
           // node that lives there and nowhere else. Emitting a partial beside a
           // definition of the same `@id` in the same document is the restating
@@ -1169,7 +1169,7 @@ export async function buildSiteGraph(
  *
  * The home page shows both servers'; a server's own card shows only its own;
  * every other page shows none and therefore claims none. It used to be
- * `isHome` alone, because the folds only existed on the home page — they
+ * `isHome` alone, because the folds only existed on the home page; they
  * render on the server cards now, and the graph follows the DOM rather than
  * the other way round, since `speakable` nominates these exact ids and a page
  * may only nominate ids it carries.
@@ -1220,12 +1220,12 @@ function serversWithNoticesOn(
  *
  * /license/ says "every page repeats those terms in its own structured data",
  * and only the social card did: 66 of the 72 `WebPage` nodes were silent, the
- * 56 action pages among them — precisely the ones an AI crawler is deciding
+ * 56 action pages among them, precisely the ones an AI crawler is deciding
  * whether it may quote.
  *
  * The split is the one /license/ already draws. A page that is wholly this
  * site's prose states CC BY 4.0 outright. A page that renders a server's own
- * tool catalogue alongside it — the server cards and the action pages —
+ * tool catalogue alongside it (the server cards and the action pages)
  * carries two regimes at once, so it points at the terms instead of picking
  * one: asserting a blanket license there would be claiming this site's terms
  * over the servers' MIT text.
@@ -1245,9 +1245,9 @@ function pageTerms(lang: Lang, mixed: boolean): Record<string, string> {
  * The two nodes an action-domain page owes: what the document is, and what it
  * lists.
  *
- * These fifty-six pages are the largest thing this site publishes — 747
+ * These fifty-six pages are the largest thing this site publishes (747
  * operations, each with an id, a human title, a full description, its required
- * parameters and whether it destroys anything — and their graph was four nodes
+ * parameters and whether it destroys anything), and their graph was four nodes
  * of boilerplate: `WebSite`, `WebPage`, `BreadcrumbList`, `Person`. Diffing
  * /issue/ against /pipeline/ produced a difference of four strings. Nothing in
  * the graph said the pages held anything at all, let alone what.
@@ -1255,7 +1255,7 @@ function pageTerms(lang: Lang, mixed: boolean): Record<string, string> {
  * `APIReference` is the type, and it is not a stretch: schema.org defines it
  * as "reference documentation for application programming interfaces", under
  * `TechArticle`. `PROSE_PAGES` deliberately excludes these pages from
- * `TechArticle` because they are not essays — but `APIReference` is the
+ * `TechArticle` because they are not essays, but `APIReference` is the
  * subtype that exists for exactly this, and it is the strongest single signal
  * available about what these pages are.
  *
@@ -1340,7 +1340,7 @@ function buildActionsNodes(
 /**
  * A notice's answer as plain text for `acceptedAnswer`.
  *
- * Paragraphs and bullets in order — the bullets are complete sentences — and
+ * Paragraphs and bullets in order (the bullets are complete sentences), and
  * without the markup's backticks: in a JSON-LD text literal they would be
  * noise.
  *
