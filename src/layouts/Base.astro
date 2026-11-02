@@ -20,7 +20,7 @@ import { servers } from "../data/servers";
 import { LANGS } from "../i18n/config";
 import { type Lang, ui } from "../i18n/ui";
 import { getLangFromUrl } from "../i18n/utils";
-import { CF_BEACON_TOKEN, pageLoadsAnalytics } from "../lib/analytics";
+import { pageLoadsAnalytics } from "../lib/analytics";
 import { buildDate } from "../lib/build-date";
 import { safeIcon } from "../lib/card-icons";
 import { humanDate } from "../lib/format";
@@ -121,8 +121,9 @@ const {
 // first steps download it to src/generated/ (scripts/sync-cf-beacon.mjs). A
 // glob rather than an import, so a build without the file — CI, a scratch
 // build — compiles and simply has no tag; `?url` makes Vite emit it under a
-// content-hashed name in /_astro/. Every page but the inspector's loads it
-// (see `pageLoadsAnalytics`).
+// content-hashed name in /_astro/. The site token comes from the repo's
+// .env (`PUBLIC_CF_BEACON_TOKEN`): without it there is no tag either. Every
+// page but the inspector's loads it (see `pageLoadsAnalytics`).
 const beaconSrc = Object.values(
   import.meta.glob<string>("../generated/cf-beacon.js", {
     query: "?url",
@@ -130,7 +131,9 @@ const beaconSrc = Object.values(
     eager: true,
   }),
 )[0];
-const loadsAnalytics = beaconSrc !== undefined && pageLoadsAnalytics(page);
+const beaconToken: string | undefined = import.meta.env.PUBLIC_CF_BEACON_TOKEN;
+const loadsAnalytics =
+  beaconSrc !== undefined && Boolean(beaconToken) && pageLoadsAnalytics(page);
 // The language comes from the URL, never from a prop: that is what lets the
 // mirrored route files under `src/pages/es/` be identical to their English
 // counterparts, and therefore impossible to drift apart.
@@ -574,7 +577,7 @@ const serverSubItems = servers.map((server) => ({
         is:inline
         defer
         src={beaconSrc}
-        data-cf-beacon={JSON.stringify({ token: CF_BEACON_TOKEN })}
+        data-cf-beacon={JSON.stringify({ token: beaconToken })}
       />
     )}
 

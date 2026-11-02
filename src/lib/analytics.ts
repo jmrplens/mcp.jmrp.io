@@ -1,20 +1,16 @@
 /**
- * Cloudflare Web Analytics on this site: which pages load it, and with which
- * site token.
+ * Cloudflare Web Analytics on this site: which pages load it.
  *
  * The beacon itself is downloaded at build time by
  * scripts/sync-cf-beacon.mjs and served from this site; Base.astro emits the
- * tag. It sets no cookies and stores nothing in the browser, and it reports
+ * tag, with the site token from `PUBLIC_CF_BEACON_TOKEN` in the repo's
+ * `.env`, like jmrp.io. The token is public once it is in a page, but it
+ * stays out of the repository: a fork or anyone else's build then has no tag
+ * and reports nothing to this site's dashboard. It sets no cookies and stores nothing in the browser, and it reports
  * the page, the referrer and load timings to cloudflareinsights.com, the one
  * destination the CSP adds for it.
  */
 import type { PageId } from "./seo";
-
-/**
- * The Web Analytics site token. Public by design: it sits in every page's
- * HTML, and all it lets anyone do is send this site's dashboard a report.
- */
-export const CF_BEACON_TOKEN = "42b10a625ed04d2db7358d3128464499";
 
 /**
  * Whether a page loads the beacon: every page but the inspector's.
