@@ -19,16 +19,22 @@
  * would mean a second registration for a page with no visible content.
  *
  * `prerender` is the site default (static). Nothing here reads the query
- * string on the server: it is read in the browser, where it arrives.
+ * string on the server: it is read in the browser, where it arrives. The server
+ * never gets it either: a URL Rewrite Rule of the zone
+ * (`mcp_oauth_callback_no_query`) empties it at the edge, before the worker and
+ * nginx, while the browser keeps its own address.
  *
  * THE CODE MUST NOT LEAVE IN A `Referer`. That query string is the authorization
  * code, and the page's own stylesheet, fonts and icons would repeat it to the
- * access log, which records that header. It takes both lines in the `head-start`
- * slot, measured in Chromium on 2026-11-04 over the twelve requests of this page:
- * with neither, nine carried the code; with the policy alone, as this `meta` or
- * as a response header, three did, the fonts an inline `<style>` asks for, which
- * send the document's address whatever the policy says; with the scrub alone, six
- * did, because the preload scanner gets there before the script runs.
+ * access log, which records that header. The zone also drops such a `Referer` at
+ * the edge (`mcp_oauth_callback_no_referer`), but this page does not lean on
+ * configuration kept outside this repository, and stops sending it in the first
+ * place. That takes both lines in the `head-start` slot, measured in Chromium on
+ * 2026-11-04 over the twelve requests of this page: with neither, nine carried
+ * the code; with the policy alone, as this `meta` or as a response header, three
+ * did, the fonts an inline `<style>` asks for, which send the document's address
+ * whatever the policy says; with the scrub alone, six did, because the preload
+ * scanner gets there before the script runs.
  */
 import Base from "../../layouts/Base.astro";
 import { SITE_ORIGIN } from "../../lib/seo";
