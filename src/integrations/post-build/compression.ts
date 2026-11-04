@@ -36,8 +36,8 @@ const CACHE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 
 /**
  * Compression parameters. Hashed into `configSignature` (see
- * {@link computeConfigSignature}) so that changing gzip/brotli settings —
- * or upgrading Node's bundled zlib — invalidates the entire on-disk cache
+ * {@link computeConfigSignature}) so that changing gzip/brotli settings
+ * (or upgrading Node's bundled zlib) invalidates the entire on-disk cache
  * instead of silently serving blobs compressed under stale settings.
  */
 const COMPRESSION_CONFIG = {
@@ -93,7 +93,7 @@ async function loadManifest(
         return manifestFile.entries;
       }
       logger.info(
-        "  Compression config changed since last build — invalidating compression cache.",
+        "  Compression config changed since last build: invalidating compression cache.",
       );
       await fs.promises.rm(CACHE_BLOBS_DIR, { recursive: true, force: true });
       await fs.promises.mkdir(CACHE_BLOBS_DIR, { recursive: true });
@@ -202,6 +202,11 @@ export async function compressAssets(
     cwd: distDir,
     absolute: true,
     nodir: true,
+    // Without it `.well-known/` is skipped, and Cloudflare compresses those
+    // files itself: a weak ETag that turns strong the first time the entry
+    // revalidates. The vhost serves by allowlist, so the `.br`/`.gz` twins are
+    // only ever picked by brotli_static/gzip_static, never requested by name.
+    dot: true,
     ignore: ["**/*.gz", "**/*.br"],
   });
 

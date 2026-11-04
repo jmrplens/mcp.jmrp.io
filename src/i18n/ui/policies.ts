@@ -1,6 +1,6 @@
 /**
  * Policies page strings: privacy, logging, availability, egress and the
- * legal position — everything the home page used to fold into one "Privacy
+ * legal position: everything the home page used to fold into one "Privacy
  * & data" section, now split into the subsections a visitor actually asks
  * about.
  *
@@ -10,7 +10,7 @@
  * the instances). Every number and every named source in here comes from
  * that pass; the comments on each key say what was checked.
  *
- * Bodies are printed as plain text, so every link lives in its own key —
+ * Bodies are printed as plain text, so every link lives in its own key:
  * `credentialNotice`/`credentialNoticeLink`, `egressPointer`/
  * `egressPointerLink`, `legalContact`/`legalContactLink`,
  * `legalLicenseNote`/`legalLicenseLink`.
@@ -18,7 +18,7 @@
 export const policies = {
   en: {
     policiesMetaTitle:
-      "Policies — privacy, logging and legal position · mcp.jmrp.io",
+      "Policies: privacy, logging and legal position · mcp.jmrp.io",
     /**
      * The page's `<h1>`. Prefixed like the rest of this module: these keys are
      * flattened into the shared `ui` object, where a bare `title` would
@@ -33,7 +33,7 @@ export const policies = {
      */
     policiesEyebrow: "Policies",
     /**
-     * Meta description AND the page's opening paragraph — same reasoning as
+     * Meta description AND the page's opening paragraph, same reasoning as
      * `inspector.inspectorIntro`: one string serving both roles can't drift
      * out of sync with itself.
      */
@@ -42,7 +42,7 @@ export const policies = {
     privacyEyebrow: "Privacy & data",
     /**
      * Three paragraphs: the operator and what the browser is allowed to do;
-     * the one party in front of everything (Cloudflare — it decrypts every
+     * the one party in front of everything (Cloudflare: it decrypts every
      * request, as any CDN does, and the page said nothing about it while
      * /internals did); and how a credential travels. "Never written to disk
      * or logged", not "not stored": gitlab's hosted mode pools a per-token
@@ -66,12 +66,18 @@ export const policies = {
      * comes from the worker's own config
      * (`observability.enabled = true`, full sampling); the network-error
      * report is the `report-to`/`nel` pair Cloudflare adds at the edge for
-     * the whole zone — the origin emits neither.
+     * the whole zone; the origin emits neither.
+     *
+     * The callback sentence is the requirement of 2026-11-04 (edge audit, A9):
+     * `/inspector/callback/?code=...` must reach no log. That takes three
+     * things: the worker leaves the query out of its row and out of what it
+     * forwards, the Workers logs drop it, and the page keeps its subresources
+     * from repeating it in `Referer` (see src/pages/inspector/callback.astro).
      */
     privacyBody: [
-      "This service is run by José Manuel Requena Plens (jmrp.io), who is also the author of both servers. The site sets no cookies; the only thing it stores in your browser is the theme you pick, in localStorage, and that never leaves it. Every page except the inspector loads Cloudflare Web Analytics, served from this domain: it stores nothing in your browser either, and sends cloudflareinsights.com the page's address, the address you came from and how long the page took to load; Cloudflare reads your browser and country from that request and discards the IP address at its nearest data centre. The Content-Security-Policy names exactly one third party on each page: cloudflareinsights.com for those reports and, on the inspector, which loads no analytics, gitlab.com instead — only so its sign-in flow can exchange an authorization code for a token issued to the inspector's own OAuth application, which asks for read_api and nothing wider. The browser refuses every other destination.",
-      "One party sits in front of all of it: Cloudflare, which fronts mcp.jmrp.io and decrypts and re-encrypts every request it forwards — page views and MCP calls alike — as any CDN does. It sees what this server sees, including an Authorization header on its way through. The edge script that mints this site's nonces only ever handles page reads — MCP calls bypass it entirely — and records one row per page request: the same fields as the server logs described below, plus what the edge knows and this server does not — the approximate location Cloudflare derives from your IP (country, city and coordinates), its network operator and autonomous system, the Cloudflare data centre that answered, the HTTP and TLS versions, your Accept and Accept-Language headers, the connection's round-trip time and Cloudflare's bot score — in a dataset Cloudflare keeps for about 90 days; the operator copies those rows every five minutes into his own monitoring database, beside the server logs, under the same rules. Cloudflare's own logs of that script additionally record the URL, method, status and request headers of each page request for a few days. The one report your browser may still send is a Cloudflare network-error report — only when a request to this site fails, with a connection error or a 4xx or 5xx response, only from Chromium browsers, and to Cloudflare, not to this server. Internals describes that hop.",
-      "A credential you send travels as a request header to the server you chose and is never written to disk or logged. gitlab keeps it in memory while you keep using it — for up to an hour after your last call, checking every fifteen minutes with gitlab.com that it is still valid — and then drops it.",
+      "This service is run by José Manuel Requena Plens (jmrp.io), who is also the author of both servers. The site sets no cookies; the only thing it stores in your browser is the theme you pick, in localStorage, and that never leaves it. Every page except the inspector loads Cloudflare Web Analytics, served from this domain: it stores nothing in your browser either, and sends cloudflareinsights.com the page's address, the address you came from and how long the page took to load; Cloudflare reads your browser and country from that request and discards the IP address at its nearest data centre. The Content-Security-Policy names exactly one third party on each page: cloudflareinsights.com for those reports and, on the inspector, which loads no analytics, gitlab.com instead, only so its sign-in flow can exchange an authorization code for a token issued to the inspector's own OAuth application, which asks for read_api and nothing wider. The browser refuses every other destination.",
+      "One party sits in front of all of it: Cloudflare, which fronts mcp.jmrp.io and decrypts and re-encrypts every request it forwards, page views and MCP calls alike, as any CDN does. It sees what this server sees, including an Authorization header on its way through. The edge script that mints this site's nonces only ever handles page reads (MCP calls bypass it entirely) and records one row per page request: the same fields as the server logs described below, plus what the edge knows and this server does not, namely the approximate location Cloudflare derives from your IP (country, city and coordinates), its network operator and autonomous system, the Cloudflare data centre that answered, the HTTP and TLS versions, your Accept and Accept-Language headers, the connection's round-trip time and Cloudflare's bot score. Those rows go into a dataset Cloudflare keeps for about 90 days; the operator copies those rows every five minutes into his own monitoring database, beside the server logs, under the same rules. Cloudflare's own logs of that script additionally record the URL, method, status and request headers of each page request for a few days. Neither that dataset nor those logs keep the query string of the inspector's sign-in callback, which carries a one-time authorization code. The one report your browser may still send is a Cloudflare network-error report: only when a request to this site fails, with a connection error or a 4xx or 5xx response, only from Chromium browsers, and to Cloudflare, not to this server. Internals describes that hop.",
+      "A credential you send travels as a request header to the server you chose and is never written to disk or logged. gitlab keeps it in memory while you keep using it (for up to an hour after your last call, checking every fifteen minutes with gitlab.com that it is still valid) and then drops it.",
     ],
     /**
      * The sentence this replaces ended "Details, in the notice on each
@@ -80,7 +86,7 @@ export const policies = {
      * art on this site (`serversPage.eyebrowServer` is literally "MCP server
      * card"), so a reader following the site's own vocabulary was sent to
      * the one page that does not render it. `/inspector/` already hit this
-     * and already solved it by linking — see `inspector.noticePointer`;
+     * and already solved it by linking; see `inspector.noticePointer`;
      * solving the same sentence two different ways would be the
      * inconsistency, not the fix.
      *
@@ -90,7 +96,7 @@ export const policies = {
      * who never clicks. It names the one case where libgen does ask for a
      * value: `download` with `annas_member` set asks the client for an
      * Anna's Archive membership key, because this deployment configures
-     * none — the tool's own description says it is used for that request
+     * none; the tool's own description says it is used for that request
      * only and never stored.
      */
     credentialNotice:
@@ -111,26 +117,27 @@ export const policies = {
      * purpose (the owner's call, 2026-09-02): it varies, and a number here
      * would be the first thing to go stale. The third paragraph is gitlab's
      * own OpenTelemetry export (`GITLAB_MCP_TELEMETRY=true`, identity policy
-     * `pseudonymous` under a key, endpoint on the LAN — `docker inspect` of
+     * `pseudonymous` under a key, endpoint on the LAN: `docker inspect` of
      * any gitlab instance); what it never records is its telemetry guide's
-     * own list.
+     * own list. The sign-in callback's query is the exception to the request
+     * line: see `privacyBody`.
      */
     logsBody: [
-      "The web server keeps standard access logs — IP address, user agent, the request line (method, path and query string), status code, response size, referrer, and the country, city and network operator that IP resolves to, looked up locally in a MaxMind database rather than by asking anyone — for abuse prevention (CrowdSec reads them) and for the author's own usage dashboards. The files are rotated daily and deleted after a year; the copy that feeds the dashboards lives on the author's own network and is kept no longer than that.",
-      "The body of a call is never logged: it carries the arguments, which is to say whatever you actually searched for or asked — nginx inspects it only to pull out two names. Usage metrics record the JSON-RPC method, the tool name, the call's status, timing and response size, which instance and exit served it, and the caller's IP address — which is there so the author can tell their own test traffic from real use — but never the arguments, and never the content of the response. Those metrics feed the same dashboards.",
-      "gitlab additionally exports OpenTelemetry traces and metrics to a collector on the author's network: the method, the tool and the catalogue action (issue.list, say), success or the error code, timings, and a keyed pseudonym of the caller and of any resource read — stable across restarts, readable by no one — but never the arguments, the results, the token or any GitLab response.",
+      "The web server keeps standard access logs for abuse prevention (CrowdSec reads them) and for the author's own usage dashboards. They hold the IP address, user agent, the request line (method, path and query string), status code, response size, referrer, and the country, city and network operator that IP resolves to, looked up locally in a MaxMind database rather than by asking anyone. The one exception is the inspector's sign-in callback, whose query string carries a one-time authorization code and is not recorded. The files are rotated daily and deleted after a year; the copy that feeds the dashboards lives on the author's own network and is kept no longer than that.",
+      "The body of a call is never logged: it carries the arguments, which is to say whatever you actually searched for or asked; nginx inspects it only to pull out two names. Usage metrics record the JSON-RPC method, the tool name, the call's status, timing and response size, which instance and exit served it, and the caller's IP address (which is there so the author can tell their own test traffic from real use), but never the arguments, and never the content of the response. Those metrics feed the same dashboards.",
+      "gitlab additionally exports OpenTelemetry traces and metrics to a collector on the author's network: the method, the tool and the catalogue action (issue.list, say), success or the error code, timings, and a keyed pseudonym of the caller and of any resource read (stable across restarts, readable by no one), but never the arguments, the results, the token or any GitLab response.",
     ],
     slaEyebrow: "No SLA",
     slaBody: [
-      "This is a personal service, offered as-is with no service-level agreement: no uptime guarantee, no support channel, and no commitment that either endpoint stays online — or unchanged — from one day to the next. Do not build anything critical on top of it; both servers are open source, and running your own instance is one static binary away.",
+      "This is a personal service, offered as-is with no service-level agreement: no uptime guarantee, no support channel, and no commitment that either endpoint stays online, or unchanged, from one day to the next. Do not build anything critical on top of it; both servers are open source, and running your own instance is one static binary away.",
     ],
     /**
      * The counterweight to `slaBody`, and the only positive statement about
      * continuity this site makes.
      *
-     * Everything else here answers the question in the negative — no SLA, no
+     * Everything else here answers the question in the negative (no SLA, no
      * uptime guarantee, may go away without notice, said four times across
-     * four pages — so a reader deciding whether to point a client at a
+     * four pages), so a reader deciding whether to point a client at a
      * stranger's endpoint gets four disclaimers and no reason. This states
      * the mechanism instead of adding a promise: the endpoints are not
      * carried by anything bought to carry them, so keeping them up is not a
@@ -138,20 +145,20 @@ export const policies = {
      *
      * It names NO figure. There is no cost number the author has measured,
      * and inventing one to make the argument land would be the single worst
-     * thing this page could do — it is the page whose whole value is being
+     * thing this page could do: it is the page whose whole value is being
      * checkable. It names no location either: `/internals` publishes the
      * egress countries, and that is as specific as this site gets about
      * where the machines are.
      */
     continuityEyebrow: "Why it is likely to still be here",
     continuityBody: [
-      "Nothing above is a promise and this section does not add one. But the reason these endpoints have not gone away is not goodwill: nothing here was bought to run them. Both servers are containers on machines and exit nodes that were already running, and would go on running, for other reasons — so there is no month in which keeping them up is a decision someone has to make, and no bill whose renewal would end them.",
+      "Nothing above is a promise and this section does not add one. But the reason these endpoints have not gone away is not goodwill: nothing here was bought to run them. Both servers are containers on machines and exit nodes that were already running, and would go on running, for other reasons, so there is no month in which keeping them up is a decision someone has to make, and no bill whose renewal would end them.",
       "What would end this service is the author losing interest, and the honest hedge against that is the one stated above rather than a commitment: both servers are open source, and running your own is one static binary away.",
     ],
     egressEyebrow: "Where a request appears to come from",
     /**
-     * This page owns the consequence — what a third party sees, and in which
-     * country — and /internals owns the mechanism and the count of nodes,
+     * This page owns the consequence (what a third party sees, and in which
+     * country) and /internals owns the mechanism and the count of nodes,
      * which is why "three" is no longer said here: /internals' header comment
      * lists the places that must move with that number, and this file was
      * not one of them. "Spain or the United Kingdom" is what stays true
@@ -159,11 +166,11 @@ export const policies = {
      *
      * The link-handed-back exception is real: over HTTP `download` always
      * returns a direct link, and fetching it is the caller's own connection.
-     * Read on its own — and extractors read it on its own — the paragraph
+     * Read on its own, and extractors read it on its own, the paragraph
      * used to claim the opposite.
      */
     egressBody: [
-      "Calls the servers make outward — to a Library Genesis mirror, the open-access providers, or gitlab.com — leave through an exit node in Spain or the United Kingdom, not from wherever you or this site happen to be. What that third party sees as the source of the request is the exit node's address: neither your own IP address nor this server's ever reaches it. The one transfer that does not go this way is the one behind a link handed back to you — download's above all: fetching it is your own client's connection, from your own address.",
+      "Calls the servers make outward (to a Library Genesis mirror, the open-access providers, or gitlab.com) leave through an exit node in Spain or the United Kingdom, not from wherever you or this site happen to be. What that third party sees as the source of the request is the exit node's address: neither your own IP address nor this server's ever reaches it. The one transfer that does not go this way is the one behind a link handed back to you, download's above all: fetching it is your own client's connection, from your own address.",
     ],
     /** Pointer to the section of /internals that owns the mechanism; the link text is that section's h2, verbatim. */
     egressPointer:
@@ -171,22 +178,22 @@ export const policies = {
     egressPointerLink: "Egress: which exit a request leaves from",
     legalEyebrow: "Legal position",
     /**
-     * Five paragraphs — scope, order, mechanism, responsibility, operator —
+     * Five paragraphs (scope, order, mechanism, responsibility, operator),
      * each written to survive being extracted on its own: a retriever that
      * lifts only the middle one should still come away with the whole
      * mechanism.
      *
      * Naming less surface than you actually touch is not the cautious
      * position, it is the weak one. The scope paragraph therefore names every
-     * source the live server card of libgen-mcp 1.7.2 declares — twenty open
-     * ones and five shadow-library ones — where the text used to name nine
+     * source the live server card of libgen-mcp 1.7.2 declares (twenty open
+     * ones and five shadow-library ones), where the text used to name nine
      * and three; `download`'s DOI chain alone reaches thirteen open sources
      * before Sci-Hub.
      *
      * The ORDER belongs to the tool and not to the server, and to THIS
      * deployment: the instances run with `LIBGEN_MCP_EXTRA_SOURCES=always`,
      * so `search` reaches Anna's Archive and the seven open providers on
-     * every call unless the caller says `never` — the text used to describe
+     * every call unless the caller says `never`; the text used to describe
      * the binary's default (`auto`), which is not what runs here.
      *
      * The mechanism paragraph distinguishes `download` from `read` on
@@ -198,14 +205,14 @@ export const policies = {
      */
     legalBody: [
       "libgen runs no catalogue and hosts nothing of its own: it is a client of indexes and libraries other people operate. On the open side those are arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed, ERIC, OpenAlex, Europe PMC, bioRxiv, the RFC Editor, NIST, Dagstuhl, the ACL Anthology, Zenodo, SciELO, FAO, Fatcat, OAPEN and the Internet Archive; on the shadow-library side, a Library Genesis mirror, randombook.org, Anna's Archive, Sci-Hub, and the SciDB article viewer Anna's Archive runs. Which of them a call reaches, and in what order, is a property of the tool you call rather than of the service as a whole.",
-      "search starts from the Library Genesis catalogue; on this deployment the operator's default is extra_sources=always, so a call that does not say otherwise also reaches Anna's Archive and seven open providers — arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed and ERIC — on every call, and a call that sets extra_sources=never keeps to the catalogue alone.",
+      "search starts from the Library Genesis catalogue; on this deployment the operator's default is extra_sources=always, so a call that does not say otherwise also reaches Anna's Archive and seven open providers (arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed and ERIC) on every call, and a call that sets extra_sources=never keeps to the catalogue alone.",
       "download and read go by identifier instead, and read takes a hash or a DOI only. Which sources an identifier reaches, and in what order, follows from which identifier it is:",
     ],
     /**
      * The resolution order of `download`/`read`, by identifier.
      *
      * It used to be one 115-word sentence inside `legalBody` that chained the
-     * three cases together — the least readable passage on the site, on the
+     * three cases together, the least readable passage on the site, on the
      * page that most needs to be clear. Same facts, same sources, same order;
      * only the shape changed, to the labelled-steps pattern /internals/
      * already uses for its failure ladders.
@@ -255,12 +262,12 @@ export const policies = {
     legalContactLink: "mail@jmrp.io",
     /** Cross-link to /license/, which links back to this section. Ends in a colon so the link completes the sentence. */
     legalLicenseNote:
-      "None of this is a license over anything: what this site itself lets you reuse — its text, its code and the two servers — is stated on its own page:",
+      "None of this is a license over anything: what this site itself lets you reuse (its text, its code and the two servers) is stated on its own page:",
     legalLicenseLink: "License",
   },
   es: {
     policiesMetaTitle:
-      "Políticas — privacidad, logs y postura legal · mcp.jmrp.io",
+      "Políticas: privacidad, logs y postura legal · mcp.jmrp.io",
     /** Ver `en.policiesTitle`: el `<h1>` de la página. */
     policiesTitle: "Políticas",
     /** Ver `en.policiesEyebrow`: kicker encima del h1. */
@@ -271,13 +278,13 @@ export const policies = {
     privacyEyebrow: "Privacidad y datos",
     /** Ver `en.privacyBody`: operador y navegador; Cloudflare; la credencial. */
     privacyBody: [
-      "Este servicio lo opera José Manuel Requena Plens (jmrp.io), autor también de los dos servidores. El sitio no usa cookies; lo único que guarda en tu navegador es el tema que elijas, en localStorage, y de ahí no sale. Todas las páginas salvo el inspector cargan Cloudflare Web Analytics, servido desde este dominio: tampoco guarda nada en tu navegador, y envía a cloudflareinsights.com la dirección de la página, la de la que vienes y cuánto tardó en cargar; Cloudflare saca de esa petición tu navegador y tu país y descarta la dirección IP en su centro de datos más cercano. La Content-Security-Policy nombra exactamente un tercero en cada página: cloudflareinsights.com para esos informes y, en el inspector, que no carga analítica, gitlab.com en su lugar —solo para que su flujo de acceso pueda canjear un código de autorización por un token emitido a la aplicación OAuth propia del inspector, que pide read_api y nada más—. El navegador rechaza cualquier otro destino.",
-      "Delante de todo ello hay un tercero: Cloudflare, que da la cara por mcp.jmrp.io y descifra y vuelve a cifrar cada petición que reenvía —páginas y llamadas MCP por igual—, como cualquier CDN. Ve lo mismo que ve este servidor, incluida una cabecera Authorization de paso. El script de borde que acuña los nonces de este sitio solo atiende lecturas de páginas —las llamadas MCP no pasan por él— y anota una fila por petición de página: los mismos campos que los registros del servidor descritos más abajo, más lo que el borde sabe y este servidor no —la ubicación aproximada que Cloudflare deduce de tu IP (país, ciudad y coordenadas), su operador de red y sistema autónomo, el centro de datos de Cloudflare que respondió, las versiones de HTTP y TLS, tus cabeceras Accept y Accept-Language, la latencia de ida y vuelta de la conexión y la puntuación de bot de Cloudflare—, en un conjunto de datos que Cloudflare conserva unos 90 días; el operador copia esas filas cada cinco minutos a su propia base de datos de monitorización, junto a los registros del servidor y con sus mismas reglas. Los logs que Cloudflare lleva de ese script registran además la URL, el método, el estado y las cabeceras de cada petición de página durante unos días. El único informe que tu navegador aún puede enviar es un aviso de error de red de Cloudflare: solo cuando falla una petición a este sitio, con un error de conexión o una respuesta 4xx o 5xx, solo desde navegadores Chromium, y a Cloudflare, no a este servidor. Funcionamiento interno describe ese salto.",
-      "Una credencial que envíes viaja como cabecera al servidor que elijas y nunca se escribe en disco ni se registra. gitlab la conserva en memoria mientras la sigas usando —hasta una hora después de tu última llamada, comprobando cada quince minutos con gitlab.com que sigue siendo válida— y después la descarta.",
+      "Este servicio lo opera José Manuel Requena Plens (jmrp.io), autor también de los dos servidores. El sitio no usa cookies; lo único que guarda en tu navegador es el tema que elijas, en localStorage, y de ahí no sale. Todas las páginas salvo el inspector cargan Cloudflare Web Analytics, servido desde este dominio: tampoco guarda nada en tu navegador, y envía a cloudflareinsights.com la dirección de la página, la de la que vienes y cuánto tardó en cargar; Cloudflare saca de esa petición tu navegador y tu país y descarta la dirección IP en su centro de datos más cercano. La Content-Security-Policy nombra exactamente un tercero en cada página: cloudflareinsights.com para esos informes y, en el inspector, que no carga analítica, gitlab.com en su lugar, solo para que su flujo de acceso pueda canjear un código de autorización por un token emitido a la aplicación OAuth propia del inspector, que pide read_api y nada más. El navegador rechaza cualquier otro destino.",
+      "Delante de todo ello hay un tercero: Cloudflare, que da la cara por mcp.jmrp.io y descifra y vuelve a cifrar cada petición que reenvía, páginas y llamadas MCP por igual, como cualquier CDN. Ve lo mismo que ve este servidor, incluida una cabecera Authorization de paso. El script de borde que acuña los nonces de este sitio solo atiende lecturas de páginas (las llamadas MCP no pasan por él) y anota una fila por petición de página: los mismos campos que los registros del servidor descritos más abajo, más lo que el borde sabe y este servidor no, es decir, la ubicación aproximada que Cloudflare deduce de tu IP (país, ciudad y coordenadas), su operador de red y sistema autónomo, el centro de datos de Cloudflare que respondió, las versiones de HTTP y TLS, tus cabeceras Accept y Accept-Language, la latencia de ida y vuelta de la conexión y la puntuación de bot de Cloudflare. Esas filas van a un conjunto de datos que Cloudflare conserva unos 90 días; el operador copia esas filas cada cinco minutos a su propia base de datos de monitorización, junto a los registros del servidor y con sus mismas reglas. Los logs que Cloudflare lleva de ese script registran además la URL, el método, el estado y las cabeceras de cada petición de página durante unos días. Ni ese conjunto de datos ni esos logs guardan la query string del callback de acceso del inspector, que lleva un código de autorización de un solo uso. El único informe que tu navegador aún puede enviar es un aviso de error de red de Cloudflare: solo cuando falla una petición a este sitio, con un error de conexión o una respuesta 4xx o 5xx, solo desde navegadores Chromium, y a Cloudflare, no a este servidor. Funcionamiento interno describe ese salto.",
+      "Una credencial que envíes viaja como cabecera al servidor que elijas y nunca se escribe en disco ni se registra. gitlab la conserva en memoria mientras la sigas usando (hasta una hora después de tu última llamada, comprobando cada quince minutos con gitlab.com que sigue siendo válida) y después la descarta.",
     ],
     /**
      * Ver `en.credentialNotice`: el aviso vive en la portada, no en la ficha
-     * del servidor, así que va enlazado — y en dos claves porque el párrafo
+     * del servidor, así que va enlazado, y en dos claves porque el párrafo
      * se pinta como texto plano.
      */
     credentialNotice:
@@ -287,24 +294,24 @@ export const policies = {
     logsEyebrow: "Logs y retención",
     /** Ver `en.logsBody`: campos reales, quién los lee, y la copia de métricas acotada por el mismo año. */
     logsBody: [
-      "El servidor web guarda logs de acceso estándar —dirección IP, user agent, la línea de petición (método, ruta y query string), código de estado, tamaño de la respuesta, referente, y el país, la ciudad y el operador de red a los que resuelve esa IP, consultados en local en una base de datos de MaxMind y no preguntando a nadie— para prevenir abusos (los lee CrowdSec) y para los paneles de uso del propio autor. Los ficheros rotan a diario y se borran al año; la copia que alimenta los paneles vive en la red del propio autor y no se conserva más tiempo que eso.",
-      "El cuerpo de una llamada nunca se registra: lleva los argumentos, es decir, lo que de verdad buscas o preguntas —nginx lo mira solo para extraer dos nombres—. Las métricas de uso registran el método JSON-RPC, el nombre de la herramienta, el estado, los tiempos y el tamaño de la respuesta, qué instancia y qué salida la sirvieron, y la IP de quien llama —que está ahí para que el autor pueda separar su propio tráfico de pruebas del real—, pero nunca los argumentos ni el contenido de la respuesta. Esas métricas alimentan los mismos paneles.",
-      "gitlab exporta además trazas y métricas OpenTelemetry a un colector en la red del autor: el método, la herramienta y la acción de catálogo (issue.list, por ejemplo), el éxito o el código de error, los tiempos y un seudónimo con clave de quien llama y del recurso leído —estable entre reinicios, que nadie puede leer—, pero nunca los argumentos, los resultados, el token ni respuesta alguna de GitLab.",
+      "El servidor web guarda logs de acceso estándar para prevenir abusos (los lee CrowdSec) y para los paneles de uso del propio autor. Recogen la dirección IP, el user agent, la línea de petición (método, ruta y query string), el código de estado, el tamaño de la respuesta, el referente, y el país, la ciudad y el operador de red a los que resuelve esa IP, consultados en local en una base de datos de MaxMind y no preguntando a nadie. La única excepción es el callback de acceso del inspector, cuya query string lleva un código de autorización de un solo uso y no se registra. Los ficheros rotan a diario y se borran al año; la copia que alimenta los paneles vive en la red del propio autor y no se conserva más tiempo que eso.",
+      "El cuerpo de una llamada nunca se registra: lleva los argumentos, es decir, lo que de verdad buscas o preguntas; nginx lo mira solo para extraer dos nombres. Las métricas de uso registran el método JSON-RPC, el nombre de la herramienta, el estado, los tiempos y el tamaño de la respuesta, qué instancia y qué salida la sirvieron, y la IP de quien llama (que está ahí para que el autor pueda separar su propio tráfico de pruebas del real), pero nunca los argumentos ni el contenido de la respuesta. Esas métricas alimentan los mismos paneles.",
+      "gitlab exporta además trazas y métricas OpenTelemetry a un colector en la red del autor: el método, la herramienta y la acción de catálogo (issue.list, por ejemplo), el éxito o el código de error, los tiempos y un seudónimo con clave de quien llama y del recurso leído (estable entre reinicios, que nadie puede leer), pero nunca los argumentos, los resultados, el token ni respuesta alguna de GitLab.",
     ],
     slaEyebrow: "Sin SLA",
     slaBody: [
-      "Este es un servicio personal, ofrecido tal cual y sin acuerdo de nivel de servicio: sin garantía de disponibilidad, sin canal de soporte y sin compromiso de que ninguno de los dos endpoints siga en pie —o igual— de un día para otro. No montes nada crítico encima: los dos servidores son open source y cada uno es un único binario estático, así que para levantar tu propia instancia basta con ese binario.",
+      "Este es un servicio personal, ofrecido tal cual y sin acuerdo de nivel de servicio: sin garantía de disponibilidad, sin canal de soporte y sin compromiso de que ninguno de los dos endpoints siga en pie, o igual, de un día para otro. No montes nada crítico encima: los dos servidores son open source y cada uno es un único binario estático, así que para levantar tu propia instancia basta con ese binario.",
     ],
     /** Ver `en.continuityBody`: el mecanismo, sin promesa, sin cifra y sin decir dónde están las máquinas. */
     continuityEyebrow: "Por qué es probable que siga aquí",
     continuityBody: [
-      "Nada de lo anterior es una promesa y esta sección no añade ninguna. Pero la razón de que estos endpoints sigan en pie no es la buena voluntad: aquí no se ha comprado nada para hacerlos funcionar. Los dos servidores son contenedores sobre máquinas y nodos de salida que ya estaban funcionando, y seguirían funcionando, por otros motivos — así que no hay mes en el que mantenerlos sea una decisión que alguien tenga que tomar, ni factura cuya renovación pueda acabar con ellos.",
+      "Nada de lo anterior es una promesa y esta sección no añade ninguna. Pero la razón de que estos endpoints sigan en pie no es la buena voluntad: aquí no se ha comprado nada para hacerlos funcionar. Los dos servidores son contenedores sobre máquinas y nodos de salida que ya estaban funcionando, y seguirían funcionando, por otros motivos, así que no hay mes en el que mantenerlos sea una decisión que alguien tenga que tomar, ni factura cuya renovación pueda acabar con ellos.",
       "Lo que sí acabaría con este servicio es que el autor pierda el interés, y la cobertura honesta frente a eso es la que ya está dicha arriba y no un compromiso: los dos servidores son open source, y levantar el tuyo está a un binario estático de distancia.",
     ],
     egressEyebrow: "De dónde parece venir una petición",
     /** Ver `en.egressBody`: la consecuencia y los países; el recuento de nodos vive en Funcionamiento interno. */
     egressBody: [
-      "Las llamadas que los servidores hacen hacia fuera —a un mirror de Library Genesis, a los proveedores de acceso abierto o a gitlab.com— salen por un nodo de salida en España o en Reino Unido, no desde donde estés tú ni desde donde esté este sitio. Lo que ese tercero ve como origen de la petición es la dirección del nodo de salida: ni tu propia IP ni la de este servidor le llegan nunca. La única transferencia que no va por aquí es la que hay detrás de un enlace que se te devuelve —el de download ante todo—: descargarlo es una conexión de tu propio cliente, desde tu propia dirección.",
+      "Las llamadas que los servidores hacen hacia fuera (a un mirror de Library Genesis, a los proveedores de acceso abierto o a gitlab.com) salen por un nodo de salida en España o en Reino Unido, no desde donde estés tú ni desde donde esté este sitio. Lo que ese tercero ve como origen de la petición es la dirección del nodo de salida: ni tu propia IP ni la de este servidor le llegan nunca. La única transferencia que no va por aquí es la que hay detrás de un enlace que se te devuelve, el de download ante todo: descargarlo es una conexión de tu propio cliente, desde tu propia dirección.",
     ],
     /** Ver `en.egressPointer`: el texto del enlace es el h2 destino, literal. */
     egressPointer:
@@ -314,11 +321,11 @@ export const policies = {
     /**
      * Ver `en.legalBody`: alcance, orden, mecanismo, responsabilidad y
      * operador, un párrafo cada uno, con todas las fuentes de la ficha real
-     * nombradas y el orden atribuido a cada tool — y a este despliegue.
+     * nombradas y el orden atribuido a cada tool, y a este despliegue.
      */
     legalBody: [
       "libgen no opera catálogo alguno ni aloja nada propio: es un cliente de índices y bibliotecas que gestionan otros. Del lado abierto son arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed, ERIC, OpenAlex, Europe PMC, bioRxiv, el RFC Editor, NIST, Dagstuhl, la ACL Anthology, Zenodo, SciELO, la FAO, Fatcat, OAPEN e Internet Archive; del lado de las bibliotecas en la sombra, un mirror de Library Genesis, randombook.org, Anna's Archive, Sci-Hub y el visor de artículos SciDB de Anna's Archive. A cuáles llega una llamada, y en qué orden, lo decide la herramienta que llamas y no el servicio entero.",
-      "search parte del catálogo de Library Genesis; en este despliegue el valor por defecto del operador es extra_sources=always, así que una llamada que no diga otra cosa llega además a Anna's Archive y a siete proveedores abiertos —arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed y ERIC— en todas las llamadas, y una que fije extra_sources=never se queda solo en el catálogo.",
+      "search parte del catálogo de Library Genesis; en este despliegue el valor por defecto del operador es extra_sources=always, así que una llamada que no diga otra cosa llega además a Anna's Archive y a siete proveedores abiertos (arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed y ERIC) en todas las llamadas, y una que fije extra_sources=never se queda solo en el catálogo.",
       "download y read van por identificador, y read solo admite hash o DOI. A qué fuentes llega un identificador, y en qué orden, depende de cuál sea:",
     ],
     /** Ver `en.legalResolution`: los tres casos, antes una frase de 115 palabras. */
@@ -361,7 +368,7 @@ export const policies = {
     legalContactLink: "mail@jmrp.io",
     /** Ver `en.legalLicenseNote`: cruce hacia /license/, que enlaza de vuelta a esta sección. */
     legalLicenseNote:
-      "Nada de esto es una licencia sobre nada: lo que este sitio sí te deja reutilizar —sus textos, su código y los dos servidores— se dice en su propia página:",
+      "Nada de esto es una licencia sobre nada: lo que este sitio sí te deja reutilizar (sus textos, su código y los dos servidores) se dice en su propia página:",
     legalLicenseLink: "Licencia",
   },
 } as const;

@@ -55,7 +55,7 @@ test("the inspector redirects to the site's own callback page", () => {
   assert.ok(inspector, "no oauth.inspector to check");
   // GitLab matches the redirect URI character for character against the one
   // registered on the application, so it is ONE fixed URL for both
-  // languages — /es/inspector/ redirects here too, which is why there is no
+  // languages: /es/inspector/ redirects here too, which is why there is no
   // Spanish callback page and why a 404 there is expected.
   assert.equal(inspector.redirectUri, `${SITE_ORIGIN}/inspector/callback/`);
   assert.ok(
@@ -101,4 +101,36 @@ test("no prose calls the sign-in button disabled while it is offered", () => {
       );
     }
   }
+});
+
+test("the callback leaves its address clean before anything can fetch", () => {
+  // The URL of this page is the authorization code, and its subresources repeat
+  // the URL in `Referer`, which the access log records. The policy has to come
+  // first because a `meta` only governs what follows it, and the scrub has to
+  // come before the inline styles, whose fonts ignore the policy (Chromium).
+  const dist = new URL(
+    `../../${process.env.DIST_DIR ?? "dist"}/`,
+    import.meta.url,
+  );
+  const html = fs.readFileSync(
+    new URL("inspector/callback/index.html", dist),
+    "utf8",
+  );
+  const policy = html.search(/<meta[^>]*name="?referrer"?[^>]*>/);
+  const scrub = html.indexOf("history.replaceState");
+  const firstFetch = html.search(/<style|<link|<img |<script[^>]*src=/);
+  assert.notEqual(policy, -1, "the callback page sets no referrer policy");
+  assert.match(html, /<meta[^>]*content="?no-referrer"?[^>]*>/);
+  assert.notEqual(scrub, -1, "the callback page keeps the code in its address");
+  assert.ok(policy < firstFetch, "the policy comes after a request has left");
+  assert.ok(scrub < firstFetch, "the scrub comes after a request has left");
+});
+
+test("only the callback gives up the Referer", () => {
+  const dist = new URL(
+    `../../${process.env.DIST_DIR ?? "dist"}/`,
+    import.meta.url,
+  );
+  const html = fs.readFileSync(new URL("inspector/index.html", dist), "utf8");
+  assert.doesNotMatch(html, /<meta[^>]*name="?referrer"?[^>]*>/);
 });
