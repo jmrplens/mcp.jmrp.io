@@ -69,19 +69,22 @@ export const policies = {
      * the whole zone; the origin emits neither.
      *
      * The callback sentence is the requirement of 2026-11-04 (edge audit, A9):
-     * `/inspector/callback/?code=...` must reach no log. Two layers of it live
-     * in the Cloudflare zone, outside this repository: a URL Rewrite Rule
+     * `/inspector/callback/?code=...` must reach no log. Three layers of it
+     * live outside this repository. In the Cloudflare zone, a URL Rewrite Rule
      * (`mcp_oauth_callback_no_query`) empties the callback's query before the
      * request reaches the worker or nginx, with or without the worker, and a
      * Request Header Transform Rule (`mcp_oauth_callback_no_referer`) drops a
-     * `Referer` that names the callback with a query. Behind them, the worker
-     * leaves the query out of its row and out of what it forwards, its
-     * Workers logs redact every query string, and the page keeps its
-     * subresources from repeating the code in `Referer` (see
-     * src/pages/inspector/callback.astro). Without the URL Rewrite Rule the
-     * sentence is false whenever the worker is skipped, as `fail_open` does
-     * once the account's daily quota runs out: nginx writes the request line,
-     * query included.
+     * `Referer` that names the callback with a query. On the origin, the log
+     * formats in nginx.conf write that query as `?redacted`, in the request
+     * line and in a `Referer` alike. Behind them, the worker leaves the query
+     * out of its row and out of what it forwards, its Workers logs redact
+     * every query string, and the page keeps its subresources from repeating
+     * the code in `Referer` (see src/pages/inspector/callback.astro). Without
+     * the URL Rewrite Rule the access logs still hold, but the error log does
+     * not: when the worker is skipped, as `fail_open` does once the account's
+     * daily quota runs out, the query reaches nginx, and a line it writes
+     * there about that request (a CrowdSec denial, for one) carries the
+     * request line, query included.
      */
     privacyBody: [
       "This service is run by José Manuel Requena Plens (jmrp.io), who is also the author of both servers. The site sets no cookies; the only thing it stores in your browser is the theme you pick, in localStorage, and that never leaves it. Every page except the inspector loads Cloudflare Web Analytics, served from this domain: it stores nothing in your browser either, and sends cloudflareinsights.com the page's address, the address you came from and how long the page took to load; Cloudflare reads your browser and country from that request and discards the IP address at its nearest data centre. The Content-Security-Policy names exactly one third party on each page: cloudflareinsights.com for those reports and, on the inspector, which loads no analytics, gitlab.com instead, only so its sign-in flow can exchange an authorization code for a token issued to the inspector's own OAuth application, which asks for read_api and nothing wider. The browser refuses every other destination.",
