@@ -59,7 +59,8 @@ export const policies = {
      * centre); which pages load it is `pageLoadsAnalytics` in
      * src/lib/analytics.ts, and the per-page third party is the vhost's
      * `$mcp_connect_src` (see src/integrations/post-build/csp.ts). The Analytics Engine sentence covers the per-request record the
-     * worker writes since 2026-09-05 (edge-nonce-worker/worker.js,
+     * worker writes since 2026-09-05 (workers/edge-nonce-mcp/worker.js in the
+     * jmrp.io repository,
      * `logEdgeRequest`, the same fields as the access log, ingested by the
      * jmrp.io repo's scripts/ae-to-influx.mjs into InfluxDB); "keeps no copy
      * of any request" stopped being true that day. The Workers Logs sentence
