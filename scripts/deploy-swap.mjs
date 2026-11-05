@@ -4,7 +4,7 @@
  * which already used it; it was brought here for a specific reason.
  *
  * WHY: the vhost serves `root /var/www/mcp.jmrp.io/dist`, so while `dist` was
- * a real directory, ANY `astro build` published instantly — including the one
+ * a real directory, ANY `astro build` published instantly, including the one
  * that runs inside `pnpm check`. The origin ended up with the new content and
  * the Cloudflare edge with the old one, because the purge lives in the deploy
  * and nobody had called it. The 2026-08-22 GEO audit caught the site exactly
@@ -13,7 +13,7 @@
  *
  * With blue/green, `dist` is a symlink and a bare build writes to the INACTIVE
  * colour: it publishes nothing. Publishing is the `swap`, a rename(2) over the
- * symlink — atomic, so Nginx never sees a half-written root.
+ * symlink: atomic, so Nginx never sees a half-written root.
  *
  * `prepare`: picks the inactive color dir (builds/blue|builds/green),
  *   empties it, and prints its relative path to stdout.
@@ -23,6 +23,8 @@
  */
 import fs from "node:fs";
 import path from "node:path";
+
+import { preserveUnchangedMtimes } from "./lib/preserve-mtimes.mjs";
 
 const ROOT = process.cwd();
 const BUILDS = path.join(ROOT, "builds");
@@ -92,6 +94,31 @@ function prepare() {
 }
 
 /**
+ * Gives every unchanged file in the new build the modification time it has in
+ * the live one. Before the retarget, so nginx never serves a file mid-change.
+ *
+ * Never fatal: a failure here costs clients a full download instead of a 304,
+ * which is no reason to keep a finished build from going live.
+ * @param {string | null} activeDir The tree being replaced, `null` on a first
+ *   deploy, when there is nothing to compare with.
+ * @param {string} outDir The tree about to go live.
+ * @returns {void}
+ */
+function restoreMtimesFrom(activeDir, outDir) {
+  if (!activeDir || activeDir === outDir) return;
+  try {
+    const { files, restored } = preserveUnchangedMtimes(activeDir, outDir);
+    console.log(
+      `deploy-swap: kept the validators of ${restored} unchanged files out of ${files}`,
+    );
+  } catch (error) {
+    console.warn(
+      `deploy-swap: could not keep the validators: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+}
+
+/**
  * Atomically retargets the `dist` symlink to the freshly built directory.
  * @param {string} outDirArg Repo-relative or absolute path to the new build
  *   output directory (as produced by `prepare`).
@@ -104,6 +131,7 @@ function swap(outDirArg) {
     process.exit(1);
   }
   const target = currentTarget();
+  restoreMtimesFrom(target === "legacy-dir" ? DIST : target, outDir);
   if (target === "legacy-dir") {
     // First run: migrate real dist/ out of the way, keep it as fallback color
     const active = COLORS.find((c) => path.join(BUILDS, c) !== outDir);
@@ -112,7 +140,7 @@ function swap(outDirArg) {
     fs.renameSync(DIST, legacyDest);
   }
   // Atomic retarget: create temp symlink, rename over dist. fs.renameSync
-  // wraps rename(2) directly — same atomic, non-dereferencing semantics as
+  // wraps rename(2) directly: same atomic, non-dereferencing semantics as
   // `mv -T` for a symlink-to-symlink swap, without spawning a subprocess.
   const tmpLink = path.join(ROOT, `.dist.tmp-${process.pid}`);
   fs.rmSync(tmpLink, { force: true });

@@ -103,6 +103,7 @@ MCPSSR
 Mezclarlos
 Mikro
 mikrotik
+mtimes
 multicriteria
 nanobanana
 nedry
@@ -166,6 +167,8 @@ starrers
 streamable
 subkey
 subpages
+subresource
+subresources
 suscribible
 suscribibles
 synctex

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { test } from "node:test";
+import zlib from "node:zlib";
 
 // `dist` is a SYMLINK to the active blue/green colour, so it points at what is
 // PUBLISHED, not at what was just built. `DIST_DIR` makes it possible to
@@ -45,6 +46,17 @@ test("assets are pre-compressed", () => {
     found.length > 0,
     "static assets must carry a .br next to the original",
   );
+});
+
+test("the files under .well-known are pre-compressed too", () => {
+  // A glob skips dot directories unless told otherwise, and then the edge
+  // compresses them itself: a weak ETag that turns strong on the first
+  // revalidation, where every other text file keeps one validator.
+  const original = fs.readFileSync(new URL(".well-known/security.txt", DIST));
+  const brotli = fs.readFileSync(new URL(".well-known/security.txt.br", DIST));
+  const gzip = fs.readFileSync(new URL(".well-known/security.txt.gz", DIST));
+  assert.deepEqual(zlib.brotliDecompressSync(brotli), original);
+  assert.deepEqual(zlib.gunzipSync(gzip), original);
 });
 
 test("the CSP carries nginx's variable, not the HTML's literal", () => {

@@ -6,7 +6,7 @@
  * URL. The flow runs in a POPUP: this page opens inside it, hands the code
  * back to the tab that started it via `postMessage`, and closes itself. The
  * inspector island is never unmounted, so the PKCE `code_verifier` can stay in
- * memory — which is what keeps the component's written rule intact ("no
+ * memory, which is what keeps the component's written rule intact ("no
  * localStorage, no sessionStorage, no cookies, no query string").
  *
  * A whole-page redirect back into `/inspector/` would break that rule twice
@@ -19,7 +19,23 @@
  * would mean a second registration for a page with no visible content.
  *
  * `prerender` is the site default (static). Nothing here reads the query
- * string on the server — it is read in the browser, where it arrives.
+ * string on the server: it is read in the browser, where it arrives. The server
+ * never gets it either: a URL Rewrite Rule of the zone
+ * (`mcp_oauth_callback_no_query`) empties it at the edge, before the worker and
+ * nginx, while the browser keeps its own address.
+ *
+ * THE CODE MUST NOT LEAVE IN A `Referer`. That query string is the
+ * authorization code, and the page's own stylesheet, fonts and icons would
+ * repeat it in a header that the worker's logs and the access log both record.
+ * The zone drops such a `Referer` at the edge (`mcp_oauth_callback_no_referer`)
+ * and nginx's log formats redact it, but this page does not lean on
+ * configuration kept outside this repository, and stops sending it in the first
+ * place. That takes both lines in the `head-start` slot, measured in Chromium
+ * on 2026-11-04 over the twelve requests of this page: with neither, nine
+ * carried the code; with the policy alone, as this `meta` or as a response
+ * header, three did, the fonts an inline `<style>` asks for, which send the
+ * document's address whatever the policy says; with the scrub alone, six did,
+ * because the preload scanner gets there before the script runs.
  */
 import Base from "../../layouts/Base.astro";
 import { SITE_ORIGIN } from "../../lib/seo";
@@ -31,6 +47,16 @@ import { SITE_ORIGIN } from "../../lib/seo";
   page="inspector"
   noindex
 >
+  <Fragment slot="head-start">
+    <meta
+      name="referrer"
+      content="no-referrer"
+    />
+    <script is:inline>
+      window.oauthCallbackQuery = window.location.search;
+      window.history.replaceState(null, "", window.location.pathname);
+    </script>
+  </Fragment>
   <p
     class="callback-note"
     data-origin={SITE_ORIGIN}
@@ -45,7 +71,14 @@ import { SITE_ORIGIN } from "../../lib/seo";
   // document that happened to open this page.
   const note = document.querySelector<HTMLElement>(".callback-note");
   const origin = note?.dataset.origin;
-  const params = new URLSearchParams(window.location.search);
+  // The head moved the query out of the address. The fallback is for the one case
+  // that script did not run, which should still sign the visitor in.
+  const { oauthCallbackQuery } = window as Window & {
+    oauthCallbackQuery?: string;
+  };
+  const params = new URLSearchParams(
+    oauthCallbackQuery ?? window.location.search,
+  );
   const payload = {
     source: "mcp-inspector-oauth",
     code: params.get("code"),

@@ -36,8 +36,8 @@ const CACHE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 
 /**
  * Compression parameters. Hashed into `configSignature` (see
- * {@link computeConfigSignature}) so that changing gzip/brotli settings —
- * or upgrading Node's bundled zlib — invalidates the entire on-disk cache
+ * {@link computeConfigSignature}) so that changing gzip/brotli settings
+ * (or upgrading Node's bundled zlib) invalidates the entire on-disk cache
  * instead of silently serving blobs compressed under stale settings.
  */
 const COMPRESSION_CONFIG = {
@@ -93,7 +93,7 @@ async function loadManifest(
         return manifestFile.entries;
       }
       logger.info(
-        "  Compression config changed since last build — invalidating compression cache.",
+        "  Compression config changed since last build: invalidating compression cache.",
       );
       await fs.promises.rm(CACHE_BLOBS_DIR, { recursive: true, force: true });
       await fs.promises.mkdir(CACHE_BLOBS_DIR, { recursive: true });
@@ -202,6 +202,15 @@ export async function compressAssets(
     cwd: distDir,
     absolute: true,
     nodir: true,
+    // Without it `.well-known/` is skipped: nginx then brotli-compresses
+    // security.txt on the fly, with a weak ETag that the edge's first
+    // revalidation turns strong (the 304 carries the file's strong tag), and
+    // the small JSON files go out identity for the edge to compress. The two
+    // smallest (gpc.json, tdmrep.json) get twins a few bytes larger than
+    // themselves, a cost taken knowingly. The vhost serves by allowlist, so
+    // the `.br`/`.gz` twins are only ever picked by brotli_static/gzip_static,
+    // never requested by name.
+    dot: true,
     ignore: ["**/*.gz", "**/*.br"],
   });
 
