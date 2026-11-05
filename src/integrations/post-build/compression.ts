@@ -202,10 +202,14 @@ export async function compressAssets(
     cwd: distDir,
     absolute: true,
     nodir: true,
-    // Without it `.well-known/` is skipped, and Cloudflare compresses those
-    // files itself: a weak ETag that turns strong the first time the entry
-    // revalidates. The vhost serves by allowlist, so the `.br`/`.gz` twins are
-    // only ever picked by brotli_static/gzip_static, never requested by name.
+    // Without it `.well-known/` is skipped: nginx then brotli-compresses
+    // security.txt on the fly, with a weak ETag that the edge's first
+    // revalidation turns strong (the 304 carries the file's strong tag), and
+    // the small JSON files go out identity for the edge to compress. The two
+    // smallest (gpc.json, tdmrep.json) get twins a few bytes larger than
+    // themselves, a cost taken knowingly. The vhost serves by allowlist, so
+    // the `.br`/`.gz` twins are only ever picked by brotli_static/gzip_static,
+    // never requested by name.
     dot: true,
     ignore: ["**/*.gz", "**/*.br"],
   });
