@@ -21,7 +21,7 @@ export default [
       "**/builds/**",
       "plan/**",
       // `ops/` is a SEPARATE repository that happens to live inside this tree
-      // and is gitignored here, so it never reaches CI — but `eslint .` walks
+      // and is gitignored here, so it never reaches CI, but `eslint .` walks
       // the filesystem, not the index, and linted it anyway. The result was a
       // local-only gate that could not pass: `pnpm lint` reported hundreds of
       // errors in files this project does not own, so `pnpm check` could not
@@ -63,13 +63,13 @@ export default [
     rules: {
       ...eslintPluginUnicorn.configs.recommended.rules,
       // Prettier owns number formatting and lowercases hex digits, while this
-      // rule wants them uppercase — `0x4E` and `0x4e` each satisfy exactly one
+      // rule wants them uppercase: `0x4E` and `0x4e` each satisfy exactly one
       // of the two, so with both on, `--fix` and `--write` undo each other
       // forever. Same call the markdown config makes for MD060: where the
       // formatter has an opinion, the linter yields.
       "unicorn/number-literal-case": "off",
       "unicorn/prevent-abbreviations": "off", // Too strict (props, env, args, etc.)
-      // New in v66–v68; same spirit as prevent-abbreviations / readability — off.
+      // New in v66 to v68; same spirit as prevent-abbreviations / readability: off.
       "unicorn/name-replacements": "off", // Too strict (btn, msg, i, e, el, fn, …)
       "unicorn/consistent-boolean-name": "off", // Opinionated is/has/can boolean naming
       "unicorn/max-nested-calls": "off", // Forces intermediate vars; hurts readability here
@@ -86,14 +86,14 @@ export default [
       "unicorn/prefer-minimal-ternary": "off", // stylistic
       "unicorn/prefer-hoisting-branch-code": "off", // stylistic
       "unicorn/prefer-simple-condition-first": "off", // v72: reorders && operands, clashing with intentional cheap-guard-first short-circuits (e.g. `import.meta.env.DEV &&`)
-      "unicorn/prefer-dom-node-html-methods": "off", // v72: .getHTML() serializes differently than .innerHTML — not a drop-in replacement
+      "unicorn/prefer-dom-node-html-methods": "off", // v72: .getHTML() serializes differently than .innerHTML: not a drop-in replacement
       // v76 defaults this to "multiline", which would turn the repo's 510
       // one-line JSDoc comments (`/** … */`) into three lines each. Enforce
       // the style the code already uses instead.
       "unicorn/single-line-block-comment-style": ["error", "single-line"],
       "unicorn/prefer-ternary": "off", // v76: now also folds a guard clause and the return after it into one ternary, against the early-return style used throughout
       "unicorn/prefer-early-return": "off", // v76: stylistic; inverts a trailing `if` block, mostly inside cheerio `.each` callbacks in post-build
-      "unicorn/prefer-continue": "off", // v76: stylistic, same inversion inside loops (one hit is edge-nonce-worker, deployed apart from the site)
+      "unicorn/prefer-continue": "off", // v76: stylistic, same inversion inside loops (one hit was the edge Worker, now in the jmrp.io repository)
       "unicorn/prefer-combined-guards": "off", // v76: merges consecutive guards, and some are kept apart on purpose (oauth-popup checks origin, source and state one by one)
       // Buffer.from(x, "base64") is standard Node and is the right type for the
       // crypto/fs (Buffer) flows in post-build; the Uint8Array.fromBase64 form
@@ -215,7 +215,7 @@ export default [
   //
   // Scoped to tests/e2e: the ones in tests/unit use node's native runner
   // (`node:test` + `node:assert`), and the Playwright plugin evaluated them as
-  // its own, flagging "Test has no assertions" on tests that do assert — just
+  // its own, flagging "Test has no assertions" on tests that do assert: just
   // with `assert`, not with `expect`.
   {
     ...playwright.configs["flat/recommended"],
@@ -249,7 +249,7 @@ export default [
       // Stricter sibling of slow-regex (already off below); the flagged regexes
       // run on author content / CI input, not untrusted user input.
       "sonarjs/super-linear-regex": "off",
-      // Keep the guardrail but raise the bar — a couple of parsers sit just over
+      // Keep the guardrail but raise the bar: a couple of parsers sit just over
       // the default 15; refactoring them carries more risk than value.
       "sonarjs/cognitive-complexity": ["error", 30],
       // Forcing a click is a legitimate tool in our E2E (e.g. modal backdrops).
@@ -355,7 +355,7 @@ export default [
       // sonarjs v4.2 added no-fixed-wait-in-tests, flagging every
       // `waitForTimeout`. Fixed waits are deliberate in these E2E specs
       // (animation settle, debounce, hydration); rewriting ~55 to observable
-      // conditions is out of scope for a dependency bump — scoped off here
+      // conditions is out of scope for a dependency bump: scoped off here
       // (after sonarjs.configs.recommended re-enables it globally).
       "sonarjs/no-fixed-wait-in-tests": "off",
     },
@@ -382,8 +382,8 @@ export default [
       "scripts/utils/csp-filters.test.mjs",
     ],
     rules: {
-      // The published Google/Yandex crawler netblocks — and the production
-      // addresses the tests pin them against — are the data this module exists
+      // The published Google/Yandex crawler netblocks, and the production
+      // addresses the tests pin them against, are the data this module exists
       // to encode; there is nothing to externalize into configuration.
       "sonarjs/no-hardcoded-ip": "off",
     },

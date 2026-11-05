@@ -1,4 +1,4 @@
-# CSpell Configuration — mcp.jmrp.io
+# CSpell configuration: mcp.jmrp.io
 # Bilingual spell checker (English + Spanish)
 # Docs: https://cspell.org/configuration/
 
@@ -62,13 +62,13 @@ ignorePaths:
   # Untracked working notes, not repo prose. `git ls-files` returns nothing for
   # any of these: captured vhosts, audit reports and design specs kept beside
   # the code for reference. Spell-checking them says nothing about the project
-  # and buries the code findings this check exists for — 18,799 issues, of
+  # and buries the code findings this check exists for: 18,799 issues, of
   # which the overwhelming majority were here.
   - ops/**
   - docs/superpowers/**
   - .superpowers/**
   - docs/nginx-vhost-reference.conf # a captured vhost, kept beside the code
-  - edge-nonce-worker/** # deployed from its own place; gitignored here
+  - edge-nonce-worker/** # a pointer to jmrp.io's workers/ on the server; gitignored here
   - secrets/** # gitignored operational copies, and one of them holds a salt
   - GEO-AUDIT-*.md
   - test-results/**
