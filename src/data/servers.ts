@@ -11,8 +11,8 @@ export type McpHeader = {
   description: { en: string; es: string };
   /**
    * La cabecera lleva una credencial. El inspector pinta esos campos como
-   * `type="password"` y nunca los persiste. Marcarlo aquí —y no por el nombre
-   * de la cabecera— evita que un MCP nuevo se quede con el token a la vista.
+   * `type="password"` y nunca los persiste. Marcarlo aquí (y no por el nombre
+   * de la cabecera) evita que un MCP nuevo se quede con el token a la vista.
    */
   secret?: boolean;
   /** Ejemplo que se muestra en el campo del inspector. Nunca un valor real. */
@@ -46,7 +46,7 @@ export type McpNotice = {
    * What the notice is about, which picks the tone it is painted in.
    *
    * `access` was added last and is the only one that is not a caution. The
-   * three before it — token policy, legal footing, limits — are the whole of
+   * three before it (token policy, legal footing, limits) are the whole of
    * what the `FAQPage` graph and the `speakable` selectors nominate for
    * quotation, so the only structured answers this site offered an assistant
    * were disclaimers. A live search for the domain came back with the no-SLA
@@ -89,7 +89,7 @@ export type McpToolInfo = {
  * libgen MCP servers and nothing citable said so.
  *
  * They do reach that surface now, but by TWO routes and this type is only one
- * of them — the bilingual copy written by hand below. The other is the
+ * of them: the bilingual copy written by hand below. The other is the
  * committed Server Card snapshot (`src/data/cards/<id>.json`), which the
  * machine emitters fall back to for a server with no `prompts` here. So the
  * absence of this type on a server no longer means its prompts are invisible;
@@ -132,7 +132,7 @@ export type McpServer = {
    *
    * The card prefers whatever the running server reports on `/health` at build
    * time (see `src/lib/live-version.ts`); this value is what it falls back to
-   * when that read fails — an offline build, a stopped container, or a server
+   * when that read fails: an offline build, a stopped container, or a server
    * that does not publish a version.
    *
    * Even the live read cannot make the card authoritative: an update between
@@ -169,7 +169,7 @@ export type McpServer = {
    * Per server, because the two binaries disagree: libgen rejects the method
    * (405), while gitlab checks credentials before it checks the method and so
    * answers 401. Neither ever serves a page, which is the point every surface
-   * needs to make — but stating one number for both was simply false.
+   * needs to make, but stating one number for both was simply false.
    */
   getStatus: number;
   repo: string;
@@ -204,7 +204,7 @@ export type McpServer = {
    *
    * THE TEST FOR ENTRY, and it has to be measured rather than assumed: the
    * listing must name `mcp.jmrp.io`. A `sameAs` the linked page does not
-   * corroborate is worse than none — it asserts an identity anyone can check
+   * corroborate is worse than none: it asserts an identity anyone can check
    * is absent. Measure with a BROWSER, never with curl: mcp.so,
    * cursor.directory and mcpservers.org all render client-side, and curl
    * reported 0 for the three when mcpservers.org names the endpoint six times.
@@ -215,7 +215,7 @@ export type McpServer = {
    * Those belong to the `#software` node, which jmrp.io/projects/ defines and
    * which this graph reaches through `targetProduct`. Claiming one URL from
    * two different `@id`s tells a crawler the endpoint and the software are the
-   * same thing — the very distinction this file maintains.
+   * same thing, the very distinction this file maintains.
    */
   sameAs?: string[];
   /**
@@ -264,7 +264,7 @@ export type McpServer = {
      * needs `api`: it is there to do work, including writing. The inspector is
      * a page for looking at an endpoint, and handing a web page a token that
      * can write to someone's whole GitLab is a worse deal than the pasted
-     * personal access token it would replace — a visitor can at least scope
+     * personal access token it would replace; a visitor can at least scope
      * that one to `read_api` themselves.
      *
      * With its own application the button becomes strictly the better option:
@@ -279,7 +279,7 @@ export type McpServer = {
       clientId: string;
       /** Registered redirect URI, matched character for character. */
       redirectUri: string;
-      /** What it asks for. `read_api` — see the note above. */
+      /** What it asks for. `read_api` (see the note above). */
       scopes: string[];
     };
   };
@@ -301,7 +301,7 @@ export type McpServer = {
    * Que falte significa "nadie ha escrito esa copia aquí", NO "este servidor
    * no tiene prompts". Leerlo del segundo modo es lo que dejó los 37 prompts
    * de gitlab fuera de /servers.json y de llms-full.txt mientras su ficha HTML
-   * sí los listaba —esa los saca del Server Card, no de aquí—. Poblarlo para
+   * sí los listaba (esa los saca del Server Card, no de aquí). Poblarlo para
    * gitlab exigiría inventar 74 textos que no existen en ninguna fuente, así
    * que quien emita prompts debe caer al Server Card guardado en
    * `src/data/cards/<id>.json` cuando este campo falte.
@@ -311,7 +311,7 @@ export type McpServer = {
    * The server publishes its OWN Server Card at
    * `<endpoint>/.well-known/mcp/server-card.json`.
    *
-   * That document is the SEP-1649 shape — it mirrors the `initialize`
+   * That document is the SEP-1649 shape: it mirrors the `initialize`
    * response, so it enumerates every tool, prompt, resource and resource
    * template (41 KB for gitlab). It is NOT the same thing as the card this
    * site publishes at `<endpoint>/server-card`, which is the current SEP-2127
@@ -320,7 +320,7 @@ export type McpServer = {
    *
    * So the two are complementary, not duplicates, and both get announced in
    * the RFC 9727 catalog. Flag per server because libgen does not implement it
-   * yet — it answers 405 there.
+   * yet: it answers 405 there.
    */
   nativeCard?: boolean;
   /**
@@ -344,7 +344,7 @@ export type McpServer = {
    * spelling, which is the one its `endpoint` field makes canonical.
    *
    * The trade is deliberate. The site loses local verification of that card
-   * — the unit tests read build artifacts, never the network — and in
+   * (the unit tests read build artifacts, never the network), and in
    * exchange the document is published by the only party that knows the
    * server's real state, which is what SEP-2127 asks for when it calls cards
    * advisory and tells clients to prefer the live `initialize`.
@@ -370,7 +370,7 @@ export type McpServer = {
    *
    * Obligatorio, no opcional: un MCP nuevo sin límite declarado es
    * exactamente el que hay que declarar, aunque la respuesta sea "ninguno
-   * propio" — como la de gitlab.
+   * propio", como la de gitlab.
    */
   rateLimit: Bilingual;
 };
@@ -387,7 +387,7 @@ export const servers: McpServer[] = [
         "Federated search of books and papers, formatted citations, open-access retrieval and reading.",
     },
     // libgen-mcp 1.6.3 (2026-08-22) started serving its own SEP-1649 Server
-    // Card at `<endpoint>/.well-known/mcp/server-card.json`, same as gitlab —
+    // Card at `<endpoint>/.well-known/mcp/server-card.json`, same as gitlab,
     // verified live then: 200, application/json, ~33 KB, serverInfo
     // {"name":"libgen-mcp","version":"1.6.3"}. See `nativeCard` on `McpServer`
     // for what that flag actually does (announces it in the RFC 9727 catalog).
@@ -528,7 +528,7 @@ export const servers: McpServer[] = [
         // recuperador trocea la página. "Limits and availability" repetido
         // dos veces era ruido, no señal. Y en forma de PREGUNTA literal: el
         // primer párrafo es su respuesta directa, que es el par que los
-        // motores de respuestas extraen — y el mismo que emite el FAQPage
+        // motores de respuestas extraen, y el mismo que emite el FAQPage
         // del JSON-LD, que nace de estos avisos.
         title: {
           en: "Where does libgen search, and what is its legal position?",
@@ -536,8 +536,8 @@ export const servers: McpServer[] = [
         },
         body: [
           {
-            en: "libgen is a client of third-party public indexes: it queries open-access providers (arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed, ERIC, OpenAlex, Europe PMC, bioRxiv, the RFC Editor, NIST, Dagstuhl, the ACL Anthology, Zenodo, SciELO, FAO, Fatcat, OAPEN and the Internet Archive) and shadow-library sources — a Library Genesis mirror, Anna's Archive, Sci-Hub, SciDB and randombook.org. It hosts no catalogue and stores or redistributes no content of its own — `download` returns a link to the source, it does not serve the file.",
-            es: "libgen es un cliente de índices públicos de terceros: consulta proveedores de acceso abierto (arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed, ERIC, OpenAlex, Europe PMC, bioRxiv, el RFC Editor, NIST, Dagstuhl, la ACL Anthology, Zenodo, SciELO, la FAO, Fatcat, OAPEN e Internet Archive) y fuentes de bibliotecas en la sombra — un mirror de Library Genesis, Anna's Archive, Sci-Hub, SciDB y randombook.org. No aloja catálogo alguno ni almacena o redistribuye contenido propio — `download` devuelve un enlace a la fuente, no sirve el fichero.",
+            en: "libgen is a client of third-party public indexes: it queries open-access providers (arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed, ERIC, OpenAlex, Europe PMC, bioRxiv, the RFC Editor, NIST, Dagstuhl, the ACL Anthology, Zenodo, SciELO, FAO, Fatcat, OAPEN and the Internet Archive) and shadow-library sources: a Library Genesis mirror, Anna's Archive, Sci-Hub, SciDB and randombook.org. It hosts no catalogue and stores or redistributes no content of its own: `download` returns a link to the source, it does not serve the file.",
+            es: "libgen es un cliente de índices públicos de terceros: consulta proveedores de acceso abierto (arXiv, Crossref, OpenLibrary, Project Gutenberg, dblp, PubMed, ERIC, OpenAlex, Europe PMC, bioRxiv, el RFC Editor, NIST, Dagstuhl, la ACL Anthology, Zenodo, SciELO, la FAO, Fatcat, OAPEN e Internet Archive) y fuentes de bibliotecas en la sombra: un mirror de Library Genesis, Anna's Archive, Sci-Hub, SciDB y randombook.org. No aloja catálogo alguno ni almacena o redistribuye contenido propio: `download` devuelve un enlace a la fuente, no sirve el fichero.",
           },
           {
             en: "What you do with those links is your responsibility, and the rules that apply depend on where you are.",
@@ -556,8 +556,8 @@ export const servers: McpServer[] = [
         // idénticos y descartan uno sin que controles cuál.
         body: [
           {
-            en: "libgen at mcp.jmrp.io is a personal service, offered as-is and with no SLA. It may change or go away without notice, so do not build anything critical on top of it — run your own instance instead: the server is open source and a single static binary.",
-            es: "libgen en mcp.jmrp.io es un servicio personal, ofrecido tal cual y sin SLA. Puede cambiar o desaparecer sin aviso, así que no montes nada crítico encima — levanta tu propia instancia: el servidor es open source y un único binario estático.",
+            en: "libgen at mcp.jmrp.io is a personal service, offered as-is and with no SLA. It may change or go away without notice, so do not build anything critical on top of it. Run your own instance instead: the server is open source and a single static binary.",
+            es: "libgen en mcp.jmrp.io es un servicio personal, ofrecido tal cual y sin SLA. Puede cambiar o desaparecer sin aviso, así que no montes nada crítico encima. Levanta tu propia instancia: el servidor es open source y un único binario estático.",
           },
           // The shared bucket is `limiter` in internal/libgen/client.go
           // (LIBGEN_MCP_RATE_RPS=2, burst 4 in ops/stack/env/libgen.env).
@@ -567,8 +567,8 @@ export const servers: McpServer[] = [
           // `enrichLimiter` of their own. The old sentence said "whichever
           // source they reach", which was not true of any release.
           {
-            en: "Its catalogue queries and every download share one limiter per instance, about 2 requests a second (3 instances, so roughly 6 a second in total). The open-access sources it also searches — arXiv, Crossref, PubMed and the rest — are each paced on their own, at the rate that source asks of its clients. OpenAlex meters an address rather than a person, so everyone using this endpoint shares its daily allowance: its search results, and the works a record cites or that cite it, can run out sooner here than on a server of your own. Those ceilings are deliberately low: they point at third-party services, and going faster would spend their capacity, not ours.",
-            es: "Sus consultas al catálogo y todas las descargas comparten un limitador por instancia, de unas 2 peticiones por segundo (hay 3 instancias, así que unas 6 por segundo en total). Las fuentes de acceso abierto que también consulta —arXiv, Crossref, PubMed y las demás— van cada una a su propio ritmo, el que esa fuente pide a sus clientes. OpenAlex mide por dirección y no por persona, así que todos los que usan este endpoint comparten su cuota diaria: sus resultados de búsqueda, y las obras que cita un registro o que lo citan, pueden agotarse antes aquí que en un servidor propio. Esos techos son deliberadamente bajos: apuntan a servicios de terceros, y correr más gastaría su capacidad, no la nuestra.",
+            en: "Its catalogue queries and every download share one limiter per instance, about 2 requests a second (3 instances, so roughly 6 a second in total). The open-access sources it also searches (arXiv, Crossref, PubMed and the rest) are each paced on their own, at the rate that source asks of its clients. OpenAlex meters an address rather than a person, so everyone using this endpoint shares its daily allowance: its search results, and the works a record cites or that cite it, can run out sooner here than on a server of your own. Those ceilings are deliberately low: they point at third-party services, and going faster would spend their capacity, not ours.",
+            es: "Sus consultas al catálogo y todas las descargas comparten un limitador por instancia, de unas 2 peticiones por segundo (hay 3 instancias, así que unas 6 por segundo en total). Las fuentes de acceso abierto que también consulta (arXiv, Crossref, PubMed y las demás) van cada una a su propio ritmo, el que esa fuente pide a sus clientes. OpenAlex mide por dirección y no por persona, así que todos los que usan este endpoint comparten su cuota diaria: sus resultados de búsqueda, y las obras que cita un registro o que lo citan, pueden agotarse antes aquí que en un servidor propio. Esos techos son deliberadamente bajos: apuntan a servicios de terceros, y correr más gastaría su capacidad, no la nuestra.",
           },
           // Measured in the startup log of all three replicas of 2.2.0
           // (2026-10-04), and the same on 2.2.1 (2026-10-06): "process
@@ -584,8 +584,8 @@ export const servers: McpServer[] = [
           // the default burst of 40 (cmd/server/rate_limit.go); a refused
           // tools/call is an isError result, other methods -42900.
           {
-            en: "Each address may make 60 calls a second per instance, in bursts of up to 40, with listing the tools on a bucket of its own; a tool call past that comes back as an error the model can read and back off from. Each instance also bounds what it holds open: at most four download or read calls per address at a time (64 across the instance), and 2,384 calls of any kind. Past the first, the call is refused with a message telling you to let one finish; past the second, the server answers that it is busy — on the current protocol, HTTP 503 with Retry-After: 30 — instead of queuing it.",
-            es: "Cada dirección puede hacer 60 llamadas por segundo por instancia, en ráfagas de hasta 40, y el listado de tools va en un cubo aparte; una llamada que pase de ahí vuelve como un error que el modelo puede leer para frenar. Cada instancia limita además lo que mantiene abierto: como mucho cuatro llamadas de descarga o lectura por dirección a la vez (64 en toda la instancia), y 2.384 llamadas de cualquier tipo. Pasado el primero, la llamada se rechaza con un mensaje que te pide esperar a que termine una; pasado el segundo, el servidor responde que está ocupado —en el protocolo actual, HTTP 503 con Retry-After: 30— en lugar de ponerla en cola.",
+            en: "Each address may make 60 calls a second per instance, in bursts of up to 40, with listing the tools on a bucket of its own; a tool call past that comes back as an error the model can read and back off from. Each instance also bounds what it holds open: at most four download or read calls per address at a time (64 across the instance), and 2,384 calls of any kind. Past the first, the call is refused with a message telling you to let one finish; past the second, the server answers that it is busy (on the current protocol, HTTP 503 with Retry-After: 30) instead of queuing it.",
+            es: "Cada dirección puede hacer 60 llamadas por segundo por instancia, en ráfagas de hasta 40, y el listado de tools va en un cubo aparte; una llamada que pase de ahí vuelve como un error que el modelo puede leer para frenar. Cada instancia limita además lo que mantiene abierto: como mucho cuatro llamadas de descarga o lectura por dirección a la vez (64 en toda la instancia), y 2.384 llamadas de cualquier tipo. Pasado el primero, la llamada se rechaza con un mensaje que te pide esperar a que termine una; pasado el segundo, el servidor responde que está ocupado (en el protocolo actual, HTTP 503 con Retry-After: 30) en lugar de ponerla en cola.",
           },
         ],
       },
@@ -608,8 +608,8 @@ export const servers: McpServer[] = [
     // card, a /servers.json, al JSON-LD y a llms.txt: el techo duro son 155
     // caracteres, porque por encima Google lo trunca y el recorte cae donde él
     // decida. El ajuste de 2026-08-24 (219 → 153) sacrificó dblp, ERIC y los
-    // cómics —que siguen nombrados en el aviso legal y en el `what` de
-    // `search`— y subió "No account required" al frente, la única posición que
+    // cómics (que siguen nombrados en el aviso legal y en el `what` de
+    // `search`) y subió "No account required" al frente, la única posición que
     // ningún truncado alcanza. Library Genesis sigue detrás de las fuentes
     // abiertas, que es lo que pide el párrafo de arriba. Al reescribirlo,
     // vuelve a contar los caracteres.
@@ -652,7 +652,7 @@ export const servers: McpServer[] = [
       "https://glama.ai/mcp/servers/jmrplens/gitlab-mcp-server",
       "https://mcpservers.org/servers/jmrplens/gitlab-mcp-server",
       // Same: 26 mentions of mcp.jmrp.io on its listing. It went to zero on
-      // 2026-09-03 and back to 26 on 2026-09-10, like libgen's — see there.
+      // 2026-09-03 and back to 26 on 2026-09-10, like libgen's (see there).
       "https://lobehub.com/mcp/jmrplens-gitlab-mcp-server",
       // 35 mentions of mcp.jmrp.io, <title> "GitLab MCP Server ·
       // mcp.jmrp.io", and it quotes this deployment's RFC 9728 document. It
@@ -688,7 +688,7 @@ export const servers: McpServer[] = [
             es: "El endpoint es gratuito y aquí no hay nada a lo que darse de alta. Lo que necesita es una cuenta de gitlab.com que ya tengas, porque el servidor actúa en tu nombre: no tiene cuenta propia ni emite credencial alguna, así que no hay clave que pedir ni plan que elegir.",
           },
           {
-            en: "Whatever quota you spend is your own on gitlab.com, and what you can reach is whatever that token can reach — this server adds no tier of its own.",
+            en: "Whatever quota you spend is your own on gitlab.com, and what you can reach is whatever that token can reach; this server adds no tier of its own.",
             es: "La cuota que gastes es la tuya en gitlab.com, y lo que alcances es lo que alcance ese token: este servidor no añade ningún tier propio.",
           },
         ],
@@ -710,20 +710,20 @@ export const servers: McpServer[] = [
           // `credential_hash`, sixteen hex characters of an HMAC-SHA-256
           // under a key drawn once per process and written nowhere.
           {
-            en: "Your token stays in your browser's memory only. It is not written to localStorage or cookies, never travels in the URL, and is gone on reload. It is sent solely as an Authorization: Bearer header to mcp.jmrp.io/gitlab, which never writes it to disk or logs it: the server keeps it in memory only while you keep using it — up to an hour after your last call — and then drops it.",
-            es: "Tu token se queda solo en la memoria de tu navegador. No se guarda en localStorage ni en cookies, no viaja en la URL y desaparece al recargar. Se envía únicamente como cabecera Authorization: Bearer a mcp.jmrp.io/gitlab, que nunca lo escribe en disco ni lo registra: el servidor lo conserva en memoria solo mientras lo sigas usando —hasta una hora después de tu última llamada— y después lo descarta.",
+            en: "Your token stays in your browser's memory only. It is not written to localStorage or cookies, never travels in the URL, and is gone on reload. It is sent solely as an Authorization: Bearer header to mcp.jmrp.io/gitlab, which never writes it to disk or logs it: the server keeps it in memory only while you keep using it (up to an hour after your last call) and then drops it.",
+            es: "Tu token se queda solo en la memoria de tu navegador. No se guarda en localStorage ni en cookies, no viaja en la URL y desaparece al recargar. Se envía únicamente como cabecera Authorization: Bearer a mcp.jmrp.io/gitlab, que nunca lo escribe en disco ni lo registra: el servidor lo conserva en memoria solo mientras lo sigas usando (hasta una hora después de tu última llamada) y después lo descarta.",
           },
           // Cada afirmación con su respaldo real: la CSP prueba el DESTINO
           // (el navegador la aplica); lo que el servidor haga después no lo
-          // prueba ninguna cabecera — se remite al código fuente, que es lo
+          // prueba ninguna cabecera: se remite al código fuente, que es lo
           // único verificable. La versión anterior presentaba las dos cosas
           // bajo el mismo "no hace falta que te fíes", y eso sobre-vendía.
           {
-            en: "The destination is not a matter of trust: the inspector's Content-Security-Policy declares connect-src 'self' https://gitlab.com and form-action 'self', so the browser itself refuses to send the token anywhere but this domain and the one that issues it, and the inspector loads no analytics and no script from anywhere else. gitlab.com is on that list for exactly one reason — the sign-in button, which exchanges an authorization code for a token issued to the inspector's own OAuth application, scoped to read_api and nothing wider — and for nothing else. What the server then does with it — keep it in memory while you use it, re-check it with gitlab.com every fifteen minutes, and drop it — you can verify in its source code, which is public.",
-            es: "El destino no es cuestión de confianza: la Content-Security-Policy del inspector declara connect-src 'self' https://gitlab.com y form-action 'self', así que es el propio navegador el que impide enviar el token a ningún sitio que no sea este dominio y el que lo emite, y el inspector no carga analítica ni ningún script de otro sitio. gitlab.com está en esa lista por una única razón —el botón de acceso, que canjea un código de autorización por un token emitido a la aplicación OAuth propia del inspector, con alcance read_api y nada más— y por ninguna otra. Lo que el servidor haga después con él —conservarlo en memoria mientras lo uses, volver a comprobarlo con gitlab.com cada quince minutos y descartarlo—, puedes comprobarlo en su código fuente, que es público.",
+            en: "The destination is not a matter of trust: the inspector's Content-Security-Policy declares connect-src 'self' https://gitlab.com and form-action 'self', so the browser itself refuses to send the token anywhere but this domain and the one that issues it, and the inspector loads no analytics and no script from anywhere else. gitlab.com is on that list for exactly one reason, the sign-in button, which exchanges an authorization code for a token issued to the inspector's own OAuth application, scoped to read_api and nothing wider, and for nothing else. What the server then does with it (keep it in memory while you use it, re-check it with gitlab.com every fifteen minutes, and drop it) you can verify in its source code, which is public.",
+            es: "El destino no es cuestión de confianza: la Content-Security-Policy del inspector declara connect-src 'self' https://gitlab.com y form-action 'self', así que es el propio navegador el que impide enviar el token a ningún sitio que no sea este dominio y el que lo emite, y el inspector no carga analítica ni ningún script de otro sitio. gitlab.com está en esa lista por una única razón, el botón de acceso, que canjea un código de autorización por un token emitido a la aplicación OAuth propia del inspector, con alcance read_api y nada más, y por ninguna otra. Lo que el servidor haga después con él (conservarlo en memoria mientras lo uses, volver a comprobarlo con gitlab.com cada quince minutos y descartarlo) puedes comprobarlo en su código fuente, que es público.",
           },
           {
-            en: "Even so, be suspicious of any site asking for a token — this one included. The sensible habits are:",
+            en: "Even so, be suspicious of any site asking for a token, this one included. The sensible habits are:",
             es: "Aun así, desconfía por norma de cualquier web que te pida un token, incluida esta. Lo razonable es:",
           },
         ],
@@ -754,8 +754,8 @@ export const servers: McpServer[] = [
         },
         body: [
           {
-            en: "The gitlab endpoint at mcp.jmrp.io is likewise personal, with no SLA and no continuity guarantee. For anything critical, run your own instance — the server is open source and ships as one static binary.",
-            es: "El endpoint gitlab de mcp.jmrp.io es igualmente personal, sin SLA ni garantía de continuidad. Para algo crítico, levanta tu propia instancia — el servidor es open source y un único binario estático.",
+            en: "The gitlab endpoint at mcp.jmrp.io is likewise personal, with no SLA and no continuity guarantee. For anything critical, run your own instance: the server is open source and ships as one static binary.",
+            es: "El endpoint gitlab de mcp.jmrp.io es igualmente personal, sin SLA ni garantía de continuidad. Para algo crítico, levanta tu propia instancia: el servidor es open source y un único binario estático.",
           },
           {
             en: "Each credential has its own budget on each of the three instances: 60 calls a second that reach GitLab, in bursts of up to 40, with listing the catalogue on a separate bucket that refills a tenth as fast. Past that, what you spend is gitlab.com's quota, under your own token.",
@@ -833,7 +833,7 @@ export const servers: McpServer[] = [
       // RECOMMENDS, not what it requires.
       //
       // `tests/unit/inspector-oauth.test.mjs` fails if this block disappears
-      // again, or if its scope ever widens past `read_api` — a token that can
+      // again, or if its scope ever widens past `read_api`: a token that can
       // write to someone's whole GitLab, sitting in a web page, is what this
       // second application was registered to avoid.
       inspector: {
@@ -872,17 +872,17 @@ export const servers: McpServer[] = [
     // that asks, and this deployment now publishes what a gitlab.com token
     // sees. Measured on the day of the switch, the manifest went from 851
     // actions to 747 that day (768 by 2026-09-30: the live figure is
-    // `meta.actionCount`) — the 104 that vanished are the administration domains a
+    // `meta.actionCount`); the 104 that vanished are the administration domains a
     // gitlab.com account without admin rights simply cannot call.
     //
     // So 700 is a FLOOR that holds for every reader, where "over 1,000" was
     // only true on Ultimate and was contradicted by this site's own published
     // manifest (`/servers/gitlab/`, 747 at the time). A citable figure that the same site
-    // refutes two clicks away is worse than a smaller one that never does —
+    // refutes two clicks away is worse than a smaller one that never does,
     // and it is precisely the figure assistants repeat.
     //
     // It is also the page's META DESCRIPTION, so the hard ceiling is 155
-    // characters — past that Google truncates and picks the cut itself. The
+    // characters; past that Google truncates and picks the cut itself. The
     // 2026-08-24 trim (191 → 139) dropped "releases" and "and more" from the
     // list of examples, releases being still named in `gitlab_execute_action`'s
     // `what`, so that EN and ES could carry the SAME four. Re-count the
@@ -890,7 +890,7 @@ export const servers: McpServer[] = [
     // It leads with the price and the account because that is the question a
     // reader arrives with and the one this string never answered. The single
     // occurrence of "free" on this page used to be "Counted with a Free-tier
-    // GitLab token" — a fact about GitLab's pricing, which an extractor can
+    // GitLab token", a fact about GitLab's pricing, which an extractor can
     // read as "you need a GitLab Free tier". libgen's description opens with
     // "No account required" and surfaces for the category query; this one
     // opened with the operation count and did not. The example list is down

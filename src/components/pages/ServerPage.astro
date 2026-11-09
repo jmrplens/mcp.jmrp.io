@@ -1,16 +1,16 @@
 ---
 /**
- * One server's detail page (`/servers/<id>/`) — its Server Card, laid out for
+ * One server's detail page (`/servers/<id>/`): its Server Card, laid out for
  * reading and linking rather than as raw JSON: identity, then every tool,
  * prompt, resource and resource template it publishes, each one linking
  * straight into the inspector preconfigured to it. See
  * `.superpowers/sdd/servers-section-spec.md` for the full rationale.
  *
- * `inputSchema`/`outputSchema` are deliberately absent — `server-cards.ts`'s
+ * `inputSchema`/`outputSchema` are deliberately absent: `server-cards.ts`'s
  * curated `serverCards` already strips them (see that module's header
  * comment); the live inspector is where a client inspects the real schema.
  *
- * Only `id` is a prop, like every other page component on this site — `lang`
+ * Only `id` is a prop, like every other page component on this site; `lang`
  * comes from the URL, not a parameter, so the mirrored `src/pages/es/`
  * route stays byte-identical to its English counterpart.
  */
@@ -62,7 +62,7 @@ const sp = serversPage[lang];
 const card = getServerCard(id);
 if (!card) {
   throw new Error(
-    `[servers] no server card for id "${id}" — getStaticPaths should have prevented this`,
+    `[servers] no server card for id "${id}"; getStaticPaths should have prevented this`,
   );
 }
 const serverMeta = servers.find((s) => s.id === id);
@@ -74,7 +74,7 @@ if (!serverMeta) {
 
 const serversHref = new URL(pageUrl(lang, "servers")).pathname;
 const inspectorBase = new URL(pageUrl(lang, "inspector")).pathname;
-// Targets of the service-context block below — site-relative, like every
+// Targets of the service-context block below, site-relative, like every
 // cross-page link here (an absolute URL sends a dev or preview server
 // straight to production).
 const internalsHref = new URL(pageUrl(lang, "internals")).pathname;
@@ -85,9 +85,9 @@ const inspectorOverviewHref = `${inspectorBase}?server=${id}`;
  * Deep link into the inspector, preconfigured to one tool/prompt/resource.
  *
  * @param tab Which inspector tab holds this entry.
- * @param name The tool/prompt name, or — for a resource — its URI. Resource
+ * @param name The tool/prompt name, or (for a resource) its URI. Resource
  *   templates have no matching tab, so callers never pass one for them.
- * @returns Relative URL, same-origin — never absolute (see other pages'
+ * @returns Relative URL, same-origin, never absolute (see other pages'
  *   `Href` comments for why).
  */
 function inspectorHref(
@@ -97,7 +97,7 @@ function inspectorHref(
   return `${inspectorBase}?server=${id}&tab=${tab}&name=${encodeURIComponent(name)}`;
 }
 
-/** One entry, with its anchor id and chip label precomputed ONCE — the
+/** One entry, with its anchor id and chip label precomputed ONCE: the
  * article's `id` and the matching chip's `href` both read off this same
  * value, so the two can never drift apart. */
 interface Entry<T> {
@@ -143,16 +143,16 @@ const hasTemplates = templateEntries.length > 0;
 // Above this many entries, the family gets a compact chip jump-index on top
 // of its full list (gitlab's 37 prompts / 37 resource templates); below it,
 // scrolling straight through the list is already fine (gitlab's 8
-// resources, everyone's handful of tools) — see the spec's TOC section for
+// resources, everyone's handful of tools); see the spec's TOC section for
 // why a chip grid exists at all.
 const CHIP_THRESHOLD = 8;
 
 // ---------------------------------------------------------------------------
-// Surface snapshots — what the server itself says at runtime, captured per
+// Surface snapshots: what the server itself says at runtime, captured per
 // build by `scripts/sync-server-surface.mjs` and read through
 // `src/data/surface.ts`. Absence DEGRADES on purpose: the loader returns
-// `undefined` and the sections below simply do not render — see that
-// module's header comment.
+// `undefined` and the sections below simply do not render (see that
+// module's header comment).
 // ---------------------------------------------------------------------------
 
 // `getDiscover` types its parameter against the servers that HAVE committed
@@ -170,14 +170,14 @@ const instructions =
 const actions = id === "gitlab" ? getGitlabActions() : undefined;
 
 // The snapshot orders domains alphabetically so a count change diffs as one
-// line (see the extractor); the page re-orders for reading — biggest domain
+// line (see the extractor); the page re-orders for reading: biggest domain
 // first, name as the tiebreaker.
 const catalogRows = actions
   ? [...actions.domains].sort(
       (a, b) => b.count - a.count || a.domain.localeCompare(b.domain),
     )
   : [];
-// The heading, the TOC and the table all cite `actionCount` — the same
+// The heading, the TOC and the table all cite `actionCount`, the same
 // figure `/servers.json`, `/servers/<id>/actions.json` and the llms*.txt
 // publish. The upstream `entryCount` is larger because the manifest also
 // lists its visible tools as entries (`gitlab_find_action`, a navigation
@@ -186,18 +186,18 @@ const catalogRows = actions
 
 // The search island fetches the compact, credential-free index the static
 // endpoint `/servers/<id>/actions.json` emits (see
-// `src/pages/servers/[server]/actions.json.ts` — the route `/servers.json`
+// `src/pages/servers/[server]/actions.json.ts`, the route `/servers.json`
 // and the llms*.txt announce). Same-origin, so it passes `connect-src
 // 'self'`. That route exists exactly when the snapshot loads (its
 // `getStaticPaths` filters on it), which is the same `actions` gate the
-// island renders behind — derived from the id, never hardcoded.
+// island renders behind, derived from the id, never hardcoded.
 const actionsIndexHref = `/servers/${id}/actions.json`;
 // The localized prefix for the per-domain pages; the domain's name (manifest
 // data) is concatenated as-is.
 const actionsDomainBase = `${lang === "es" ? "/es/" : "/"}${serverPagePath(id)}actions/`;
 
 // Subscriptions block + per-template "subscribable" chips, from the curated
-// card summary (`capabilities`/`subscriptions` are verbatim card data — see
+// card summary (`capabilities`/`subscriptions` are verbatim card data; see
 // `server-cards.ts`). Only gitlab publishes `subscriptions` today, but the
 // section renders for any card that does.
 const subs = card.subscriptions;
@@ -208,11 +208,11 @@ const tocFamilies = [
   // because it is the only section the visitor needs BEFORE they can use
   // anything that follows.
   { id: "connect-h", label: sp.connectHead },
-  // No count: it is prose, not a family of entries — see `TocFamily.count`.
+  // No count: it is prose, not a family of entries (see `TocFamily.count`).
   { id: "context-h", label: sp.contextHead },
   // In DOM order: the page renders connect → context → overview. This entry
   // used to be special-cased inside ServerToc as a link to `#top`, which is
-  // the page header — so "Overview" landed two sections above the Overview.
+  // the page header, so "Overview" landed two sections above the Overview.
   { id: "overview-h", label: sp.overviewHead },
   ...(instructions
     ? [{ id: "instructions-h", label: sp.instructionsHead }]
@@ -262,7 +262,7 @@ const authSchemes = card.authentication.schemes;
  * SEP-1649 descriptions are plain text, and a server that structures a long
  * one structures it with blank lines: libgen's `search` publishes four
  * paragraphs. Rendered into a single `<p>`, HTML collapses those breaks and
- * the whole thing arrives as one undifferentiated block — which is half of
+ * the whole thing arrives as one undifferentiated block, which is half of
  * the "wall of text" the 2026-08-24 audit measured on this page.
  *
  * Splits on blank lines and NOTHING else. Not on sentences, not on the
@@ -270,7 +270,7 @@ const authSchemes = card.authentication.schemes;
  * this text is a verbatim pass-through of what the server publishes (see this
  * module's header comment), and choosing where a third party's prose breaks
  * is authoring it, not rendering it. That paragraph is fixed where it is
- * written — in `libgen-mcp` — not here; see `plan/PLAN-REMEDIACION-2026-08-24.md`.
+ * written (in `libgen-mcp`), not here; see `plan/PLAN-REMEDIACION-2026-08-24.md`.
  *
  * @param text The description exactly as the Server Card publishes it.
  * @returns One entry per paragraph, blank ones dropped.
@@ -286,7 +286,7 @@ function descriptionParagraphs(text: string): string[] {
  * A paragraph's lines, for rendering single line breaks as explicit `<br />`.
  *
  * The first version kept the raw `\n` inside the `<p>` and relied on
- * `white-space: pre-line` to honour them — correct against the source, and
+ * `white-space: pre-line` to honour them: correct against the source, and
  * useless against the BUILD: the post-build HTML minifier collapses
  * whitespace inside text nodes, so the served page carried zero line breaks
  * and pre-line had nothing left to preserve. The gitlab `instructions` block
@@ -297,20 +297,20 @@ function paragraphLines(paragraph: string): string[] {
   return paragraph.split("\n").map((line) => line.trim());
 }
 
-/** True if an argument declares itself required — `arguments[].required` is
+/** True if an argument declares itself required: `arguments[].required` is
  * omitted (not sent as `false`) when optional, see `CardPromptArgument`. */
 function isRequired(arg: CardPromptArgument): boolean {
   return arg.required === true;
 }
 
-// Everything below is OPTIONAL card data — every one of these can be
+// Everything below is OPTIONAL card data: every one of these can be
 // `undefined`, and the markup below degrades to exactly today's page when it
 // is. Like the rest of this component it all reads off the curated `card`:
 // since the summary grew `resourceTemplates` (with its curated
 // `subscribable` flag), nothing on this page needs the full document any
 // more.
 const serverIcon = safeIcon(card.serverInfo.icons);
-// The card's own title, shown as a caption under the `<h1>` — never a second
+// The card's own title, shown as a caption under the `<h1>`, never a second
 // heading. Guards against a future card publishing a title identical to the
 // plain id, which would just repeat the name.
 const cardTitle =
@@ -327,8 +327,8 @@ const websiteUrl =
 /** One chip for one true behavioural hint, plus how it should be painted. */
 interface AnnotationChip {
   label: string;
-  /** `destructive` is the one hint that must visually stand out — see
-   * `.a-chip--destructive` below. Every other hint is purely informative. */
+  /** `destructive` is the one hint that must visually stand out (see
+   * `.a-chip--destructive` below). Every other hint is purely informative. */
   variant: "info" | "destructive";
 }
 
@@ -336,10 +336,10 @@ interface AnnotationChip {
  * The behavioural chips for one tool, in the order the spec lists them:
  * read-only, destructive, idempotent, external network.
  *
- * Only hints the card sets to `true` get a chip — SEP-1649 leaves every hint
+ * Only hints the card sets to `true` get a chip: SEP-1649 leaves every hint
  * optional and non-`true` (absent or `false`) is "nothing declared", not
  * "declared safe": there is nothing worth asserting about a tool either way.
- * A tool whose card carries no `annotations` object at all gets no chips —
+ * A tool whose card carries no `annotations` object at all gets no chips,
  * the author's decision for a server that has not published any yet. Both of
  * today's servers already do: gitlab's `gitlab_execute_action` is exactly
  * the destructive+external-network case this exists for.
@@ -391,12 +391,12 @@ function toolAnnotationChips(
   </header>
 
   <div class="server-layout">
-    {/* Checkbox-hack toggle for the mobile TOC panel — same mechanism as the
+    {/* Checkbox-hack toggle for the mobile TOC panel, same mechanism as the
         header's `#nav-open` in Base.astro (hidden checkbox + `:has()` +
         `<label>` scrim/FAB), scoped to this page instead of the whole site.
         Zero JavaScript: opening/closing works from mouse, touch AND
         keyboard (Tab lands on this checkbox since it is not `tabindex="-1"`,
-        Space toggles it — the native behaviour every checkbox already has).
+        Space toggles it, the native behaviour every checkbox already has).
         No inline script layers anything on top here, unlike the nav drawer:
         the spec calls for these pages to ship no JS at all. */}
     <input
@@ -411,7 +411,7 @@ function toolAnnotationChips(
       {/* OUR content first, the binary's after: the page starts by answering
           "how do I connect this" and only then goes on to describe what the
           server declares about itself. The order used to be the reverse, and
-          the answer was not even here — it lived folded inside a card on the
+          the answer was not even here: it lived folded inside a card on the
           home page. */}
       <section
         class="server-family"
@@ -455,8 +455,8 @@ function toolAnnotationChips(
         </p>
         {/* This server's own notices, immediately under the section that
             introduces them. They rendered only on the home page until now, so
-            a reader who landed here from a search — on the page that describes
-            this server in the most detail — had to go to the home page to find
+            a reader who landed here from a search (on the page that describes
+            this server in the most detail) had to go to the home page to find
             out where their token ends up, or what the limits are. Each card
             shows only ITS server's, where the home page shows both.
 
@@ -553,7 +553,7 @@ function toolAnnotationChips(
         </p>
       </section>
 
-      {/* Service context, between the overview and the schemas — the four
+      {/* Service context, between the overview and the schemas: the four
           things the home page treats as non-negotiable about these endpoints
           (rate limit, no SLA, how many nodes, the legal position) and that
           this page carried none of. It goes HERE and not at the foot of the
@@ -563,11 +563,11 @@ function toolAnnotationChips(
           repeating `/policies/`. */}
 
       {/* The server's own connect-time instructions (`server/discover`),
-          quoted verbatim from the committed surface snapshot — data, not
+          quoted verbatim from the committed surface snapshot: data, not
           chrome, so it is never translated (the Spanish intro flags it as English,
           same convention as `cardDescriptionLabel`). Placed after the
-          service context — whose own comment defends its spot right behind
-          the overview — and before the 1,300 words of tools, where whoever
+          service context (whose own comment defends its spot right behind
+          the overview) and before the 1,300 words of tools, where whoever
           is configuring a client actually needs it. */}
       {instructions && (
         <section
@@ -612,7 +612,7 @@ function toolAnnotationChips(
         {toolEntries.length > CHIP_THRESHOLD && (
           <ServerEntryChips
             entries={toolEntries}
-            ariaLabel={`${sp.chipIndexLabel} — ${t.toolsHead}`}
+            ariaLabel={`${sp.chipIndexLabel}: ${t.toolsHead}`}
           />
         )}
         <div class="entry-list">
@@ -664,7 +664,7 @@ function toolAnnotationChips(
                 )}
                 {/* What to send. The same `schemaFields` the inspector uses
                       on the LIVE `tools/list`, run here over the card's
-                      committed copy — one reader, so a field is described the
+                      committed copy: one reader, so a field is described the
                       same way whichever page you meet it on. Collapsed, like
                       the return below it: a tool carries two lists where a
                       prompt carries one, and both open at once buried the
@@ -702,7 +702,7 @@ function toolAnnotationChips(
                 })()}
                 {/* What comes back, collapsed: `read` answers with 19 fields,
                       and what you need to CALL a tool is not what you need to
-                      READ its answer. Zero JS — a plain <details>. */}
+                      READ its answer. Zero JS: a plain <details>. */}
                 {(() => {
                   const out = schemaFields(entry.data.outputSchema);
                   return out.length > 0 ? (
@@ -742,7 +742,7 @@ function toolAnnotationChips(
 
       {/* gitlab's fine-grained action catalog (`gitlab://tools`), counted
           by domain from the committed snapshot. This section only ever
-          consumes AGGREGATES (`meta` counts + per-domain rows) — never the
+          consumes AGGREGATES (`meta` counts + per-domain rows), never the
           upstream instance the manifest was read from, which the extractor's
           anti-leak guard keeps out of the snapshot in the first place. */}
       {actions && (
@@ -820,7 +820,7 @@ function toolAnnotationChips(
           {promptEntries.length > CHIP_THRESHOLD && (
             <ServerEntryChips
               entries={promptEntries}
-              ariaLabel={`${sp.chipIndexLabel} — ${t.promptsHead}`}
+              ariaLabel={`${sp.chipIndexLabel}: ${t.promptsHead}`}
             />
           )}
           <div class="entry-list">
@@ -967,7 +967,7 @@ function toolAnnotationChips(
           {templateEntries.length > CHIP_THRESHOLD && (
             <ServerEntryChips
               entries={templateEntries}
-              ariaLabel={`${sp.chipIndexLabel} — ${sp.templatesHead}`}
+              ariaLabel={`${sp.chipIndexLabel}: ${sp.templatesHead}`}
             />
           )}
           <div class="entry-list">
@@ -1024,7 +1024,7 @@ function toolAnnotationChips(
         </section>
       )}
 
-      {/* Whether a client can subscribe instead of polling — the block that
+      {/* Whether a client can subscribe instead of polling: the block that
           explains the "subscribable" chips on the templates above, so it
           sits right after them. Availability is read from the card, never
           hardcoded: on THIS deployment `subscriptions/listen` is up and
@@ -1080,7 +1080,7 @@ function toolAnnotationChips(
     </div>
 
     {/* Desktop: sticky rail, always visible above the breakpoint (see the
-        media queries below) — plain anchors, no JS. */}
+        media queries below): plain anchors, no JS. */}
     <aside class="toc-rail">
       <ServerToc
         families={tocFamilies}
@@ -1090,7 +1090,7 @@ function toolAnnotationChips(
 
     {/* Mobile: floating button + panel, both driven by `#toc-open` above.
         `<label for="toc-open">` toggles the checkbox on click/tap with zero
-        JavaScript — standard label behaviour, not a custom mechanism. */}
+        JavaScript: standard label behaviour, not a custom mechanism. */}
     <label
       for="toc-open"
       class="toc-fab"
@@ -1159,7 +1159,7 @@ function toolAnnotationChips(
     text-underline-offset: 3px;
   }
 
-  /* Icon + name inline, scoped to just THIS page's `<h1>` — Astro's per-
+  /* Icon + name inline, scoped to just THIS page's `<h1>`. Astro's per-
      component style scoping means this never touches `.subpage-title`'s
      shared base rule in base.css, which Inspector/Policies/Internals still
      use unmodified (none of them have a server icon to place). */
@@ -1184,14 +1184,14 @@ function toolAnnotationChips(
 
   /* Every icon on this page ships as a `currentColor` SVG, but `currentColor`
      inside an image loaded via `<img>` resolves against THAT image's own
-     isolated rendering context, not this page's `--color-text-heading` — it
+     isolated rendering context, not this page's `--color-text-heading`: it
      does not follow the surrounding cascade at all. That isolation is
      exactly what makes `<img>` safe here (see `src/lib/card-icons.ts`), and
      its cost is that every one of these icons renders as a fixed color
      (in practice, black) no matter the site's theme.
      A CSS `filter` recolors the rasterized image after the fact instead of
      touching the SVG source, so the `<img>`-only rule stays intact. Dark is
-     this site's default (no `data-theme` attribute needed — see
+     this site's default (no `data-theme` attribute needed; see
      tokens.css's header comment), so the un-inverted (light-theme) case is
      the override, exactly mirroring tokens.css's own auto+manual dual-block
      mechanism for theme switches. */
@@ -1229,7 +1229,7 @@ function toolAnnotationChips(
   .server-content {
     /* min-width:0 on a grid item: without it, a long unbroken token (a
        resource URI, an endpoint) can force the grid track wider than the
-       viewport instead of wrapping inside `<code>` — the 360px scroll bug
+       viewport instead of wrapping inside `<code>`, the 360px scroll bug
        this rule exists to prevent. */
     min-width: 0;
   }
@@ -1287,7 +1287,7 @@ function toolAnnotationChips(
     text-underline-offset: 3px;
   }
 
-  /* The card's own `serverInfo.description` — quoted, not translated (it is
+  /* The card's own `serverInfo.description`, quoted, not translated (it is
      English-only SEP-1649 data), set off from `.subpage-intro` above (this
      site's own bilingual copy) so the two are never mistaken for one text. */
   .card-own-description {
@@ -1333,7 +1333,7 @@ function toolAnnotationChips(
     /* NO shadow, and that is deliberate. jmrp.io/projects carries none on its
        cards either (zero `box-shadow` on that page): the opaque surface and the
        hairline are what separate them, nothing more. And the only two shadow
-       tokens that exist here — `--sh-card` and `--sh-pop` — are 60-70px drops
+       tokens that exist here (`--sh-card` and `--sh-pop`) are 60-70px drops
        meant for one large card on its own; repeated across hundreds of entries
        in a row they would muddy the whole column. Inventing a third token for
        this would be extending the design system without a mandate. */
@@ -1344,7 +1344,7 @@ function toolAnnotationChips(
 
     /* An OPAQUE surface, like jmrp.io's cards: with only a border, the
        background grid runs through the box and in light mode it stops reading
-       as a surface. `--color-bg-subtle` will not do either — it is 5%
+       as a surface. `--color-bg-subtle` will not do either: it is 5%
        translucent, so the grid shows through just the same. */
     background: var(--color-bg-secondary);
     border: 1px solid var(--color-hair);
@@ -1379,7 +1379,7 @@ function toolAnnotationChips(
     overflow-wrap: anywhere;
   }
 
-  /* Behavioural hints (SEP-1649 tool annotations) — real security signal,
+  /* Behavioural hints (SEP-1649 tool annotations): real security signal,
      not decoration: knowing `gitlab_execute_action` is destructive matters
      BEFORE connecting a client to it. Only tools carry these (gitlab has 2,
      libgen 4), so even on gitlab's 84-entry card this list never grows past
@@ -1394,7 +1394,7 @@ function toolAnnotationChips(
   }
 
   /* `.chip` (mono pill shape) comes from utilities.css; these two variants
-     only add color. `--info` covers read-only/idempotent/external-network —
+     only add color. `--info` covers read-only/idempotent/external-network,
      purely informative, so it stays as quiet as the rest of the metadata. */
   .a-chip--info {
     color: var(--color-text-muted);
@@ -1403,7 +1403,7 @@ function toolAnnotationChips(
 
   /* The one chip that must stand out: it says a tool can change or delete
      something. Meaning rides on the TEXT, which is translated in both, not
-     just the color, so this reads the same under a color-vision deficiency —
+     just the color, so this reads the same under a color-vision deficiency;
      the color is emphasis on top of that, not the only signal. */
   .a-chip--destructive {
     font-weight: var(--fw-medium);
@@ -1435,8 +1435,8 @@ function toolAnnotationChips(
     font-family: var(--font-mono);
   }
 
-  /* Heading over a tool's argument list. Prompts do not need one — a prompt
-     has arguments and nothing else — but a tool now shows two lists, and
+  /* Heading over a tool's argument list. Prompts do not need one (a prompt
+     has arguments and nothing else), but a tool now shows two lists, and
      unlabelled they would read as one. */
   .schema-head {
     margin: 0.9rem 0 0;
@@ -1448,7 +1448,7 @@ function toolAnnotationChips(
   }
 
   /* The declared type, beside the field name: `string`, `string[]`,
-     `"a" | "b"` — whatever `schemaFields` could read. Quieter than the name,
+     `"a" | "b"`: whatever `schemaFields` could read. Quieter than the name,
      which is what a reader scans for. */
   .arg-type {
     font-weight: var(--fw-normal);
@@ -1456,7 +1456,7 @@ function toolAnnotationChips(
   }
 
   /* Both schema lists, collapsed. Same list inside, one summary line outside.
-     (Class name kept from when only the return used it — both use it now.) */
+     (Class name kept from when only the return used it; both use it now.) */
   .returns {
     margin-top: 0.9rem;
   }
@@ -1490,8 +1490,8 @@ function toolAnnotationChips(
   .args {
     display: grid;
 
-    /* Capped, not `auto`. A tool's type can be a long enum union — libgen's
-       `source` lists sixteen alternatives — and an `auto` track sizes itself
+    /* Capped, not `auto`. A tool's type can be a long enum union (libgen's
+       `source` lists sixteen alternatives), and an `auto` track sizes itself
        to that, which measured 630px of an 843px list and squeezed every
        description into the remaining sliver. Bounded, the union wraps inside
        its own column and the descriptions keep their width. */
@@ -1645,7 +1645,7 @@ function toolAnnotationChips(
   /* ===== TOC: mobile FAB + panel + scrim, checkbox-hack ==================
      Same technique as Base.astro's nav drawer (hidden checkbox + `:has()` +
      `<label>` scrim), scoped to this page's own `#toc-open` instead of the
-     header's `#nav-open`. No inline script here at all — see the comment on
+     header's `#nav-open`. No inline script here at all; see the comment on
      the checkbox above for why this one stays zero-JS where the nav drawer
      layers a little progressive enhancement on top. */
   .toc-fab,
@@ -1739,7 +1739,7 @@ function toolAnnotationChips(
 
     /* `.toc-scrim`/`.toc-panel` are TRUE siblings of `#toc-open` (both direct
        children of `.server-layout`, both after it in source order), so a
-       plain sibling combinator reaches them — no `:has()` needed, unlike
+       plain sibling combinator reaches them, no `:has()` needed, unlike
        Base.astro's nav drawer, where the checkbox and the elements it drives
        are NOT siblings (the drawer needs to reach `<body>`, outside the
        `<header>` the checkbox lives in). Astro scopes both sides of this
