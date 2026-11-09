@@ -34,7 +34,10 @@ function docsSiteKey(url: string): string | undefined {
     return undefined;
   }
   let host = parsed.hostname.toLowerCase();
-  let path = parsed.pathname.replace(/\/+$/, "");
+  // Trailing slashes trimmed without a regex (`/\/+$/` backtracks
+  // super-linearly, Sonar S8786).
+  let path = parsed.pathname;
+  while (path.endsWith("/")) path = path.slice(0, -1);
   const alias = /^\/docs\/([^/]+)$/i.exec(path);
   if (host === "jmrp.io" && alias) {
     host = "docs.jmrp.io";
