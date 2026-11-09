@@ -33,6 +33,7 @@ import { ui } from "../../i18n/ui";
 import { serversPage } from "../../i18n/ui/servers-page";
 import { getLangFromUrl } from "../../i18n/utils";
 import { safeIcon } from "../../lib/card-icons";
+import { websiteHref } from "../../lib/docs-site";
 import { pageUrl, serverPagePath } from "../../lib/seo";
 import { anchorSlug } from "../../lib/slug";
 import { schemaFields } from "../../lib/tool-schema";
@@ -317,7 +318,11 @@ const cardTitle =
     ? card.serverInfo.title
     : undefined;
 const cardDescription = card.serverInfo.description;
-const websiteUrl = card.serverInfo.websiteUrl;
+// The card's address, or this server's documentation site when the card's
+// address only redirects there (see `src/lib/docs-site.ts`).
+const websiteUrl =
+  card.serverInfo.websiteUrl &&
+  websiteHref(card.serverInfo.websiteUrl, serverMeta.docsSite);
 
 /** One chip for one true behavioural hint, plus how it should be painted. */
 interface AnnotationChip {

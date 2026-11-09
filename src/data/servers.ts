@@ -186,13 +186,15 @@ export type McpServer = {
   /**
    * The full documentation site, if there is one.
    *
-   * Written exactly as the server's own card publishes it in `websiteUrl`:
-   * the page links both, and two different URLs for the same destination
-   * read as two sites. That was `https://jmrp.io/docs/<repo>` for both
-   * servers (the author's convention, 2026-08-24); gitlab 3.3.0 declares
-   * `https://docs.jmrp.io/gitlab-mcp-server` instead (#1379), which the old
-   * address now 301s to, while libgen's card still publishes the old form.
-   * Follow each card, not the convention.
+   * Its final address, the one that answers 200: on docs.jmrp.io and with
+   * its trailing slash, as jmrp.io's `projects.yaml` names it, so the
+   * `documentation` both sites publish for the same `WebAPI` node is one
+   * URL. Each card's `websiteUrl` can still name an address that redirects
+   * here (libgen's card says `https://jmrp.io/docs/libgen-mcp`, gitlab 3.3.0's
+   * `https://docs.jmrp.io/gitlab-mcp-server`, both 301s); the server page
+   * then links this address for it (`websiteHref` in `src/lib/docs-site.ts`),
+   * so one destination never shows as two URLs. Until 2026-11-09 this field
+   * copied each card verbatim, which published those redirects.
    */
   docsSite?: string;
   /**
@@ -419,7 +421,7 @@ export const servers: McpServer[] = [
     endpoint: "https://mcp.jmrp.io/libgen",
     repo: "https://github.com/jmrplens/libgen-mcp",
     docs: "https://github.com/jmrplens/libgen-mcp#readme",
-    docsSite: "https://jmrp.io/docs/libgen-mcp",
+    docsSite: "https://docs.jmrp.io/libgen-mcp/",
     sameAs: [
       "https://glama.ai/mcp/servers/jmrplens/libgen-mcp",
       // Checked, not assumed: its listing names mcp.jmrp.io 21 times, so it
@@ -645,7 +647,7 @@ export const servers: McpServer[] = [
     endpoint: "https://mcp.jmrp.io/gitlab",
     repo: "https://github.com/jmrplens/gitlab-mcp-server",
     docs: "https://github.com/jmrplens/gitlab-mcp-server#readme",
-    docsSite: "https://docs.jmrp.io/gitlab-mcp-server",
+    docsSite: "https://docs.jmrp.io/gitlab-mcp-server/",
     sameAs: [
       "https://glama.ai/mcp/servers/jmrplens/gitlab-mcp-server",
       "https://mcpservers.org/servers/jmrplens/gitlab-mcp-server",
