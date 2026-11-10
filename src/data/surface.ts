@@ -174,6 +174,47 @@ export interface GitlabActionsSnapshot {
  */
 export const GITLAB_CATALOG_TIER = "Ultimate";
 
+/**
+ * Domains gitlab serves only to a token it resolves to Ultimate, so the
+ * catalog itself says which tier it was counted at.
+ */
+export const GITLAB_ULTIMATE_ONLY_DOMAINS: readonly string[] = [
+  "vulnerability",
+  "security_finding",
+  "dora_metrics",
+  "compliance_policy",
+];
+
+/**
+ * Why a catalog with these domains is not the one `tier` describes, or
+ * `undefined` when it is: an Ultimate catalog carries every Ultimate-only
+ * domain, any other tier carries none.
+ *
+ * Two readers. The unit test holds the committed snapshot to
+ * GITLAB_CATALOG_TIER, and scripts/sync-server-surface.mjs refuses to write
+ * a live manifest that fails it. The second one exists because the tier is
+ * the server's verdict about the token, not a property of the token: on
+ * 2026-11-10 a gitlab 3.4.0 replica whose membership probe had timed out
+ * kept resolving the build's token to Free, and the build published 772
+ * actions under copy that said Ultimate.
+ */
+export function catalogTierMismatch(
+  domains: Iterable<string>,
+  tier: string = GITLAB_CATALOG_TIER,
+): string | undefined {
+  const present = new Set(domains);
+  const carried = GITLAB_ULTIMATE_ONLY_DOMAINS.filter((d) => present.has(d));
+  if (tier === "Ultimate") {
+    const missing = GITLAB_ULTIMATE_ONLY_DOMAINS.filter((d) => !present.has(d));
+    return missing.length === 0
+      ? undefined
+      : `the tier is ${tier} but the catalog lacks the Ultimate-only domains ${missing.join(", ")}`;
+  }
+  return carried.length === 0
+    ? undefined
+    : `the tier is ${tier} but the catalog carries the Ultimate-only domains ${carried.join(", ")}`;
+}
+
 /** The note `/servers.json` and `/servers/<id>/actions.json` attach to the count. */
 export const GITLAB_CATALOG_NOTE = `Counted with a token gitlab.com resolves to the ${GITLAB_CATALOG_TIER} tier; the catalog is scoped to the token that asks, so tier and token permissions both move the count.`;
 
