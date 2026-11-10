@@ -18,8 +18,10 @@ import { test } from "node:test";
 
 import {
   actionCatalogs,
+  catalogTierMismatch,
   GITLAB_CATALOG_NOTE,
   GITLAB_CATALOG_TIER,
+  GITLAB_ULTIMATE_ONLY_DOMAINS,
 } from "../../src/data/surface.ts";
 import { serversPage } from "../../src/i18n/ui/servers-page.ts";
 
@@ -54,31 +56,32 @@ test("no servers-page string spells the deployment's action count by hand", () =
 // It was Free up to gitlab 3.2.0 and Ultimate from 3.3.0 on, with the same
 // token, because 3.3.0 began reading the tier from the groups a token belongs
 // to (#1273); six strings said "Free-tier" over a catalog of 977 Ultimate
-// actions until 2026-10-24. These domains exist only on Ultimate, so the
-// catalog itself says which tier it was counted at.
-const ULTIMATE_ONLY = [
-  "vulnerability",
-  "security_finding",
-  "dora_metrics",
-  "compliance_policy",
-];
-
+// actions until 2026-10-24. GITLAB_ULTIMATE_ONLY_DOMAINS exist only on
+// Ultimate, so the catalog itself says which tier it was counted at.
 test("the tier the copy names is the tier the committed catalog shows", () => {
-  const domains = new Set(actionCatalogs().gitlab.domains.map((d) => d.domain));
-  const ultimate = ULTIMATE_ONLY.filter((d) => domains.has(d));
-  if (GITLAB_CATALOG_TIER === "Ultimate") {
-    assert.deepEqual(
-      ultimate,
-      ULTIMATE_ONLY,
-      "GITLAB_CATALOG_TIER says Ultimate but the catalog lacks Ultimate-only domains",
-    );
-  } else {
-    assert.deepEqual(
-      ultimate,
-      [],
-      `GITLAB_CATALOG_TIER says ${GITLAB_CATALOG_TIER} but the catalog has Ultimate-only domains`,
-    );
-  }
+  const domains = actionCatalogs().gitlab.domains.map((d) => d.domain);
+  assert.equal(catalogTierMismatch(domains), undefined);
+});
+
+// The same check gates the build's sync, which is where a wrong tier gets
+// in: these cases pin what it accepts and what it refuses.
+test("catalogTierMismatch accepts a catalog that matches its tier", () => {
+  const ultimate = ["issue", ...GITLAB_ULTIMATE_ONLY_DOMAINS];
+  assert.equal(catalogTierMismatch(ultimate, "Ultimate"), undefined);
+  assert.equal(catalogTierMismatch(["issue", "epic"], "Free"), undefined);
+  assert.equal(catalogTierMismatch(["issue", "epic"], "Premium"), undefined);
+});
+
+test("catalogTierMismatch refuses an Ultimate claim over a lower catalog", () => {
+  const reason = catalogTierMismatch(["issue", "vulnerability"], "Ultimate");
+  assert.match(reason ?? "", /lacks the Ultimate-only domains/);
+  assert.match(reason ?? "", /dora_metrics/);
+  assert.doesNotMatch(reason ?? "", /vulnerability/);
+});
+
+test("catalogTierMismatch refuses a lower claim over an Ultimate catalog", () => {
+  const reason = catalogTierMismatch(["issue", "dora_metrics"], "Free");
+  assert.match(reason ?? "", /carries the Ultimate-only domains dora_metrics/);
 });
 
 test("every string that states the tier states GITLAB_CATALOG_TIER", () => {

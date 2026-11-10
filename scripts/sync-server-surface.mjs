@@ -10,7 +10,9 @@
  * fallback for builds with no network or no secrets (CI). That is why a
  * network/token/shape failure is SOFT (warning + exit 0, snapshot untouched):
  * a CI build with no credentials has to keep compiling with what is in the
- * repo.
+ * repo. A manifest counted at a tier other than GITLAB_CATALOG_TIER is the
+ * same kind of failure: the server misjudged the token, the repo did not
+ * change (see collectGitlabActions).
  *
  * PROJECTION BY ALLOWLIST, not passthrough: no unknown future field of the
  * response can slip into the repo (which is public), the icons already live
@@ -52,6 +54,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+
+import { catalogTierMismatch } from "../src/data/surface.ts";
 
 // The repo's .env (gitignored) carries MCP_PERSONAL_GITLAB_COM_TOKEN and
 // MCP_SURFACE_FORBIDDEN_HOSTS on the
@@ -647,14 +651,31 @@ async function collectGitlabActions(
       }
       throw new Error(`JSON-RPC ${rpc.error.code}: ${rpc.error.message}`);
     }
+    const snapshot = buildActionsSnapshot(
+      endpoint,
+      rpc.result,
+      sourceVersion,
+      generatedAt,
+    );
+    // The tier is the server's verdict about the token, cached per
+    // credential for as long as the replica keeps the entry: on 2026-11-10 a
+    // 3.4.0 replica whose membership probe had timed out the evening before
+    // served this token the Free catalog (772 actions, 29 domains), and the
+    // build published it under copy that says Ultimate. A manifest that
+    // contradicts GITLAB_CATALOG_TIER is never written; the fine-grained
+    // read below has no manifest to follow and keeps its snapshot too. If
+    // the tier really changed, change GITLAB_CATALOG_TIER and the EN/ES copy
+    // that names it, then sync again.
+    const mismatch = catalogTierMismatch(snapshot.domains.map((d) => d.domain));
+    if (mismatch) {
+      throw new Error(
+        `${mismatch} (${snapshot.meta.actionCount} actions in ${snapshot.domains.length} domains); ` +
+          "if the tier really changed, update GITLAB_CATALOG_TIER and its copy",
+      );
+    }
     pending.push({
       target: path.join(SURFACE_DIR, "gitlab-actions.json"),
-      snapshot: buildActionsSnapshot(
-        endpoint,
-        rpc.result,
-        sourceVersion,
-        generatedAt,
-      ),
+      snapshot,
       raws: [raw],
     });
   } catch (error) {
